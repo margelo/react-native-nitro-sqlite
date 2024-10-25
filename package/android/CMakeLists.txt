@@ -27,6 +27,7 @@ include_directories(
   ../cpp
   ../cpp/specs
   ../cpp/sqlite
+  src/main/cpp
 )
 
 find_library(LOG_LIB log)
