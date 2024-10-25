@@ -1,6 +1,6 @@
 {
   "name": "react-native-nitro-sqlite",
-  "version": "8.2.1-nitro.1",
+  "version": "8.2.2-nitro.1",
   "description": "Fast SQLite for react-native",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",

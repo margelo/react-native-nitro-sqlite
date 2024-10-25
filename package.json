@@ -1,6 +1,6 @@
 {
   "name": "react-native-nitro-sqlite-workspace",
-  "version": "8.2.1-nitro.1",
+  "version": "8.2.2-nitro.1",
   "packageManager": "bun@1.1.21",
   "private": "true",
   "workspaces": [
