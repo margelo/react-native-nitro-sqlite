@@ -8,39 +8,10 @@
 #pragma once
 
 // Forward declarations of C++ defined types
-// Forward declaration of `ArrayBuffer` to properly resolve imports.
-namespace NitroModules { class ArrayBuffer; }
-// Forward declaration of `BatchQueryCommand` to properly resolve imports.
-namespace margelo::nitro::rnquicksqlite { struct BatchQueryCommand; }
-// Forward declaration of `BatchQueryResult` to properly resolve imports.
-namespace margelo::nitro::rnquicksqlite { struct BatchQueryResult; }
-// Forward declaration of `ColumnType` to properly resolve imports.
-namespace margelo::nitro::rnquicksqlite { enum class ColumnType; }
-// Forward declaration of `FileLoadResult` to properly resolve imports.
-namespace margelo::nitro::rnquicksqlite { struct FileLoadResult; }
-// Forward declaration of `HybridNativeQueryResultSpec` to properly resolve imports.
-namespace margelo::nitro::rnquicksqlite { class HybridNativeQueryResultSpec; }
-// Forward declaration of `HybridQuickSQLiteSpec` to properly resolve imports.
-namespace margelo::nitro::rnquicksqlite { class HybridQuickSQLiteSpec; }
-// Forward declaration of `SQLiteQueryColumnMetadata` to properly resolve imports.
-namespace margelo::nitro::rnquicksqlite { struct SQLiteQueryColumnMetadata; }
+
 
 // Include C++ defined types
-#include "BatchQueryCommand.hpp"
-#include "BatchQueryResult.hpp"
-#include "ColumnType.hpp"
-#include "FileLoadResult.hpp"
-#include "HybridNativeQueryResultSpec.hpp"
-#include "HybridQuickSQLiteSpec.hpp"
-#include "SQLiteQueryColumnMetadata.hpp"
-#include <NitroModules/ArrayBuffer.hpp>
-#include <future>
-#include <memory>
-#include <optional>
-#include <string>
-#include <unordered_map>
-#include <variant>
-#include <vector>
+
 
 // C++ helpers for Swift
 #include "RNQuickSQLite-Swift-Cxx-Bridge.hpp"
@@ -52,10 +23,7 @@ namespace margelo::nitro::rnquicksqlite { struct SQLiteQueryColumnMetadata; }
 #include <NitroModules/PromiseHolder.hpp>
 
 // Forward declarations of Swift defined types
-// Forward declaration of `HybridNativeQueryResultSpecCxx` to properly resolve imports.
-namespace RNQuickSQLite { class HybridNativeQueryResultSpecCxx; }
-// Forward declaration of `HybridQuickSQLiteSpecCxx` to properly resolve imports.
-namespace RNQuickSQLite { class HybridQuickSQLiteSpecCxx; }
+
 
 // Include Swift defined types
 #if __has_include("RNQuickSQLite-Swift.h")

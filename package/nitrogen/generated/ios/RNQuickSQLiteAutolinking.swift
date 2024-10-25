@@ -6,5 +6,7 @@
 ///
 
 public final class RNQuickSQLiteAutolinking {
+  public typealias bridge = margelo.nitro.rnquicksqlite.bridge.swift
+
   
 }
