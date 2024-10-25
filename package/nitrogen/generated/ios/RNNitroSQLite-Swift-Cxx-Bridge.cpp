@@ -6,3 +6,12 @@
 ///
 
 #include "RNNitroSQLite-Swift-Cxx-Bridge.hpp"
+
+// Include C++ implementation defined types
+
+
+namespace margelo::nitro::rnnitrosqlite::bridge::swift {
+
+  
+
+} // namespace margelo::nitro::rnnitrosqlite::bridge::swift
