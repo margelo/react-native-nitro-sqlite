@@ -25,7 +25,7 @@
     "typescript": "bun --filter=\"**\" typescript",
     "lint": "bun --filter=\"**\" lint",
     "bootstrap": "bun --filter=\"**\" install && bun typescript && bun example pods",
-    "release": "release-it",
+    "release": "bun package prepare && release-it",
     "clean": "rm -rf **/tsconfig.tsbuildinfo node_modules package/node_module package/lib"
   },
   "dependencies": {
@@ -87,9 +87,16 @@
         }
       },
       "@release-it/bumper": {
-        "out": {
-          "file": "example/package.json"
-        }
+        "out": [
+          {
+            "file": "example/package.json",
+            "path": "version"
+          },
+          {
+            "file": "example/package.json",
+            "path": "dependencies.react-native-quick-sqlite"
+          }
+        ]
       }
     }
   }
