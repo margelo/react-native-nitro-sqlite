@@ -20,6 +20,7 @@ export const UnitTestScreen: React.FC = () => {
     <ScrollView
       contentContainerStyle={[
         ScreenStyles.container,
+        // eslint-disable-next-line react-native/no-inline-styles
         {alignItems: 'flex-start'},
       ]}>
       {results.map((r, i) => {

@@ -20,7 +20,7 @@ export interface PendingTransaction {
   start: () => void
 }
 
-export const transaction = async (
+export const transaction = (
   dbName: string,
   fn: (tx: Transaction) => Promise<void> | void
 ): Promise<void> => {
