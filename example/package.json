@@ -29,8 +29,7 @@
     "reflect-metadata": "^0.1.13",
     "stream-browserify": "^3.0.0",
     "typeorm": "^0.3.20",
-    "util": "^0.12.5",
-    "react-native-quick-sqlite": "8.2.2-nitro.1"
+    "util": "^0.12.5"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",
