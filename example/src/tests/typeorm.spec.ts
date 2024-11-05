@@ -1,6 +1,6 @@
 import type {Repository} from 'typeorm';
 import {DataSource} from 'typeorm';
-import {beforeAll, beforeEach, it, describe} from './MochaRNAdapter';
+import {beforeAll, it, describe, beforeEachAsync} from './MochaRNAdapter';
 import {typeORMDriver} from 'react-native-quick-sqlite';
 import {User} from '../model/User';
 import {Book} from '../model/Book';
@@ -14,7 +14,7 @@ let bookRepository: Repository<Book>;
 
 export function registerTypeORMTests() {
   describe('Typeorm tests', () => {
-    beforeAll((done: any) => {
+    beforeAll(done => {
       dataSource = new DataSource({
         type: 'react-native',
         database: 'typeormDb.sqlite',
@@ -37,12 +37,12 @@ export function registerTypeORMTests() {
         });
     });
 
-    beforeEach(async () => {
+    beforeEachAsync(async () => {
       await userRepository.clear();
       await bookRepository.clear();
     });
 
-    it('basic test', async () => {
+    it('basic test', () => {
       expect(1).to.equal(2);
     });
   });
