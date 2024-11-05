@@ -24,7 +24,7 @@
     "format-cpp": "./scripts/clang-format.sh",
     "typescript": "bun --filter=\"**\" typescript",
     "lint": "bun package lint && bun example lint",
-    "bootstrap": "bun --filter=\"**\" install && bun typescript && bun example pods",
+    "bootstrap": "bun install && bun package prepare && bun example pods",
     "release": "bun package prepare && release-it",
     "clean": "rm -rf **/tsconfig.tsbuildinfo node_modules package/node_module package/lib"
   },
