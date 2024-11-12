@@ -44,6 +44,7 @@ target_link_libraries(
   ReactAndroid::jsi
 )
 
+# https://github.com/react-native-community/discussions-and-proposals/discussions/816
 # This if-then-else can be removed once this library does not support version below .76
 if (REACTNATIVE_MERGED_SO)
   target_link_libraries(
