@@ -122,10 +122,7 @@ export interface FileLoadResult extends BatchQueryResult {
 export interface Transaction {
   commit: () => QueryResult
   execute: (query: string, params?: any[]) => QueryResult
-  executeAsync: (
-    query: string,
-    params?: any[] | undefined
-  ) => Promise<QueryResult>
+  executeAsync: (query: string, params?: any[]) => Promise<QueryResult>
   rollback: () => QueryResult
 }
 
@@ -213,7 +210,7 @@ const _execute = QuickSQLite.execute
 QuickSQLite.execute = (
   dbName: string,
   query: string,
-  params?: any[] | undefined
+  params?: any[]
 ): QueryResult => {
   const result = _execute(dbName, query, params)
   enhanceQueryResult(result)
@@ -224,7 +221,7 @@ const _executeAsync = QuickSQLite.executeAsync
 QuickSQLite.executeAsync = async (
   dbName: string,
   query: string,
-  params?: any[] | undefined
+  params?: any[]
 ): Promise<QueryResult> => {
   const res = await _executeAsync(dbName, query, params)
   enhanceQueryResult(res)
@@ -251,7 +248,7 @@ QuickSQLite.transaction = async (
     return QuickSQLite.execute(dbName, query, params)
   }
 
-  const executeAsync = (query: string, params?: any[] | undefined) => {
+  const executeAsync = (query: string, params?: any[]) => {
     if (isFinalized) {
       throw Error(
         `Quick SQLite Error: Cannot execute query on finalized transaction: ${dbName}`
@@ -455,12 +452,9 @@ export const open = (options: {
     detach: (alias: string) => QuickSQLite.detach(options.name, alias),
     transaction: (fn: (tx: Transaction) => Promise<void> | void) =>
       QuickSQLite.transaction(options.name, fn),
-    execute: (query: string, params?: any[] | undefined): QueryResult =>
+    execute: (query: string, params?: any[]): QueryResult =>
       QuickSQLite.execute(options.name, query, params),
-    executeAsync: (
-      query: string,
-      params?: any[] | undefined
-    ): Promise<QueryResult> =>
+    executeAsync: (query: string, params?: any[]): Promise<QueryResult> =>
       QuickSQLite.executeAsync(options.name, query, params),
     executeBatch: (commands: SQLBatchTuple[]) =>
       QuickSQLite.executeBatch(options.name, commands),
