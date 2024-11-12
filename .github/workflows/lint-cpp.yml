@@ -5,20 +5,20 @@ on:
     branches:
       - main
     paths:
-      - '.github/workflows/lint-cpp.yml'
-      - '**/*.h'
-      - '**/*.hpp'
-      - '**/*.cpp'
-      - '**/*.c'
-      - '**/*.mm'
+      - ".github/workflows/lint-cpp.yml"
+      - "**/*.h"
+      - "**/*.hpp"
+      - "**/*.cpp"
+      - "**/*.c"
+      - "**/*.mm"
   pull_request:
     paths:
-      - '.github/workflows/lint-cpp.yml'
-      - '**/*.h'
-      - '**/*.hpp'
-      - '**/*.cpp'
-      - '**/*.c'
-      - '**/*.mm'
+      - ".github/workflows/lint-cpp.yml"
+      - "**/*.h"
+      - "**/*.hpp"
+      - "**/*.cpp"
+      - "**/*.c"
+      - "**/*.mm"
 
 jobs:
   lint:
@@ -27,8 +27,8 @@ jobs:
     strategy:
       matrix:
         path:
-          - 'package/android/src/main/cpp'
-          - 'package/cpp'
+          - "package/android/src/main/cpp"
+          - "package/cpp"
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -39,5 +39,5 @@ jobs:
       - name: Run clang-format style check
         uses: jidicula/clang-format-action@v4.13.0
         with:
-          clang-format-version: '18'
+          clang-format-version: "18"
           check-path: ${{ matrix.path }}
