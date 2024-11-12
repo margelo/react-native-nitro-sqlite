@@ -1237,7 +1237,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-quick-sqlite (8.2.0):
+  - react-native-quick-sqlite (8.2.2):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1873,9 +1873,9 @@ SPEC CHECKSUMS:
   React-jsitracing: 52b849a77d02e2dc262a3031454c23be8dabb4d9
   React-logger: 8db32983d75dc2ad54f278f344ccb9b256e694fc
   React-Mapbuffer: 1c08607305558666fd16678b85ef135e455d5c96
-  React-microtasksnativemodule: f13f03163b6a5ec66665dfe80a0df4468bb766a6
-  react-native-quick-sqlite: f5579dc8ba5a05aec0e940f0d859eaf9316538c7
-  react-native-safe-area-context: f1fda705dfe14355f41933debb5932887e234cc5
+  React-microtasksnativemodule: 87b8de96f937faefece8afd2cb3a518321b2ef99
+  react-native-quick-sqlite: a1bbc9bc60dfa6100ed68743e40fb25e30c54303
+  react-native-safe-area-context: 851c62c48dce80ccaa5637b6aa5991a1bc36eca9
   React-nativeconfig: 57781b79e11d5af7573e6f77cbf1143b71802a6d
   React-NativeModulesApple: 7ff2e2cfb2e5fa5bdedcecf28ce37e696c6ef1e1
   React-perflogger: 8a360ccf603de6ddbe9ff8f54383146d26e6c936

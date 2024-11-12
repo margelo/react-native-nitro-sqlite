@@ -1,8 +1,8 @@
 {
   "name": "react-native-quick-sqlite-workspace",
+  "version": "8.2.3",
   "packageManager": "bun@1.1.21",
   "private": "true",
-  "version": "8.2.0",
   "workspaces": [
     "package",
     "example"
@@ -11,27 +11,31 @@
     "type": "git",
     "url": "git+https://github.com/margelo/react-native-quick-sqlite.git"
   },
-  "scripts": {
-    "package": "bun --cwd package",
-    "example": "bun --cwd example",
-    "postinstall": "patch-package",
-    "format-cpp": "./scripts/clang-format.sh",
-    "typescript": "bun --filter=\"**\" typescript",
-    "lint": "bun --filter=\"**\" lint",
-    "bootstrap": "bun --filter=\"**\" install && bun typescript && bun example pods",
-    "release": "release-it",
-    "clean": "rm -rf **/tsconfig.tsbuildinfo node_modules package/node_module package/lib"
-  },
   "author": "Marc Rousavy <me@mrousavy.com> (https://github.com/mrousavy)",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/margelo/react-native-quick-sqlite/issues"
   },
   "homepage": "https://github.com/margelo/react-native-quick-sqlite#readme",
+  "scripts": {
+    "bootstrap": "bun install && bun package prepare && bun example pods",
+    "postinstall": "patch-package",
+    "format-cpp": "./scripts/clang-format.sh",
+    "typescript": "bun --filter=\"**\" typescript",
+    "lint": "bun package lint && bun example lint",
+    "release": "release-it",
+    "clean": "rm -rf **/tsconfig.tsbuildinfo node_modules package/node_module package/lib",
+    "package": "bun --cwd package",
+    "example": "bun --cwd example"
+  },
+  "dependencies": {
+    "patch-package": "^8.0.0"
+  },
   "devDependencies": {
     "@eslint/js": "^9.10.0",
     "@jamesacarr/eslint-formatter-github-actions": "^0.2.0",
     "@react-native/eslint-config": "0.75.2",
+    "@release-it-plugins/workspaces": "^4.2.0",
     "@release-it/bumper": "^6.0.1",
     "@release-it/conventional-changelog": "^8.0.2",
     "@tsconfig/react-native": "^2.0.2",
@@ -40,13 +44,11 @@
     "eslint": "8.57.0",
     "eslint-plugin-prettier": "^5.2.1",
     "prettier": "^3.3.3",
-    "release-it": "^17.6.0",
+    "release-it": "^17.10.0",
     "typescript-eslint": "^8.6.0"
   },
   "release-it": {
-    "npm": {
-      "publish": false
-    },
+    "npm": false,
     "git": {
       "commitMessage": "chore: release ${version}",
       "tagName": "v${version}",
@@ -55,7 +57,13 @@
     "github": {
       "release": true
     },
+    "hooks": {
+      "before:init": "bun typescript && bun lint",
+      "before:bump": "bun example pods",
+      "after:bump": "bun package prepare"
+    },
     "plugins": {
+      "@release-it-plugins/workspaces": true,
       "@release-it/conventional-changelog": {
         "preset": {
           "name": "conventionalcommits",
@@ -84,17 +92,17 @@
         }
       },
       "@release-it/bumper": {
-        "out": {
-          "file": "package.json",
-          "path": [
-            "package"
-          ]
-        }
+        "out": [
+          {
+            "file": "example/package.json",
+            "path": "version"
+          },
+          {
+            "file": "example/package.json",
+            "path": "dependencies.react-native-quick-sqlite"
+          }
+        ]
       }
     }
-  },
-  "dependencies": {
-    "patch-package": "^8.0.0"
-  },
-  "package": "8.2.0"
+  }
 }

@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 import React, {useCallback, useMemo, useState} from 'react';
 import Chance from 'chance';
 import {

@@ -6,6 +6,7 @@ import type {
 import {beforeEach, describe, it} from './MochaRNAdapter';
 import chai from 'chai';
 import {testDb as testDbInternal, resetTestDb} from './db';
+import type {User} from '../model/User';
 
 function isError(e: unknown): e is Error {
   return e instanceof Error;
@@ -219,7 +220,8 @@ export function registerUnitTests() {
             [id],
           );
 
-          actual.push(results.rows?._array[0]?.networth);
+          const row = results.rows?._array[0] as User | undefined;
+          actual.push(row?.networth);
         });
 
         promises.push(promised);
@@ -513,7 +515,8 @@ export function registerUnitTests() {
             [id],
           );
 
-          actual.push(results.rows?._array[0]?.networth);
+          const row = results.rows?._array[0] as User | undefined;
+          actual.push(row?.networth);
         });
 
         promises.push(promised);

@@ -42,10 +42,10 @@ export const describe = (name: string, f: () => void): void => {
   mochaContext = prevMochaContext;
 };
 
-export const beforeEach = (f: () => void): void => {
+export const beforeEach = (f: Mocha.Func) => mochaContext.beforeEach(f);
+export const beforeEachAsync = (f: Mocha.AsyncFunc) =>
   mochaContext.beforeEach(f);
-};
 
-export const beforeAll = (f: MochaTypes.Func) => {
+export const beforeAll = (f: MochaTypes.Func) => mochaContext.beforeAll(f);
+export const beforeAllAsync = (f: MochaTypes.AsyncFunc) =>
   mochaContext.beforeAll(f);
-};

@@ -20,8 +20,8 @@ export class User {
   // favoriteBook!: Book;
 
   @Column('simple-json')
-  metadata: {nickname: string};
+  metadata: {nickname: string} | undefined;
 
   @Column('blob')
-  avatar: ArrayBuffer;
+  avatar: ArrayBuffer | undefined;
 }

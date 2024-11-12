@@ -50,13 +50,13 @@ export async function typeORMGetBooks() {
   return result;
 }
 
-export async function executeFailingTypeORMQuery() {
+export async function executeFailingTypeORMQuery(): Promise<QueryResult | void> {
   const bookRepository = datasource.getRepository(Book);
 
   try {
     const manualQuery = (await bookRepository.query(`
           SELECT * From UnexistingTable
-        `)) as QueryResult<Book>;
+        `)) as QueryResult;
     return manualQuery;
   } catch (e) {
     console.warn('should have cached');

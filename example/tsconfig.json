@@ -1,9 +1,7 @@
 {
   "extends": "../tsconfig.json",
-  "include": ["src", "../package", "index.js", "app.json"],
+  "include": ["src", "index.js"],
   "compilerOptions": {
-    "paths": {
-      "react-native-quick-sqlite": ["../package/src/index"]
-    }
+    "experimentalDecorators": true
   }
 }
