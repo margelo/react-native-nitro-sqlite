@@ -40,8 +40,20 @@ target_link_libraries(
   ${PACKAGE_NAME}
   ${LOG_LIB}
   fbjni::fbjni
-  ReactAndroid::jsi
-  ReactAndroid::turbomodulejsijni
-  ReactAndroid::react_nativemodule_core
   android
 )
+
+# This if-then-else can be removed once this library does not support version below .76
+if (REACTNATIVE_MERGED_SO)
+  target_link_libraries(${PACKAGE_NAME} ReactAndroid::reactnative)
+else()
+  target_link_libraries(${PACKAGE_NAME}
+    ReactAndroid::react_render_core
+    ReactAndroid::react_render_uimanager
+    ReactAndroid::turbomodulejsijni
+    ReactAndroid::react_nativemodule_core
+  )
+endif()
+target_link_libraries(${PACKAGE_NAME} ReactAndroid::jsi)
+
+
