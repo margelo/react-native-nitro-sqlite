@@ -1,4 +1,7 @@
 buildscript {
+  // Buildscript is evaluated before everything else so we can't use getExtOrDefault
+  def kotlin_version = rootProject.ext.has("kotlinVersion") ? rootProject.ext.get("kotlinVersion") : project.properties["RNQuickSQLite_kotlinVersion"]
+
   repositories {
     google()
     mavenCentral()
@@ -6,6 +9,8 @@ buildscript {
 
   dependencies {
     classpath "com.android.tools.build:gradle:7.2.2"
+    // noinspection DifferentKotlinGradleVersion
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
   }
 }
 
@@ -18,10 +23,8 @@ def isNewArchitectureEnabled() {
   return rootProject.hasProperty("newArchEnabled") && rootProject.getProperty("newArchEnabled") == "true"
 }
 
-def SQLITE_FLAGS = rootProject.properties['quickSqliteFlags']
-
 apply plugin: "com.android.library"
-apply plugin: 'org.jetbrains.kotlin.android'
+apply plugin: "kotlin-android"
 
 if (isNewArchitectureEnabled()) {
   apply plugin: "com.facebook.react"
@@ -35,8 +38,55 @@ def getExtOrIntegerDefault(name) {
   return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties["RNQuickSQLite_" + name]).toInteger()
 }
 
+def safeAppExtGet(prop, fallback) {
+  def appProject = rootProject.allprojects.find { it.plugins.hasPlugin('com.android.application') }
+  appProject?.ext?.has(prop) ? appProject.ext.get(prop) : fallback
+}
+
+def supportsNamespace() {
+  def parsed = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.tokenize('.')
+  def major = parsed[0].toInteger()
+  def minor = parsed[1].toInteger()
+
+  // Namespace support was added in 7.3.0
+  return (major == 7 && minor >= 3) || major >= 8
+}
+
+def resolveReactNativeDirectory() {
+  def reactNativeLocation = safeAppExtGet("REACT_NATIVE_NODE_MODULES_DIR", null)
+  if (reactNativeLocation != null) {
+    return file(reactNativeLocation)
+  }
+
+  // Fallback to node resolver for custom directory structures like monorepos.
+  def reactNativePackage = file(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim())
+  if (reactNativePackage.exists()) {
+    return reactNativePackage.parentFile
+  }
+
+  throw new GradleException("[react-native-live-markdown] Unable to resolve react-native location in node_modules. Your app should define `REACT_NATIVE_NODE_MODULES_DIR` extension property in `app/build.gradle` with a path to react-native in node_modules.")
+}
+
+def getReactNativeMinorVersion() {
+  def reactNativeRootDir = resolveReactNativeDirectory()
+  def reactNativeProperties = new Properties()
+  file("$reactNativeRootDir/ReactAndroid/gradle.properties").withInputStream { reactNativeProperties.load(it) }
+  def reactNativeVersion = reactNativeProperties.getProperty("VERSION_NAME")
+  return reactNativeVersion.split("\\.")[1].toInteger()
+}
+
+def SQLITE_FLAGS = rootProject.properties['quickSqliteFlags']
+
 android {
-  namespace "com.margelo.rnquicksqlite"
+  if (supportsNamespace()) {
+    namespace "com.margelo.rnquicksqlite"
+
+    sourceSets {
+      main {
+        manifest.srcFile "src/main/AndroidManifestNew.xml"
+      }
+    }
+  }
 
   ndkVersion getExtOrDefault("ndkVersion")
   compileSdkVersion getExtOrIntegerDefault("compileSdkVersion")
@@ -44,12 +94,16 @@ android {
   defaultConfig {
     minSdkVersion getExtOrIntegerDefault("minSdkVersion")
     targetSdkVersion getExtOrIntegerDefault("targetSdkVersion")
+
+    buildConfigField "int", "REACT_NATIVE_MINOR_VERSION", getReactNativeMinorVersion().toString()
     buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
 
     externalNativeBuild {
       cmake {
-        cppFlags "-O2", "-fexceptions", "-frtti", "-std=c++1y", "-DONANDROID", "-Wall", "-fstack-protector-all"
-        arguments "-DANDROID_STL=c++_shared", "-DSQLITE_FLAGS='${SQLITE_FLAGS ? SQLITE_FLAGS : ''}'"
+        arguments "-DANDROID_STL=c++_shared",
+          "-DANDROID_TOOLCHAIN=clang",
+          "-DREACT_NATIVE_MINOR_VERSION=${getReactNativeMinorVersion()}",
+          "-DSQLITE_FLAGS='${SQLITE_FLAGS ? SQLITE_FLAGS : ''}'"
         abiFilters (*reactNativeArchitectures())
       }
     }
@@ -85,33 +139,28 @@ android {
     main {
       if (isNewArchitectureEnabled()) {
         java.srcDirs += [
-          // React Codegen files
-          "${project.buildDir}/generated/source/codegen/java"
+          "src/newarch",
+          // Codegen specs
+          "generated/java",
+          "generated/jni"
         ]
+      } else {
+        java.srcDirs += ["src/oldarch"]
       }
     }
   }
 
-  packagingOptions {
-    excludes = [
-      "META-INF",
-      "META-INF/**",
-      "**/libc++_shared.so",
-      "**/libfbjni.so",
-      "**/libjsi.so",
-      "**/libfolly_json.so",
-      "**/libfolly_runtime.so",
-      "**/libglog.so",
-      "**/libhermes.so",
-      "**/libhermes-executor-debug.so",
-      "**/libhermes_executor.so",
-      "**/libreactnative.so",
-      "**/libreactnativejni.so",
-      "**/libturbomodulejsijni.so",
-      "**/libreact_nativemodule_core.so",
-      "**/libjscexecutor.so"
-    ]
-  }
+  // packagingOptions {
+  //   excludes = [
+  //     "META-INF",
+  //     "META-INF/**",
+  //     "**/libreactnative.so",
+  //     "**/libc++_shared.so",
+  //     "**/libfbjni.so",
+  //     "**/libjsi.so",
+  //     "**/libhermes.so",
+  //   ]
+  // }
 }
 
 repositories {
@@ -119,12 +168,14 @@ repositories {
   google()
 }
 
+def kotlin_version = getExtOrDefault("kotlinVersion")
 
 dependencies {
   // For < 0.71, this will be from the local maven repo
   // For > 0.71, this will be replaced by `com.facebook.react:react-android:$version` by react gradle plugin
   //noinspection GradleDynamicVersion
   implementation "com.facebook.react:react-native:+"
+  implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 }
 
 if (isNewArchitectureEnabled()) {
