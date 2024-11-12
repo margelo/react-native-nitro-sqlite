@@ -12,7 +12,15 @@ import { NativeModules } from 'react-native'
 
 declare global {
   function nativeCallSyncHook(): unknown
+  var RN$Bridgeless: boolean | undefined
   var __QuickSQLiteProxy: object | undefined
+}
+
+function isRemoteDebuggingInChrome() {
+  // Remote debugging in Chrome is not supported in bridgeless
+  if ('RN$Bridgeless' in global && RN$Bridgeless === true) return false
+
+  return __DEV__ && typeof global.nativeCallSyncHook === 'undefined'
 }
 
 if (global.__QuickSQLiteProxy == null) {
@@ -25,7 +33,7 @@ if (global.__QuickSQLiteProxy == null) {
   }
 
   // Check if we are running on-device (JSI)
-  if (global.nativeCallSyncHook == null || QuickSQLiteModule.install == null) {
+  if (isRemoteDebuggingInChrome() || QuickSQLiteModule.install == null) {
     throw new Error(
       'Failed to install react-native-quick-sqlite: React Native is not running on-device. QuickSQLite can only be used when synchronous method invocations (JSI) are possible. If you are using a remote debugger (e.g. Chrome), switch to an on-device debugger (e.g. Flipper) instead.'
     )
