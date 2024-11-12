@@ -3,7 +3,6 @@
   "version": "8.2.3",
   "private": true,
   "scripts": {
-    "postinstall": "patch-package",
     "start": "react-native start",
     "android": "react-native run-android",
     "ios": "react-native run-ios",
@@ -22,7 +21,6 @@
     "chance": "^1.1.9",
     "events": "^3.3.0",
     "expo-status-bar": "^1.12.1",
-    "patch-package": "*",
     "react": "*",
     "react-native": "*",
     "react-native-quick-sqlite": "8.2.3",
