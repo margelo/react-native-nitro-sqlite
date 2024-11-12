@@ -40,7 +40,7 @@
     "@react-native-community/cli-platform-android": "15.0.0",
     "@react-native-community/cli-platform-ios": "15.0.0",
     "@react-native/babel-preset": "0.76.1",
-    "@react-native/eslint-config": "0.76.1",
+    "@react-native/eslint-config": "*",
     "@react-native/metro-config": "0.76.1",
     "@react-native/typescript-config": "*",
     "@types/chai": "^4.3.4",
@@ -53,6 +53,7 @@
     "babel-plugin-transform-typescript-metadata": "*",
     "mocha": "^10.1.0",
     "postinstall-postinstall": "^2.1.0",
-    "react-test-renderer": "18.3.1"
+    "react-test-renderer": "18.3.1",
+    "typescript": "^5.2.2"
   }
 }
