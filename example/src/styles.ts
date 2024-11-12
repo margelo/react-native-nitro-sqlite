@@ -1,4 +1,4 @@
-import {StyleSheet} from 'react-native';
+import { StyleSheet } from 'react-native'
 
 export const ScreenStyles = StyleSheet.create({
   container: {
@@ -13,4 +13,4 @@ export const ScreenStyles = StyleSheet.create({
     paddingBottom: 10,
     color: 'black',
   },
-});
+})
