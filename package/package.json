@@ -33,9 +33,13 @@
     "!**/__mocks__"
   ],
   "scripts": {
+    "postinstall": "bun build || exit 0;",
     "typescript": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\" --fix",
-    "prepare": "rm -rf lib && bun typescript && bob build"
+    "lint-ci": "eslint \"**/*.{js,ts,tsx}\" -f @jamesacarr/github-actions",
+    "prepare": "rm -rf lib && bun typescript && bob build",
+    "test": "jest",
+    "release": "release-it"
   },
   "keywords": [
     "react-native",
@@ -59,11 +63,10 @@
     "typeorm": "^0.3.20"
   },
   "devDependencies": {
-    "@react-native/typescript-config": "*",
-    "babel-plugin-transform-typescript-metadata": "*",
+    "jest": "*",
     "react": "*",
     "react-native": "*",
-    "react-native-builder-bob": "^0.18.2"
+    "react-native-builder-bob": "^0.31.0"
   },
   "peerDependencies": {
     "react": ">=17.0.0",
@@ -79,6 +82,20 @@
       "<rootDir>/lib/"
     ]
   },
+  "release-it": {
+    "npm": {
+      "publish": true,
+      "publishPackageManager": "bun"
+    },
+    "git": false,
+    "github": {
+      "release": false
+    },
+    "hooks": {
+      "before:init": "bun typescript && bun lint",
+      "after:bump": "bun run build"
+    }
+  },
   "react-native-builder-bob": {
     "source": "src",
     "output": "lib",
@@ -88,16 +105,10 @@
       [
         "typescript",
         {
-          "tsc": "../node_modules/.bin/tsc"
+          "tsc": "../node_modules/.bin/tsc",
+          "project": "tsconfig.build.json"
         }
       ]
     ]
-  },
-  "release-it": {
-    "npm": {
-      "publish": true,
-      "publishPackageManager": "bun"
-    },
-    "git": false
   }
 }

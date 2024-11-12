@@ -18,13 +18,12 @@
   },
   "homepage": "https://github.com/margelo/react-native-quick-sqlite#readme",
   "scripts": {
-    "bootstrap": "bun install && bun package prepare && bun example pods",
     "postinstall": "patch-package",
-    "format-cpp": "./scripts/clang-format.sh",
     "typescript": "bun --filter=\"**\" typescript",
     "lint": "bun package lint && bun example lint",
-    "release": "release-it",
+    "lint-cpp": "./scripts/clang-format.sh",
     "clean": "rm -rf **/tsconfig.tsbuildinfo node_modules package/node_module package/lib",
+    "release": "./scripts/release.sh",
     "package": "bun --cwd package",
     "example": "bun --cwd example"
   },
@@ -34,25 +33,32 @@
     "react-native": "0.76.1"
   },
   "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@babel/plugin-proposal-decorators": "^7.20.5",
+    "@babel/preset-env": "^7.25.4",
+    "@babel/runtime": "^7.25.4",
     "@eslint/js": "^9.10.0",
     "@jamesacarr/eslint-formatter-github-actions": "^0.2.0",
+    "@react-native/babel-preset": "0.76.1",
     "@react-native/eslint-config": "0.76.1",
+    "@react-native/metro-config": "0.76.1",
     "@react-native/typescript-config": "0.76.1",
-    "@release-it-plugins/workspaces": "^4.2.0",
     "@release-it/bumper": "^6.0.1",
     "@release-it/conventional-changelog": "^8.0.2",
     "@tsconfig/react-native": "^2.0.2",
-    "@types/react": "^18.2.6",
     "@types/eslint__js": "^8.42.3",
-    "@types/jest": "^29.5.5",
+    "@types/jest": "^29.5.13",
+    "@types/react": "^18.3.4",
     "babel-jest": "^29.6.3",
+    "babel-plugin-module-resolver": "^5.0.2",
     "babel-plugin-transform-typescript-metadata": "^0.3.2",
     "eslint": "8.57.0",
     "eslint-plugin-prettier": "^5.2.1",
     "jest": "^29.7.0",
     "prettier": "^3.3.3",
     "release-it": "^17.10.0",
-    "typescript-eslint": "^8.6.0"
+    "typescript": "~5.5.4",
+    "typescript-eslint": "^8.13.0"
   },
   "release-it": {
     "npm": false,
@@ -65,12 +71,21 @@
       "release": true
     },
     "hooks": {
-      "before:init": "bun typescript && bun lint",
-      "before:bump": "bun example pods",
-      "after:bump": "bun package prepare"
+      "before:release": "bun example bundle-install && bun example pods && git add example/ios/Podfile.lock"
     },
     "plugins": {
-      "@release-it-plugins/workspaces": true,
+      "@release-it/bumper": {
+        "out": [
+          {
+            "file": "example/package.json",
+            "path": "version"
+          },
+          {
+            "file": "example/package.json",
+            "path": "dependencies.react-native-quick-sqlite"
+          }
+        ]
+      },
       "@release-it/conventional-changelog": {
         "preset": {
           "name": "conventionalcommits",
@@ -97,18 +112,6 @@
             }
           ]
         }
-      },
-      "@release-it/bumper": {
-        "out": [
-          {
-            "file": "example/package.json",
-            "path": "version"
-          },
-          {
-            "file": "example/package.json",
-            "path": "dependencies.react-native-quick-sqlite"
-          }
-        ]
       }
     }
   }
