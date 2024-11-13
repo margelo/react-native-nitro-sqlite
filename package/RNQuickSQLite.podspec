@@ -19,7 +19,7 @@ Pod::Spec.new do |s|
   s.source       = { :git => "https://github.com/margelo/react-native-quick-sqlite.git", :tag => "#{s.version}" }
 
   # s.header_mappings_dir = "cpp"
-  s.source_files = "ios/**/*.{h,hpp,m,mm}", "cpp/**/*.{h,cpp,c}"
+  s.source_files = "ios/**/*.{h,hpp,m,mm}", "cpp/**/*.{h,hpp,c,cpp}"
 
   s.pod_target_xcconfig = {
     :GCC_PREPROCESSOR_DEFINITIONS => "HAVE_FULLFSYNC=1",
