@@ -17,7 +17,7 @@
     "@craftzdog/react-native-buffer": "^6.0.5",
     "@react-navigation/native": "^6.1.18",
     "@react-navigation/native-stack": "^6.11.0",
-    "chai": "^4.3.7",
+    "chai": "^5.1.2",
     "chance": "^1.1.9",
     "events": "^3.3.0",
     "expo-status-bar": "^1.12.1",
