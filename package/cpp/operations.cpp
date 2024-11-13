@@ -102,7 +102,6 @@ void bindStatement(sqlite3_stmt* statement, const SQLiteQueryParams& values) {
   for (int valueIndex = 0; valueIndex < values.size(); valueIndex++) {
     int sqliteIndex = valueIndex+1;
     SQLiteValue value = values.at(valueIndex);
-
     // if (std::holds_alternative<std::monostate>(value))
     // {
     //     sqlite3_bind_null(statement, sqliteIndex);
@@ -148,7 +147,6 @@ SQLiteExecuteQueryResult sqliteExecute(const std::string& dbName, const std::str
   std::string column_name;
   ColumnType column_declared_type;
   SQLiteQueryResultRow row;
-
   auto results = std::make_unique<SQLiteQueryResults>();
   auto metadata = new SQLiteQueryTableMetadata();
 
@@ -232,7 +230,6 @@ SQLiteExecuteQueryResult sqliteExecute(const std::string& dbName, const std::str
     ? std::make_optional(std::move(*metadata))
     : std::nullopt
   );
-
   return {
     .rowsAffected = rowsAffected,
     .insertId = static_cast<double>(latestInsertRowId),

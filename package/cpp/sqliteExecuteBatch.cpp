@@ -55,7 +55,6 @@ SQLiteOperationResult sqliteExecuteBatch(const std::string& dbName, const std::v
         throw e;
       }
     }
-
     sqliteExecuteLiteral(dbName, "COMMIT");
     return {
         .rowsAffected = rowsAffected,
