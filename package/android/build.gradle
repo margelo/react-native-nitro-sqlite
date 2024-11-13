@@ -153,6 +153,7 @@ android {
   }
 
   packagingOptions {
+    doNotStrip '**/**/*.so'
     excludes = [
       "META-INF",
       "META-INF/**",
