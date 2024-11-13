@@ -105,9 +105,9 @@ export const BenchmarkScreen: React.FC<Props> = () => {
   const startBenchmarks = useCallback(async () => {
     console.log('START BENCHMARKS')
 
-    setResults({});
-    setIsLoading(true);
-    console.log('--------- BEGINNING NitroSQLite BENCHMARKS ---------');
+    setResults({})
+    setIsLoading(true)
+    console.log('--------- BEGINNING NitroSQLite BENCHMARKS ---------')
 
     async function start(i = 0): Promise<void> {
       const benchmark = benchmarks[i]!
@@ -121,9 +121,9 @@ export const BenchmarkScreen: React.FC<Props> = () => {
 
     await start()
 
-    console.log('--------- FINISHED NitroSQLite BENCHMARKS! ---------');
-    setIsLoading(false);
-  }, []);
+    console.log('--------- FINISHED NitroSQLite BENCHMARKS! ---------')
+    setIsLoading(false)
+  }, [])
 
   const Results = useMemo(
     () =>

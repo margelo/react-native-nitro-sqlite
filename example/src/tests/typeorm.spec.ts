@@ -1,9 +1,9 @@
-import type {Repository} from 'typeorm'
-import {DataSource} from 'typeorm'
-import {beforeAll, it, describe, beforeEachAsync} from './MochaRNAdapter'
-import {typeORMDriver} from 'react-native-quick-sqlite'
-import {User} from '../model/User'
-import {Book} from '../model/Book'
+import type { Repository } from 'typeorm'
+import { DataSource } from 'typeorm'
+import { beforeAll, it, describe, beforeEachAsync } from './MochaRNAdapter'
+import { typeORMDriver } from 'react-native-quick-sqlite'
+import { User } from '../model/User'
+import { Book } from '../model/Book'
 import chai from 'chai'
 
 const expect = chai.expect
@@ -14,7 +14,7 @@ let bookRepository: Repository<Book>
 
 export function registerTypeORMTests() {
   describe('Typeorm tests', () => {
-    beforeAll(done => {
+    beforeAll((done) => {
       dataSource = new DataSource({
         type: 'react-native',
         database: 'typeormDb.sqlite',
@@ -31,7 +31,7 @@ export function registerTypeORMTests() {
           bookRepository = dataSource.getRepository(Book)
           done()
         })
-        .catch(e => {
+        .catch((e) => {
           console.error('error initializing typeORM datasource', e)
           throw e
         })

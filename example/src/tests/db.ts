@@ -3,7 +3,7 @@ import type {
   QuickSQLiteConnection,
   BatchQueryCommand,
 } from 'react-native-quick-sqlite'
-import {open} from 'react-native-quick-sqlite'
+import { open } from 'react-native-quick-sqlite'
 
 const chance = new Chance()
 

@@ -99,7 +99,6 @@ export const transaction = (
 
       throw executionError
     } finally {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       locks[dbName]!.inProgress = false
       isFinalized = false
       startNextTransaction(dbName)
@@ -128,7 +127,7 @@ function startNextTransaction(dbName: string) {
 
   if (locks[dbName].queue.length > 0) {
     locks[dbName].inProgress = true
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
     const tx = locks[dbName].queue.shift()!
     setImmediate(() => {
       tx.start()

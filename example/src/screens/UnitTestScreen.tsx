@@ -1,9 +1,9 @@
-import React, {useEffect, useState} from 'react'
-import {ScrollView, Text} from 'react-native'
-import type {MochaTestResult} from '../tests/MochaSetup'
-import {runTests} from '../tests/MochaSetup'
-import {registerUnitTests} from '../tests/unitTests.spec'
-import {ScreenStyles} from '../styles'
+import React, { useEffect, useState } from 'react'
+import { ScrollView, Text } from 'react-native'
+import type { MochaTestResult } from '../tests/MochaSetup'
+import { runTests } from '../tests/MochaSetup'
+import { registerUnitTests } from '../tests/unitTests.spec'
+import { ScreenStyles } from '../styles'
 
 export const UnitTestScreen: React.FC = () => {
   const [results, setResults] = useState<MochaTestResult[]>([])
@@ -21,8 +21,9 @@ export const UnitTestScreen: React.FC = () => {
       contentContainerStyle={[
         ScreenStyles.container,
         // eslint-disable-next-line react-native/no-inline-styles
-        {alignItems: 'flex-start'},
-      ]}>
+        { alignItems: 'flex-start' },
+      ]}
+    >
       {results.map((r, i) => {
         if (r.type === 'grouping') return <Text key={i}>{r.description}</Text>
 

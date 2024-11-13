@@ -3,9 +3,10 @@ import type {
   QuickSQLiteConnection,
   BatchQueryCommand,
 } from 'react-native-quick-sqlite'
-import {beforeEach, describe, it} from './MochaRNAdapter'
+import { beforeEach, describe, it } from './MochaRNAdapter'
 import chai from 'chai'
-import {testDb as testDbInternal, resetTestDb} from './db'
+import { testDb as testDbInternal, resetTestDb } from './db'
+import { User } from '../model/User'
 
 function isError(e: unknown): e is Error {
   return e instanceof Error
@@ -129,7 +130,7 @@ export function registerUnitTests() {
       const age = chance.integer()
       const networth = chance.floating()
 
-      await testDb.transaction(tx => {
+      await testDb.transaction((tx) => {
         const res = tx.execute(
           'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
           [id, name, age, networth]
@@ -159,7 +160,7 @@ export function registerUnitTests() {
       const age = chance.integer()
       const networth = chance.floating()
 
-      await testDb.transaction(tx => {
+      await testDb.transaction((tx) => {
         const res = tx.execute(
           'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
           [id, name, age, networth]
@@ -198,7 +199,7 @@ export function registerUnitTests() {
       // ACT: Start multiple transactions to upsert and select the same record
       const promises = []
       for (let iteration = 1; iteration <= iterations; iteration++) {
-        const promised = testDb.transaction(tx => {
+        const promised = testDb.transaction((tx) => {
           // ACT: Upsert statement to create record / increment the value
           tx.execute(
             `
@@ -245,7 +246,7 @@ export function registerUnitTests() {
       const age = chance.integer()
       const networth = chance.floating()
 
-      await testDb.transaction(tx => {
+      await testDb.transaction((tx) => {
         const res = tx.execute(
           'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
           [id, name, age, networth]
@@ -283,7 +284,7 @@ export function registerUnitTests() {
       const age = chance.integer()
       const networth = chance.floating()
 
-      await testDb.transaction(tx => {
+      await testDb.transaction((tx) => {
         try {
           tx.execute(
             'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
@@ -319,7 +320,7 @@ export function registerUnitTests() {
       const age = chance.integer()
       const networth = chance.floating()
 
-      await testDb.transaction(tx => {
+      await testDb.transaction((tx) => {
         tx.execute(
           'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
           [id, name, age, networth]
@@ -347,7 +348,7 @@ export function registerUnitTests() {
     })
 
     it('Transaction, rejects on invalid query', async () => {
-      const promised = testDb.transaction(tx => {
+      const promised = testDb.transaction((tx) => {
         tx.execute('SELECT * FROM [tableThatDoesNotExist];')
       })
       // ASSERT: should return a promise that eventually rejects
@@ -364,8 +365,8 @@ export function registerUnitTests() {
 
     it('Transaction, handle async callback', async () => {
       let ranCallback = false
-      const promised = testDb.transaction(async tx => {
-        await new Promise<void>(done => {
+      const promised = testDb.transaction(async (tx) => {
+        await new Promise<void>((done) => {
           setTimeout(() => done(), 50)
         })
         tx.execute('SELECT * FROM [User];')
@@ -384,7 +385,7 @@ export function registerUnitTests() {
       const age = chance.integer()
       const networth = chance.floating()
 
-      await testDb.transaction(async tx => {
+      await testDb.transaction(async (tx) => {
         const res = await tx.executeAsync(
           'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
           [id, name, age, networth]
@@ -415,7 +416,7 @@ export function registerUnitTests() {
       const networth = chance.floating()
 
       try {
-        await testDb.transaction(async tx => {
+        await testDb.transaction(async (tx) => {
           await tx.executeAsync(
             'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
             [id, name, age, networth]
@@ -441,7 +442,7 @@ export function registerUnitTests() {
       const age = chance.integer()
       const networth = chance.floating()
 
-      await testDb.transaction(async tx => {
+      await testDb.transaction(async (tx) => {
         await tx.executeAsync(
           'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
           [id, name, age, networth]
@@ -466,7 +467,7 @@ export function registerUnitTests() {
       const age = chance.integer()
       const networth = chance.floating()
 
-      await testDb.transaction(async tx => {
+      await testDb.transaction(async (tx) => {
         await tx.executeAsync(
           'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
           [id, name, age, networth]
@@ -491,7 +492,7 @@ export function registerUnitTests() {
       // ACT: Start multiple async transactions to upsert and select the same record
       const promises = []
       for (let iteration = 1; iteration <= iterations; iteration++) {
-        const promised = testDb.transaction(async tx => {
+        const promised = testDb.transaction(async (tx) => {
           // ACT: Upsert statement to create record / increment the value
           await tx.executeAsync(
             `
@@ -549,7 +550,7 @@ export function registerUnitTests() {
     })
 
     it('Async transaction, rejects on invalid query', async () => {
-      const promised = testDb.transaction(async tx => {
+      const promised = testDb.transaction(async (tx) => {
         await tx.executeAsync('SELECT * FROM [tableThatDoesNotExist];')
       })
 
@@ -592,7 +593,7 @@ export function registerUnitTests() {
 
       const res = testDb.execute('SELECT * FROM User')
       expect(res.rows?._array).to.eql([
-        {id: id1, name: name1, age: age1, networth: networth1},
+        { id: id1, name: name1, age: age1, networth: networth1 },
         {
           id: id2,
           name: name2,
@@ -628,7 +629,7 @@ export function registerUnitTests() {
 
       const res = testDb.execute('SELECT * FROM User')
       expect(res.rows?._array).to.eql([
-        {id: id1, name: name1, age: age1, networth: networth1},
+        { id: id1, name: name1, age: age1, networth: networth1 },
         {
           id: id2,
           name: name2,
