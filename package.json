@@ -105,6 +105,10 @@
               "section": "🐛 Bug Fixes"
             },
             {
+              "type": "chore",
+              "section": "🏗️ Project configuration and build flow"
+            },
+            {
               "type": "chore(deps)",
               "section": "🛠️ Dependency Upgrades"
             },
