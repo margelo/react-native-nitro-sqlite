@@ -1,11 +1,11 @@
-import React from 'react';
-import {ScrollView, Text, TouchableOpacity} from 'react-native';
-import type {NativeStackScreenProps} from '@react-navigation/native-stack';
-import type {ParamList} from '../navigation';
-import {StatusBar} from 'expo-status-bar';
-import {ScreenStyles} from '../styles';
+import React from 'react'
+import {ScrollView, Text, TouchableOpacity} from 'react-native'
+import type {NativeStackScreenProps} from '@react-navigation/native-stack'
+import type {ParamList} from '../navigation'
+import {StatusBar} from 'expo-status-bar'
+import {ScreenStyles} from '../styles'
 
-type Props = NativeStackScreenProps<ParamList, 'NitroSQLite Example'>;
+type Props = NativeStackScreenProps<ParamList, 'NitroSQLite Example'>
 
 export const HomeScreen: React.FC<Props> = ({navigation}) => {
   return (
@@ -19,5 +19,5 @@ export const HomeScreen: React.FC<Props> = ({navigation}) => {
 
       <StatusBar style="auto" />
     </ScrollView>
-  );
-};
+  )
+}

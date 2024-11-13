@@ -1,3 +1,23 @@
 {
-  "name": "QuickSQLiteExample"
+  "name": "QuickSQLiteExample",
+  "displayName": "QuickSQLite Example",
+  "components": [
+    {
+      "appKey": "QuickSQLiteExample",
+      "displayName": "QuickSQLite Example"
+    }
+  ],
+  "resources": {
+    "android": ["dist/res", "dist/main.android.jsbundle"],
+    "ios": ["dist/assets", "dist/main.ios.jsbundle"],
+    "macos": ["dist/assets", "dist/main.macos.jsbundle"],
+    "visionos": ["dist/assets", "dist/main.visionos.jsbundle"],
+    "windows": ["dist/assets", "dist/main.windows.bundle"]
+  },
+  "android": {
+    "package": "com.margelo.rnquicksqlite.example"
+  },
+  "ios": {
+    "bundleIdentifier": "com.margelo.rnquicksqlite.example"
+  }
 }
