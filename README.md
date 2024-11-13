@@ -27,7 +27,7 @@ TypeORM is officially supported, however, there is currently a parsing issue wit
 ```typescript
 import {open} from 'react-native-quick-sqlite'
 
-const db = open('myDb.sqlite')
+const db = open({ name: 'myDb.sqlite' });
 
 // The db object now contains the following methods:
 
@@ -57,7 +57,7 @@ The basic query is **synchronous**, it will block rendering on large operations,
 import { open } from 'react-native-quick-sqlite';
 
 try {
-  const db = open('myDb.sqlite');
+  const db = open({ name: 'myDb.sqlite' });
 
   let { rows } = db.execute('SELECT somevalue FROM sometable');
 
