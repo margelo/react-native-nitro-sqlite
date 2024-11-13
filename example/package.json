@@ -20,7 +20,7 @@
     "chai": "^4.3.7",
     "chance": "^1.1.9",
     "events": "^3.3.0",
-    "expo-status-bar": "^1.12.1",
+    "expo-status-bar": "^2.0.0",
     "react": "*",
     "react-native": "*",
     "react-native-nitro-modules": "*",
