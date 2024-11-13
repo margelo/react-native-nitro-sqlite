@@ -66,13 +66,12 @@ def resolveReactNativeDirectory() {
   throw new GradleException("[react-native-quick-sqlite] Unable to resolve react-native location in node_modules. Your app should define `REACT_NATIVE_NODE_MODULES_DIR` extension property in `app/build.gradle` with a path to react-native in node_modules.")
 }
 
-def getReactNativeMinorVersion() {
-  def reactNativeRootDir = resolveReactNativeDirectory()
-  def reactNativeProperties = new Properties()
-  file("$reactNativeRootDir/ReactAndroid/gradle.properties").withInputStream { reactNativeProperties.load(it) }
-  def reactNativeVersion = reactNativeProperties.getProperty("VERSION_NAME")
-  return reactNativeVersion.split("\\.")[1].toInteger()
-}
+def reactNativeRootDir = resolveReactNativeDirectory()
+def reactProperties = new Properties()
+file("$reactNativeRootDir/ReactAndroid/gradle.properties").withInputStream { reactProperties.load(it) }
+
+def REACT_NATIVE_VERSION = reactProperties.getProperty("VERSION_NAME")
+def REACT_NATIVE_MINOR_VERSION = REACT_NATIVE_VERSION.startsWith("0.0.0-") ? 1000 : REACT_NATIVE_VERSION.split("\\.")[1].toInteger()
 
 def SQLITE_FLAGS = rootProject.properties['quickSqliteFlags']
 
@@ -101,7 +100,7 @@ android {
     minSdkVersion getExtOrIntegerDefault("minSdkVersion")
     targetSdkVersion getExtOrIntegerDefault("targetSdkVersion")
 
-    buildConfigField "int", "REACT_NATIVE_MINOR_VERSION", getReactNativeMinorVersion().toString()
+    buildConfigField "int", "REACT_NATIVE_MINOR_VERSION", REACT_NATIVE_MINOR_VERSION.toString()
     buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
 
     externalNativeBuild {
