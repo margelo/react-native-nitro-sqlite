@@ -34,6 +34,7 @@ set_target_properties(
   CXX_STANDARD ${CMAKE_CXX_STANDARD}
   CXX_EXTENSIONS OFF
   POSITION_INDEPENDENT_CODE ON
+)
 
 find_package(ReactAndroid REQUIRED CONFIG)
 find_package(fbjni REQUIRED CONFIG)
