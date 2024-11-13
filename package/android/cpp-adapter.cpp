@@ -13,7 +13,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*) {
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_margelo_rnnitrosqlite_RNNitroSQLiteOnLoadModule_setDocPathInJNI(JNIEnv *env, jclass clazz,
+Java_com_margelo_rnnitrosqlite_DocPathSetter_setDocPathInJNI(JNIEnv *env, jclass clazz,
                                                                          jstring doc_path) {
   const char *nativeString = env->GetStringUTFChars(doc_path, nullptr);
   HybridNitroSQLite::docPath = std::string(nativeString);

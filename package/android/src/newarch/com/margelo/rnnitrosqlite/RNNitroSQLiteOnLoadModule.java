@@ -19,18 +19,14 @@ public class RNNitroSQLiteOnLoadModule extends NativeNitroSQLiteOnLoadSpec {
 
   public RNNitroSQLiteOnLoadModule(ReactApplicationContext reactContext) {
     super(reactContext);
-
     _reactContext = reactContext;
-    setDocPath(reactContext);
+
+    var docPathSetter = new DocPathSetter();
+    docPathSetter.setDocPath(reactContext);
 
     if (reactApplicationContextReadyCallback != null) {
       reactApplicationContextReadyCallback.invoke();
     }
-  }
-
-  public static void setDocPath(ReactApplicationContext context) {
-    final String path = context.getFilesDir().getAbsolutePath();
-    setDocPathInJNI(path);
   }
 
   @Override
@@ -52,6 +48,4 @@ public class RNNitroSQLiteOnLoadModule extends NativeNitroSQLiteOnLoadSpec {
   public static ReactApplicationContext getReactContext() {
     return _reactContext;
   }
-
-  private native static void setDocPathInJNI(String docPath);
 }
