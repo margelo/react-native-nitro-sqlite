@@ -1,14 +1,14 @@
-import React from 'react';
-import 'reflect-metadata';
-import {UnitTestScreen} from './screens/UnitTestScreen';
-import {BenchmarkScreen} from './screens/BenchmarkScreen';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {NavigationContainer} from '@react-navigation/native';
-import {StatusBar} from 'expo-status-bar';
-import type {ParamList} from './navigation';
-import {HomeScreen} from './screens/HomeScreen';
+import React from 'react'
+import 'reflect-metadata'
+import { UnitTestScreen } from './screens/UnitTestScreen'
+import { BenchmarkScreen } from './screens/BenchmarkScreen'
+import { createNativeStackNavigator } from '@react-navigation/native-stack'
+import { NavigationContainer } from '@react-navigation/native'
+import { StatusBar } from 'expo-status-bar'
+import type { ParamList } from './navigation'
+import { HomeScreen } from './screens/HomeScreen'
 
-const Stack = createNativeStackNavigator<ParamList>();
+const Stack = createNativeStackNavigator<ParamList>()
 
 export default function App() {
   return (
@@ -21,5 +21,5 @@ export default function App() {
 
       <StatusBar style="auto" />
     </NavigationContainer>
-  );
+  )
 }

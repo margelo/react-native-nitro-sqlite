@@ -150,17 +150,17 @@ android {
     }
   }
 
-  // packagingOptions {
-  //   excludes = [
-  //     "META-INF",
-  //     "META-INF/**",
-  //     "**/libreactnative.so",
-  //     "**/libc++_shared.so",
-  //     "**/libfbjni.so",
-  //     "**/libjsi.so",
-  //     "**/libhermes.so",
-  //   ]
-  // }
+  packagingOptions {
+    excludes = [
+      "META-INF",
+      "META-INF/**",
+      "**/libreactnative.so",
+      "**/libc++_shared.so",
+      "**/libfbjni.so",
+      "**/libjsi.so",
+      "**/libhermes.so",
+    ]
+  }
 }
 
 repositories {

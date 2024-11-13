@@ -1,12 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
-/* eslint-disable no-var */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable no-return-await */
-/* eslint-disable @typescript-eslint/strict-boolean-expressions */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-
 import RNQuickSQLiteModule from './NativeRNQuickSQLite'
 
 declare global {
@@ -93,7 +84,7 @@ interface ISQLite {
  *
  * @interface QueryResult
  */
-export interface QueryResult {
+export interface QueryResult{
   insertId?: number
   rowsAffected: number
   rows?: {
