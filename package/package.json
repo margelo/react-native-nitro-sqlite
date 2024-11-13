@@ -1,5 +1,5 @@
 {
-  "name": "react-native-quick-sqlite",
+  "name": "react-native-nitro-sqlite",
   "version": "8.2.2-nitro.1",
   "description": "Fast SQLite for react-native",
   "source": "./src/index.ts",

@@ -84,7 +84,7 @@
           },
           {
             "file": "example/package.json",
-            "path": "dependencies.react-native-quick-sqlite"
+            "path": "dependencies.react-native-nitro-sqlite"
           }
         ]
       },

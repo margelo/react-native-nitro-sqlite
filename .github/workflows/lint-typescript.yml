@@ -63,14 +63,14 @@ jobs:
       - name: Run ESLint CI in example/
         working-directory: example
         run: bun lint-ci
-      - name: Run ESLint CI in react-native-quick-sqlite
+      - name: Run ESLint CI in react-native-nitro-sqlite
         working-directory: package
         run: bun lint-ci
 
       - name: Run ESLint with auto-fix in example/
         working-directory: example
         run: bun lint
-      - name: Run ESLint with auto-fix in react-native-quick-sqlite
+      - name: Run ESLint with auto-fix in react-native-nitro-sqlite
         working-directory: package
         run: bun lint
 
