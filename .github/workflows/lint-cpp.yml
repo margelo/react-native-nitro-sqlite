@@ -11,6 +11,9 @@ on:
       - "**/*.cpp"
       - "**/*.c"
       - "**/*.mm"
+    paths-ignore:
+      - "node_modules"
+      - "**/node_modules"
   pull_request:
     paths:
       - ".github/workflows/lint-cpp.yml"
@@ -19,6 +22,9 @@ on:
       - "**/*.cpp"
       - "**/*.c"
       - "**/*.mm"
+    paths-ignore:
+      - "node_modules"
+      - "**/node_modules"
 
 jobs:
   lint:
