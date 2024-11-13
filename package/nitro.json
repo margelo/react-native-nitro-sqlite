@@ -3,7 +3,7 @@
     "rnquicksqlite"
   ],
   "ios": {
-    "iosModulename": "RNQuickSQLite"
+    "iosModuleName": "RNQuickSQLite"
   },
   "android": {
     "androidNamespace": [
