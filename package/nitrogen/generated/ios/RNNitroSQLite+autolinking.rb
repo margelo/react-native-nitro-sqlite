@@ -20,7 +20,7 @@
 # ```
 
 def add_nitrogen_files(spec)
-  Pod::UI.puts "[NitroModules] Adding RNNitroSQLite specs..."
+  Pod::UI.puts "[NitroModules] 🔥 RNNitroSQLite is boosted by nitro!"
 
   spec.dependency "NitroModules"
 

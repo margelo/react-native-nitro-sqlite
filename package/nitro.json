@@ -3,7 +3,7 @@
     "rnnitrosqlite"
   ],
   "ios": {
-    "iosModulename": "RNNitroSQLite"
+    "iosModuleName": "RNNitroSQLite"
   },
   "android": {
     "androidNamespace": [
