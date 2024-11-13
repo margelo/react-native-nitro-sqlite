@@ -63,7 +63,7 @@ def resolveReactNativeDirectory() {
     return reactNativePackage.parentFile
   }
 
-  throw new GradleException("[react-native-quick-sqlite] Unable to resolve react-native location in node_modules. Your app should define `REACT_NATIVE_NODE_MODULES_DIR` extension property in `app/build.gradle` with a path to react-native in node_modules.")
+  throw new GradleException("[react-native-nitro-sqlite] Unable to resolve react-native location in node_modules. Your app should define `REACT_NATIVE_NODE_MODULES_DIR` extension property in `app/build.gradle` with a path to react-native in node_modules.")
 }
 
 def reactNativeRootDir = resolveReactNativeDirectory()
