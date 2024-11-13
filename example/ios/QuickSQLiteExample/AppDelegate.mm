@@ -24,11 +24,4 @@
 #endif
 }
 
-#ifdef RCT_NEW_ARCH_ENABLED
-- (BOOL)bridgelessEnabled
-{
-  return YES;
-}
-#endif
-
 @end
