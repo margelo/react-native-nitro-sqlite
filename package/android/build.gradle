@@ -23,13 +23,6 @@ def isNewArchitectureEnabled() {
   return rootProject.hasProperty("newArchEnabled") && rootProject.getProperty("newArchEnabled") == "true"
 }
 
-apply plugin: "com.android.library"
-apply plugin: "kotlin-android"
-
-if (isNewArchitectureEnabled()) {
-  apply plugin: "com.facebook.react"
-}
-
 def getExtOrDefault(name) {
   return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties["RNQuickSQLite_" + name]
 }
@@ -41,6 +34,12 @@ def getExtOrIntegerDefault(name) {
 def safeAppExtGet(prop, fallback) {
   def appProject = rootProject.allprojects.find { it.plugins.hasPlugin('com.android.application') }
   appProject?.ext?.has(prop) ? appProject.ext.get(prop) : fallback
+}
+
+def resolveBuildType() {
+  Gradle gradle = getGradle()
+  String tskReqStr = gradle.getStartParameter().getTaskRequests()['args'].toString()
+  return tskReqStr.contains('Release') ? 'release' : 'debug'
 }
 
 def supportsNamespace() {
@@ -64,7 +63,7 @@ def resolveReactNativeDirectory() {
     return reactNativePackage.parentFile
   }
 
-  throw new GradleException("[react-native-live-markdown] Unable to resolve react-native location in node_modules. Your app should define `REACT_NATIVE_NODE_MODULES_DIR` extension property in `app/build.gradle` with a path to react-native in node_modules.")
+  throw new GradleException("[react-native-quick-sqlite] Unable to resolve react-native location in node_modules. Your app should define `REACT_NATIVE_NODE_MODULES_DIR` extension property in `app/build.gradle` with a path to react-native in node_modules.")
 }
 
 def getReactNativeMinorVersion() {
@@ -76,6 +75,13 @@ def getReactNativeMinorVersion() {
 }
 
 def SQLITE_FLAGS = rootProject.properties['quickSqliteFlags']
+
+apply plugin: "com.android.library"
+apply plugin: "kotlin-android"
+
+if (isNewArchitectureEnabled()) {
+  apply plugin: "com.facebook.react"
+}
 
 android {
   if (supportsNamespace()) {
@@ -102,7 +108,7 @@ android {
       cmake {
         arguments "-DANDROID_STL=c++_shared",
           "-DANDROID_TOOLCHAIN=clang",
-          "-DREACT_NATIVE_MINOR_VERSION=${getReactNativeMinorVersion()}",
+          "-DREACT_NATIVE_MINOR_VERSION=${REACT_NATIVE_MINOR_VERSION}",
           "-DSQLITE_FLAGS='${SQLITE_FLAGS ? SQLITE_FLAGS : ''}'"
         abiFilters (*reactNativeArchitectures())
       }
@@ -112,6 +118,7 @@ android {
   externalNativeBuild {
     cmake {
       path "CMakeLists.txt"
+      version = System.getenv("CMAKE_VERSION") ?: "3.22.1"
     }
   }
 
@@ -151,7 +158,7 @@ android {
   }
 
   packagingOptions {
-    doNotStrip '**/**/*.so'
+    doNotStrip resolveBuildType() == 'debug' ? "**/**/*.so" : ''
     excludes = [
       "META-INF",
       "META-INF/**",
