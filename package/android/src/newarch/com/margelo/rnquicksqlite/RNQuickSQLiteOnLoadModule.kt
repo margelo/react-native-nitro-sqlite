@@ -1,11 +1,11 @@
-package com.margelo.rnnitrosqlite
+package com.margelo.rnquicksqlite
 
 import com.facebook.react.bridge.Callback
 import com.facebook.react.bridge.ReactApplicationContext
-import com.margelo.rnnitrosqlite.NativeNitroSQLiteOnLoadSpec
+import com.margelo.rnquicksqlite.NativeQuickSQLiteOnLoadSpec
 
-class RNNitroSQLiteOnLoadModule(reactContext: ReactApplicationContext) :
-    NativeNitroSQLiteOnLoadSpec(reactContext) {
+class RNQuickSQLiteOnLoadModule(reactContext: ReactApplicationContext) :
+    NativeQuickSQLiteOnLoadSpec(reactContext) {
     private var reactApplicationContextReadyCallback: Callback? = null
 
     init {
@@ -31,7 +31,7 @@ class RNNitroSQLiteOnLoadModule(reactContext: ReactApplicationContext) :
     }
 
   companion object {
-      const val NAME: String = "RNNitroSQLiteOnLoad"
+      const val NAME: String = "RNQuickSQLiteOnLoad"
 
       var reactContext: ReactApplicationContext? = null
         private set

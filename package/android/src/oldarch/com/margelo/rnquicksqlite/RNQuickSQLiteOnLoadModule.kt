@@ -1,11 +1,11 @@
-package com.margelo.rnnitrosqlite
+package com.margelo.rnquicksqlite
 
 import com.facebook.react.bridge.Callback
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 
-class RNNitroSQLiteOnLoadModule(reactContext: ReactApplicationContext) :
+class RNQuickSQLiteOnLoadModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
 
 
@@ -33,7 +33,7 @@ class RNNitroSQLiteOnLoadModule(reactContext: ReactApplicationContext) :
     }
 
     companion object {
-        const val NAME: String = "RNNitroSQLiteOnLoad"
+        const val NAME: String = "RNNQuickSQLiteOnLoad"
 
         var reactContext: ReactApplicationContext? = null
             private set
