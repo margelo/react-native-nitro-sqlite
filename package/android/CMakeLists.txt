@@ -8,10 +8,6 @@ add_definitions(
   ${SQLITE_FLAGS}
 )
 
-include_directories(
-  ../cpp
-)
-
 file(GLOB_RECURSE cpp_files RELATIVE ${CMAKE_SOURCE_DIR}
   "../cpp/**.c"
   "../cpp/**.cpp"
@@ -33,6 +29,14 @@ include_directories(
   src/main/cpp
 )
 
+set_target_properties(
+  ${CMAKE_PROJECT_NAME} PROPERTIES
+  CXX_STANDARD ${CMAKE_CXX_STANDARD}
+  CXX_EXTENSIONS OFF
+  POSITION_INDEPENDENT_CODE ON
+
+find_package(ReactAndroid REQUIRED CONFIG)
+find_package(fbjni REQUIRED CONFIG)
 find_library(LOG_LIB log)
 
 target_link_libraries(
