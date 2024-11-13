@@ -13,6 +13,8 @@
 /// apply from: '../nitrogen/generated/android/RNQuickSQLite+autolinking.gradle'
 /// ```
 
+logger.warn("[NitroModules] 🔥 RNQuickSQLite is boosted by nitro!")
+
 android {
   sourceSets {
     main {

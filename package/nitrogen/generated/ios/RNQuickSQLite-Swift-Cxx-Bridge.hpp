@@ -7,12 +7,6 @@
 
 #pragma once
 
-#if __has_include(<NitroModules/NitroDefines.hpp>)
-#include <NitroModules/NitroDefines.hpp>
-#else
-#error NitroModules cannot be found! Are you sure you installed NitroModules properly?
-#endif
-
 // Forward declarations of C++ defined types
 
 
