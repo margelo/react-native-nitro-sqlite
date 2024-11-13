@@ -29,9 +29,8 @@ target_sources(
   # Shared Nitrogen C++ sources
   ../nitrogen/generated/shared/c++/HybridNativeQueryResultSpec.cpp
   ../nitrogen/generated/shared/c++/HybridNitroSQLiteSpec.cpp
-  ../nitrogen/generated/shared/c++/HybridNitroSQLiteSpec.cpp
   # Android-specific Nitrogen C++ sources
-
+  
 )
 
 # Add all libraries required by the generated specs
