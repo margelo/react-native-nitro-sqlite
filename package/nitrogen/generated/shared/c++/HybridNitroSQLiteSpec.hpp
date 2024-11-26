@@ -31,7 +31,7 @@ namespace margelo::nitro::rnnitrosqlite { struct FileLoadResult; }
 #include <vector>
 #include <variant>
 #include <NitroModules/ArrayBuffer.hpp>
-#include <future>
+#include <NitroModules/Promise.hpp>
 #include "BatchQueryResult.hpp"
 #include "BatchQueryCommand.hpp"
 #include "FileLoadResult.hpp"
@@ -73,11 +73,11 @@ namespace margelo::nitro::rnnitrosqlite {
       virtual void attach(const std::string& mainDbName, const std::string& dbNameToAttach, const std::string& alias, const std::optional<std::string>& location) = 0;
       virtual void detach(const std::string& mainDbName, const std::string& alias) = 0;
       virtual std::shared_ptr<margelo::nitro::rnnitrosqlite::HybridNativeQueryResultSpec> execute(const std::string& dbName, const std::string& query, const std::optional<std::vector<std::variant<std::string, double, int64_t, bool, std::shared_ptr<ArrayBuffer>>>>& params) = 0;
-      virtual std::future<std::shared_ptr<margelo::nitro::rnnitrosqlite::HybridNativeQueryResultSpec>> executeAsync(const std::string& dbName, const std::string& query, const std::optional<std::vector<std::variant<std::string, double, int64_t, bool, std::shared_ptr<ArrayBuffer>>>>& params) = 0;
+      virtual std::shared_ptr<Promise<std::shared_ptr<margelo::nitro::rnnitrosqlite::HybridNativeQueryResultSpec>>> executeAsync(const std::string& dbName, const std::string& query, const std::optional<std::vector<std::variant<std::string, double, int64_t, bool, std::shared_ptr<ArrayBuffer>>>>& params) = 0;
       virtual BatchQueryResult executeBatch(const std::string& dbName, const std::vector<BatchQueryCommand>& commands) = 0;
-      virtual std::future<BatchQueryResult> executeBatchAsync(const std::string& dbName, const std::vector<BatchQueryCommand>& commands) = 0;
+      virtual std::shared_ptr<Promise<BatchQueryResult>> executeBatchAsync(const std::string& dbName, const std::vector<BatchQueryCommand>& commands) = 0;
       virtual FileLoadResult loadFile(const std::string& dbName, const std::string& location) = 0;
-      virtual std::future<FileLoadResult> loadFileAsync(const std::string& dbName, const std::string& location) = 0;
+      virtual std::shared_ptr<Promise<FileLoadResult>> loadFileAsync(const std::string& dbName, const std::string& location) = 0;
 
     protected:
       // Hybrid Setup
