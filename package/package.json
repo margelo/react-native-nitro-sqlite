@@ -5,6 +5,7 @@
   "source": "./src/index.ts",
   "main": "./lib/commonjs/index",
   "module": "./lib/module/index",
+  "types": "./lib/typescript/commonjs/index.d.ts",
   "exports": {
     ".": {
       "import": {
