@@ -27,8 +27,11 @@ private:
 public:
   // Properties
   std::optional<double> getInsertId() override;
+  
   double getRowsAffected() override;
+  
   SQLiteQueryResults getResults() override;
+  
   std::optional<SQLiteQueryTableMetadata> getMetadata() override;
 };
 

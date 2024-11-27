@@ -19,7 +19,6 @@
 		83BC6E792C8F78A200B954D2 /* sqlfileloader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83BC6E682C8F78A200B954D2 /* sqlfileloader.cpp */; };
 		83BC6E7A2C8F78A200B954D2 /* sqlite3.c in Sources */ = {isa = PBXBuildFile; fileRef = 83BC6E6A2C8F78A200B954D2 /* sqlite3.c */; };
 		83BC6E7B2C8F78A200B954D2 /* sqliteBridge.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83BC6E6C2C8F78A200B954D2 /* sqliteBridge.cpp */; };
-		83BC6E7C2C8F78A200B954D2 /* ThreadPool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83BC6E6E2C8F78A200B954D2 /* ThreadPool.cpp */; };
 		83BC6E7F2C8F7BDD00B954D2 /* Empty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83BC6E7E2C8F7BDD00B954D2 /* Empty.swift */; };
 /* End PBXBuildFile section */
 
@@ -75,8 +74,6 @@
 		83BC6E6B2C8F78A200B954D2 /* sqlite3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sqlite3.h; sourceTree = "<group>"; };
 		83BC6E6C2C8F78A200B954D2 /* sqliteBridge.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sqliteBridge.cpp; sourceTree = "<group>"; };
 		83BC6E6D2C8F78A200B954D2 /* sqliteBridge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sqliteBridge.h; sourceTree = "<group>"; };
-		83BC6E6E2C8F78A200B954D2 /* ThreadPool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ThreadPool.cpp; sourceTree = "<group>"; };
-		83BC6E6F2C8F78A200B954D2 /* ThreadPool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ThreadPool.h; sourceTree = "<group>"; };
 		83BC6E7E2C8F7BDD00B954D2 /* Empty.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Empty.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -206,8 +203,6 @@
 				83BC6E6B2C8F78A200B954D2 /* sqlite3.h */,
 				83BC6E6C2C8F78A200B954D2 /* sqliteBridge.cpp */,
 				83BC6E6D2C8F78A200B954D2 /* sqliteBridge.h */,
-				83BC6E6E2C8F78A200B954D2 /* ThreadPool.cpp */,
-				83BC6E6F2C8F78A200B954D2 /* ThreadPool.h */,
 			);
 			name = cpp;
 			path = ../cpp;
@@ -272,7 +267,6 @@
 			files = (
 				83BC6E772C8F78A200B954D2 /* OnLoad.cpp in Sources */,
 				83BC6E792C8F78A200B954D2 /* sqlfileloader.cpp in Sources */,
-				83BC6E7C2C8F78A200B954D2 /* ThreadPool.cpp in Sources */,
 				83BC6E712C8F78A200B954D2 /* RNNitroSQLite-Swift-Cxx-Bridge.cpp in Sources */,
 				83BC6E762C8F78A200B954D2 /* JSIHelper.cpp in Sources */,
 				83BC6E7F2C8F7BDD00B954D2 /* Empty.swift in Sources */,

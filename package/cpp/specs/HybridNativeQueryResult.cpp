@@ -5,6 +5,7 @@ namespace margelo::nitro::rnnitrosqlite {
 std::optional<double> HybridNativeQueryResult::getInsertId() {
   return this->_insertId;
 }
+
 double HybridNativeQueryResult::getRowsAffected() {
   return this->_rowsAffected;
 }

@@ -1,6 +1,5 @@
 #include "HybridNitroSQLite.hpp"
 #include "HybridNativeQueryResult.hpp"
-#include "ThreadPool.hpp"
 #include "NitroSQLiteException.hpp"
 #include "logs.hpp"
 #include "macros.hpp"
@@ -13,8 +12,6 @@
 #include <vector>
 
 namespace margelo::nitro::rnnitrosqlite {
-
-auto pool = std::make_shared<margelo::rnnitrosqlite::ThreadPool>();
 
 const std::string getDocPath(const std::optional<std::string>& location) {
   std::string tempDocPath = std::string(HybridNitroSQLite::docPath);
@@ -61,23 +58,16 @@ ExecuteQueryResult HybridNitroSQLite::execute(const std::string& dbName, const s
   return std::make_shared<HybridNativeQueryResult>(result.insertId, result.rowsAffected, *result.results, *result.metadata);
 };
 
-std::future<ExecuteQueryResult> HybridNitroSQLite::executeAsync(const std::string& dbName, const std::string& query,
-                                                               const std::optional<SQLiteQueryParams>& params) {
-  auto promise = std::make_shared<std::promise<ExecuteQueryResult>>();
-  auto future = promise->get_future();
-
-  auto task = [this, promise, dbName, query, params]() {
+std::shared_ptr<Promise<std::shared_ptr<HybridNativeQueryResultSpec>>> HybridNitroSQLite::executeAsync(const std::string& dbName, const std::string& query,
+                                                                                                       const std::optional<SQLiteQueryParams>& params) {
+  return Promise<std::shared_ptr<HybridNativeQueryResultSpec>>::async([=, this]() -> std::shared_ptr<HybridNativeQueryResultSpec> {
     try {
       auto result = execute(dbName, query, params);
-      promise->set_value(result);
+      return result;
     } catch (...) {
-      promise->set_exception(std::current_exception());
+      throw std::current_exception();
     }
-  };
-
-  pool->queueWork(std::move(task));
-
-  return future;
+  });
 };
 
 BatchQueryResult HybridNitroSQLite::executeBatch(const std::string& dbName, const std::vector<BatchQueryCommand>& batchParams) {
@@ -87,23 +77,16 @@ BatchQueryResult HybridNitroSQLite::executeBatch(const std::string& dbName, cons
   return BatchQueryResult(result.rowsAffected);
 };
 
-std::future<BatchQueryResult> HybridNitroSQLite::executeBatchAsync(const std::string& dbName,
-                                                                   const std::vector<BatchQueryCommand>& batchParams) {
-  auto promise = std::make_shared<std::promise<BatchQueryResult>>();
-  auto future = promise->get_future();
-
-  auto task = [this, promise, dbName, batchParams]() {
+std::shared_ptr<Promise<BatchQueryResult>> HybridNitroSQLite::executeBatchAsync(const std::string& dbName,
+                                                                                const std::vector<BatchQueryCommand>& batchParams) {
+  return Promise<BatchQueryResult>::async([=, this]() -> BatchQueryResult {
     try {
       auto result = executeBatch(dbName, batchParams);
-      promise->set_value(result);
+      return result;
     } catch (...) {
-      promise->set_exception(std::current_exception());
+      throw std::current_exception();
     }
-  };
-
-  pool->queueWork(std::move(task));
-
-  return future;
+  });
 };
 
 FileLoadResult HybridNitroSQLite::loadFile(const std::string& dbName, const std::string& location) {
@@ -111,22 +94,15 @@ FileLoadResult HybridNitroSQLite::loadFile(const std::string& dbName, const std:
   return FileLoadResult(result.commands, result.rowsAffected);
 };
 
-std::future<FileLoadResult> HybridNitroSQLite::loadFileAsync(const std::string& dbName, const std::string& location) {
-  auto promise = std::make_shared<std::promise<FileLoadResult>>();
-  auto future = promise->get_future();
-
-  auto task = [this, promise, dbName, location]() {
+std::shared_ptr<Promise<FileLoadResult>> HybridNitroSQLite::loadFileAsync(const std::string& dbName, const std::string& location) {
+  return Promise<FileLoadResult>::async([=, this]() -> FileLoadResult {
     try {
       auto result = loadFile(dbName, location);
-      promise->set_value(result);
+      return result;
     } catch (...) {
-      promise->set_exception(std::current_exception());
+      throw std::current_exception();
     }
-  };
-
-  pool->queueWork(std::move(task));
-
-  return future;
+  });
 };
 
 } // namespace margelo::nitro::rnnitrosqlite
