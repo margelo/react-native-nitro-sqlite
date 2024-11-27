@@ -61,12 +61,8 @@ ExecuteQueryResult HybridNitroSQLite::execute(const std::string& dbName, const s
 std::shared_ptr<Promise<std::shared_ptr<HybridNativeQueryResultSpec>>> HybridNitroSQLite::executeAsync(const std::string& dbName, const std::string& query,
                                                                                                        const std::optional<SQLiteQueryParams>& params) {
   return Promise<std::shared_ptr<HybridNativeQueryResultSpec>>::async([=, this]() -> std::shared_ptr<HybridNativeQueryResultSpec> {
-    try {
-      auto result = execute(dbName, query, params);
-      return result;
-    } catch (...) {
-      throw std::current_exception();
-    }
+    auto result = execute(dbName, query, params);
+    return result;
   });
 };
 
@@ -80,12 +76,8 @@ BatchQueryResult HybridNitroSQLite::executeBatch(const std::string& dbName, cons
 std::shared_ptr<Promise<BatchQueryResult>> HybridNitroSQLite::executeBatchAsync(const std::string& dbName,
                                                                                 const std::vector<BatchQueryCommand>& batchParams) {
   return Promise<BatchQueryResult>::async([=, this]() -> BatchQueryResult {
-    try {
-      auto result = executeBatch(dbName, batchParams);
-      return result;
-    } catch (...) {
-      throw std::current_exception();
-    }
+    auto result = executeBatch(dbName, batchParams);
+    return result;
   });
 };
 
@@ -96,12 +88,8 @@ FileLoadResult HybridNitroSQLite::loadFile(const std::string& dbName, const std:
 
 std::shared_ptr<Promise<FileLoadResult>> HybridNitroSQLite::loadFileAsync(const std::string& dbName, const std::string& location) {
   return Promise<FileLoadResult>::async([=, this]() -> FileLoadResult {
-    try {
-      auto result = loadFile(dbName, location);
-      return result;
-    } catch (...) {
-      throw std::current_exception();
-    }
+    auto result = loadFile(dbName, location);
+    return result;
   });
 };
 

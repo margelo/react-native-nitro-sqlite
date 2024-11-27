@@ -74,7 +74,7 @@
     "react": "*",
     "react-native": "*",
     "react-native-builder-bob": "^0.31.0",
-    "react-native-nitro-modules": "*"
+    "react-native-nitro-modules": "https://gitpkg.vercel.app/mrousavy/nitro/packages/react-native-nitro-modules?5334d8c902ea36d3f630be0c5b3e2e3ec5029661"
   },
   "peerDependencies": {
     "react": ">=17.0.0",
