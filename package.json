@@ -31,7 +31,7 @@
     "patch-package": "^8.0.0",
     "react": "18.3.1",
     "react-native": "0.76.1",
-    "react-native-nitro-modules": "https://gitpkg.vercel.app/mrousavy/nitro/packages/react-native-nitro-modules?5334d8c902ea36d3f630be0c5b3e2e3ec5029661"
+    "react-native-nitro-modules": "^0.18.1"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
