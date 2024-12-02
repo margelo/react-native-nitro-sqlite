@@ -6,6 +6,7 @@ import type {
 import { beforeEach, describe, it } from './MochaRNAdapter'
 import chai from 'chai'
 import { testDb as testDbInternal, resetTestDb } from './db'
+import { User } from '../model/User'
 
 function isError(e: unknown): e is Error {
   return e instanceof Error
