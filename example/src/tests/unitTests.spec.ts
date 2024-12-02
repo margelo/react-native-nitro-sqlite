@@ -560,8 +560,6 @@ export function registerUnitTests() {
         await promised
         expect.fail('Should not resolve')
       } catch (e) {
-        console.log(e)
-
         if (isError(e))
           expect(e.message).to.include('no such table: tableThatDoesNotExist')
         else expect.fail('Should have thrown a valid NitroSQLiteException')
