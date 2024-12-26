@@ -79,7 +79,7 @@
   "peerDependencies": {
     "react": ">=17.0.0",
     "react-native": ">=0.74.0",
-    "react-native-nitro-modules": ">=0.17.0"
+    "react-native-nitro-modules": ">=0.20.1"
   },
   "resolutions": {
     "@types/react": "^18.2.44"
