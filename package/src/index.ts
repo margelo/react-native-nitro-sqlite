@@ -15,9 +15,10 @@ export const NitroSQLite = {
   ...HybridNitroSQLite,
   native: HybridNitroSQLite,
   onInitialized,
-  // Overwrite native functions with session-based JS implementations,
+  // Overwrite native `open` function with session-based JS abstraction,
   // where the database name can be ommited once opened
   open,
+  // More JS abstractions, that perform type casting and validation.
   transaction,
   execute,
   executeAsync,

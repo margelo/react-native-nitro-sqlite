@@ -61,8 +61,8 @@ db = {
     query: string,
     params?: any[]
   ) => Promise<QueryResult>,
-  executeBatch: (commands: SQLBatchParams[]) => BatchQueryResult,
-  executeBatchAsync: (commands: SQLBatchParams[]) => Promise<BatchQueryResult>,
+  executeBatch: (commands: BatchQueryCommand[]) => BatchQueryResult,
+  executeBatchAsync: (commands: BatchQueryCommand[]) => Promise<BatchQueryResult>,
   loadFile: (location: string) => FileLoadResult;,
   loadFileAsync: (location: string) => Promise<FileLoadResult>
 }
@@ -130,10 +130,10 @@ Batch execution allows the transactional execution of a set of commands
 
 ```typescript
 const commands = [
-  ['CREATE TABLE TEST (id integer)'],
-  ['INSERT INTO TEST (id) VALUES (?)', [1]],
-  [('INSERT INTO TEST (id) VALUES (?)', [2])],
-  [('INSERT INTO TEST (id) VALUES (?)', [[3], [4], [5], [6]])],
+  {query: 'CREATE TABLE TEST (id integer)'},
+  {query: 'INSERT INTO TEST (id) VALUES (?)', params: [value1]},
+  {query: 'INSERT INTO TEST (id) VALUES (?)', params: [value2]},
+  {query: 'INSERT INTO TEST (id) VALUES (?)', params: [value3, value4, value5, value6]},
 ];
 
 const res = NitroSQLite.executeSqlBatch('myDatabase', commands);
