@@ -1,9 +1,10 @@
 #pragma once
 
+#include <string>
+#include <NitroModules/ArrayBuffer.hpp>
 #include "SQLiteQueryColumnMetadata.hpp"
 #include "ColumnType.hpp"
-#include <NitroModules/ArrayBuffer.hpp>
-#include <string>
+#include "NativeSQLiteNullValue.hpp"
 
 using namespace margelo::nitro;
 using namespace margelo::nitro::rnnitrosqlite;
@@ -11,7 +12,7 @@ using namespace margelo::nitro::rnnitrosqlite;
 namespace margelo::rnnitrosqlite {
 
 // using SQLiteValue = std::variant<std::string, double, int64_t, bool, std::shared_ptr<ArrayBuffer>, std::monostate>;
-using SQLiteValue = std::variant<std::string, double, int64_t, bool, std::shared_ptr<ArrayBuffer>>;
+using SQLiteValue = std::variant<std::string, double, int64_t, bool, std::shared_ptr<ArrayBuffer>, NativeSqliteNullValue>;
 using SQLiteQueryParams = std::vector<SQLiteValue>;
 using SQLiteQueryResultRow = std::unordered_map<std::string, SQLiteValue>;
 using SQLiteQueryResults = std::vector<SQLiteQueryResultRow>;
