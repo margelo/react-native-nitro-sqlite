@@ -1,4 +1,4 @@
-import { NITRO_SQLITE_NULL, simpleNullHandlingEnabled } from '..'
+import { NITRO_SQLITE_NULL, isSimpleNullHandlingEnabled } from '..'
 import { HybridNitroSQLite } from '../nitro'
 import type { NativeQueryResult } from '../specs/NativeQueryResult.nitro'
 import type {
@@ -27,7 +27,7 @@ export async function executeAsync<Row extends QueryResultRow = never>(
   query: string,
   params?: SQLiteQueryParams
 ): Promise<QueryResult<Row>> {
-  const transformedParams = simpleNullHandlingEnabled()
+  const transformedParams = isSimpleNullHandlingEnabled()
     ? toNativeQueryParams(params)
     : (params as NativeSQLiteQueryParams)
 
@@ -58,12 +58,12 @@ function buildJsQueryResult<Row extends QueryResultRow = never>({
 }: NativeQueryResult): QueryResult<Row> {
   let data: Row[] = results as Row[]
 
-  if (simpleNullHandlingEnabled()) {
+  if (isSimpleNullHandlingEnabled()) {
     data = results.map((row) =>
       Object.fromEntries(
         Object.entries(row).map(([key, value]) => {
-          if (value === NITRO_SQLITE_NULL) {
-            return [key, undefined]
+          if (typeof value === 'object' && 'isNull' in value) {
+            return [key, null]
           }
           return [key, value]
         })
