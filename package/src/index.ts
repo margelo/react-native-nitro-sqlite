@@ -27,12 +27,12 @@ export const NitroSQLite = {
 export { open } from './operations/session'
 
 let ENABLE_SIMPLE_NULL_HANDLING = false
-export function enableEasierNullHandling(
+export function enableSimpleNullHandling(
   shouldEnableSimpleNullHandling = true
 ) {
   ENABLE_SIMPLE_NULL_HANDLING = shouldEnableSimpleNullHandling
 }
-export function simpleNullHandlingEnabled() {
+export function isSimpleNullHandlingEnabled() {
   return ENABLE_SIMPLE_NULL_HANDLING
 }
 
