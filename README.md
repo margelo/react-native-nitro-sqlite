@@ -46,7 +46,9 @@ TypeORM is officially supported, however, there is currently a parsing issue wit
 ```typescript
 import {open} from 'react-native-nitro-sqlite'
 
-const db = open({name: 'myDb.sqlite', location: '<optional_file_location>'})
+const db = open({ name: 'myDb.sqlite' })
+// Or: const db = open({ name: 'myDb.sqlite', location: '/some/location' })
+
 
 // The db object now contains the following methods:
 db = {
@@ -75,7 +77,7 @@ The basic query is **synchronous**, it will block rendering on large operations,
 import { open } from 'react-native-nitro-sqlite';
 
 try {
-  const db = open({name: 'myDb.sqlite', location: '<optional_file_location>'})
+  const db = open({ name: 'myDb.sqlite' });
 
   let { rows } = db.execute('SELECT somevalue FROM sometable');
 
@@ -386,6 +388,12 @@ You can specify flags via `<PROJECT_ROOT>/android/gradle.properties` like so:
 
 ```
 nitroSqliteFlags="<SQLITE_FLAGS>"
+```
+
+Unlike with iOS, you must specify the `-D` prefix when defining your flags:
+
+```
+quickSqliteFlags="-DSQLITE_ENABLE_FTS5=1"
 ```
 
 ## Additional configuration
