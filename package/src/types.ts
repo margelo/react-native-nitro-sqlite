@@ -29,10 +29,10 @@ export enum ColumnType {
 export type BaseSQLiteValue = boolean | number | string | ArrayBuffer
 
 // Passing null/undefined in array types is not possible, so we us a special struct as a workaround.
-export type NativeSqliteNullValue = {
+export type NativeSQLiteNullValue = {
   isNull: true
 }
-export type NativeSQLiteValue = BaseSQLiteValue | NativeSqliteNullValue
+export type NativeSQLiteValue = BaseSQLiteValue | NativeSQLiteNullValue
 export type NativeSQLiteQueryParams = NativeSQLiteValue[]
 
 /**
