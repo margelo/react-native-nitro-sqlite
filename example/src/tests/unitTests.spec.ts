@@ -4,7 +4,6 @@ import {
   type BatchQueryCommand,
   NITRO_SQLITE_NULL,
   enableSimpleNullHandling,
-  isSimpleNullHandlingEnabled,
 } from 'react-native-nitro-sqlite'
 import { beforeEach, describe, it } from './MochaRNAdapter'
 import chai from 'chai'

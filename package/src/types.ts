@@ -28,7 +28,7 @@ export enum ColumnType {
 
 // Passing null/undefined in array types is not possible, so we us a special struct as a workaround.
 export type SQLiteNullValue = {
-  isNull: true
+  isNitroSQLiteNull: true
 }
 export type SQLiteValue =
   | boolean

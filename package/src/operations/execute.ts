@@ -1,4 +1,8 @@
-import { NITRO_SQLITE_NULL, isSimpleNullHandlingEnabled } from '..'
+import {
+  NITRO_SQLITE_NULL,
+  isNitroSQLiteNull,
+  isSimpleNullHandlingEnabled,
+} from '..'
 import { HybridNitroSQLite } from '../nitro'
 import type { NativeQueryResult } from '../specs/NativeQueryResult.nitro'
 import type {
@@ -62,7 +66,7 @@ function buildJsQueryResult<Row extends QueryResultRow = never>({
     data = results.map((row) =>
       Object.fromEntries(
         Object.entries(row).map(([key, value]) => {
-          if (typeof value === 'object' && 'isNull' in value) {
+          if (isNitroSQLiteNull(value)) {
             return [key, null]
           }
           return [key, value]
