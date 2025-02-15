@@ -1,7 +1,10 @@
 import Chance from 'chance'
-import type {
-  NitroSQLiteConnection,
-  BatchQueryCommand,
+import {
+  type NitroSQLiteConnection,
+  type BatchQueryCommand,
+  NITRO_SQLITE_NULL,
+  enableSimpleNullHandling,
+  isSimpleNullHandlingEnabled,
 } from 'react-native-nitro-sqlite'
 import { beforeEach, describe, it } from './MochaRNAdapter'
 import chai from 'chai'
@@ -19,6 +22,8 @@ export function registerUnitTests() {
   let testDb: NitroSQLiteConnection
 
   beforeEach(() => {
+    enableSimpleNullHandling(false)
+
     try {
       resetTestDb()
 
@@ -52,6 +57,62 @@ export function registerUnitTests() {
       expect(res.rows?._array).to.eql([])
       expect(res.rows?.length).to.equal(0)
       expect(res.rows?.item).to.be.a('function')
+    })
+
+    it('Insert with null', () => {
+      const id = chance.integer()
+      const name = chance.name()
+      const age = NITRO_SQLITE_NULL
+      const networth = NITRO_SQLITE_NULL
+      const res = testDb.execute(
+        'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
+        [id, name, age, networth]
+      )
+
+      expect(res.rowsAffected).to.equal(1)
+      expect(res.insertId).to.equal(1)
+      expect(res.rows?._array).to.eql([])
+      expect(res.rows?.length).to.equal(0)
+      expect(res.rows?.item).to.be.a('function')
+
+      const selectRes = testDb.execute('SELECT * FROM User')
+      expect(selectRes.rows?._array).to.eql([
+        {
+          id,
+          name,
+          age,
+          networth,
+        },
+      ])
+    })
+
+    it('Insert with null (simple null handling)', () => {
+      enableSimpleNullHandling(true)
+
+      const id = chance.integer()
+      const name = chance.name()
+      const age = undefined
+      const networth = null
+      const res = testDb.execute(
+        'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
+        [id, name, age, networth]
+      )
+
+      expect(res.rowsAffected).to.equal(1)
+      expect(res.insertId).to.equal(1)
+      expect(res.rows?._array).to.eql([])
+      expect(res.rows?.length).to.equal(0)
+      expect(res.rows?.item).to.be.a('function')
+
+      const selectRes = testDb.execute('SELECT * FROM User')
+      expect(selectRes.rows?._array).to.eql([
+        {
+          id,
+          name,
+          age: null,
+          networth: null,
+        },
+      ])
     })
 
     it('Query without params', () => {
