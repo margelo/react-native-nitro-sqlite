@@ -26,22 +26,25 @@ export enum ColumnType {
   NULL_VALUE,
 }
 
-export type BaseSQLiteValue = boolean | number | string | ArrayBuffer
-
 // Passing null/undefined in array types is not possible, so we us a special struct as a workaround.
 export type NativeSQLiteNullValue = {
   isNull: true
 }
-export type NativeSQLiteValue = BaseSQLiteValue | NativeSQLiteNullValue
+export type NativeSQLiteValue =
+  | boolean
+  | number
+  | string
+  | ArrayBuffer
+  | NativeSQLiteNullValue
 export type NativeSQLiteQueryParams = NativeSQLiteValue[]
 
 /**
  * Represents a value that can be stored in a SQLite database
  */
-export type SQLiteValue = BaseSQLiteValue | null | undefined
+export type SQLiteValue = NativeSQLiteValue | null | undefined
 export type SQLiteQueryParams = SQLiteValue[]
 
-export type QueryResultItem = BaseSQLiteValue | undefined
+export type QueryResultItem = NativeSQLiteValue | undefined
 export type QueryResultRow = Record<string, QueryResultItem>
 export interface QueryResult<RowData extends QueryResultRow = QueryResultRow> {
   readonly insertId?: number

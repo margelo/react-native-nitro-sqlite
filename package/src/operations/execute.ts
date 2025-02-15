@@ -1,4 +1,4 @@
-import { NITRO_SQLITE_NULL } from '..'
+import { NITRO_SQLITE_NULL, simpleNullHandlingEnabled } from '..'
 import { HybridNitroSQLite } from '../nitro'
 import type { NativeQueryResult } from '../specs/NativeQueryResult.nitro'
 import type {
@@ -8,31 +8,35 @@ import type {
   QueryResultRow,
 } from '../types'
 
-export function execute<Data extends QueryResultRow = never>(
+export function execute<Row extends QueryResultRow = never>(
   dbName: string,
   query: string,
   params?: SQLiteQueryParams
-): QueryResult<Data> {
+): QueryResult<Row> {
   const nativeResult = HybridNitroSQLite.execute(
     dbName,
     query,
     toNativeQueryParams(params)
   )
-  const result = buildJsQueryResult<Data>(nativeResult)
+  const result = buildJsQueryResult<Row>(nativeResult)
   return result
 }
 
-export async function executeAsync<Data extends QueryResultRow = never>(
+export async function executeAsync<Row extends QueryResultRow = never>(
   dbName: string,
   query: string,
   params?: SQLiteQueryParams
-): Promise<QueryResult<Data>> {
+): Promise<QueryResult<Row>> {
+  const transformedParams = simpleNullHandlingEnabled()
+    ? toNativeQueryParams(params)
+    : (params as NativeSQLiteQueryParams)
+
   const nativeResult = await HybridNitroSQLite.executeAsync(
     dbName,
     query,
-    toNativeQueryParams(params)
+    transformedParams
   )
-  const result = buildJsQueryResult<Data>(nativeResult)
+  const result = buildJsQueryResult<Row>(nativeResult)
   return result
 }
 
@@ -47,21 +51,25 @@ function toNativeQueryParams(
   })
 }
 
-function buildJsQueryResult<Data extends QueryResultRow = never>({
+function buildJsQueryResult<Row extends QueryResultRow = never>({
   insertId,
   rowsAffected,
   results,
-}: NativeQueryResult): QueryResult<Data> {
-  const data = results.map((row) =>
-    Object.fromEntries(
-      Object.entries(row).map(([key, value]) => {
-        if (value === NITRO_SQLITE_NULL) {
-          return [key, undefined]
-        }
-        return [key, value]
-      })
-    )
-  ) as Data[]
+}: NativeQueryResult): QueryResult<Row> {
+  let data: Row[] = results as Row[]
+
+  if (simpleNullHandlingEnabled()) {
+    data = results.map((row) =>
+      Object.fromEntries(
+        Object.entries(row).map(([key, value]) => {
+          if (value === NITRO_SQLITE_NULL) {
+            return [key, undefined]
+          }
+          return [key, value]
+        })
+      )
+    ) as Row[]
+  }
 
   return {
     insertId,

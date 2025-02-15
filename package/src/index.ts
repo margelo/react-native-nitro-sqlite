@@ -7,8 +7,6 @@ import { NativeSQLiteNullValue } from './types'
 export type * from './types'
 export { typeORMDriver } from './typeORM'
 
-export const NITRO_SQLITE_NULL: NativeSQLiteNullValue = { isNull: true }
-
 export const onInitialized = new Promise<void>((resolve) => {
   NitroSQLiteOnLoad.onReactApplicationContextReady(resolve)
 })
@@ -27,3 +25,15 @@ export const NitroSQLite = {
 }
 
 export { open } from './operations/session'
+
+let ENABLE_SIMPLE_NULL_HANDLING = false
+export function enableEasierNullHandling(
+  shouldEnableSimpleNullHandling = true
+) {
+  ENABLE_SIMPLE_NULL_HANDLING = shouldEnableSimpleNullHandling
+}
+export function simpleNullHandlingEnabled() {
+  return ENABLE_SIMPLE_NULL_HANDLING
+}
+
+export const NITRO_SQLITE_NULL: NativeSQLiteNullValue = { isNull: true }
