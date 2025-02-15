@@ -15,8 +15,8 @@
 
 // Forward declaration of `ArrayBuffer` to properly resolve imports.
 namespace NitroModules { class ArrayBuffer; }
-// Forward declaration of `NativeSQLiteNullValue` to properly resolve imports.
-namespace margelo::nitro::rnnitrosqlite { struct NativeSQLiteNullValue; }
+// Forward declaration of `SQLiteNullValue` to properly resolve imports.
+namespace margelo::nitro::rnnitrosqlite { struct SQLiteNullValue; }
 // Forward declaration of `SQLiteQueryColumnMetadata` to properly resolve imports.
 namespace margelo::nitro::rnnitrosqlite { struct SQLiteQueryColumnMetadata; }
 
@@ -26,7 +26,7 @@ namespace margelo::nitro::rnnitrosqlite { struct SQLiteQueryColumnMetadata; }
 #include <string>
 #include <variant>
 #include <NitroModules/ArrayBuffer.hpp>
-#include "NativeSQLiteNullValue.hpp"
+#include "SQLiteNullValue.hpp"
 #include "SQLiteQueryColumnMetadata.hpp"
 
 namespace margelo::nitro::rnnitrosqlite {
@@ -58,7 +58,7 @@ namespace margelo::nitro::rnnitrosqlite {
       // Properties
       virtual double getRowsAffected() = 0;
       virtual std::optional<double> getInsertId() = 0;
-      virtual std::vector<std::unordered_map<std::string, std::variant<std::string, double, bool, std::shared_ptr<ArrayBuffer>, NativeSQLiteNullValue>>> getResults() = 0;
+      virtual std::vector<std::unordered_map<std::string, std::variant<std::string, double, bool, std::shared_ptr<ArrayBuffer>, SQLiteNullValue>>> getResults() = 0;
       virtual std::optional<std::unordered_map<std::string, SQLiteQueryColumnMetadata>> getMetadata() = 0;
 
     public:

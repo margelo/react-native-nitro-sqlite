@@ -3,7 +3,7 @@ import { HybridNitroSQLite } from './nitro'
 import { open } from './operations/session'
 import NitroSQLiteOnLoad from './specs/NativeNitroSQLiteOnLoad'
 import { execute, executeAsync } from './operations/execute'
-import { NativeSQLiteNullValue } from './types'
+import { SQLiteNullValue } from './types'
 export type * from './types'
 export { typeORMDriver } from './typeORM'
 
@@ -36,4 +36,4 @@ export function simpleNullHandlingEnabled() {
   return ENABLE_SIMPLE_NULL_HANDLING
 }
 
-export const NITRO_SQLITE_NULL: NativeSQLiteNullValue = { isNull: true }
+export const NITRO_SQLITE_NULL: SQLiteNullValue = { isNull: true }

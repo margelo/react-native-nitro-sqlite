@@ -1,5 +1,5 @@
 import type { HybridObject } from 'react-native-nitro-modules'
-import type { ColumnType, NativeSQLiteValue } from '../types'
+import type { ColumnType, SQLiteValue } from '../types'
 
 /**
  * Object returned by SQL Query executions {
@@ -30,7 +30,7 @@ export interface NativeQueryResult
 // TODO: Investigate why this doesn't work with nitrogen
 // export type SQLiteQueryResultRow = Record<string, SQLiteValue>
 // export type SQLiteQueryResults = SQLiteQueryResultRow[]
-export type NativeSQLiteQueryResults = Record<string, NativeSQLiteValue>[]
+export type NativeSQLiteQueryResults = Record<string, SQLiteValue>[]
 
 // TODO: Investigate why this doesn't work with nitrogen
 // export type SQLiteQueryTableMetadata = Record<string, SQLiteQueryColumnMetadata>

@@ -24,14 +24,14 @@ export function open(
     detach: (alias: string) => HybridNitroSQLite.detach(options.name, alias),
     transaction: (fn: (tx: Transaction) => Promise<void> | void) =>
       transaction(options.name, fn),
-    execute: <Data extends QueryResultRow = never>(
+    execute: <Row extends QueryResultRow = never>(
       query: string,
       params?: SQLiteQueryParams
-    ): QueryResult<Data> => execute(options.name, query, params),
-    executeAsync: <Data extends QueryResultRow = never>(
+    ): QueryResult<Row> => execute(options.name, query, params),
+    executeAsync: <Row extends QueryResultRow = never>(
       query: string,
       params?: SQLiteQueryParams
-    ): Promise<QueryResult<Data>> => executeAsync(options.name, query, params),
+    ): Promise<QueryResult<Row>> => executeAsync(options.name, query, params),
     executeBatch: (commands: BatchQueryCommand[]) =>
       HybridNitroSQLite.executeBatch(options.name, commands),
     executeBatchAsync: (commands: BatchQueryCommand[]) =>

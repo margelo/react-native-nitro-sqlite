@@ -20,15 +20,15 @@
 
 // Forward declaration of `ArrayBuffer` to properly resolve imports.
 namespace NitroModules { class ArrayBuffer; }
-// Forward declaration of `NativeSQLiteNullValue` to properly resolve imports.
-namespace margelo::nitro::rnnitrosqlite { struct NativeSQLiteNullValue; }
+// Forward declaration of `SQLiteNullValue` to properly resolve imports.
+namespace margelo::nitro::rnnitrosqlite { struct SQLiteNullValue; }
 
 #include <string>
 #include <optional>
 #include <variant>
 #include <vector>
 #include <NitroModules/ArrayBuffer.hpp>
-#include "NativeSQLiteNullValue.hpp"
+#include "SQLiteNullValue.hpp"
 
 namespace margelo::nitro::rnnitrosqlite {
 
@@ -38,10 +38,10 @@ namespace margelo::nitro::rnnitrosqlite {
   struct BatchQueryCommand {
   public:
     std::string query     SWIFT_PRIVATE;
-    std::optional<std::variant<std::vector<std::variant<std::string, double, bool, std::shared_ptr<ArrayBuffer>, NativeSQLiteNullValue>>, std::vector<std::vector<std::variant<std::string, double, bool, std::shared_ptr<ArrayBuffer>, NativeSQLiteNullValue>>>>> params     SWIFT_PRIVATE;
+    std::optional<std::variant<std::vector<std::variant<std::string, double, bool, std::shared_ptr<ArrayBuffer>, SQLiteNullValue>>, std::vector<std::vector<std::variant<std::string, double, bool, std::shared_ptr<ArrayBuffer>, SQLiteNullValue>>>>> params     SWIFT_PRIVATE;
 
   public:
-    explicit BatchQueryCommand(std::string query, std::optional<std::variant<std::vector<std::variant<std::string, double, bool, std::shared_ptr<ArrayBuffer>, NativeSQLiteNullValue>>, std::vector<std::vector<std::variant<std::string, double, bool, std::shared_ptr<ArrayBuffer>, NativeSQLiteNullValue>>>>> params): query(query), params(params) {}
+    explicit BatchQueryCommand(std::string query, std::optional<std::variant<std::vector<std::variant<std::string, double, bool, std::shared_ptr<ArrayBuffer>, SQLiteNullValue>>, std::vector<std::vector<std::variant<std::string, double, bool, std::shared_ptr<ArrayBuffer>, SQLiteNullValue>>>>> params): query(query), params(params) {}
   };
 
 } // namespace margelo::nitro::rnnitrosqlite
@@ -57,13 +57,13 @@ namespace margelo::nitro {
       jsi::Object obj = arg.asObject(runtime);
       return BatchQueryCommand(
         JSIConverter<std::string>::fromJSI(runtime, obj.getProperty(runtime, "query")),
-        JSIConverter<std::optional<std::variant<std::vector<std::variant<std::string, double, bool, std::shared_ptr<ArrayBuffer>, NativeSQLiteNullValue>>, std::vector<std::vector<std::variant<std::string, double, bool, std::shared_ptr<ArrayBuffer>, NativeSQLiteNullValue>>>>>>::fromJSI(runtime, obj.getProperty(runtime, "params"))
+        JSIConverter<std::optional<std::variant<std::vector<std::variant<std::string, double, bool, std::shared_ptr<ArrayBuffer>, SQLiteNullValue>>, std::vector<std::vector<std::variant<std::string, double, bool, std::shared_ptr<ArrayBuffer>, SQLiteNullValue>>>>>>::fromJSI(runtime, obj.getProperty(runtime, "params"))
       );
     }
     static inline jsi::Value toJSI(jsi::Runtime& runtime, const BatchQueryCommand& arg) {
       jsi::Object obj(runtime);
       obj.setProperty(runtime, "query", JSIConverter<std::string>::toJSI(runtime, arg.query));
-      obj.setProperty(runtime, "params", JSIConverter<std::optional<std::variant<std::vector<std::variant<std::string, double, bool, std::shared_ptr<ArrayBuffer>, NativeSQLiteNullValue>>, std::vector<std::vector<std::variant<std::string, double, bool, std::shared_ptr<ArrayBuffer>, NativeSQLiteNullValue>>>>>>::toJSI(runtime, arg.params));
+      obj.setProperty(runtime, "params", JSIConverter<std::optional<std::variant<std::vector<std::variant<std::string, double, bool, std::shared_ptr<ArrayBuffer>, SQLiteNullValue>>, std::vector<std::vector<std::variant<std::string, double, bool, std::shared_ptr<ArrayBuffer>, SQLiteNullValue>>>>>>::toJSI(runtime, arg.params));
       return obj;
     }
     static inline bool canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
@@ -72,7 +72,7 @@ namespace margelo::nitro {
       }
       jsi::Object obj = value.getObject(runtime);
       if (!JSIConverter<std::string>::canConvert(runtime, obj.getProperty(runtime, "query"))) return false;
-      if (!JSIConverter<std::optional<std::variant<std::vector<std::variant<std::string, double, bool, std::shared_ptr<ArrayBuffer>, NativeSQLiteNullValue>>, std::vector<std::vector<std::variant<std::string, double, bool, std::shared_ptr<ArrayBuffer>, NativeSQLiteNullValue>>>>>>::canConvert(runtime, obj.getProperty(runtime, "params"))) return false;
+      if (!JSIConverter<std::optional<std::variant<std::vector<std::variant<std::string, double, bool, std::shared_ptr<ArrayBuffer>, SQLiteNullValue>>, std::vector<std::vector<std::variant<std::string, double, bool, std::shared_ptr<ArrayBuffer>, SQLiteNullValue>>>>>>::canConvert(runtime, obj.getProperty(runtime, "params"))) return false;
       return true;
     }
   };

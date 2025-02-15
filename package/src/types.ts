@@ -27,53 +27,51 @@ export enum ColumnType {
 }
 
 // Passing null/undefined in array types is not possible, so we us a special struct as a workaround.
-export type NativeSQLiteNullValue = {
+export type SQLiteNullValue = {
   isNull: true
 }
-export type NativeSQLiteValue =
+export type SQLiteValue =
   | boolean
   | number
   | string
   | ArrayBuffer
-  | NativeSQLiteNullValue
-export type NativeSQLiteQueryParams = NativeSQLiteValue[]
+  | SQLiteNullValue
+export type NativeSQLiteQueryParams = SQLiteValue[]
 
 /**
  * Represents a value that can be stored in a SQLite database
  */
-export type SQLiteValue = NativeSQLiteValue | null | undefined
-export type SQLiteQueryParams = SQLiteValue[]
+export type SQLiteQueryParamItem = SQLiteValue | null | undefined
+export type SQLiteQueryParams = SQLiteQueryParamItem[]
 
-export type QueryResultItem = NativeSQLiteValue | undefined
-export type QueryResultRow = Record<string, QueryResultItem>
-export interface QueryResult<RowData extends QueryResultRow = QueryResultRow> {
+export type QueryResultRowItem = SQLiteValue | undefined
+export type QueryResultRow = Record<string, QueryResultRowItem>
+export interface QueryResult<Row extends QueryResultRow = QueryResultRow> {
   readonly insertId?: number
   readonly rowsAffected: number
 
   readonly rows?: {
     /** Raw array with all dataset */
-    _array: RowData[]
+    _array: Row[]
     /** The lengh of the dataset */
     length: number
     /** A convenience function to acess the index based the row object
      * @param idx the row index
      * @returns the row structure identified by column names
      */
-    item: (idx: number) => RowData | undefined
+    item: (idx: number) => Row | undefined
   }
 }
 
-export type ExecuteQuery = <RowData extends QueryResultRow = QueryResultRow>(
+export type ExecuteQuery = <Row extends QueryResultRow = QueryResultRow>(
   query: string,
   params?: SQLiteQueryParams
-) => QueryResult<RowData>
+) => QueryResult<Row>
 
-export type ExecuteAsyncQuery = <
-  RowData extends QueryResultRow = QueryResultRow,
->(
+export type ExecuteAsyncQuery = <Row extends QueryResultRow = QueryResultRow>(
   query: string,
   params?: SQLiteQueryParams
-) => Promise<QueryResult<RowData>>
+) => Promise<QueryResult<Row>>
 
 export interface Transaction {
   commit(): QueryResult
