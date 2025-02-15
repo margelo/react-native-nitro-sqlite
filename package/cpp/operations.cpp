@@ -102,11 +102,9 @@ void bindStatement(sqlite3_stmt* statement, const SQLiteQueryParams& values) {
   for (int valueIndex = 0; valueIndex < values.size(); valueIndex++) {
     int sqliteIndex = valueIndex+1;
     SQLiteValue value = values.at(valueIndex);
-    // if (std::holds_alternative<std::monostate>(value))
-    // {
-    //     sqlite3_bind_null(statement, sqliteIndex);
-    // }
-    if (std::holds_alternative<bool>(value)) {
+    if (std::holds_alternative<NativeSQLiteNullValue>(value)) {
+      sqlite3_bind_null(statement, sqliteIndex);
+    } else if (std::holds_alternative<bool>(value)) {
       sqlite3_bind_int(statement, sqliteIndex, std::get<bool>(value));
     } else if (std::holds_alternative<double>(value)) {
       sqlite3_bind_double(statement, sqliteIndex, std::get<double>(value));
@@ -191,7 +189,7 @@ SQLiteExecuteQueryResult sqliteExecute(const std::string& dbName, const std::str
             case SQLITE_NULL:
               // Intentionally left blank to switch to default case
             default:
-              //                            row[column_name] = std::monostate();
+              row[column_name] = NativeSQLiteNullValue(true);
               break;
           }
           i++;
