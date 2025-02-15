@@ -5,9 +5,9 @@ import type {
   NitroSQLiteConnection,
   NitroSQLiteConnectionOptions,
   QueryResult,
-  SQLiteItem,
-  SQLiteQueryParams,
   Transaction,
+  SQLiteQueryParams,
+  QueryResultRow,
 } from '../types'
 import { execute, executeAsync } from './execute'
 
@@ -24,11 +24,11 @@ export function open(
     detach: (alias: string) => HybridNitroSQLite.detach(options.name, alias),
     transaction: (fn: (tx: Transaction) => Promise<void> | void) =>
       transaction(options.name, fn),
-    execute: <Data extends SQLiteItem = never>(
+    execute: <Data extends QueryResultRow = never>(
       query: string,
       params?: SQLiteQueryParams
     ): QueryResult<Data> => execute(options.name, query, params),
-    executeAsync: <Data extends SQLiteItem = never>(
+    executeAsync: <Data extends QueryResultRow = never>(
       query: string,
       params?: SQLiteQueryParams
     ): Promise<QueryResult<Data>> => executeAsync(options.name, query, params),

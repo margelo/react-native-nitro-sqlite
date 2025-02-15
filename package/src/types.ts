@@ -26,14 +26,24 @@ export enum ColumnType {
   NULL_VALUE,
 }
 
+export type BaseSQLiteValue = boolean | number | string | ArrayBuffer
+
+// Passing null/undefined in array types is not possible, so we us a special struct as a workaround.
+export type NativeSqliteNullValue = {
+  isNull: true
+}
+export type NativeSQLiteValue = BaseSQLiteValue | NativeSqliteNullValue
+export type NativeSQLiteQueryParams = NativeSQLiteValue[]
+
 /**
  * Represents a value that can be stored in a SQLite database
  */
-export type SQLiteValue = boolean | number | string | ArrayBuffer | undefined
+export type SQLiteValue = BaseSQLiteValue | null | undefined
+export type SQLiteQueryParams = SQLiteValue[]
 
-export type SQLiteItem = Record<string, SQLiteValue>
-
-export interface QueryResult<RowData extends SQLiteItem = SQLiteItem> {
+export type QueryResultItem = BaseSQLiteValue | undefined
+export type QueryResultRow = Record<string, QueryResultItem>
+export interface QueryResult<RowData extends QueryResultRow = QueryResultRow> {
   readonly insertId?: number
   readonly rowsAffected: number
 
@@ -50,14 +60,14 @@ export interface QueryResult<RowData extends SQLiteItem = SQLiteItem> {
   }
 }
 
-export type SQLiteQueryParams = SQLiteValue[]
-
-export type ExecuteQuery = <RowData extends SQLiteItem = SQLiteItem>(
+export type ExecuteQuery = <RowData extends QueryResultRow = QueryResultRow>(
   query: string,
   params?: SQLiteQueryParams
 ) => QueryResult<RowData>
 
-export type ExecuteAsyncQuery = <RowData extends SQLiteItem = SQLiteItem>(
+export type ExecuteAsyncQuery = <
+  RowData extends QueryResultRow = QueryResultRow,
+>(
   query: string,
   params?: SQLiteQueryParams
 ) => Promise<QueryResult<RowData>>

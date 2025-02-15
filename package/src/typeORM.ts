@@ -7,14 +7,14 @@
 
 import type {
   QueryResult,
-  SQLiteItem,
-  SQLiteQueryParams,
   Transaction,
+  SQLiteQueryParams,
+  QueryResultRow,
 } from './types'
 import * as Operations from './operations/session'
 
 interface TypeOrmNitroSQLiteConnection {
-  executeSql: <RowData extends SQLiteItem = never>(
+  executeSql: <RowData extends QueryResultRow = never>(
     sql: string,
     params: SQLiteQueryParams | undefined,
     okExecute: (res: QueryResult<RowData>) => void,
@@ -48,7 +48,7 @@ export const typeORMDriver = {
       const db = Operations.open(options)
 
       const connection: TypeOrmNitroSQLiteConnection = {
-        executeSql: async <RowData extends SQLiteItem = never>(
+        executeSql: async <RowData extends QueryResultRow = never>(
           sql: string,
           params: SQLiteQueryParams | undefined,
           okExecute: (res: QueryResult<RowData>) => void,

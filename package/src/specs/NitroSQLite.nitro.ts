@@ -3,7 +3,7 @@ import type {
   BatchQueryResult,
   FileLoadResult,
   BatchQueryCommand,
-  SQLiteQueryParams,
+  NativeSQLiteQueryParams,
 } from '../types'
 import type { NativeQueryResult } from './NativeQueryResult.nitro'
 
@@ -22,12 +22,12 @@ export interface NitroSQLite
   execute(
     dbName: string,
     query: string,
-    params?: SQLiteQueryParams
+    params?: NativeSQLiteQueryParams
   ): NativeQueryResult
   executeAsync(
     dbName: string,
     query: string,
-    params?: SQLiteQueryParams
+    params?: NativeSQLiteQueryParams
   ): Promise<NativeQueryResult>
   executeBatch(dbName: string, commands: BatchQueryCommand[]): BatchQueryResult
   executeBatchAsync(

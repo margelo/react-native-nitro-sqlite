@@ -1,9 +1,9 @@
 import { locks, HybridNitroSQLite } from '../nitro'
 import type {
   QueryResult,
-  SQLiteItem,
-  SQLiteQueryParams,
   Transaction,
+  SQLiteQueryParams,
+  QueryResultRow,
 } from '../types'
 import { execute, executeAsync } from './execute'
 
@@ -30,7 +30,7 @@ export const transaction = (
   let isFinalized = false
 
   // Local transaction context object implementation
-  const executeOnTransaction = <Data extends SQLiteItem = never>(
+  const executeOnTransaction = <Data extends QueryResultRow = never>(
     query: string,
     params?: SQLiteQueryParams
   ): QueryResult<Data> => {
@@ -42,7 +42,7 @@ export const transaction = (
     return execute(dbName, query, params)
   }
 
-  const executeAsyncOnTransaction = <Data extends SQLiteItem = never>(
+  const executeAsyncOnTransaction = <Data extends QueryResultRow = never>(
     query: string,
     params?: SQLiteQueryParams
   ): Promise<QueryResult<Data>> => {

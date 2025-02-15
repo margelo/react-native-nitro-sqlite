@@ -3,9 +3,11 @@ import { HybridNitroSQLite } from './nitro'
 import { open } from './operations/session'
 import NitroSQLiteOnLoad from './specs/NativeNitroSQLiteOnLoad'
 import { execute, executeAsync } from './operations/execute'
-
-export * from './types'
+import { NativeSqliteNullValue } from './types'
+export type * from './types'
 export { typeORMDriver } from './typeORM'
+
+export const NITRO_SQLITE_NULL: NativeSqliteNullValue = { isNull: true }
 
 export const onInitialized = new Promise<void>((resolve) => {
   NitroSQLiteOnLoad.onReactApplicationContextReady(resolve)
