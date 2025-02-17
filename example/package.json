@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@craftzdog/react-native-buffer": "^6.0.5",
-    "@react-navigation/native": "^6.1.18",
+    "@react-navigation/native": "^7.0.14",
     "@react-navigation/native-stack": "^6.11.0",
     "chai": "^4.3.7",
     "chance": "^1.1.9",
