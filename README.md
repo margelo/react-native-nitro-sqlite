@@ -162,7 +162,8 @@ db.execute(
 ```
 
 Query results that are received from e.g. `execute()` will also return this special object/struct. To check for null values, the user can use the a special function:
-```
+
+```typescript
 import { isNitroSQLiteNull } from 'react-native-nitro-sqlite'
 
 const res = db.execute('SELECT * FROM User')
