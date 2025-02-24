@@ -181,7 +181,7 @@ SQLiteExecuteQueryResult sqliteExecute(const std::string& dbName, const std::str
               const void* blob = sqlite3_column_blob(statement, i);
               uint8_t* data = new uint8_t[blob_size];
               memcpy(data, blob, blob_size);
-              row[column_name] = ArrayBuffer::makeBuffer(data, blob_size, [&data]() -> void { delete[] data; });
+              row[column_name] = ArrayBuffer::wrap(data, blob_size, [&data]() -> void { delete[] data; });
               break;
             }
             case SQLITE_NULL:

@@ -32,6 +32,7 @@ namespace margelo::nitro::rnnitrosqlite {
     bool isNitroSQLiteNull     SWIFT_PRIVATE;
 
   public:
+    SQLiteNullValue() = default;
     explicit SQLiteNullValue(bool isNitroSQLiteNull): isNitroSQLiteNull(isNitroSQLiteNull) {}
   };
 
@@ -43,7 +44,7 @@ namespace margelo::nitro {
 
   // C++ SQLiteNullValue <> JS SQLiteNullValue (object)
   template <>
-  struct JSIConverter<SQLiteNullValue> {
+  struct JSIConverter<SQLiteNullValue> final {
     static inline SQLiteNullValue fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {
       jsi::Object obj = arg.asObject(runtime);
       return SQLiteNullValue(
