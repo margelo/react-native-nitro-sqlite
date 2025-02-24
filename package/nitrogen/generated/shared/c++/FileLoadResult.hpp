@@ -33,6 +33,7 @@ namespace margelo::nitro::rnnitrosqlite {
     std::optional<double> rowsAffected     SWIFT_PRIVATE;
 
   public:
+    FileLoadResult() = default;
     explicit FileLoadResult(std::optional<double> commands, std::optional<double> rowsAffected): commands(commands), rowsAffected(rowsAffected) {}
   };
 
@@ -44,7 +45,7 @@ namespace margelo::nitro {
 
   // C++ FileLoadResult <> JS FileLoadResult (object)
   template <>
-  struct JSIConverter<FileLoadResult> {
+  struct JSIConverter<FileLoadResult> final {
     static inline FileLoadResult fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {
       jsi::Object obj = arg.asObject(runtime);
       return FileLoadResult(

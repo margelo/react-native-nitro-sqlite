@@ -41,7 +41,7 @@ namespace margelo::nitro {
 
   // C++ ColumnType <> JS ColumnType (enum)
   template <>
-  struct JSIConverter<ColumnType> {
+  struct JSIConverter<ColumnType> final {
     static inline ColumnType fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {
       int enumValue = JSIConverter<int>::fromJSI(runtime, arg);
       return static_cast<ColumnType>(enumValue);

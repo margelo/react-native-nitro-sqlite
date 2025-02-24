@@ -41,6 +41,7 @@ namespace margelo::nitro::rnnitrosqlite {
     std::optional<std::variant<std::vector<std::variant<std::string, double, bool, std::shared_ptr<ArrayBuffer>, SQLiteNullValue>>, std::vector<std::vector<std::variant<std::string, double, bool, std::shared_ptr<ArrayBuffer>, SQLiteNullValue>>>>> params     SWIFT_PRIVATE;
 
   public:
+    BatchQueryCommand() = default;
     explicit BatchQueryCommand(std::string query, std::optional<std::variant<std::vector<std::variant<std::string, double, bool, std::shared_ptr<ArrayBuffer>, SQLiteNullValue>>, std::vector<std::vector<std::variant<std::string, double, bool, std::shared_ptr<ArrayBuffer>, SQLiteNullValue>>>>> params): query(query), params(params) {}
   };
 
@@ -52,7 +53,7 @@ namespace margelo::nitro {
 
   // C++ BatchQueryCommand <> JS BatchQueryCommand (object)
   template <>
-  struct JSIConverter<BatchQueryCommand> {
+  struct JSIConverter<BatchQueryCommand> final {
     static inline BatchQueryCommand fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {
       jsi::Object obj = arg.asObject(runtime);
       return BatchQueryCommand(

@@ -52,7 +52,7 @@ namespace margelo::nitro::rnnitrosqlite {
       explicit HybridNativeQueryResultSpec(): HybridObject(TAG) { }
 
       // Destructor
-      virtual ~HybridNativeQueryResultSpec() { }
+      ~HybridNativeQueryResultSpec() override = default;
 
     public:
       // Properties

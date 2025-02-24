@@ -62,7 +62,7 @@ namespace margelo::nitro::rnnitrosqlite {
       explicit HybridNitroSQLiteSpec(): HybridObject(TAG) { }
 
       // Destructor
-      virtual ~HybridNitroSQLiteSpec() { }
+      ~HybridNitroSQLiteSpec() override = default;
 
     public:
       // Properties

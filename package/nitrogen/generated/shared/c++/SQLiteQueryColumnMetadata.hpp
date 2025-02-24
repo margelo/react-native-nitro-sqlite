@@ -36,6 +36,7 @@ namespace margelo::nitro::rnnitrosqlite {
     double index     SWIFT_PRIVATE;
 
   public:
+    SQLiteQueryColumnMetadata() = default;
     explicit SQLiteQueryColumnMetadata(std::string name, ColumnType type, double index): name(name), type(type), index(index) {}
   };
 
@@ -47,7 +48,7 @@ namespace margelo::nitro {
 
   // C++ SQLiteQueryColumnMetadata <> JS SQLiteQueryColumnMetadata (object)
   template <>
-  struct JSIConverter<SQLiteQueryColumnMetadata> {
+  struct JSIConverter<SQLiteQueryColumnMetadata> final {
     static inline SQLiteQueryColumnMetadata fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {
       jsi::Object obj = arg.asObject(runtime);
       return SQLiteQueryColumnMetadata(

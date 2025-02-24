@@ -32,6 +32,7 @@ namespace margelo::nitro::rnnitrosqlite {
     std::optional<double> rowsAffected     SWIFT_PRIVATE;
 
   public:
+    BatchQueryResult() = default;
     explicit BatchQueryResult(std::optional<double> rowsAffected): rowsAffected(rowsAffected) {}
   };
 
@@ -43,7 +44,7 @@ namespace margelo::nitro {
 
   // C++ BatchQueryResult <> JS BatchQueryResult (object)
   template <>
-  struct JSIConverter<BatchQueryResult> {
+  struct JSIConverter<BatchQueryResult> final {
     static inline BatchQueryResult fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {
       jsi::Object obj = arg.asObject(runtime);
       return BatchQueryResult(
