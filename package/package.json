@@ -78,7 +78,7 @@
   },
   "peerDependencies": {
     "react": ">=17.0.0",
-    "react-native": ">=0.74.0",
+    "react-native": ">=0.75.0",
     "react-native-nitro-modules": ">=0.24.1"
   },
   "resolutions": {
