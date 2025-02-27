@@ -106,6 +106,10 @@
               "section": "🐛 Bug Fixes"
             },
             {
+              "type": "refactor",
+              "section": "🔄 Code Refactoring"
+            },
+            {
               "type": "chore",
               "section": "🏗️ Project configuration and build flow"
             },
