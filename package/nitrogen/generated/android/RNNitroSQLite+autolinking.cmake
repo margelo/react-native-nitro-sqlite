@@ -29,8 +29,9 @@ target_sources(
   # Shared Nitrogen C++ sources
   ../nitrogen/generated/shared/c++/HybridNativeQueryResultSpec.cpp
   ../nitrogen/generated/shared/c++/HybridNitroSQLiteSpec.cpp
+  ../nitrogen/generated/shared/c++/HybridNitroSQLiteOnLoadSpec.cpp
   # Android-specific Nitrogen C++ sources
-  
+  ../nitrogen/generated/android/c++/JHybridNitroSQLiteOnLoadSpec.cpp
 )
 
 # Define a flag to check if we are building properly

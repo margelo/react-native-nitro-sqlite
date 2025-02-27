@@ -145,13 +145,12 @@ android {
 
   sourceSets {
     main {
+      java.srcDirs += [
+        "src/main/kotlin"
+      ]
+
       if (isNewArchitectureEnabled()) {
-        java.srcDirs += [
-          "src/newarch",
-          // Codegen specs
-          "generated/java",
-          "generated/jni"
-        ]
+        java.srcDirs += ["src/newarch"]
       } else {
         java.srcDirs += ["src/oldarch"]
       }
@@ -194,6 +193,5 @@ if (isNewArchitectureEnabled()) {
   react {
     jsRootDir = file("../src/")
     libraryName = "RNNitroSQLite"
-    codegenJavaPackageName = "com.margelo.rnnitrosqlite"
   }
 }

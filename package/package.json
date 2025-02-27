@@ -84,14 +84,6 @@
   "resolutions": {
     "@types/react": "^18.2.44"
   },
-  "codegenConfig": {
-    "name": "RNNitroSQLite",
-    "type": "modules",
-    "jsSrcsDir": "src",
-    "android": {
-      "javaPackageName": "com.margelo.rnnitrosqlite"
-    }
-  },
   "jest": {
     "preset": "react-native",
     "modulePathIgnorePatterns": [

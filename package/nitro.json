@@ -14,6 +14,9 @@
   "autolinking": {
     "NitroSQLite": {
       "cpp": "HybridNitroSQLite"
+    },
+    "NitroSQLiteOnLoad": {
+      "kotlin": "HybridNitroSQLiteOnLoad"
     }
   },
   "ignorePaths": [
