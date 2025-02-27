@@ -1,8 +1,9 @@
 import { transaction } from './operations/transaction'
-import { HybridNitroSQLite, init } from './nitro'
+import { HybridNitroSQLite } from './nitro'
 import { open } from './operations/session'
 import { execute, executeAsync } from './operations/execute'
 import { SQLiteNullValue } from './types'
+import { init } from './OnLoad'
 export type * from './types'
 export { typeORMDriver } from './typeORM'
 
