@@ -154,6 +154,13 @@ android {
       } else {
         java.srcDirs += ["src/oldarch"]
       }
+
+      if (isNewArchitectureEnabled()) {
+        java.srcDirs += [
+          // React Codegen files
+          "${project.buildDir}/generated/source/codegen/java"
+        ]
+      }
     }
   }
 
