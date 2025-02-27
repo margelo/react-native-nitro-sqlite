@@ -12,6 +12,10 @@ class HybridNitroSQLiteOnLoad : HybridNitroSQLiteOnLoadSpec() {
   @Keep
   @DoNotStrip
   override fun init() {
-    DocPathSetter.setDocPath(NitroModules.context)
+    if (NitroModules.Companion.applicationContext == null) {
+      return
+    }
+
+    DocPathSetter.setDocPath(NitroModules.Companion.applicationContext!!)
   }
 }
