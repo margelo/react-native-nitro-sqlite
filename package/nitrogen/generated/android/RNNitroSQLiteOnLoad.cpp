@@ -15,7 +15,10 @@
 #include <fbjni/fbjni.h>
 #include <NitroModules/HybridObjectRegistry.hpp>
 
+#include "JHybridNitroSQLiteOnLoadSpec.hpp"
 #include "HybridNitroSQLite.hpp"
+#include <NitroModules/JNISharedPtr.hpp>
+#include <NitroModules/DefaultConstructableObject.hpp>
 
 namespace margelo::nitro::rnnitrosqlite {
 
@@ -26,7 +29,7 @@ int initialize(JavaVM* vm) {
 
   return facebook::jni::initialize(vm, [] {
     // Register native JNI methods
-    
+    margelo::nitro::rnnitrosqlite::JHybridNitroSQLiteOnLoadSpec::registerNatives();
 
     // Register Nitro Hybrid Objects
     HybridObjectRegistry::registerHybridObjectConstructor(
@@ -36,6 +39,15 @@ int initialize(JavaVM* vm) {
                       "The HybridObject \"HybridNitroSQLite\" is not default-constructible! "
                       "Create a public constructor that takes zero arguments to be able to autolink this HybridObject.");
         return std::make_shared<HybridNitroSQLite>();
+      }
+    );
+    HybridObjectRegistry::registerHybridObjectConstructor(
+      "NitroSQLiteOnLoad",
+      []() -> std::shared_ptr<HybridObject> {
+        static DefaultConstructableObject<JHybridNitroSQLiteOnLoadSpec::javaobject> object("com/margelo/nitro/rnnitrosqlite/HybridNitroSQLiteOnLoad");
+        auto instance = object.create();
+        auto globalRef = jni::make_global(instance);
+        return JNISharedPtr::make_shared_from_jni<JHybridNitroSQLiteOnLoadSpec>(globalRef);
       }
     );
   });
