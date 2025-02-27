@@ -36,14 +36,15 @@
     "!**/__mocks__"
   ],
   "scripts": {
-    "postinstall": "bun build || exit 0;",
+    "postinstall": "bun run build || exit 0;",
     "build": "bun typescript && bob build",
     "specs": "bun typescript && bun nitro-codegen --logLevel=\"debug\"",
     "typescript": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\" --fix",
     "lint-ci": "eslint \"**/*.{js,ts,tsx}\" -f @jamesacarr/github-actions",
     "test": "jest",
-    "release": "release-it"
+    "release": "release-it",
+    "prepare": "bun run build"
   },
   "keywords": [
     "react-native",
@@ -100,8 +101,7 @@
       "release": false
     },
     "hooks": {
-      "before:init": "bun typescript && bun lint",
-      "after:bump": "bun run build"
+      "before:init": "bun typescript && bun lint"
     }
   },
   "react-native-builder-bob": {
