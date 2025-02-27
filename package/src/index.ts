@@ -1,10 +1,12 @@
 import { transaction } from './operations/transaction'
-import { HybridNitroSQLite } from './nitro'
+import { HybridNitroSQLite, init } from './nitro'
 import { open } from './operations/session'
 import { execute, executeAsync } from './operations/execute'
 import { SQLiteNullValue } from './types'
 export type * from './types'
 export { typeORMDriver } from './typeORM'
+
+init()
 
 export const NitroSQLite = {
   ...HybridNitroSQLite,

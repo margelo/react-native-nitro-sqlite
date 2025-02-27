@@ -16,7 +16,7 @@ class RNNitroSQLitePackage : TurboReactPackage() {
 
     @Override
     override fun getReactModuleInfoProvider(): ReactModuleInfoProvider {
-      return ReactModuleInfoProvider { HashMap<String, ReactModuleInfo>() }
+      return ReactModuleInfoProvider { HashMap() }
     }
 
     companion object {
