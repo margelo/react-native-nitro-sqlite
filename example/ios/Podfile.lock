@@ -1614,7 +1614,7 @@ PODS:
     - React-logger (= 0.78.0)
     - React-perflogger (= 0.78.0)
     - React-utils (= 0.78.0)
-  - RNNitroSQLite (9.1.4):
+  - RNNitroSQLite (9.1.5):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1913,7 +1913,7 @@ SPEC CHECKSUMS:
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
   glog: 08b301085f15bcbb6ff8632a8ebaf239aae04e6a
   hermes-engine: b417d2b2aee3b89b58e63e23a51e02be91dc876d
-  NitroModules: 32f6f1111b1c77b51e7907aa92f4de3b1a1764bc
+  NitroModules: 30b9dd66a1fffca12828563c9a3648c62758da65
   RCT-Folly: 36fe2295e44b10d831836cc0d1daec5f8abcf809
   RCTDeprecation: b2eecf2d60216df56bc5e6be5f063826d3c1ee35
   RCTRequired: 78522de7dc73b81f3ed7890d145fa341f5bb32ea
@@ -1936,7 +1936,7 @@ SPEC CHECKSUMS:
   React-idlecallbacksnativemodule: dd2af19cdd3bc55149d17a2409ed72b694dfbe9c
   React-ImageManager: a77dde8d5aa6a2b6962c702bf3a47695ef0aa32b
   React-jserrorhandler: 9c14e89f12d5904257a79aaf84a70cd2e5ac07ba
-  React-jsi: 0775a66820496769ad83e629f0f5cce621a57fc7
+  React-jsi: f25e8fac296fc696d7f2a5275ef35e43c84e38c0
   React-jsiexecutor: 2cf5ba481386803f3c88b85c63fa102cba5d769e
   React-jsinspector: 8052d532bb7a98b6e021755674659802fb140cc5
   React-jsinspectortracing: bdd8fd0adcb4813663562e7874c5842449df6d8a
@@ -1973,7 +1973,7 @@ SPEC CHECKSUMS:
   ReactAppDependencyProvider: f2e81d80afd71a8058589e19d8a134243fa53f17
   ReactCodegen: 1f6437d1ad7db1aeb47cbc27b7b980a4f7a19b6b
   ReactCommon: 3d39389f8e2a2157d5c999f8fba57bd1c8f226f0
-  RNNitroSQLite: d840ee69ea72a9ac3232b124a4fff57055a5e810
+  RNNitroSQLite: ff66af853c2e5dab20e5920332aaeaa639e9a7d0
   RNScreens: 991214b4e69016c1ae32830d9cea31c9c9422367
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: afd04ff05ebe0121a00c468a8a3c8080221cb14c
