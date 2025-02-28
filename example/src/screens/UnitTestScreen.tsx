@@ -5,7 +5,7 @@ import { runTests } from '../tests/MochaSetup'
 import { registerUnitTests } from '../tests/unitTests.spec'
 import { ScreenStyles } from '../styles'
 
-export const UnitTestScreen: React.FC = () => {
+export function UnitTestScreen() {
   const [results, setResults] = useState<MochaTestResult[]>([])
 
   useEffect(() => {

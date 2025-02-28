@@ -1,23 +1,20 @@
 import React from 'react'
 import 'reflect-metadata'
-import { UnitTestScreen } from './screens/UnitTestScreen'
-import { BenchmarkScreen } from './screens/BenchmarkScreen'
-import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { NavigationContainer } from '@react-navigation/native'
 import { StatusBar } from 'expo-status-bar'
-import type { ParamList } from './navigation'
+import { RootStack } from './navigation'
 import { HomeScreen } from './screens/HomeScreen'
-
-const Stack = createNativeStackNavigator<ParamList>()
+import { UnitTestScreen } from './screens/UnitTestScreen'
+import { BenchmarkScreen } from './screens/BenchmarkScreen'
 
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="NitroSQLite Example">
-        <Stack.Screen name="NitroSQLite Example" component={HomeScreen} />
-        <Stack.Screen name="Unit Tests" component={UnitTestScreen} />
-        <Stack.Screen name="Benchmarks" component={BenchmarkScreen} />
-      </Stack.Navigator>
+      <RootStack.Navigator initialRouteName="NitroSQLite Example">
+        <RootStack.Screen name="NitroSQLite Example" component={HomeScreen} />
+        <RootStack.Screen name="Unit Tests" component={UnitTestScreen} />
+        <RootStack.Screen name="Benchmarks" component={BenchmarkScreen} />
+      </RootStack.Navigator>
 
       <StatusBar style="auto" />
     </NavigationContainer>
