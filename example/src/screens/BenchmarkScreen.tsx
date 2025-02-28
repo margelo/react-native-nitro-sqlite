@@ -9,8 +9,6 @@ import {
   View,
 } from 'react-native'
 import { StatusBar } from 'expo-status-bar'
-import type { NativeStackScreenProps } from '@react-navigation/native-stack'
-import type { ParamList } from '../navigation'
 import { ScreenStyles } from '../styles'
 import { resetLargeDb, largeDb, testDb, resetTestDb } from '../tests/db'
 
@@ -96,9 +94,7 @@ function runBenchmark(benchmark: Benchmark) {
   })
 }
 
-type Props = NativeStackScreenProps<ParamList, 'Benchmarks'>
-
-export const BenchmarkScreen: React.FC<Props> = () => {
+export function BenchmarkScreen() {
   const [results, setResults] = useState<Record<string, string | null>>({})
   const [isLoading, setIsLoading] = useState(false)
 

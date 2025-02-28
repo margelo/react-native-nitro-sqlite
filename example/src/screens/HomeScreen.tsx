@@ -1,13 +1,12 @@
 import React from 'react'
 import { ScrollView, Text, TouchableOpacity } from 'react-native'
-import type { NativeStackScreenProps } from '@react-navigation/native-stack'
-import type { ParamList } from '../navigation'
 import { StatusBar } from 'expo-status-bar'
 import { ScreenStyles } from '../styles'
+import { useNavigation } from '@react-navigation/native'
 
-type Props = NativeStackScreenProps<ParamList, 'NitroSQLite Example'>
+export function HomeScreen() {
+  const navigation = useNavigation()
 
-export const HomeScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <ScrollView contentContainerStyle={ScreenStyles.container}>
       <TouchableOpacity onPress={() => navigation.navigate('Unit Tests')}>
