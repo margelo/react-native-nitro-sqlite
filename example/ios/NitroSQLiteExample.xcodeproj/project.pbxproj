@@ -7,14 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		00E356F31AD99517003FC87E /* NitroSQLiteExampleTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* NitroSQLiteExampleTests.m */; };
-		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
-		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		17EA225CB5C6FBE4FF95B3B8 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B62F4C3A8445C44CF7F54399 /* PrivacyInfo.xcprivacy */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
-		D7537A007033719516C57748 /* libPods-NitroSQLiteExample-NitroSQLiteExampleTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F61ADDCA341B787B4A3AFAFC /* libPods-NitroSQLiteExample-NitroSQLiteExampleTests.a */; };
-		F6FA2C48029804D08B79E96F /* libPods-NitroSQLiteExample.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BCC1E776B313FBFED7863A3D /* libPods-NitroSQLiteExample.a */; };
+		83360C5E2D71C89D00DEEBDB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83360C5D2D71C89D00DEEBDB /* AppDelegate.swift */; };
+		9516F5F6CF76291D1E2916D8 /* libPods-NitroSQLiteExample.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 19FD863BB22C01A3CFEA441C /* libPods-NitroSQLiteExample.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -29,23 +26,16 @@
 
 /* Begin PBXFileReference section */
 		00E356EE1AD99517003FC87E /* NitroSQLiteExampleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NitroSQLiteExampleTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		00E356F21AD99517003FC87E /* NitroSQLiteExampleTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NitroSQLiteExampleTests.m; sourceTree = "<group>"; };
 		03D39CB013C879B46EC1C979 /* Pods-NitroSQLiteExample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NitroSQLiteExample.release.xcconfig"; path = "Target Support Files/Pods-NitroSQLiteExample/Pods-NitroSQLiteExample.release.xcconfig"; sourceTree = "<group>"; };
-		1251E54A0A604DFB2905E20E /* Pods-NitroSQLiteExample-NitroSQLiteExampleTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NitroSQLiteExample-NitroSQLiteExampleTests.debug.xcconfig"; path = "Target Support Files/Pods-NitroSQLiteExample-NitroSQLiteExampleTests/Pods-NitroSQLiteExample-NitroSQLiteExampleTests.debug.xcconfig"; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* NitroSQLiteExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NitroSQLiteExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = NitroSQLiteExample/AppDelegate.h; sourceTree = "<group>"; };
-		13B07FB01A68108700A75B9A /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = NitroSQLiteExample/AppDelegate.mm; sourceTree = "<group>"; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = NitroSQLiteExample/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = NitroSQLiteExample/Info.plist; sourceTree = "<group>"; };
-		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = NitroSQLiteExample/main.m; sourceTree = "<group>"; };
+		19FD863BB22C01A3CFEA441C /* libPods-NitroSQLiteExample.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NitroSQLiteExample.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = NitroSQLiteExample/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		83360C5D2D71C89D00DEEBDB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = NitroSQLiteExample/AppDelegate.swift; sourceTree = "<group>"; };
 		B62F4C3A8445C44CF7F54399 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = NitroSQLiteExample/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		BCC1E776B313FBFED7863A3D /* libPods-NitroSQLiteExample.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NitroSQLiteExample.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA20110A9117BB91D9E63081 /* Pods-NitroSQLiteExample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NitroSQLiteExample.debug.xcconfig"; path = "Target Support Files/Pods-NitroSQLiteExample/Pods-NitroSQLiteExample.debug.xcconfig"; sourceTree = "<group>"; };
-		CE317F99C7B7933DEB58C2E6 /* Pods-NitroSQLiteExample-NitroSQLiteExampleTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NitroSQLiteExample-NitroSQLiteExampleTests.release.xcconfig"; path = "Target Support Files/Pods-NitroSQLiteExample-NitroSQLiteExampleTests/Pods-NitroSQLiteExample-NitroSQLiteExampleTests.release.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
-		F61ADDCA341B787B4A3AFAFC /* libPods-NitroSQLiteExample-NitroSQLiteExampleTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NitroSQLiteExample-NitroSQLiteExampleTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,7 +43,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D7537A007033719516C57748 /* libPods-NitroSQLiteExample-NitroSQLiteExampleTests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -61,39 +50,20 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F6FA2C48029804D08B79E96F /* libPods-NitroSQLiteExample.a in Frameworks */,
+				9516F5F6CF76291D1E2916D8 /* libPods-NitroSQLiteExample.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		00E356EF1AD99517003FC87E /* NitroSQLiteExampleTests */ = {
-			isa = PBXGroup;
-			children = (
-				00E356F21AD99517003FC87E /* NitroSQLiteExampleTests.m */,
-				00E356F01AD99517003FC87E /* Supporting Files */,
-			);
-			path = NitroSQLiteExampleTests;
-			sourceTree = "<group>";
-		};
-		00E356F01AD99517003FC87E /* Supporting Files */ = {
-			isa = PBXGroup;
-			children = (
-				00E356F11AD99517003FC87E /* Info.plist */,
-			);
-			name = "Supporting Files";
-			sourceTree = "<group>";
-		};
 		13B07FAE1A68108700A75B9A /* NitroSQLiteExample */ = {
 			isa = PBXGroup;
 			children = (
-				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
-				13B07FB01A68108700A75B9A /* AppDelegate.mm */,
+				83360C5D2D71C89D00DEEBDB /* AppDelegate.swift */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
-				13B07FB71A68108700A75B9A /* main.m */,
 				B62F4C3A8445C44CF7F54399 /* PrivacyInfo.xcprivacy */,
 			);
 			name = NitroSQLiteExample;
@@ -103,8 +73,7 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				BCC1E776B313FBFED7863A3D /* libPods-NitroSQLiteExample.a */,
-				F61ADDCA341B787B4A3AFAFC /* libPods-NitroSQLiteExample-NitroSQLiteExampleTests.a */,
+				19FD863BB22C01A3CFEA441C /* libPods-NitroSQLiteExample.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -121,7 +90,6 @@
 			children = (
 				13B07FAE1A68108700A75B9A /* NitroSQLiteExample */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
-				00E356EF1AD99517003FC87E /* NitroSQLiteExampleTests */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				BBD78D7AC51CEA395F1C20DB /* Pods */,
@@ -145,8 +113,6 @@
 			children = (
 				CA20110A9117BB91D9E63081 /* Pods-NitroSQLiteExample.debug.xcconfig */,
 				03D39CB013C879B46EC1C979 /* Pods-NitroSQLiteExample.release.xcconfig */,
-				1251E54A0A604DFB2905E20E /* Pods-NitroSQLiteExample-NitroSQLiteExampleTests.debug.xcconfig */,
-				CE317F99C7B7933DEB58C2E6 /* Pods-NitroSQLiteExample-NitroSQLiteExampleTests.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -158,12 +124,9 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "NitroSQLiteExampleTests" */;
 			buildPhases = (
-				2CDC9C54CCFE5D9F92A50675 /* [CP] Check Pods Manifest.lock */,
 				00E356EA1AD99517003FC87E /* Sources */,
 				00E356EB1AD99517003FC87E /* Frameworks */,
 				00E356EC1AD99517003FC87E /* Resources */,
-				6930F3E39E7F1174A4E95A27 /* [CP] Embed Pods Frameworks */,
-				9DED98E0C31C147A92DCCCAA /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -210,7 +173,7 @@
 						TestTargetID = 13B07F861A680F5B00A75B9A;
 					};
 					13B07F861A680F5B00A75B9A = {
-						LastSwiftMigration = 1120;
+						LastSwiftMigration = 1620;
 					};
 				};
 			};
@@ -270,28 +233,6 @@
 			shellPath = /bin/sh;
 			shellScript = "set -e\n\nWITH_ENVIRONMENT=\"$REACT_NATIVE_PATH/scripts/xcode/with-environment.sh\"\nREACT_NATIVE_XCODE=\"$REACT_NATIVE_PATH/scripts/react-native-xcode.sh\"\n\n/bin/sh -c \"$WITH_ENVIRONMENT $REACT_NATIVE_XCODE\"\n";
 		};
-		2CDC9C54CCFE5D9F92A50675 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-NitroSQLiteExample-NitroSQLiteExampleTests-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
 		61FCFD127542643806B76DAD /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -307,23 +248,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-NitroSQLiteExample/Pods-NitroSQLiteExample-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		6930F3E39E7F1174A4E95A27 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-NitroSQLiteExample-NitroSQLiteExampleTests/Pods-NitroSQLiteExample-NitroSQLiteExampleTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-NitroSQLiteExample-NitroSQLiteExampleTests/Pods-NitroSQLiteExample-NitroSQLiteExampleTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-NitroSQLiteExample-NitroSQLiteExampleTests/Pods-NitroSQLiteExample-NitroSQLiteExampleTests-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		8851BB48F109827B5AB11D8D /* [CP] Check Pods Manifest.lock */ = {
@@ -365,23 +289,6 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-NitroSQLiteExample/Pods-NitroSQLiteExample-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		9DED98E0C31C147A92DCCCAA /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-NitroSQLiteExample-NitroSQLiteExampleTests/Pods-NitroSQLiteExample-NitroSQLiteExampleTests-resources-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Copy Pods Resources";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-NitroSQLiteExample-NitroSQLiteExampleTests/Pods-NitroSQLiteExample-NitroSQLiteExampleTests-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-NitroSQLiteExample-NitroSQLiteExampleTests/Pods-NitroSQLiteExample-NitroSQLiteExampleTests-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 		FD10A7F022414F080027D42C /* Start Packager */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -408,7 +315,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				00E356F31AD99517003FC87E /* NitroSQLiteExampleTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -416,8 +322,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */,
-				13B07FC11A68108700A75B9A /* main.m in Sources */,
+				83360C5E2D71C89D00DEEBDB /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -434,7 +339,6 @@
 /* Begin XCBuildConfiguration section */
 		00E356F61AD99517003FC87E /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1251E54A0A604DFB2905E20E /* Pods-NitroSQLiteExample-NitroSQLiteExampleTests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -461,7 +365,6 @@
 		};
 		00E356F71AD99517003FC87E /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = CE317F99C7B7933DEB58C2E6 /* Pods-NitroSQLiteExample-NitroSQLiteExampleTests.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				COPY_PHASE_STRIP = NO;

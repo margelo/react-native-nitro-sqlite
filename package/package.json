@@ -69,12 +69,12 @@
     "typeorm": "^0.3.20"
   },
   "devDependencies": {
-    "jest": "*",
-    "nitro-codegen": "*",
-    "react": "*",
-    "react-native": "*",
+    "jest": "^29.7.0",
+    "nitro-codegen": "^0.24.1",
+    "react": "19.0.0",
+    "react-native": "0.78.0",
     "react-native-builder-bob": "^0.31.0",
-    "react-native-nitro-modules": "*"
+    "react-native-nitro-modules": "0.24.1"
   },
   "peerDependencies": {
     "react": ">=17.0.0",
