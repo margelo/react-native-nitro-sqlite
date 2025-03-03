@@ -54,8 +54,8 @@ using ExecuteQueryResult = std::shared_ptr<HybridNativeQueryResultSpec>;
 
 ExecuteQueryResult HybridNitroSQLite::execute(const std::string& dbName, const std::string& query,
                                              const std::optional<SQLiteQueryParams>& params) {
-  auto result = sqliteExecute(dbName, query, params);
-  return std::make_shared<HybridNativeQueryResult>(result.insertId, result.rowsAffected, *result.results, *result.metadata);
+  SQLiteExecuteQueryResult result = sqliteExecute(dbName, query, params);
+  return std::make_shared<HybridNativeQueryResult>(std::move(result));
 };
 
 std::shared_ptr<Promise<std::shared_ptr<HybridNativeQueryResultSpec>>> HybridNitroSQLite::executeAsync(const std::string& dbName, const std::string& query,

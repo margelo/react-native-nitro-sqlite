@@ -27,8 +27,8 @@ struct SQLiteExecuteQueryResult {
   int rowsAffected;
   double insertId;
 
-  std::unique_ptr<SQLiteQueryResults> results;
-  std::unique_ptr<std::optional<SQLiteQueryTableMetadata>> metadata;
+  SQLiteQueryResults results;
+  std::optional<SQLiteQueryTableMetadata> metadata;
 };
 
 // constexpr function that maps SQLiteColumnType to string literals

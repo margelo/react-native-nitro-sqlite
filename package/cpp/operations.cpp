@@ -5,6 +5,7 @@
 #include <cmath>
 #include <ctime>
 #include <iostream>
+#include <optional>
 #include <map>
 #include <sqlite3.h>
 #include <sstream>
@@ -143,8 +144,8 @@ SQLiteExecuteQueryResult sqliteExecute(const std::string& dbName, const std::str
   std::string column_name;
   ColumnType column_declared_type;
   SQLiteQueryResultRow row;
-  auto results = std::make_unique<SQLiteQueryResults>();
-  auto metadata = new SQLiteQueryTableMetadata();
+  SQLiteQueryResults results;
+  std::optional<SQLiteQueryTableMetadata> metadata = std::nullopt;
 
   while (isConsuming) {
     result = sqlite3_step(statement);
@@ -192,7 +193,7 @@ SQLiteExecuteQueryResult sqliteExecute(const std::string& dbName, const std::str
           }
           i++;
         }
-        results->push_back(std::move(row));
+        results.push_back(std::move(row));
         break;
       case SQLITE_DONE:
           i = 0;
@@ -202,6 +203,10 @@ SQLiteExecuteQueryResult sqliteExecute(const std::string& dbName, const std::str
             const char* tp = sqlite3_column_decltype(statement, i);
             column_declared_type = mapSQLiteTypeToColumnType(tp);
             auto columnMeta = SQLiteQueryColumnMetadata(std::move(column_name), std::move(column_declared_type), i);
+
+            if (!metadata) {
+              metadata = std::make_optional<SQLiteQueryTableMetadata>();
+            }
             metadata->insert({column_name, columnMeta});
             i++;
           }
@@ -221,16 +226,11 @@ SQLiteExecuteQueryResult sqliteExecute(const std::string& dbName, const std::str
 
   int rowsAffected = sqlite3_changes(db);
   long long latestInsertRowId = sqlite3_last_insert_rowid(db);
-  auto meta = std::make_unique<std::optional<SQLiteQueryTableMetadata>>(
-    metadata && metadata->size() > 0
-    ? std::make_optional(std::move(*metadata))
-    : std::nullopt
-  );
   return {
     .rowsAffected = rowsAffected,
     .insertId = static_cast<double>(latestInsertRowId),
     .results = std::move(results),
-    .metadata = std::move(meta)
+    .metadata = std::move(metadata)
   };
 }
 
