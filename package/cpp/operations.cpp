@@ -145,7 +145,7 @@ SQLiteExecuteQueryResult sqliteExecute(const std::string& dbName, const std::str
   ColumnType column_declared_type;
   SQLiteQueryResultRow row;
   SQLiteQueryResults results;
-  std::optional<SQLiteQueryTableMetadata> metadata = std::nullopt();
+  std::optional<SQLiteQueryTableMetadata> metadata = std::nullopt;
 
   while (isConsuming) {
     result = sqlite3_step(statement);
