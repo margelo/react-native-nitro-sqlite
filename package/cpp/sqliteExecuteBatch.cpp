@@ -19,10 +19,10 @@ std::vector<BatchQuery> batchParamsToCommands(const std::vector<BatchQueryComman
       if (std::holds_alternative<NestedParamsVec>(*command.params)) {
         // This arguments is an array of arrays, like a batch update of a single sql command.
         for (const auto& params : std::get<NestedParamsVec>(*command.params)) {
-          commands.push_back(BatchQuery{command.query, std::make_shared<ParamsVec>(params)});
+          commands.push_back(BatchQuery{command.query, ParamsVec(params)});
         }
       } else {
-        commands.push_back(BatchQuery{command.query, std::make_shared<ParamsVec>(std::move(std::get<ParamsVec>(*command.params)))});
+        commands.push_back(BatchQuery{command.query, std::move(std::get<ParamsVec>(*command.params))});
       }
     } else {
       commands.push_back(BatchQuery{command.query, NULL});
@@ -48,7 +48,7 @@ SQLiteOperationResult sqliteExecuteBatch(const std::string& dbName, const std::v
       auto results = SQLiteQueryResults();
       auto metadata = std::optional<SQLiteQueryTableMetadata>(std::nullopt);
       try {
-        auto result = sqliteExecute(dbName, command.sql, *command.params.get());
+        auto result = sqliteExecute(dbName, command.sql, command.params);
         rowsAffected += result.rowsAffected;
       } catch (NitroSQLiteException& e) {
         sqliteExecuteLiteral(dbName, "ROLLBACK");
