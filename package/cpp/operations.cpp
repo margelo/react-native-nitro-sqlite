@@ -207,7 +207,7 @@ SQLiteExecuteQueryResult sqliteExecute(const std::string& dbName, const std::str
             if (!metadata) {
               metadata = std::make_optional<SQLiteQueryTableMetadata>();
             }
-            metadata.insert({column_name, columnMeta});
+            metadata->insert({column_name, columnMeta});
             i++;
           }
           isConsuming = false;
