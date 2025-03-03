@@ -3,19 +3,19 @@
 namespace margelo::nitro::rnnitrosqlite {
 
 std::optional<double> HybridNativeQueryResult::getInsertId() {
-  return this->_insertId;
+  return _result.insertId;
 }
 
 double HybridNativeQueryResult::getRowsAffected() {
-  return this->_rowsAffected;
+  return _result.rowsAffected;
 }
 
 SQLiteQueryResults HybridNativeQueryResult::getResults() {
-  return this->_results;
+  return _result.results;
 };
 
 std::optional<SQLiteQueryTableMetadata> HybridNativeQueryResult::getMetadata() {
-  return this->_metadata;
+  return _result.metadata;
 }
 
 } // namespace margelo::nitro::rnnitrosqlite
