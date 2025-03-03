@@ -35,13 +35,19 @@
 
 Nitro SQLite embeds the latest version of SQLite and provides a low-level JSI-backed API to execute SQL queries.
 
-Performance metrics are intentionally not presented, [anecdotic testimonies](https://dev.to/craftzdog/a-performant-way-to-use-pouchdb7-on-react-native-in-2022-24ej) suggest anywhere between 2x and 5x speed improvement. On small queries you might not notice a difference with the old bridge but as you send large data to JS the speed increase is considerable.
-
-Starting on version `8.0.0` only React-Native `0.71` onwards is supported. This is due to internal changes to React-Native artifacts. If you are on < `0.71` use the latest `7.x.x` version.
+Starting from version `9.0.0` only React-Native `0.71` onwards is supported. This is due to internal changes to React-Native artifacts. If you are on < `0.71` use the latest `7.x.x` version.
 
 TypeORM is officially supported, however, there is currently a parsing issue with React-Native 0.71 and its babel configuration and therefore it will not work, nothing wrong with this package, this is purely an issue on TypeORM.
 
-## API
+# Installation
+
+NitroSQLite depends on [Nitro modules](https://nitro.margelo.com/). The minimum version of Nitro can be found in the `peerDependencies` in `package.json`.
+
+```bash
+npm install react-native-nitro-sqlite react-native-nitro-modules
+```
+
+# API
 
 ```typescript
 import {open} from 'react-native-nitro-sqlite'
@@ -69,7 +75,7 @@ db = {
 }
 ```
 
-### Simple queries
+## Simple queries
 
 The basic query is **synchronous**, it will block rendering on large operations, further below you will find async versions.
 
@@ -96,7 +102,7 @@ try {
 }
 ```
 
-### Transactions
+## Transactions
 
 Throwing an error inside the callback will ROLLBACK the transaction.
 
@@ -125,7 +131,7 @@ await NitroSQLite.transaction('myDatabase', (tx) => {
 });
 ```
 
-### Batch operation
+## Batch operation
 
 Batch execution allows the transactional execution of a set of commands
 
@@ -142,11 +148,11 @@ const res = NitroSQLite.executeSqlBatch('myDatabase', commands);
 console.log(`Batch affected ${result.rowsAffected} rows`);
 ```
 
-### Sending and receiving nullish values
+## Sending and receiving nullish values
 
 Due to internal limitations with Nitro modules, we have to handle nullish values explicitly in NitroSQLite. There are two ways to send and receive null values:
 
-#### Default null handling
+### Default null handling
 
 By default, the user can pass the `NITRO_SQLITE_NULL` constant instead of `null` or `undefined` to query params and will also receive this constant for nullish values in e.g. `SELECT` queries. `NITRO_SQLITE_NULL` is the object that is used internally to handle nullish values, therefore **this approach does NOT introduce any performance overhead**.
 
@@ -174,7 +180,8 @@ if (isNitroSQLiteNull(firstItem.age) {
 }
 ```
 
-#### Simplified null handling
+### Simplified null handling
+
 To enable simple null handling, call `enableSimpleNullHandling()` in the root of your project. This will allow you to just pass `null` or `undefined` to NitroSQLite functions, e.g. as query params. in `execute()`:
 
 ```typescript
@@ -197,7 +204,7 @@ if (firstItem.age === null) { // Nullish values will always be null and never un
 
 Simple null handling adds some logic to internally transform nullish values into a special object/struct and vice versa, that is sent/received from the native C++ side. This **might introduce some performance overhead**, since we have to loop over the params and query results and check for this structure.
 
-### Dynamic Column Metadata
+## Dynamic Column Metadata
 
 In some scenarios, dynamic applications may need to get some metadata information about the returned result set.
 
@@ -218,7 +225,7 @@ metadata.forEach((column) => {
 });
 ```
 
-### Async operations
+## Async operations
 
 You might have too much SQL to process and it will cause your application to freeze. There are async versions for some of the operations. This will offload the SQLite processing to a different thread.
 
@@ -232,7 +239,7 @@ NitroSQLite.executeAsync(
 );
 ```
 
-### Attach or Detach other databases
+## Attach or Detach other databases
 
 SQLite supports attaching or detaching other database files into your main database connection through an alias.
 You can do any operation you like on this attached database like JOIN results across tables in different schemas, or update data or objects.
@@ -259,7 +266,7 @@ if (!detachResult.status) {
 }
 ```
 
-### Loading SQL Dump Files
+## Loading SQL Dump Files
 
 If you have a plain SQL file, you can load it directly, with low memory consumption.
 
@@ -280,17 +287,7 @@ NitroSQLite.loadFileAsync('myDatabase', '/absolute/path/to/file.sql').then(
 );
 ```
 
-## Use built-in SQLite
-
-On iOS you can use the embedded SQLite, when running `pod-install` add an environment flag:
-
-```
-Nitro_SQLITE_USE_PHONE_VERSION=1 npx pod-install
-```
-
-On Android, it is not possible to link (using C++) the embedded SQLite. It is also a bad idea due to vendor changes, old android bugs, etc. Unfortunately, this means this library will add some megabytes to your app size.
-
-## TypeORM
+# TypeORM
 
 This library is pretty barebones, you can write all your SQL queries manually but for any large application, an ORM is recommended.
 
@@ -355,11 +352,23 @@ datasource = new DataSource({
 
 # Loading existing DBs
 
-The library creates/opens databases by appending the passed name plus, the [documents directory on iOS](https://github.com/margelo/react-native-nitro-sqlite/blob/733e876d98896f5efc80f989ae38120f16533a66/ios/NitroSQLite.mm#L34-L35) and the [files directory on Android](https://github.com/margelo/react-native-nitro-sqlite/blob/main/android/src/main/java/com/margelo/rnnitrosqlite/NitroSQLiteBridge.java#L16), this differs from other SQL libraries (some place it in a `www` folder, some in androids `databases` folder, etc.).
+The library creates/opens databases by appending the passed name plus, the [documents directory on iOS](https://github.com/margelo/react-native-nitro-sqlite/blob/2c97c767cb189cb170941bd1ffb4c8555c0bb9cd/package/ios/OnLoad.mm#L34-L35) and the [files directory on Android](https://github.com/margelo/react-native-nitro-sqlite/blob/2c97c767cb189cb170941bd1ffb4c8555c0bb9cd/package/android/src/main/kotlin/com/margelo/rnnitrosqlite/DocPathSetter.kt#L8), this differs from other SQL libraries (some place it in a `www` folder, some in androids `databases` folder, etc.).
 
 If you have an existing database file you want to load you can navigate from these directories using dot notation. e.g. `../www/myDb.sqlite`. Note that on iOS the file system is sand-boxed, so you cannot access files/directories outside your app bundle directories.
 
 Alternatively, you can place/move your database file using one of the many react-native fs libraries.
+
+# Configuration
+
+## Use built-in SQLite
+
+On iOS you can use the embedded SQLite, when running `pod-install` add an environment flag:
+
+```
+Nitro_SQLITE_USE_PHONE_VERSION=1 npx pod-install
+```
+
+On Android, it is not possible to link (using C++) the embedded SQLite. It is also a bad idea due to vendor changes, old android bugs, etc. Unfortunately, this means this library will add some megabytes to your app size.
 
 ## Enable compile-time options
 
@@ -405,10 +414,10 @@ On iOS, the SQLite database can be placed in an app group, in order to make it a
 
 To use an app group, add the app group ID as the value for the `RNNitroSQLite_AppGroup` key in your project's `Info.plist` file. You'll also need to configure the app group in your project settings. (Xcode -> Project Settings -> Signing & Capabilities -> Add Capability -> App Groups)
 
-## Community Discord
+# Community Discord
 
 [Join the Margelo Community Discord](https://discord.gg/6CSHz2qAvA) to chat about react-native-nitro-sqlite or other Margelo libraries.
 
-## License
+# License
 
 MIT License.
