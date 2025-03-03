@@ -14,7 +14,7 @@ import type { ColumnType, SQLiteValue } from '../types'
 export interface NativeQueryResult
   extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
   readonly rowsAffected: number
-  readonly insertId: number
+  readonly insertId?: number
 
   /** Query results */
   readonly results: NativeSQLiteQueryResults
