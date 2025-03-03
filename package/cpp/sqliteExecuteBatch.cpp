@@ -25,7 +25,7 @@ std::vector<BatchQuery> batchParamsToCommands(const std::vector<BatchQueryComman
         commands.push_back(BatchQuery{command.query, std::move(std::get<ParamsVec>(*command.params))});
       }
     } else {
-      commands.push_back(BatchQuery{command.query, NULL});
+      commands.push_back(BatchQuery{command.query, std::nullopt});
     }
   }
 
