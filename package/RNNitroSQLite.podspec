@@ -14,21 +14,29 @@ Pod::Spec.new do |s|
   s.homepage     = package["homepage"]
   s.license      = package["license"]
   s.authors      = package["author"]
-
   s.platforms    = { :ios => min_ios_version_supported, :visionos => "1.0" }
   s.source       = { :git => "https://github.com/margelo/react-native-nitro-sqlite.git", :tag => "#{s.version}" }
 
-  # s.header_mappings_dir = "cpp"
-  s.source_files = "ios/**/*.{h,hpp,m,mm}", "cpp/**/*.{h,hpp,c,cpp}"
+  s.source_files = [
+    # Implementation (Swift)
+    "ios/**/*.{swift}",
+    # Autolinking/Registration (Objective-C++)
+    "ios/**/*.{h,hpp,m,mm}",
+    # Implementation (C++ objects)
+    "cpp/**/*.{h,hpp,c,cpp}"
+  ]
 
   s.pod_target_xcconfig = {
     :GCC_PREPROCESSOR_DEFINITIONS => "HAVE_FULLFSYNC=1",
     :WARNING_CFLAGS => "-Wno-shorten-64-to-32 -Wno-comma -Wno-unreachable-code -Wno-conditional-uninitialized -Wno-deprecated-declarations",
-    :USE_HEADERMAP => "No",
     'CLANG_CXX_LANGUAGE_STANDARD' => 'c++20',
     'CLANG_CXX_LIBRARY' => 'libc++',
-    'DEFINES_MODULE' => 'YES'
-    "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\" \"$(PODS_ROOT)/RCT-Folly\" \"$(PODS_ROOT)/DoubleConversion\" \"$(PODS_ROOT)/fast_float/include\" \"$(PODS_ROOT)/fmt/include\"",
+    'DEFINES_MODULE' => 'YES',
+    "HEADER_SEARCH_PATHS" => [
+      "${PODS_ROOT}/RCT-Folly",
+    ],
+    "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) FOLLY_NO_CONFIG FOLLY_CFG_NO_COROUTINES",
+    "OTHER_CPLUSPLUSFLAGS" => folly_compiler_flags,
   }
 
   load 'nitrogen/generated/ios/RNNitroSQLite+autolinking.rb'
