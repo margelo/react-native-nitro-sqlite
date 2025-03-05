@@ -8,10 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		29068BA81B410DFAFD515E63 /* Pods_NitroSQLiteExample.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C3E89C92C507841F368080BD /* Pods_NitroSQLiteExample.framework */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		7B5735B8E367752583C44170 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
-		A4CAE138169618E2814ABD84 /* Pods_NitroSQLiteExample.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8F6AB5091998BEBB310182F8 /* Pods_NitroSQLiteExample.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -23,7 +23,7 @@
 		5709B34CF0A7D63546082F79 /* Pods-NitroSQLiteExample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NitroSQLiteExample.release.xcconfig"; path = "Target Support Files/Pods-NitroSQLiteExample/Pods-NitroSQLiteExample.release.xcconfig"; sourceTree = "<group>"; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = NitroSQLiteExample/AppDelegate.swift; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = NitroSQLiteExample/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		8F6AB5091998BEBB310182F8 /* Pods_NitroSQLiteExample.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_NitroSQLiteExample.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		C3E89C92C507841F368080BD /* Pods_NitroSQLiteExample.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_NitroSQLiteExample.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -32,7 +32,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A4CAE138169618E2814ABD84 /* Pods_NitroSQLiteExample.framework in Frameworks */,
+				29068BA81B410DFAFD515E63 /* Pods_NitroSQLiteExample.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -55,7 +55,7 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				8F6AB5091998BEBB310182F8 /* Pods_NitroSQLiteExample.framework */,
+				C3E89C92C507841F368080BD /* Pods_NitroSQLiteExample.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
