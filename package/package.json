@@ -74,7 +74,7 @@
     "react": "19.0.0",
     "react-native": "0.78.0",
     "react-native-builder-bob": "^0.31.0",
-    "react-native-nitro-modules": "0.24.1"
+    "react-native-nitro-modules": "0.25.1"
   },
   "peerDependencies": {
     "react": ">=17.0.0",
