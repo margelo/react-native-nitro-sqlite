@@ -73,7 +73,7 @@
     "nitro-codegen": "^0.24.1",
     "react": "19.0.0",
     "react-native": "0.78.0",
-    "react-native-builder-bob": "^0.31.0",
+    "react-native-builder-bob": "^0.40.6",
     "react-native-nitro-modules": "0.24.1"
   },
   "peerDependencies": {
