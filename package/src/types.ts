@@ -36,6 +36,8 @@ export type SQLiteValue =
   | string
   | ArrayBuffer
   | SQLiteNullValue
+
+/** Used internally to transform the query params into a native format without nullish values */
 export type NativeSQLiteQueryParams = SQLiteValue[]
 
 /**
@@ -89,6 +91,14 @@ export interface Transaction {
 export interface BatchQueryCommand {
   query: string
   params?: SQLiteQueryParams | SQLiteQueryParams[]
+}
+
+/**
+ * Used internally to transform the batch query commands into a native format without nullish values
+ */
+export interface NativeBatchQueryCommand {
+  query: string
+  params?: NativeSQLiteQueryParams | NativeSQLiteQueryParams[]
 }
 
 /**

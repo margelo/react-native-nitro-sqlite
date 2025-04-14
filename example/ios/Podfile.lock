@@ -1614,7 +1614,7 @@ PODS:
     - React-logger (= 0.78.0)
     - React-perflogger (= 0.78.0)
     - React-utils (= 0.78.0)
-  - RNNitroSQLite (9.1.7):
+  - RNNitroSQLite (9.1.8):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1973,11 +1973,11 @@ SPEC CHECKSUMS:
   ReactAppDependencyProvider: f2e81d80afd71a8058589e19d8a134243fa53f17
   ReactCodegen: 335c73d9eb04d93d9b2350157ed52a6a9ad05e1e
   ReactCommon: c8fdbc582b98a07daf201cd95c1da75dd029f3ee
-  RNNitroSQLite: 6f4b16233d10ca5da070d1b8012107d561c60d5b
+  RNNitroSQLite: ffd6b8298153f00d8a57d11464a93bd5bf52d012
   RNScreens: 77f93ec55b749c49549b447527ebf78e990125f3
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: be02ca501b03c79d7027a6bbbd0a8db985034f11
 
-PODFILE CHECKSUM: 60941c02e965706ce3073b8e6f186a204a7b6e73
+PODFILE CHECKSUM: 94e2eb7d622b44feacdd64fd57969a1205a734ae
 
 COCOAPODS: 1.15.2

@@ -2,8 +2,8 @@ import type { HybridObject } from 'react-native-nitro-modules'
 import type {
   BatchQueryResult,
   FileLoadResult,
-  BatchQueryCommand,
   NativeSQLiteQueryParams,
+  NativeBatchQueryCommand,
 } from '../types'
 import type { NativeQueryResult } from './NativeQueryResult.nitro'
 
@@ -29,10 +29,13 @@ export interface NitroSQLite
     query: string,
     params?: NativeSQLiteQueryParams
   ): Promise<NativeQueryResult>
-  executeBatch(dbName: string, commands: BatchQueryCommand[]): BatchQueryResult
+  executeBatch(
+    dbName: string,
+    commands: NativeBatchQueryCommand[]
+  ): BatchQueryResult
   executeBatchAsync(
     dbName: string,
-    commands: BatchQueryCommand[]
+    commands: NativeBatchQueryCommand[]
   ): Promise<BatchQueryResult>
   loadFile(dbName: string, location: string): FileLoadResult
   loadFileAsync(dbName: string, location: string): Promise<FileLoadResult>
