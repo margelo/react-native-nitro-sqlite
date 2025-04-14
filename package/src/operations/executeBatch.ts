@@ -1,12 +1,13 @@
-import { NITRO_SQLITE_NULL, isSimpleNullHandlingEnabled } from '../nullHandling'
+import {
+  isSimpleNullHandlingEnabled,
+  replaceWithNativeNullValue,
+} from '../nullHandling'
 import { HybridNitroSQLite } from '../nitro'
 import type {
   NativeSQLiteQueryParams,
   BatchQueryResult,
   BatchQueryCommand,
   NativeBatchQueryCommand,
-  SQLiteValue,
-  SQLiteQueryParamItem,
 } from '../types'
 
 export function executeBatch(
@@ -36,22 +37,15 @@ export async function executeBatchAsync(
   return result
 }
 
-function replaceWithNativeNull(value: SQLiteQueryParamItem): SQLiteValue {
-  if (value === undefined || value === null) {
-    return NITRO_SQLITE_NULL
-  }
-  return value
-}
-
 function toNativeBatchQueryCommands(
   commands: BatchQueryCommand[]
 ): NativeBatchQueryCommand[] {
   return commands.map((command) => {
     const transformedParams = command.params?.map((param) => {
       if (Array.isArray(param)) {
-        return param.map((p) => replaceWithNativeNull(p))
+        return param.map((p) => replaceWithNativeNullValue(p))
       }
-      return replaceWithNativeNull(param)
+      return replaceWithNativeNullValue(param)
     }) as NativeSQLiteQueryParams | NativeSQLiteQueryParams[]
 
     return {
