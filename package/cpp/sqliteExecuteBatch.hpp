@@ -3,7 +3,7 @@
  */
 #pragma once
 
-#include "BatchQueryCommand.hpp"
+#include "NativeBatchQueryCommand.hpp"
 #include "types.hpp"
 
 using namespace facebook;
@@ -20,7 +20,7 @@ struct BatchQuery {
  * Local Helper method to translate JSI objects BatchQuery datastructure
  * MUST be called in the JavaScript Thread
  */
-std::vector<BatchQuery> batchParamsToCommands(const std::vector<BatchQueryCommand>& batchParams);
+std::vector<BatchQuery> batchParamsToCommands(const std::vector<NativeBatchQueryCommand>& batchParams);
 
 /**
  * Execute a batch of commands in a exclusive transaction

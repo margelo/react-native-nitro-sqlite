@@ -8,7 +8,7 @@
 
 namespace margelo::rnnitrosqlite {
 
-std::vector<BatchQuery> batchParamsToCommands(const std::vector<BatchQueryCommand>& batchParams) {
+std::vector<BatchQuery> batchParamsToCommands(const std::vector<NativeBatchQueryCommand>& batchParams) {
   auto commands = std::vector<BatchQuery>();
 
   for (auto& command : batchParams) {
