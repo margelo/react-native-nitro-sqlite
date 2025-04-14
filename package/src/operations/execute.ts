@@ -17,10 +17,14 @@ export function execute<Row extends QueryResultRow = never>(
   query: string,
   params?: SQLiteQueryParams
 ): QueryResult<Row> {
+  const transformedParams = isSimpleNullHandlingEnabled()
+    ? toNativeQueryParams(params)
+    : (params as NativeSQLiteQueryParams)
+
   const nativeResult = HybridNitroSQLite.execute(
     dbName,
     query,
-    toNativeQueryParams(params)
+    transformedParams
   )
   const result = buildJsQueryResult<Row>(nativeResult)
   return result
