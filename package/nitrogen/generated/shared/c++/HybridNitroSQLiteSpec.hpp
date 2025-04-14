@@ -21,8 +21,8 @@ namespace NitroModules { class ArrayBuffer; }
 namespace margelo::nitro::rnnitrosqlite { struct SQLiteNullValue; }
 // Forward declaration of `BatchQueryResult` to properly resolve imports.
 namespace margelo::nitro::rnnitrosqlite { struct BatchQueryResult; }
-// Forward declaration of `BatchQueryCommand` to properly resolve imports.
-namespace margelo::nitro::rnnitrosqlite { struct BatchQueryCommand; }
+// Forward declaration of `NativeBatchQueryCommand` to properly resolve imports.
+namespace margelo::nitro::rnnitrosqlite { struct NativeBatchQueryCommand; }
 // Forward declaration of `FileLoadResult` to properly resolve imports.
 namespace margelo::nitro::rnnitrosqlite { struct FileLoadResult; }
 
@@ -36,7 +36,7 @@ namespace margelo::nitro::rnnitrosqlite { struct FileLoadResult; }
 #include "SQLiteNullValue.hpp"
 #include <NitroModules/Promise.hpp>
 #include "BatchQueryResult.hpp"
-#include "BatchQueryCommand.hpp"
+#include "NativeBatchQueryCommand.hpp"
 #include "FileLoadResult.hpp"
 
 namespace margelo::nitro::rnnitrosqlite {
@@ -77,8 +77,8 @@ namespace margelo::nitro::rnnitrosqlite {
       virtual void detach(const std::string& mainDbName, const std::string& alias) = 0;
       virtual std::shared_ptr<margelo::nitro::rnnitrosqlite::HybridNativeQueryResultSpec> execute(const std::string& dbName, const std::string& query, const std::optional<std::vector<std::variant<std::string, double, bool, std::shared_ptr<ArrayBuffer>, SQLiteNullValue>>>& params) = 0;
       virtual std::shared_ptr<Promise<std::shared_ptr<margelo::nitro::rnnitrosqlite::HybridNativeQueryResultSpec>>> executeAsync(const std::string& dbName, const std::string& query, const std::optional<std::vector<std::variant<std::string, double, bool, std::shared_ptr<ArrayBuffer>, SQLiteNullValue>>>& params) = 0;
-      virtual BatchQueryResult executeBatch(const std::string& dbName, const std::vector<BatchQueryCommand>& commands) = 0;
-      virtual std::shared_ptr<Promise<BatchQueryResult>> executeBatchAsync(const std::string& dbName, const std::vector<BatchQueryCommand>& commands) = 0;
+      virtual BatchQueryResult executeBatch(const std::string& dbName, const std::vector<NativeBatchQueryCommand>& commands) = 0;
+      virtual std::shared_ptr<Promise<BatchQueryResult>> executeBatchAsync(const std::string& dbName, const std::vector<NativeBatchQueryCommand>& commands) = 0;
       virtual FileLoadResult loadFile(const std::string& dbName, const std::string& location) = 0;
       virtual std::shared_ptr<Promise<FileLoadResult>> loadFileAsync(const std::string& dbName, const std::string& location) = 0;
 
