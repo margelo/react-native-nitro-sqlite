@@ -3,6 +3,7 @@ import { HybridNitroSQLite } from './nitro'
 import { open } from './operations/session'
 import { execute, executeAsync } from './operations/execute'
 import { init } from './OnLoad'
+import { executeBatch, executeBatchAsync } from './operations/executeBatch'
 export type * from './types'
 export { typeORMDriver } from './typeORM'
 
@@ -18,6 +19,8 @@ export const NitroSQLite = {
   transaction,
   execute,
   executeAsync,
+  executeBatch,
+  executeBatchAsync,
 }
 
 export { open } from './operations/session'

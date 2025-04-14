@@ -10,6 +10,7 @@ import type {
   QueryResultRow,
 } from '../types'
 import { execute, executeAsync } from './execute'
+import { executeBatch, executeBatchAsync } from './executeBatch'
 
 export function open(
   options: NitroSQLiteConnectionOptions
@@ -33,9 +34,9 @@ export function open(
       params?: SQLiteQueryParams
     ): Promise<QueryResult<Row>> => executeAsync(options.name, query, params),
     executeBatch: (commands: BatchQueryCommand[]) =>
-      HybridNitroSQLite.executeBatch(options.name, commands),
+      executeBatch(options.name, commands),
     executeBatchAsync: (commands: BatchQueryCommand[]) =>
-      HybridNitroSQLite.executeBatchAsync(options.name, commands),
+      executeBatchAsync(options.name, commands),
     loadFile: (location: string) =>
       HybridNitroSQLite.loadFile(options.name, location),
     loadFileAsync: (location: string) =>
