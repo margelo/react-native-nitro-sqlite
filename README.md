@@ -260,30 +260,67 @@ import { open } from 'react-native-nitro-sqlite';
 try {
   const db = open({ name: 'myDb.sqlite' });
   
-  // Platform-specific extension paths
-  const extensionPath = Platform.OS === 'ios' 
-    ? 'path/to/extension.dylib'
-    : 'path/to/extension.so';
-  
   // Load the extension
-  const success = db.loadExtension(extensionPath);
+  db.loadExtension('/path/to/extension');
   
-  if (success) {
-    // Use the extension's functionality
-    const result = db.execute('SELECT extension_function(?) as result', [someValue]);
-    console.log('Result:', result.rows._array[0].result);
-  }
+  // Now you can use the extension's functionality
+  const result = db.execute('SELECT extension_function(?) as result', [someValue]);
 } catch (e) {
   console.error('Failed to load extension:', e.message);
 }
 ```
 
-Notes about extensions:
-- Extensions must be compiled specifically for each platform (iOS, Android)
-- The extension path should be accessible from your app's bundle
-- Extensions are useful for adding mathematical functions, encryption, full-text search, and more
-- For iOS, extensions need to be included in the app bundle
-- For Android, extensions should be in the app's native libs directory
+### Setting up extensions in your project
+
+To use SQLite extensions with your app, you need to:
+
+#### Android
+1. Place extension files (`.so` files) in your app's assets folder
+2. Add these files to your Android project
+3. At runtime, copy the file from assets to a readable location before loading
+
+#### iOS
+1. Add extension files (`.dylib` files) to your Xcode project
+2. Make sure they're included in "Build Phases → Copy Bundle Resources"
+3. At runtime, the files will be available in your app's bundle
+
+### Implementation example
+
+```typescript
+async loadExtension(): Promise<void> {
+  try {
+    const appDir = getAppDirectory();
+    
+    if (Platform.OS === 'android') {
+      const libFileName = `libextension.so`;
+      const destinationPath = `${appDir}/${libFileName}`;
+      
+      // Copy from assets to app directory then load
+      try {
+        await RNFS.copyFileAssets(libFileName, destinationPath);
+        this.db.loadExtension(`${appDir}/libextension`);
+      } catch (error) {
+        console.error('Failed to copy or load extension:', error);
+      }
+    } else if (Platform.OS === 'ios') {
+      const sourcePath = `${RNFS.MainBundlePath}/extension.dylib`;
+      const destPath = `${appDir}/libextension.dylib`;
+      
+      // Copy and load
+      try {
+        await RNFS.copyFile(sourcePath, destPath);
+        this.db.loadExtension(`${appDir}/libextension`);
+      } catch (error) {
+        console.error('Failed to copy or load extension:', error);
+      }
+    }
+  } catch (error) {
+    console.error('Failed to load SQLite extension:', error);
+  }
+}
+```
+
+You'll need the `react-native-fs` package for this implementation.
 
 References: [Attach](https://www.sqlite.org/lang_attach.html) - [Detach](https://www.sqlite.org/lang_detach.html)
 
