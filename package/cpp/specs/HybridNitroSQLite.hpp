@@ -37,6 +37,8 @@ public:
   
   FileLoadResult loadFile(const std::string& dbName, const std::string& location) override;
   std::shared_ptr<Promise<FileLoadResult>> loadFileAsync(const std::string& dbName, const std::string& location) override;
+
+  void loadExtension(const std::string& dbName, const std::string& path, const std::optional<std::string>& entryPoint);
 };
 
 inline std::string HybridNitroSQLite::docPath = "";

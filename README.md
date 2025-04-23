@@ -71,7 +71,8 @@ db = {
   executeBatch: (commands: BatchQueryCommand[]) => BatchQueryResult,
   executeBatchAsync: (commands: BatchQueryCommand[]) => Promise<BatchQueryResult>,
   loadFile: (location: string) => FileLoadResult;,
-  loadFileAsync: (location: string) => Promise<FileLoadResult>
+  loadFileAsync: (location: string) => Promise<FileLoadResult>,
+  loadExtension: (path: string, entryPoint?: string) => void
 }
 ```
 
@@ -248,6 +249,41 @@ These databases can have different configurations, like journal modes, and cache
 You can, at any moment, detach a database that you don't need anymore. You don't need to detach an attached database before closing your connection. Closing the main connection will detach any attached databases.
 
 SQLite has a limit for attached databases: A default of 10, and a global max of 125
+
+## Loading SQLite Extensions
+
+SQLite supports loading extensions that can add new functions, virtual tables, collations, and more to your database connection. NitroSQLite provides the `loadExtension` method to dynamically load SQLite extensions.
+
+```typescript
+import { open } from 'react-native-nitro-sqlite';
+
+try {
+  const db = open({ name: 'myDb.sqlite' });
+  
+  // Platform-specific extension paths
+  const extensionPath = Platform.OS === 'ios' 
+    ? 'path/to/extension.dylib'
+    : 'path/to/extension.so';
+  
+  // Load the extension
+  const success = db.loadExtension(extensionPath);
+  
+  if (success) {
+    // Use the extension's functionality
+    const result = db.execute('SELECT extension_function(?) as result', [someValue]);
+    console.log('Result:', result.rows._array[0].result);
+  }
+} catch (e) {
+  console.error('Failed to load extension:', e.message);
+}
+```
+
+Notes about extensions:
+- Extensions must be compiled specifically for each platform (iOS, Android)
+- The extension path should be accessible from your app's bundle
+- Extensions are useful for adding mathematical functions, encryption, full-text search, and more
+- For iOS, extensions need to be included in the app bundle
+- For Android, extensions should be in the app's native libs directory
 
 References: [Attach](https://www.sqlite.org/lang_attach.html) - [Detach](https://www.sqlite.org/lang_detach.html)
 
