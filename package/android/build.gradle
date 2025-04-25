@@ -163,6 +163,7 @@ android {
       "META-INF",
       "META-INF/**",
       "**/libreactnative.so",
+      "**/libreact_nativemodule_core.so",
       "**/libc++_shared.so",
       "**/libfbjni.so",
       "**/libjsi.so",
