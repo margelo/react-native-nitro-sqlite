@@ -41,6 +41,8 @@ export function open(
       HybridNitroSQLite.loadFile(options.name, location),
     loadFileAsync: (location: string) =>
       HybridNitroSQLite.loadFileAsync(options.name, location),
+    loadExtension: (path: string, entryPoint?: string) =>
+      HybridNitroSQLite.loadExtension(options.name, path, entryPoint),
   }
 }
 

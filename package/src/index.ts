@@ -21,6 +21,8 @@ export const NitroSQLite = {
   executeAsync,
   executeBatch,
   executeBatchAsync,
+  // Add loadExtension to make it accessible from the NitroSQLite object
+  loadExtension: HybridNitroSQLite.loadExtension,
 }
 
 export { open } from './operations/session'
