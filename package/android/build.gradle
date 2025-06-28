@@ -110,7 +110,8 @@ android {
         arguments "-DANDROID_STL=c++_shared",
           "-DANDROID_TOOLCHAIN=clang",
           "-DREACT_NATIVE_MINOR_VERSION=${REACT_NATIVE_MINOR_VERSION}",
-          "-DSQLITE_FLAGS='${SQLITE_FLAGS ? SQLITE_FLAGS : ''}'"
+          "-DSQLITE_FLAGS='${SQLITE_FLAGS ? SQLITE_FLAGS : ''}'",
+          "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
         abiFilters (*reactNativeArchitectures())
       }
     }

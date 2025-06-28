@@ -78,6 +78,7 @@ android {
     compileSdk rootProject.ext.compileSdkVersion
 
     namespace "com.margelo.rnnitrosqlite.example"
+
     defaultConfig {
         applicationId "com.margelo.rnnitrosqlite.example"
         minSdkVersion rootProject.ext.minSdkVersion
@@ -85,6 +86,7 @@ android {
         versionCode 1
         versionName "1.0"
     }
+
     signingConfigs {
         debug {
             storeFile file('debug.keystore')
@@ -93,6 +95,7 @@ android {
             keyPassword 'android'
         }
     }
+
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
