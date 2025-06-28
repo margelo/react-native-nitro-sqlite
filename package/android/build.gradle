@@ -159,10 +159,6 @@ android {
   }
 
   packagingOptions {
-    jniLibs {
-      useLegacyPackaging true
-    }
-
     doNotStrip resolveBuildType() == 'debug' ? "**/**/*.so" : ''
     excludes = [
       "META-INF",
