@@ -24,11 +24,11 @@ namespace NitroModules { class ArrayBuffer; }
 namespace margelo::nitro::rnnitrosqlite { struct SQLiteNullValue; }
 
 #include <string>
-#include <optional>
-#include <variant>
-#include <vector>
 #include <NitroModules/ArrayBuffer.hpp>
 #include "SQLiteNullValue.hpp"
+#include <variant>
+#include <vector>
+#include <optional>
 
 namespace margelo::nitro::rnnitrosqlite {
 

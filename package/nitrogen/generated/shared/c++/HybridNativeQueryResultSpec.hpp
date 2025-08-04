@@ -21,12 +21,12 @@ namespace margelo::nitro::rnnitrosqlite { struct SQLiteNullValue; }
 namespace margelo::nitro::rnnitrosqlite { struct SQLiteQueryColumnMetadata; }
 
 #include <optional>
-#include <vector>
-#include <unordered_map>
 #include <string>
-#include <variant>
 #include <NitroModules/ArrayBuffer.hpp>
 #include "SQLiteNullValue.hpp"
+#include <variant>
+#include <unordered_map>
+#include <vector>
 #include "SQLiteQueryColumnMetadata.hpp"
 
 namespace margelo::nitro::rnnitrosqlite {

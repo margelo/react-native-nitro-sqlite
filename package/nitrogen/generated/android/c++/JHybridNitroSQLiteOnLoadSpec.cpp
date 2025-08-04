@@ -28,6 +28,11 @@ namespace margelo::nitro::rnnitrosqlite {
     return method(_javaPart);
   }
 
+  void JHybridNitroSQLiteOnLoadSpec::dispose() noexcept {
+    static const auto method = javaClassStatic()->getMethod<void()>("dispose");
+    method(_javaPart);
+  }
+
   // Properties
   
 

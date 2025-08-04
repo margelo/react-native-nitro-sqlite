@@ -30,10 +30,10 @@ namespace margelo::nitro::rnnitrosqlite { struct FileLoadResult; }
 #include <optional>
 #include <memory>
 #include "HybridNativeQueryResultSpec.hpp"
-#include <vector>
-#include <variant>
 #include <NitroModules/ArrayBuffer.hpp>
 #include "SQLiteNullValue.hpp"
+#include <variant>
+#include <vector>
 #include <NitroModules/Promise.hpp>
 #include "BatchQueryResult.hpp"
 #include "NativeBatchQueryCommand.hpp"

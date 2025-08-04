@@ -39,6 +39,7 @@ namespace margelo::nitro::rnnitrosqlite {
 
   public:
     size_t getExternalMemorySize() noexcept override;
+    void dispose() noexcept override;
 
   public:
     inline const jni::global_ref<JHybridNitroSQLiteOnLoadSpec::javaobject>& getJavaPart() const noexcept {
