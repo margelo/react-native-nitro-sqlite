@@ -23,7 +23,7 @@
     "expo-status-bar": "^1.12.1",
     "react": "19.0.0",
     "react-native": "0.78.0",
-    "react-native-nitro-modules": "0.26.2",
+    "react-native-nitro-modules": "0.27.2",
     "react-native-nitro-sqlite": "9.1.10",
     "react-native-safe-area-context": "^5.2.0",
     "react-native-screens": "^4.9.1",

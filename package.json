@@ -31,7 +31,7 @@
     "patch-package": "^8.0.0",
     "react": "19.0.0",
     "react-native": "0.78.0",
-    "react-native-nitro-modules": "0.26.2"
+    "react-native-nitro-modules": "0.27.2"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
