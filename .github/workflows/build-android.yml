@@ -31,7 +31,7 @@ jobs:
     name: Build Android Example App (new architecture)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
 
       - name: Install npm dependencies (bun)
@@ -65,7 +65,7 @@ jobs:
     name: Build Android Example App (old architecture)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
 
       - name: Install npm dependencies (bun)
