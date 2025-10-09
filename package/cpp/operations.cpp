@@ -256,7 +256,7 @@ SQLiteOperationResult sqliteExecuteLiteral(const std::string& dbName, const std:
   bool isConsuming = true;
   bool isFailed = false;
 
-  int result, i, count, column_type;
+  int result;
   std::string column_name;
 
   while (isConsuming) {
