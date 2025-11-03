@@ -11,9 +11,18 @@ export default function App() {
   return (
     <NavigationContainer>
       <RootStack.Navigator initialRouteName="NitroSQLite Example">
-        <RootStack.Screen name="NitroSQLite Example" component={HomeScreen} />
-        <RootStack.Screen name="Unit Tests" component={UnitTestScreen} />
-        <RootStack.Screen name="Benchmarks" component={BenchmarkScreen} />
+        <RootStack.Screen
+          name="NitroSQLite Example"
+          component={HomeScreen}
+        />
+        <RootStack.Screen
+          name="Unit Tests"
+          component={UnitTestScreen}
+        />
+        <RootStack.Screen
+          name="Benchmarks"
+          component={BenchmarkScreen}
+        />
       </RootStack.Navigator>
 
       <StatusBar style="auto" />
