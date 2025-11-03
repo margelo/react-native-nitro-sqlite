@@ -1,8 +1,7 @@
 #pragma once
 
-
-#include <sys/stat.h>
 #include <string>
+#include <sys/stat.h>
 
 namespace margelo::rnnitrosqlite {
 
@@ -58,4 +57,4 @@ std::string get_db_path(const std::string& dbName, const std::string& docPath) {
   return docPath + "/" + dbName;
 }
 
-}
+} // namespace margelo::rnnitrosqlite

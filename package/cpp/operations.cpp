@@ -1,16 +1,16 @@
 #include "operations.hpp"
+#include "NitroSQLiteException.hpp"
 #include "logs.hpp"
 #include "utils.hpp"
 #include <NitroModules/ArrayBuffer.hpp>
 #include <cmath>
 #include <ctime>
 #include <iostream>
-#include <optional>
 #include <map>
+#include <optional>
 #include <sqlite3.h>
 #include <sstream>
 #include <unistd.h>
-#include "NitroSQLiteException.hpp"
 
 using namespace facebook;
 using namespace margelo::nitro;
@@ -59,7 +59,7 @@ void sqliteCloseAll() {
 }
 
 void sqliteAttachDb(const std::string& mainDBName, const std::string& docPath, const std::string& databaseToAttach,
-                              const std::string& alias) {
+                    const std::string& alias) {
   /**
    * There is no need to check if mainDBName is opened because sqliteExecuteLiteral will do that.
    * */
@@ -69,7 +69,8 @@ void sqliteAttachDb(const std::string& mainDBName, const std::string& docPath, c
   try {
     sqliteExecuteLiteral(mainDBName, statement);
   } catch (NitroSQLiteException& e) {
-    throw NitroSQLiteException(NitroSQLiteExceptionType::UnableToAttachToDatabase, mainDBName + " was unable to attach another database: " + std::string(e.what()));
+    throw NitroSQLiteException(NitroSQLiteExceptionType::UnableToAttachToDatabase,
+                               mainDBName + " was unable to attach another database: " + std::string(e.what()));
   }
 }
 
@@ -82,7 +83,8 @@ void sqliteDetachDb(const std::string& mainDBName, const std::string& alias) {
   try {
     sqliteExecuteLiteral(mainDBName, statement);
   } catch (NitroSQLiteException& e) {
-    throw NitroSQLiteException(NitroSQLiteExceptionType::UnableToAttachToDatabase, mainDBName + " was unable to detach database: " + std::string(e.what()));
+    throw NitroSQLiteException(NitroSQLiteExceptionType::UnableToAttachToDatabase,
+                               mainDBName + " was unable to detach database: " + std::string(e.what()));
   }
 }
 
@@ -101,7 +103,7 @@ void sqliteRemoveDb(const std::string& dbName, const std::string& docPath) {
 
 void bindStatement(sqlite3_stmt* statement, const SQLiteQueryParams& values) {
   for (int valueIndex = 0; valueIndex < values.size(); valueIndex++) {
-    int sqliteIndex = valueIndex+1;
+    int sqliteIndex = valueIndex + 1;
     SQLiteValue value = values.at(valueIndex);
     if (std::holds_alternative<SQLiteNullValue>(value)) {
       sqlite3_bind_null(statement, sqliteIndex);
@@ -119,7 +121,8 @@ void bindStatement(sqlite3_stmt* statement, const SQLiteQueryParams& values) {
   }
 }
 
-SQLiteExecuteQueryResult sqliteExecute(const std::string& dbName, const std::string& query, const std::optional<SQLiteQueryParams>& params) {
+SQLiteExecuteQueryResult sqliteExecute(const std::string& dbName, const std::string& query,
+                                       const std::optional<SQLiteQueryParams>& params) {
   if (dbMap.count(dbName) == 0) {
     throw NitroSQLiteException::DatabaseNotOpen(dbName);
   }
@@ -196,21 +199,21 @@ SQLiteExecuteQueryResult sqliteExecute(const std::string& dbName, const std::str
         results.push_back(std::move(row));
         break;
       case SQLITE_DONE:
-          i = 0;
-          count = sqlite3_column_count(statement);
-          while (i < count) {
-            column_name = sqlite3_column_name(statement, i);
-            const char* tp = sqlite3_column_decltype(statement, i);
-            column_declared_type = mapSQLiteTypeToColumnType(tp);
-            auto columnMeta = SQLiteQueryColumnMetadata(std::move(column_name), std::move(column_declared_type), i);
+        i = 0;
+        count = sqlite3_column_count(statement);
+        while (i < count) {
+          column_name = sqlite3_column_name(statement, i);
+          const char* tp = sqlite3_column_decltype(statement, i);
+          column_declared_type = mapSQLiteTypeToColumnType(tp);
+          auto columnMeta = SQLiteQueryColumnMetadata(std::move(column_name), std::move(column_declared_type), i);
 
-            if (!metadata) {
-              metadata = std::make_optional<SQLiteQueryTableMetadata>();
-            }
-            metadata->insert({column_name, columnMeta});
-            i++;
+          if (!metadata) {
+            metadata = std::make_optional<SQLiteQueryTableMetadata>();
           }
-          isConsuming = false;
+          metadata->insert({column_name, columnMeta});
+          i++;
+        }
+        isConsuming = false;
         break;
       default:
         isFailed = true;
@@ -226,12 +229,10 @@ SQLiteExecuteQueryResult sqliteExecute(const std::string& dbName, const std::str
 
   int rowsAffected = sqlite3_changes(db);
   long long latestInsertRowId = sqlite3_last_insert_rowid(db);
-  return {
-    .rowsAffected = rowsAffected,
-    .insertId = static_cast<double>(latestInsertRowId),
-    .results = std::move(results),
-    .metadata = std::move(metadata)
-  };
+  return {.rowsAffected = rowsAffected,
+          .insertId = static_cast<double>(latestInsertRowId),
+          .results = std::move(results),
+          .metadata = std::move(metadata)};
 }
 
 SQLiteOperationResult sqliteExecuteLiteral(const std::string& dbName, const std::string& query) {

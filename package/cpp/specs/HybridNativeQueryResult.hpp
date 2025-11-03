@@ -11,7 +11,7 @@ namespace margelo::nitro::rnnitrosqlite {
 class HybridNativeQueryResult : public HybridNativeQueryResultSpec {
 public:
   HybridNativeQueryResult() : HybridObject(TAG) {}
-  HybridNativeQueryResult(SQLiteExecuteQueryResult&& result): HybridObject(TAG), _result(std::move(result)) {}
+  HybridNativeQueryResult(SQLiteExecuteQueryResult&& result) : HybridObject(TAG), _result(std::move(result)) {}
 
 private:
   SQLiteExecuteQueryResult _result;
