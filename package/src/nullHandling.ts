@@ -14,8 +14,12 @@ export function isSimpleNullHandlingEnabled() {
 }
 
 export const NITRO_SQLITE_NULL: SQLiteNullValue = { isNitroSQLiteNull: true }
-export function isNitroSQLiteNull(value: any): value is SQLiteNullValue {
-  if (typeof value === 'object' && 'isNitroSQLiteNull' in value) {
+export function isNitroSQLiteNull(value: unknown): value is SQLiteNullValue {
+  if (
+    value !== null &&
+    typeof value === 'object' &&
+    'isNitroSQLiteNull' in value
+  ) {
     return true
   }
   return false
