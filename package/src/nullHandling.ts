@@ -4,7 +4,7 @@ import { SQLiteQueryParamItem } from './types'
 let ENABLE_SIMPLE_NULL_HANDLING = false
 
 export function enableSimpleNullHandling(
-  shouldEnableSimpleNullHandling = true
+  shouldEnableSimpleNullHandling = true,
 ) {
   ENABLE_SIMPLE_NULL_HANDLING = shouldEnableSimpleNullHandling
 }
@@ -22,7 +22,7 @@ export function isNitroSQLiteNull(value: any): value is SQLiteNullValue {
 }
 
 export function replaceWithNativeNullValue(
-  value: SQLiteQueryParamItem
+  value: SQLiteQueryParamItem,
 ): SQLiteValue {
   if (value === undefined || value === null) {
     return NITRO_SQLITE_NULL

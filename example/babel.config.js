@@ -1,5 +1,5 @@
-const path = require('path');
-const pak = require('../package/package.json');
+const path = require('path')
+const pak = require('../package/package.json')
 
 module.exports = {
   presets: ['module:@react-native/babel-preset'],
@@ -10,12 +10,12 @@ module.exports = {
         extensions: ['.tsx', '.ts', '.js', '.json'],
         alias: {
           [pak.name]: path.join(__dirname, '../package', pak.source),
-          stream: 'stream-browserify',
+          'stream': 'stream-browserify',
           'react-native-sqlite-storage': 'react-native-nitro-sqlite',
         },
       },
     ],
     'babel-plugin-transform-typescript-metadata',
-    ['@babel/plugin-proposal-decorators', {legacy: true}],
+    ['@babel/plugin-proposal-decorators', { legacy: true }],
   ],
-};
+}

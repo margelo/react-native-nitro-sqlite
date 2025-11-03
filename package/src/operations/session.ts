@@ -15,7 +15,7 @@ import NitroSQLiteError from '../NitroSQLiteError'
 import { closeDatabaseQueue, openDatabaseQueue } from '../DatabaseQueue'
 
 export function open(
-  options: NitroSQLiteConnectionOptions
+  options: NitroSQLiteConnectionOptions,
 ): NitroSQLiteConnection {
   openDb(options.name, options.location)
 
@@ -29,11 +29,11 @@ export function open(
       transaction(options.name, fn),
     execute: <Row extends QueryResultRow = never>(
       query: string,
-      params?: SQLiteQueryParams
+      params?: SQLiteQueryParams,
     ): QueryResult<Row> => execute(options.name, query, params),
     executeAsync: <Row extends QueryResultRow = never>(
       query: string,
-      params?: SQLiteQueryParams
+      params?: SQLiteQueryParams,
     ): Promise<QueryResult<Row>> => executeAsync(options.name, query, params),
     executeBatch: (commands: BatchQueryCommand[]) =>
       executeBatch(options.name, commands),

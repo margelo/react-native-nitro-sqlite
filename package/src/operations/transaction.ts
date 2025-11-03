@@ -12,7 +12,7 @@ import NitroSQLiteError from '../NitroSQLiteError'
 export const transaction = (
   dbName: string,
   fn: (tx: Transaction) => Promise<void> | void,
-  isExclusive = false
+  isExclusive = false,
 ): Promise<void> => {
   throwIfDatabaseIsNotOpen(dbName)
 
@@ -21,11 +21,11 @@ export const transaction = (
   // Local transaction context object implementation
   const executeOnTransaction = <Data extends QueryResultRow = never>(
     query: string,
-    params?: SQLiteQueryParams
+    params?: SQLiteQueryParams,
   ): QueryResult<Data> => {
     if (isFinalized) {
       throw new NitroSQLiteError(
-        `Cannot execute query on finalized transaction: ${dbName}`
+        `Cannot execute query on finalized transaction: ${dbName}`,
       )
     }
     return execute(dbName, query, params)
@@ -33,11 +33,11 @@ export const transaction = (
 
   const executeAsyncOnTransaction = <Data extends QueryResultRow = never>(
     query: string,
-    params?: SQLiteQueryParams
+    params?: SQLiteQueryParams,
   ): Promise<QueryResult<Data>> => {
     if (isFinalized) {
       throw new NitroSQLiteError(
-        `Cannot execute query on finalized transaction: ${dbName}`
+        `Cannot execute query on finalized transaction: ${dbName}`,
       )
     }
     return executeAsync(dbName, query, params)
@@ -46,7 +46,7 @@ export const transaction = (
   const commit = () => {
     if (isFinalized) {
       throw new NitroSQLiteError(
-        `Cannot execute commit on finalized transaction: ${dbName}`
+        `Cannot execute commit on finalized transaction: ${dbName}`,
       )
     }
     const result = HybridNitroSQLite.execute(dbName, 'COMMIT')
@@ -57,7 +57,7 @@ export const transaction = (
   const rollback = () => {
     if (isFinalized) {
       throw new NitroSQLiteError(
-        `Cannot execute rollback on finalized transaction: ${dbName}`
+        `Cannot execute rollback on finalized transaction: ${dbName}`,
       )
     }
     const result = HybridNitroSQLite.execute(dbName, 'ROLLBACK')
@@ -70,7 +70,7 @@ export const transaction = (
       try {
         await HybridNitroSQLite.executeAsync(
           dbName,
-          isExclusive ? 'BEGIN EXCLUSIVE TRANSACTION' : 'BEGIN TRANSACTION'
+          isExclusive ? 'BEGIN EXCLUSIVE TRANSACTION' : 'BEGIN TRANSACTION',
         )
 
         await fn({

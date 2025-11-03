@@ -16,7 +16,7 @@ export const clearTests = () => {
 
 export const it = (
   name: string,
-  f: MochaTypes.Func | MochaTypes.AsyncFunc
+  f: MochaTypes.Func | MochaTypes.AsyncFunc,
 ): void => {
   if (!only) {
     const test = new Mocha.Test(name, f)
@@ -26,7 +26,7 @@ export const it = (
 
 export const itOnly = (
   name: string,
-  f: MochaTypes.Func | MochaTypes.AsyncFunc
+  f: MochaTypes.Func | MochaTypes.AsyncFunc,
 ): void => {
   clearTests()
   const test = new Mocha.Test(name, f)

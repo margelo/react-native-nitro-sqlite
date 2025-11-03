@@ -1,7 +1,7 @@
 #pragma once
 
-#include "HybridNitroSQLiteSpec.hpp"
 #include "HybridNativeQueryResultSpec.hpp"
+#include "HybridNitroSQLiteSpec.hpp"
 #include "types.hpp"
 
 using namespace margelo::rnnitrosqlite;
@@ -13,28 +13,31 @@ public:
   HybridNitroSQLite() : HybridObject(TAG) {}
 
 public:
-    static std::string docPath;
+  static std::string docPath;
 
 public:
   // Methods
   void open(const std::string& dbName, const std::optional<std::string>& location) override;
-  
+
   void close(const std::string& dbName) override;
-  
+
   void drop(const std::string& dbName, const std::optional<std::string>& location) override;
-  
+
   void attach(const std::string& mainDbName, const std::string& dbNameToAttach, const std::string& alias,
               const std::optional<std::string>& location) override;
-  
+
   void detach(const std::string& mainDbName, const std::string& alias) override;
-  
-  std::shared_ptr<HybridNativeQueryResultSpec> execute(const std::string& dbName, const std::string& query, const std::optional<SQLiteQueryParams>& params) override;
-  
-  std::shared_ptr<Promise<std::shared_ptr<HybridNativeQueryResultSpec>>> executeAsync(const std::string& dbName, const std::string& query, const std::optional<SQLiteQueryParams>& params) override;
-  
+
+  std::shared_ptr<HybridNativeQueryResultSpec> execute(const std::string& dbName, const std::string& query,
+                                                       const std::optional<SQLiteQueryParams>& params) override;
+
+  std::shared_ptr<Promise<std::shared_ptr<HybridNativeQueryResultSpec>>>
+  executeAsync(const std::string& dbName, const std::string& query, const std::optional<SQLiteQueryParams>& params) override;
+
   BatchQueryResult executeBatch(const std::string& dbName, const std::vector<NativeBatchQueryCommand>& commands) override;
-  std::shared_ptr<Promise<BatchQueryResult>> executeBatchAsync(const std::string& dbName, const std::vector<NativeBatchQueryCommand>& commands) override;
-  
+  std::shared_ptr<Promise<BatchQueryResult>> executeBatchAsync(const std::string& dbName,
+                                                               const std::vector<NativeBatchQueryCommand>& commands) override;
+
   FileLoadResult loadFile(const std::string& dbName, const std::string& location) override;
   std::shared_ptr<Promise<FileLoadResult>> loadFileAsync(const std::string& dbName, const std::string& location) override;
 };

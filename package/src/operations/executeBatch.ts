@@ -18,7 +18,7 @@ import NitroSQLiteError from '../NitroSQLiteError'
 
 export function executeBatch(
   dbName: string,
-  commands: BatchQueryCommand[]
+  commands: BatchQueryCommand[],
 ): BatchQueryResult {
   throwIfDatabaseIsNotOpen(dbName)
 
@@ -28,7 +28,7 @@ export function executeBatch(
 
   try {
     return startOperationSync(dbName, () =>
-      HybridNitroSQLite.executeBatch(dbName, transformedCommands)
+      HybridNitroSQLite.executeBatch(dbName, transformedCommands),
     )
   } catch (error) {
     throw NitroSQLiteError.fromError(error)
@@ -37,7 +37,7 @@ export function executeBatch(
 
 export async function executeBatchAsync(
   dbName: string,
-  commands: BatchQueryCommand[]
+  commands: BatchQueryCommand[],
 ): Promise<BatchQueryResult> {
   throwIfDatabaseIsNotOpen(dbName)
 
@@ -50,7 +50,7 @@ export async function executeBatchAsync(
       try {
         return await HybridNitroSQLite.executeBatchAsync(
           dbName,
-          transformedCommands
+          transformedCommands,
         )
       } catch (error) {
         throw NitroSQLiteError.fromError(error)
@@ -62,7 +62,7 @@ export async function executeBatchAsync(
 }
 
 function toNativeBatchQueryCommands(
-  commands: BatchQueryCommand[]
+  commands: BatchQueryCommand[],
 ): NativeBatchQueryCommand[] {
   return commands.map((command) => {
     const transformedParams = command.params?.map((param) => {

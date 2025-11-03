@@ -1,7 +1,7 @@
 #!/bin/bash
 
 CPP_DIRS=(
-  "cpp"
+  "package/cpp"
 )
 
 if which clang-format >/dev/null; then
