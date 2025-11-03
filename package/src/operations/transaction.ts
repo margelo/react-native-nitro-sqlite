@@ -1,4 +1,5 @@
-import { locks, HybridNitroSQLite } from '../nitro'
+import { HybridNitroSQLite } from '../nitro'
+import { locks, type QueuedOperation } from '../concurrency'
 import type {
   QueryResult,
   Transaction,
@@ -6,19 +7,6 @@ import type {
   QueryResultRow,
 } from '../types'
 import { execute, executeAsync } from './execute'
-
-export interface PendingTransaction {
-  /*
-   * The start function should not throw or return a promise because the
-   * queue just calls it and does not monitor for failures or completions.
-   *
-   * It should catch any errors and call the resolve or reject of the wrapping
-   * promise when complete.
-   *
-   * It should also automatically commit or rollback the transaction if needed
-   */
-  start: () => void
-}
 
 export const transaction = (
   dbName: string,
@@ -101,36 +89,36 @@ export const transaction = (
     } finally {
       locks[dbName]!.inProgress = false
       isFinalized = false
-      startNextTransaction(dbName)
+      startNextOperation(dbName)
     }
   }
 
   return new Promise((resolve, reject) => {
-    const tx: PendingTransaction = {
+    const queuedTransaction: QueuedOperation = {
       start: () => {
         run().then(resolve).catch(reject)
       },
     }
 
-    locks[dbName]?.queue.push(tx)
-    startNextTransaction(dbName)
+    locks[dbName]?.queue.push(queuedTransaction)
+    startNextOperation(dbName)
   })
 }
 
-function startNextTransaction(dbName: string) {
+export function startNextOperation(dbName: string) {
   if (locks[dbName] == null) throw Error(`Lock not found for db: ${dbName}`)
 
   if (locks[dbName].inProgress) {
-    // Transaction is already in process bail out
+    // Operation is already in process bail out
     return
   }
 
   if (locks[dbName].queue.length > 0) {
     locks[dbName].inProgress = true
 
-    const tx = locks[dbName].queue.shift()!
+    const operation = locks[dbName].queue.shift()!
     setImmediate(() => {
-      tx.start()
+      operation.start()
     })
   }
 }
