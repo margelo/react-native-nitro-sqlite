@@ -1,4 +1,4 @@
-import { locks, HybridNitroSQLite } from '../nitro'
+import { HybridNitroSQLite } from '../nitro'
 import { transaction } from './transaction'
 import type {
   BatchQueryCommand,
@@ -11,6 +11,8 @@ import type {
 } from '../types'
 import { execute, executeAsync } from './execute'
 import { executeBatch, executeBatchAsync } from './executeBatch'
+import NitroSQLiteError from '../NitroSQLiteError'
+import { closeDatabaseQueue, openDatabaseQueue } from '../DatabaseQueue'
 
 export function open(
   options: NitroSQLiteConnectionOptions
@@ -45,15 +47,19 @@ export function open(
 }
 
 export function openDb(dbName: string, location?: string) {
-  HybridNitroSQLite.open(dbName, location)
-
-  locks[dbName] = {
-    queue: [],
-    inProgress: false,
+  try {
+    HybridNitroSQLite.open(dbName, location)
+    openDatabaseQueue(dbName)
+  } catch (error) {
+    throw NitroSQLiteError.fromError(error)
   }
 }
 
 export function close(dbName: string) {
-  HybridNitroSQLite.close(dbName)
-  delete locks[dbName]
+  try {
+    HybridNitroSQLite.close(dbName)
+    closeDatabaseQueue(dbName)
+  } catch (error) {
+    throw NitroSQLiteError.fromError(error)
+  }
 }
