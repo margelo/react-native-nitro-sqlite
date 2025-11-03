@@ -53,6 +53,8 @@
     "@types/eslint__js": "^8.42.3",
     "@types/jest": "^29.5.13",
     "@types/react": "^19.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.3",
+    "@typescript-eslint/parser": "^8.46.3",
     "babel-plugin-module-resolver": "^5.0.2",
     "babel-plugin-transform-typescript-metadata": "^0.3.2",
     "eslint": "8.57.0",
