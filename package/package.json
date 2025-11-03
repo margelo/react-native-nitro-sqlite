@@ -40,7 +40,6 @@
     "specs": "bun typescript && bun nitro-codegen --logLevel=\"debug\"",
     "typescript": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\" --fix",
-    "lint-ci": "eslint \"**/*.{js,ts,tsx}\" -f @jamesacarr/github-actions",
     "test": "jest",
     "release": "release-it",
     "prepublishOnly": "bun run build"

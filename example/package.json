@@ -10,7 +10,6 @@
     "pods": "cd ios && bundle exec pod install",
     "typescript": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\" --fix",
-    "lint-ci": "eslint \"**/*.{js,ts,tsx}\" -f @jamesacarr/github-actions",
     "codegen": "bun react-native codegen"
   },
   "dependencies": {

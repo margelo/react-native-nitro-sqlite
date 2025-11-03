@@ -60,13 +60,6 @@ jobs:
       - name: Install npm dependencies (bun)
         run: bun install
 
-      - name: Run ESLint CI in example/
-        working-directory: example
-        run: bun lint-ci
-      - name: Run ESLint CI in react-native-nitro-sqlite
-        working-directory: package
-        run: bun lint-ci
-
       - name: Run ESLint with auto-fix in example/
         working-directory: example
         run: bun lint
