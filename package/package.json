@@ -38,6 +38,7 @@
   "scripts": {
     "postinstall": "bun build || exit 0;",
     "build": "bun typescript && bob build",
+    "prepare": "bun run build",
     "specs": "bun typescript && bun nitro-codegen --logLevel=\"debug\"",
     "typescript": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\" --fix",
