@@ -31,7 +31,7 @@ export function registerUnitTests() {
 
       testDbInternal.execute('DROP TABLE IF EXISTS User;')
       testDbInternal.execute(
-        'CREATE TABLE User ( id REAL PRIMARY KEY, name TEXT NOT NULL, age REAL, networth REAL) STRICT;'
+        'CREATE TABLE User ( id REAL PRIMARY KEY, name TEXT NOT NULL, age REAL, networth REAL) STRICT;',
       )
 
       testDb = testDbInternal!
@@ -48,7 +48,7 @@ export function registerUnitTests() {
       const networth = chance.floating()
       const res = testDb.execute(
         'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
-        [id, name, age, networth]
+        [id, name, age, networth],
       )
 
       expect(res.rowsAffected).to.equal(1)
@@ -65,7 +65,7 @@ export function registerUnitTests() {
       const networth = NITRO_SQLITE_NULL
       const res = testDb.execute(
         'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
-        [id, name, age, networth]
+        [id, name, age, networth],
       )
 
       expect(res.rowsAffected).to.equal(1)
@@ -94,7 +94,7 @@ export function registerUnitTests() {
       const networth = null
       const res = testDb.execute(
         'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
-        [id, name, age, networth]
+        [id, name, age, networth],
       )
 
       expect(res.rowsAffected).to.equal(1)
@@ -121,7 +121,7 @@ export function registerUnitTests() {
       const networth = chance.floating()
       testDb.execute(
         'INSERT INTO User (id, name, age, networth) VALUES(?, ?, ?, ?)',
-        [id, name, age, networth]
+        [id, name, age, networth],
       )
 
       const res = testDb.execute('SELECT * FROM User')
@@ -145,7 +145,7 @@ export function registerUnitTests() {
       const networth = chance.floating()
       testDb.execute(
         'INSERT INTO User (id, name, age, networth) VALUES(?, ?, ?, ?)',
-        [id, name, age, networth]
+        [id, name, age, networth],
       )
 
       const res = testDb.execute('SELECT * FROM User WHERE id = ?', [id])
@@ -171,12 +171,12 @@ export function registerUnitTests() {
       try {
         testDb.execute(
           'INSERT INTO User (id, name, age, networth) VALUES(?, ?, ?, ?)',
-          [id, name, age, networth]
+          [id, name, age, networth],
         )
       } catch (e: unknown) {
         if (isError(e)) {
           expect(e.message).to.include(
-            'cannot store TEXT value in REAL column User.age'
+            'cannot store TEXT value in REAL column User.age',
           )
         } else {
           expect.fail('Should have thrown a valid NitroSQLiteException')
@@ -193,7 +193,7 @@ export function registerUnitTests() {
       await testDb.transaction((tx) => {
         const res = tx.execute(
           'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
-          [id, name, age, networth]
+          [id, name, age, networth],
         )
 
         expect(res.rowsAffected).to.equal(1)
@@ -223,7 +223,7 @@ export function registerUnitTests() {
       await testDb.transaction((tx) => {
         const res = tx.execute(
           'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
-          [id, name, age, networth]
+          [id, name, age, networth],
         )
 
         expect(res.rowsAffected).to.equal(1)
@@ -271,13 +271,13 @@ export function registerUnitTests() {
                   WHERE [id] = ?
                 ), 0)
           `,
-            [id, name, age, id]
+            [id, name, age, id],
           )
 
           // ACT: Select statement to get incremented value and store it for checking later
           const results = tx.execute(
             'SELECT [networth] FROM [User] WHERE [id] = ?',
-            [id]
+            [id],
           )
 
           const row = results.rows?._array[0] as User | undefined
@@ -296,7 +296,7 @@ export function registerUnitTests() {
         .map((_, index) => index * 1000)
       expect(actual).to.eql(
         expected,
-        'Each transaction should read a different value'
+        'Each transaction should read a different value',
       )
     })
 
@@ -309,7 +309,7 @@ export function registerUnitTests() {
       await testDb.transaction((tx) => {
         const res = tx.execute(
           'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
-          [id, name, age, networth]
+          [id, name, age, networth],
         )
 
         expect(res.rowsAffected).to.equal(1)
@@ -348,7 +348,7 @@ export function registerUnitTests() {
         try {
           tx.execute(
             'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
-            [id, name, age, networth]
+            [id, name, age, networth],
           )
         } catch {
           tx.rollback()
@@ -367,7 +367,7 @@ export function registerUnitTests() {
       try {
         testDb.execute(
           'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
-          [id, name, age, networth]
+          [id, name, age, networth],
         )
       } catch (e: unknown) {
         expect(e).to.not.equal(undefined)
@@ -383,7 +383,7 @@ export function registerUnitTests() {
       await testDb.transaction((tx) => {
         tx.execute(
           'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
-          [id, name, age, networth]
+          [id, name, age, networth],
         )
         tx.rollback()
         const res = testDb.execute('SELECT * FROM User')
@@ -448,7 +448,7 @@ export function registerUnitTests() {
       await testDb.transaction(async (tx) => {
         const res = await tx.executeAsync(
           'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
-          [id, name, age, networth]
+          [id, name, age, networth],
         )
 
         expect(res.rowsAffected).to.equal(1)
@@ -479,7 +479,7 @@ export function registerUnitTests() {
         await testDb.transaction(async (tx) => {
           await tx.executeAsync(
             'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
-            [id, name, age, networth]
+            [id, name, age, networth],
           )
         })
       } catch (e) {
@@ -505,7 +505,7 @@ export function registerUnitTests() {
       await testDb.transaction(async (tx) => {
         await tx.executeAsync(
           'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
-          [id, name, age, networth]
+          [id, name, age, networth],
         )
         tx.commit()
       })
@@ -530,7 +530,7 @@ export function registerUnitTests() {
       await testDb.transaction(async (tx) => {
         await tx.executeAsync(
           'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
-          [id, name, age, networth]
+          [id, name, age, networth],
         )
         tx.rollback()
       })
@@ -564,13 +564,13 @@ export function registerUnitTests() {
                   WHERE [id] = ?
                 ), 0)
           `,
-            [id, name, age, id]
+            [id, name, age, id],
           )
 
           // ACT: Select statement to get incremented value and store it for checking later
           const results = await tx.executeAsync(
             'SELECT [networth] FROM [User] WHERE [id] = ?',
-            [id]
+            [id],
           )
 
           const row = results.rows?._array[0] as User | undefined
@@ -589,7 +589,7 @@ export function registerUnitTests() {
         .map((_, index) => index * 1000)
       expect(actual).to.eql(
         expected,
-        'Each transaction should read a different value'
+        'Each transaction should read a different value',
       )
     })
 

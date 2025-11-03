@@ -1,14 +1,10 @@
 {
-  "cxxNamespace": [
-    "rnnitrosqlite"
-  ],
+  "cxxNamespace": ["rnnitrosqlite"],
   "ios": {
     "iosModuleName": "RNNitroSQLite"
   },
   "android": {
-    "androidNamespace": [
-      "rnnitrosqlite"
-    ],
+    "androidNamespace": ["rnnitrosqlite"],
     "androidCxxLibName": "RNNitroSQLite"
   },
   "autolinking": {
@@ -19,9 +15,5 @@
       "kotlin": "HybridNitroSQLiteOnLoad"
     }
   },
-  "ignorePaths": [
-    "node_modules",
-    "example",
-    "lib"
-  ]
+  "ignorePaths": ["node_modules", "example", "lib"]
 }

@@ -1,42 +1,42 @@
-const fs = require('fs');
-const path = require('path');
-const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
-const exclusionList = require('metro-config/src/defaults/exclusionList');
-const escape = require('escape-string-regexp');
+const fs = require('fs')
+const path = require('path')
+const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config')
+const exclusionList = require('metro-config/src/defaults/exclusionList')
+const escape = require('escape-string-regexp')
 
-const root = path.resolve(__dirname, '..');
-const rootNodeModulesPath = path.join(root, 'node_modules');
-const exampleNodeModulesPath = path.join(__dirname, 'node_modules');
+const root = path.resolve(__dirname, '..')
+const rootNodeModulesPath = path.join(root, 'node_modules')
+const exampleNodeModulesPath = path.join(__dirname, 'node_modules')
 
 function getPackageNames(nodeModulesPath) {
   if (!fs.existsSync(nodeModulesPath)) {
-    return [];
+    return []
   }
 
-  const allFiles = fs.readdirSync(nodeModulesPath);
+  const allFiles = fs.readdirSync(nodeModulesPath)
 
   // Filter out only directories (package names)
-  const packageNames = allFiles.filter(file => {
-    const filePath = path.join(nodeModulesPath, file);
-    return fs.statSync(filePath).isDirectory();
-  });
+  const packageNames = allFiles.filter((file) => {
+    const filePath = path.join(nodeModulesPath, file)
+    return fs.statSync(filePath).isDirectory()
+  })
 
   // Handle scoped packages (e.g., @scope/package)
   const scopedPackages = packageNames
-    .filter(pkg => pkg.startsWith('@'))
-    .flatMap(scope => {
-      const scopePath = path.join(nodeModulesPath, scope);
-      const scopedFiles = fs.readdirSync(scopePath);
-      return scopedFiles.map(scopedFile => `${scope}/${scopedFile}`);
-    });
+    .filter((pkg) => pkg.startsWith('@'))
+    .flatMap((scope) => {
+      const scopePath = path.join(nodeModulesPath, scope)
+      const scopedFiles = fs.readdirSync(scopePath)
+      return scopedFiles.map((scopedFile) => `${scope}/${scopedFile}`)
+    })
 
   // Return both regular and scoped package names
   return packageNames
-    .filter(pkg => !pkg.startsWith('@'))
-    .concat(scopedPackages);
+    .filter((pkg) => !pkg.startsWith('@'))
+    .concat(scopedPackages)
 }
 
-const exampleNodeModules = getPackageNames(exampleNodeModulesPath);
+const exampleNodeModules = getPackageNames(exampleNodeModulesPath)
 
 const config = {
   projectRoot: __dirname,
@@ -48,7 +48,8 @@ const config = {
     unstable_enableSymlinks: true,
     blockList: exclusionList(
       exampleNodeModules.map(
-        m => new RegExp(`^${escape(path.join(rootNodeModulesPath, m))}\\/.*$`),
+        (m) =>
+          new RegExp(`^${escape(path.join(rootNodeModulesPath, m))}\\/.*$`),
       ),
     ),
 
@@ -70,6 +71,6 @@ const config = {
       },
     }),
   },
-};
+}
 
-module.exports = mergeConfig(getDefaultConfig(__dirname), config);
+module.exports = mergeConfig(getDefaultConfig(__dirname), config)
