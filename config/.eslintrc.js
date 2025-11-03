@@ -11,7 +11,7 @@ module.exports = {
     "**/react-native.config.js",
     "**/tsconfig.json"
   ],
-  extends: ['@react-native', 'plugin:@typescript-eslint/recommended'],
+  extends: ['@react-native','plugin:prettier/recommended', 'plugin:@typescript-eslint/recommended'],
   plugins: ['@typescript-eslint', 'prettier', 'jest'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
