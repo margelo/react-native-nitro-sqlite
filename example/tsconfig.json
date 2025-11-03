@@ -2,6 +2,8 @@
   "extends": "../config/tsconfig.json",
   "include": ["src", "index.js"],
   "compilerOptions": {
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler"
   }
 }

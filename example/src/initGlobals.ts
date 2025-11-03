@@ -2,11 +2,11 @@ import { Buffer as CraftzdogBuffer } from '@craftzdog/react-native-buffer'
 
 declare global {
   var Buffer: typeof CraftzdogBuffer
+}
 
-  var process: {
-    cwd: () => string
-    env: { NODE_ENV: string }
-  }
+if (!globalThis.process) {
+  // @ts-expect-error
+  globalThis.process = {}
 }
 
 globalThis.Buffer = CraftzdogBuffer
