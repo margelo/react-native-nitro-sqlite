@@ -35,7 +35,7 @@ jobs:
       - uses: oven-sh/setup-bun@v2
 
       - name: Install npm dependencies (bun)
-        run: bun install && cp node_modules package/node_modules example/node_modules
+        run: bun install
 
       - name: Setup JDK 17
         uses: actions/setup-java@v5
