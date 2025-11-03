@@ -16,26 +16,26 @@ export interface NitroSQLite
     mainDbName: string,
     dbNameToAttach: string,
     alias: string,
-    location?: string
+    location?: string,
   ): void
   detach(mainDbName: string, alias: string): void
   execute(
     dbName: string,
     query: string,
-    params?: NativeSQLiteQueryParams
+    params?: NativeSQLiteQueryParams,
   ): NativeQueryResult
   executeAsync(
     dbName: string,
     query: string,
-    params?: NativeSQLiteQueryParams
+    params?: NativeSQLiteQueryParams,
   ): Promise<NativeQueryResult>
   executeBatch(
     dbName: string,
-    commands: NativeBatchQueryCommand[]
+    commands: NativeBatchQueryCommand[],
   ): BatchQueryResult
   executeBatchAsync(
     dbName: string,
-    commands: NativeBatchQueryCommand[]
+    commands: NativeBatchQueryCommand[],
   ): Promise<BatchQueryResult>
   loadFile(dbName: string, location: string): FileLoadResult
   loadFileAsync(dbName: string, location: string): Promise<FileLoadResult>

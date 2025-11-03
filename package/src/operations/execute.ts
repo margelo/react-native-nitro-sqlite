@@ -12,7 +12,7 @@ import type {
 export function execute<Row extends QueryResultRow = never>(
   dbName: string,
   query: string,
-  params?: SQLiteQueryParams
+  params?: SQLiteQueryParams,
 ): QueryResult<Row> {
   const transformedParams = isSimpleNullHandlingEnabled()
     ? toNativeQueryParams(params)
@@ -21,7 +21,7 @@ export function execute<Row extends QueryResultRow = never>(
   const nativeResult = HybridNitroSQLite.execute(
     dbName,
     query,
-    transformedParams
+    transformedParams,
   )
   const result = buildJsQueryResult<Row>(nativeResult)
   return result
@@ -30,7 +30,7 @@ export function execute<Row extends QueryResultRow = never>(
 export async function executeAsync<Row extends QueryResultRow = never>(
   dbName: string,
   query: string,
-  params?: SQLiteQueryParams
+  params?: SQLiteQueryParams,
 ): Promise<QueryResult<Row>> {
   const transformedParams = isSimpleNullHandlingEnabled()
     ? toNativeQueryParams(params)
@@ -39,14 +39,14 @@ export async function executeAsync<Row extends QueryResultRow = never>(
   const nativeResult = await HybridNitroSQLite.executeAsync(
     dbName,
     query,
-    transformedParams
+    transformedParams,
   )
   const result = buildJsQueryResult<Row>(nativeResult)
   return result
 }
 
 function toNativeQueryParams(
-  params: SQLiteQueryParams | undefined
+  params: SQLiteQueryParams | undefined,
 ): NativeSQLiteQueryParams | undefined {
   return params?.map((param) => replaceWithNativeNullValue(param))
 }
@@ -66,8 +66,8 @@ function buildJsQueryResult<Row extends QueryResultRow = never>({
             return [key, null]
           }
           return [key, value]
-        })
-      )
+        }),
+      ),
     ) as Row[]
   }
 

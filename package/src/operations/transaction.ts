@@ -22,7 +22,7 @@ export interface PendingTransaction {
 
 export const transaction = (
   dbName: string,
-  fn: (tx: Transaction) => Promise<void> | void
+  fn: (tx: Transaction) => Promise<void> | void,
 ): Promise<void> => {
   if (locks[dbName] == null)
     throw Error(`Nitro SQLite Error: No lock found on db: ${dbName}`)
@@ -32,11 +32,11 @@ export const transaction = (
   // Local transaction context object implementation
   const executeOnTransaction = <Data extends QueryResultRow = never>(
     query: string,
-    params?: SQLiteQueryParams
+    params?: SQLiteQueryParams,
   ): QueryResult<Data> => {
     if (isFinalized) {
       throw Error(
-        `Nitro SQLite Error: Cannot execute query on finalized transaction: ${dbName}`
+        `Nitro SQLite Error: Cannot execute query on finalized transaction: ${dbName}`,
       )
     }
     return execute(dbName, query, params)
@@ -44,11 +44,11 @@ export const transaction = (
 
   const executeAsyncOnTransaction = <Data extends QueryResultRow = never>(
     query: string,
-    params?: SQLiteQueryParams
+    params?: SQLiteQueryParams,
   ): Promise<QueryResult<Data>> => {
     if (isFinalized) {
       throw Error(
-        `Nitro SQLite Error: Cannot execute query on finalized transaction: ${dbName}`
+        `Nitro SQLite Error: Cannot execute query on finalized transaction: ${dbName}`,
       )
     }
     return executeAsync(dbName, query, params)
@@ -57,7 +57,7 @@ export const transaction = (
   const commit = () => {
     if (isFinalized) {
       throw Error(
-        `Nitro SQLite Error: Cannot execute commit on finalized transaction: ${dbName}`
+        `Nitro SQLite Error: Cannot execute commit on finalized transaction: ${dbName}`,
       )
     }
     const result = HybridNitroSQLite.execute(dbName, 'COMMIT')
@@ -68,7 +68,7 @@ export const transaction = (
   const rollback = () => {
     if (isFinalized) {
       throw Error(
-        `Nitro SQLite Error: Cannot execute rollback on finalized transaction: ${dbName}`
+        `Nitro SQLite Error: Cannot execute rollback on finalized transaction: ${dbName}`,
       )
     }
     const result = HybridNitroSQLite.execute(dbName, 'ROLLBACK')

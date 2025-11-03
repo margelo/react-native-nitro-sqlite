@@ -67,12 +67,12 @@ export interface QueryResult<Row extends QueryResultRow = QueryResultRow> {
 
 export type ExecuteQuery = <Row extends QueryResultRow = QueryResultRow>(
   query: string,
-  params?: SQLiteQueryParams
+  params?: SQLiteQueryParams,
 ) => QueryResult<Row>
 
 export type ExecuteAsyncQuery = <Row extends QueryResultRow = QueryResultRow>(
   query: string,
-  params?: SQLiteQueryParams
+  params?: SQLiteQueryParams,
 ) => Promise<QueryResult<Row>>
 
 export interface Transaction {

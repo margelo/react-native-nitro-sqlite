@@ -18,7 +18,7 @@ interface TypeOrmNitroSQLiteConnection {
     sql: string,
     params: SQLiteQueryParams | undefined,
     okExecute: (res: QueryResult<RowData>) => void,
-    failExecute: (msg: string) => void
+    failExecute: (msg: string) => void,
   ) => Promise<void>
   transaction: (fn: (tx: Transaction) => Promise<void>) => Promise<void>
   close: (okClose: () => void, failClose: (e: unknown) => void) => void
@@ -26,7 +26,7 @@ interface TypeOrmNitroSQLiteConnection {
     dbNameToAttach: string,
     alias: string,
     location: string | undefined,
-    callback: () => void
+    callback: () => void,
   ) => void
   detach: (alias: string, callback: () => void) => void
 }
@@ -42,7 +42,7 @@ export const typeORMDriver = {
       location?: string
     },
     ok: (db: TypeOrmNitroSQLiteConnection) => void,
-    fail: (msg: string) => void
+    fail: (msg: string) => void,
   ): TypeOrmNitroSQLiteConnection | null => {
     try {
       const db = Operations.open(options)
@@ -52,7 +52,7 @@ export const typeORMDriver = {
           sql: string,
           params: SQLiteQueryParams | undefined,
           okExecute: (res: QueryResult<RowData>) => void,
-          failExecute: (msg: string) => void
+          failExecute: (msg: string) => void,
         ) => {
           try {
             const result = await db.executeAsync<RowData>(sql, params)
@@ -62,7 +62,7 @@ export const typeORMDriver = {
           }
         },
         transaction: (
-          fn: (tx: Transaction) => Promise<void>
+          fn: (tx: Transaction) => Promise<void>,
         ): Promise<void> => {
           return db.transaction(fn)
         },
@@ -78,7 +78,7 @@ export const typeORMDriver = {
           dbNameToAttach: string,
           alias: string,
           location: string | undefined,
-          callback: () => void
+          callback: () => void,
         ) => {
           db.attach(dbNameToAttach, alias, location)
           callback()

@@ -1,12 +1,13 @@
 import { Buffer as CraftzdogBuffer } from '@craftzdog/react-native-buffer'
 
 declare global {
+  // eslint-disable-next-line no-var
   var Buffer: typeof CraftzdogBuffer
+}
 
-  var process: {
-    cwd: () => string
-    env: { NODE_ENV: string }
-  }
+if (!globalThis.process) {
+  // @ts-expect-error - if process is not defined, we need to set it to an empty object
+  globalThis.process = {}
 }
 
 globalThis.Buffer = CraftzdogBuffer
