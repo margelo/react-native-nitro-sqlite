@@ -38,7 +38,7 @@
   "scripts": {
     "build": "bun typescript && bob build",
     "specs": "bun typescript && bun nitro-codegen --logLevel=\"debug\"",
-    "typescript": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\" --fix",
     "test": "jest",
     "release": "release-it",

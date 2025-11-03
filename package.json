@@ -19,7 +19,7 @@
   "homepage": "https://github.com/margelo/react-native-nitro-sqlite#readme",
   "scripts": {
     "postinstall": "patch-package",
-    "typescript": "bun --filter=\"**\" typescript",
+    "typecheck": "bun --filter=\"**\" typecheck",
     "lint": "bun package lint && bun example lint",
     "lint-cpp": "./scripts/clang-format.sh",
     "clean": "rm -rf **/tsconfig.tsbuildinfo node_modules package/node_module package/lib",

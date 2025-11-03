@@ -8,7 +8,7 @@
     "ios": "react-native run-ios",
     "bundle-install": "bundle install",
     "pods": "cd ios && bundle exec pod install",
-    "typescript": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\" --fix",
     "codegen": "bun react-native codegen"
   },
