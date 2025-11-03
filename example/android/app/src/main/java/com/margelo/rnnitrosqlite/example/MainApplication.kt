@@ -1,4 +1,4 @@
-package com.margelo.rnnitrosqliteexample
+package com.margelo.rnnitrosqlite.example
 
 import android.app.Application
 import com.facebook.react.PackageList
