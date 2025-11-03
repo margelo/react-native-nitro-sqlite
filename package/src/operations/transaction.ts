@@ -22,7 +22,8 @@ export interface PendingTransaction {
 
 export const transaction = (
   dbName: string,
-  fn: (tx: Transaction) => Promise<void> | void
+  fn: (tx: Transaction) => Promise<void> | void,
+  isExclusive = false
 ): Promise<void> => {
   if (locks[dbName] == null)
     throw Error(`Nitro SQLite Error: No lock found on db: ${dbName}`)
@@ -78,7 +79,10 @@ export const transaction = (
 
   async function run() {
     try {
-      await HybridNitroSQLite.executeAsync(dbName, 'BEGIN TRANSACTION')
+      await HybridNitroSQLite.executeAsync(
+        dbName,
+        isExclusive ? 'BEGIN EXCLUSIVE TRANSACTION' : 'BEGIN TRANSACTION'
+      )
 
       await fn({
         commit,
