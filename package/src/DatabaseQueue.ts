@@ -25,9 +25,9 @@ export function openDatabaseQueue(dbName: string) {
 }
 
 export function closeDatabaseQueue(dbName: string) {
-  const queue = getDatabaseQueue(dbName)
+  const databaseQueue = getDatabaseQueue(dbName)
 
-  if (queue.inProgress || queue.queue.length > 0) {
+  if (databaseQueue.inProgress || databaseQueue.queue.length > 0) {
     console.warn(
       `Database queue for ${dbName} has operations in the queue. Closing anyway.`
     )
@@ -66,7 +66,7 @@ export function queueOperationAsync<
   OperationCallback extends () => Promise<Result>,
   Result = void,
 >(dbName: string, callback: OperationCallback) {
-  const queue = getDatabaseQueue(dbName)
+  const databaseQueue = getDatabaseQueue(dbName)
 
   return new Promise<Result>((resolve, reject) => {
     const operation: QueuedOperation = {
@@ -77,13 +77,13 @@ export function queueOperationAsync<
         } catch (error) {
           reject(error)
         } finally {
-          queue.inProgress = false
+          databaseQueue.inProgress = false
           startOperationAsync(dbName)
         }
       },
     }
 
-    queue.queue.push(operation)
+    databaseQueue.queue.push(operation)
     startOperationAsync(dbName)
   })
 }
@@ -91,38 +91,36 @@ export function queueOperationAsync<
 function startOperationAsync(dbName: string) {
   const queue = getDatabaseQueue(dbName)
 
-  if (queue.inProgress) {
-    // Operation is already in process bail out
+  // Queue is empty or in progress. Bail out.
+  if (queue.inProgress || queue.queue.length === 0) {
     return
   }
 
-  if (queue.queue.length > 0) {
-    queue.inProgress = true
+  queue.inProgress = true
 
-    const operation = queue.queue.shift()!
-    setImmediate(() => {
-      operation.start()
-    })
-  }
+  const operation = queue.queue.shift()!
+  setImmediate(() => {
+    operation.start()
+  })
 }
 
 export function startOperationSync<
   OperationCallback extends () => Result,
   Result = void,
 >(dbName: string, callback: OperationCallback) {
-  const queue = getDatabaseQueue(dbName)
+  const databaseQueue = getDatabaseQueue(dbName)
 
   // Database is busy - cannot execute synchronously
-  if (queue.inProgress || queue.queue.length > 0) {
+  if (databaseQueue.inProgress || databaseQueue.queue.length > 0) {
     throw new NitroSQLiteError(
       `Cannot run synchronous operation on database. Database ${dbName} is busy with another operation.`
     )
   }
 
   // Execute synchronously
-  queue.inProgress = true
+  databaseQueue.inProgress = true
   const result = callback()
-  queue.inProgress = false
+  databaseQueue.inProgress = false
 
   return result
 }
