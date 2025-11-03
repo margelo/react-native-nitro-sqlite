@@ -11,7 +11,8 @@ import NitroSQLiteError from '../NitroSQLiteError'
 
 export const transaction = (
   dbName: string,
-  fn: (tx: Transaction) => Promise<void> | void
+  fn: (tx: Transaction) => Promise<void> | void,
+  isExclusive = false
 ): Promise<void> => {
   throwIfDatabaseIsNotOpen(dbName)
 
@@ -67,7 +68,10 @@ export const transaction = (
   try {
     return queueOperationAsync(dbName, async () => {
       try {
-        await HybridNitroSQLite.executeAsync(dbName, 'BEGIN TRANSACTION')
+        await HybridNitroSQLite.executeAsync(
+          dbName,
+          isExclusive ? 'BEGIN EXCLUSIVE TRANSACTION' : 'BEGIN TRANSACTION'
+        )
 
         await fn({
           commit,
