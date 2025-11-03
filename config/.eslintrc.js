@@ -12,7 +12,7 @@ module.exports = {
     "**/tsconfig.json"
   ],
   extends: ['@react-native','plugin:prettier/recommended'],
-  plugins: ['@typescript-eslint', 'prettier'],
+  plugins: ['@typescript-eslint', 'prettier', 'jest'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     project: true,
