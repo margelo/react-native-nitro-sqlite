@@ -1,12 +1,15 @@
 const fs = require('fs');
 const path = require('path');
 const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
-const exclusionList = require('metro-config/src/defaults/exclusionList');
-const escape = require('escape-string-regexp');
+// const exclusionList = require('metro-config/src/defaults/exclusionList');
+// const escape = require('escape-string-regexp');
+const pak = require('../package.json')
 
 const root = path.resolve(__dirname, '..');
 const rootNodeModulesPath = path.join(root, 'node_modules');
 const exampleNodeModulesPath = path.join(__dirname, 'node_modules');
+
+const modules = Object.keys({ ...pak.peerDependencies })
 
 function getPackageNames(nodeModulesPath) {
   if (!fs.existsSync(nodeModulesPath)) {
@@ -45,23 +48,19 @@ const config = {
   // We need to make sure that only one version is loaded for peerDependencies
   // So we blacklist them at the root, and alias them to the versions in example's node_modules
   resolver: {
-    unstable_enableSymlinks: true,
-    blockList: exclusionList(
-      exampleNodeModules.map(
-        m => new RegExp(`^${escape(path.join(rootNodeModulesPath, m))}\\/.*$`),
-      ),
-    ),
+    // unstable_enableSymlinks: true,
+    // blockList: exclusionList(
+    //   exampleNodeModules.map(
+    //     m => new RegExp(`^${escape(path.join(rootNodeModulesPath, m))}\\/.*$`),
+    //   ),
+    // ),
 
-    // extraNodeModules: modules.reduce((acc, name) => {
-    //   acc[name] = path.join(nodeModulesPath, name);
-    //   return acc;
-    // }, {}),
-
-    // nodeModulesPaths: [
-    //   path.join(__dirname, 'node_modules'),
-    //   path.join(root, 'node_modules'),
-    // ],
+    extraNodeModules: modules.reduce((acc, name) => {
+      acc[name] = path.join(__dirname, 'node_modules', name)
+      return acc
+    }, {}),
   },
+
   transformer: {
     getTransformOptions: async () => ({
       transform: {

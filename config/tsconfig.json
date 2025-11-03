@@ -1,7 +1,9 @@
 {
   "extends": "@tsconfig/react-native/tsconfig.json",
+  "include": ["**/*.ts", "**/*.tsx"],
   "exclude": [
     "**/node_modules",
+    "**/Pods",
     "**/lib",
     "**/.eslintrc.js",
     "**/.prettierrc.js",

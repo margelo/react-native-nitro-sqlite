@@ -65,13 +65,13 @@
     "registry": "https://registry.npmjs.org/"
   },
   "dependencies": {
-    "typeorm": "^0.3.20"
+    "typeorm": "0.3.20"
   },
   "devDependencies": {
     "jest": "^30.2.0",
     "nitro-codegen": "0.27.2",
-    "react": "19.0.0",
-    "react-native": "0.78.0",
+    "react": "19.1.1",
+    "react-native": "0.82.1",
     "react-native-builder-bob": "^0.31.0",
     "react-native-nitro-modules": "0.27.2"
   },
