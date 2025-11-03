@@ -58,7 +58,7 @@ export async function executeFailingTypeORMQuery(): Promise<QueryResult | void> 
           SELECT * From UnexistingTable
         `)) as QueryResult
     return manualQuery
-  } catch (e) {
+  } catch {
     console.warn('should have cached')
   }
 }
