@@ -1,8 +1,8 @@
 #pragma once
 
-#include <string>
-#include <iostream>
 #include <exception>
+#include <iostream>
+#include <string>
 
 enum NitroSQLiteExceptionType {
   UnknownError,
@@ -15,14 +15,13 @@ enum NitroSQLiteExceptionType {
 };
 
 inline std::unordered_map<NitroSQLiteExceptionType, std::string> exceptionTypeStrings = {
-  {UnknownError, "UnknownError"},
-  {DatabaseCannotBeOpened, "DatabaseCannotBeOpened"},
-  {DatabaseNotOpen, "DatabaseNotOpen"},
-  {UnableToAttachToDatabase, "UnableToAttachToDatabase"},
-  {SqlExecutionError, "SqlExecutionError"},
-  {CouldNotLoadFile, "CouldNotLoadFile"},
-  {NoBatchCommandsProvided, "NoBatchCommandsProvided"}
-};
+    {UnknownError, "UnknownError"},
+    {DatabaseCannotBeOpened, "DatabaseCannotBeOpened"},
+    {DatabaseNotOpen, "DatabaseNotOpen"},
+    {UnableToAttachToDatabase, "UnableToAttachToDatabase"},
+    {SqlExecutionError, "SqlExecutionError"},
+    {CouldNotLoadFile, "CouldNotLoadFile"},
+    {NoBatchCommandsProvided, "NoBatchCommandsProvided"}};
 
 inline std::string typeToString(NitroSQLiteExceptionType type) {
   return exceptionTypeStrings[type];
@@ -30,11 +29,11 @@ inline std::string typeToString(NitroSQLiteExceptionType type) {
 
 class NitroSQLiteException : public std::exception {
 public:
-  explicit NitroSQLiteException(const char* message): NitroSQLiteException(NitroSQLiteExceptionType::UnknownError, message) {}
-  explicit NitroSQLiteException(const std::string& message): NitroSQLiteException(NitroSQLiteExceptionType::UnknownError, message) {}
+  explicit NitroSQLiteException(const char* message) : NitroSQLiteException(NitroSQLiteExceptionType::UnknownError, message) {}
+  explicit NitroSQLiteException(const std::string& message) : NitroSQLiteException(NitroSQLiteExceptionType::UnknownError, message) {}
   NitroSQLiteException(const NitroSQLiteExceptionType& type, const char* message) : NitroSQLiteException(type, std::string(message)) {}
   NitroSQLiteException(const NitroSQLiteExceptionType& type, const std::string& message)
-    : _exceptionString("[" + typeToString(type) + "] " + message) {}
+      : _exceptionString("[" + typeToString(type) + "] " + message) {}
 
 private:
   const std::string _exceptionString;

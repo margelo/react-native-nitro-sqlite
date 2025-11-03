@@ -1,10 +1,10 @@
 #pragma once
 
-#include <string>
-#include <NitroModules/ArrayBuffer.hpp>
-#include "SQLiteQueryColumnMetadata.hpp"
 #include "ColumnType.hpp"
 #include "SQLiteNullValue.hpp"
+#include "SQLiteQueryColumnMetadata.hpp"
+#include <NitroModules/ArrayBuffer.hpp>
+#include <string>
 
 using namespace margelo::nitro;
 using namespace margelo::nitro::rnnitrosqlite;

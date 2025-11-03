@@ -3,10 +3,10 @@
  */
 
 #include "importSqlFile.hpp"
-#include <fstream>
-#include <iostream>
 #include "NitroSQLiteException.hpp"
 #include "operations.hpp"
+#include <fstream>
+#include <iostream>
 
 namespace margelo::rnnitrosqlite {
 

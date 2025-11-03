@@ -1,11 +1,11 @@
 #include "HybridNitroSQLite.hpp"
 #include "HybridNativeQueryResult.hpp"
 #include "NitroSQLiteException.hpp"
+#include "importSqlFile.hpp"
 #include "logs.hpp"
 #include "macros.hpp"
-#include "sqliteExecuteBatch.hpp"
-#include "importSqlFile.hpp"
 #include "operations.hpp"
+#include "sqliteExecuteBatch.hpp"
 #include <iostream>
 #include <map>
 #include <string>
@@ -53,13 +53,13 @@ void HybridNitroSQLite::detach(const std::string& mainDbName, const std::string&
 using ExecuteQueryResult = std::shared_ptr<HybridNativeQueryResultSpec>;
 
 ExecuteQueryResult HybridNitroSQLite::execute(const std::string& dbName, const std::string& query,
-                                             const std::optional<SQLiteQueryParams>& params) {
+                                              const std::optional<SQLiteQueryParams>& params) {
   SQLiteExecuteQueryResult result = sqliteExecute(dbName, query, params);
   return std::make_shared<HybridNativeQueryResult>(std::move(result));
 };
 
-std::shared_ptr<Promise<std::shared_ptr<HybridNativeQueryResultSpec>>> HybridNitroSQLite::executeAsync(const std::string& dbName, const std::string& query,
-                                                                                                       const std::optional<SQLiteQueryParams>& params) {
+std::shared_ptr<Promise<std::shared_ptr<HybridNativeQueryResultSpec>>>
+HybridNitroSQLite::executeAsync(const std::string& dbName, const std::string& query, const std::optional<SQLiteQueryParams>& params) {
   return Promise<std::shared_ptr<HybridNativeQueryResultSpec>>::async([=, this]() -> std::shared_ptr<HybridNativeQueryResultSpec> {
     auto result = execute(dbName, query, params);
     return result;

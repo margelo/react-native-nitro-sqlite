@@ -11,7 +11,7 @@ export function UnitTestScreen() {
   useEffect(() => {
     setResults([])
     runTests(
-      registerUnitTests
+      registerUnitTests,
       // registerTypeORMTests
     ).then(setResults)
   }, [])

@@ -5,4 +5,4 @@ module.exports = {
     project: true,
     tsconfigRootDir: __dirname,
   },
-};
+}
