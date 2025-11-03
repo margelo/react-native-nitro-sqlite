@@ -350,7 +350,7 @@ export function registerUnitTests() {
             'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
             [id, name, age, networth]
           )
-        } catch (e) {
+        } catch {
           tx.rollback()
         }
       })
