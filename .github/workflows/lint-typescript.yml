@@ -41,7 +41,7 @@ jobs:
       - uses: reviewdog/action-setup@v1
 
       - name: Install npm dependencies (bun)
-        run: bun install && cp node_modules package/node_modules example/node_modules
+        run: bun install && cp -r node_modules package/node_modules example/node_modules
 
       - name: Run TypeScript (tsc)
         run: |
@@ -57,7 +57,7 @@ jobs:
       - uses: oven-sh/setup-bun@v2
 
       - name: Install npm dependencies (bun)
-        run: bun install && cp node_modules package/node_modules example/node_modules
+        run: bun install && cp -r node_modules package/node_modules example/node_modules
 
       - name: Run ESLint with auto-fix in example/
         working-directory: example
