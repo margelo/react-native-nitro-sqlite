@@ -22,6 +22,7 @@
     "typescript": "bun --filter=\"**\" typescript",
     "lint": "bun package lint && bun example lint",
     "lint-cpp": "./scripts/clang-format.sh",
+    "prettier": "prettier --write .",
     "clean": "rm -rf **/tsconfig.tsbuildinfo node_modules package/node_module package/lib",
     "release": "./scripts/release.sh",
     "package": "bun --cwd package",
