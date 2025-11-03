@@ -39,7 +39,6 @@
     "@babel/preset-env": "^7.25.4",
     "@babel/runtime": "^7.25.4",
     "@eslint/js": "^9.10.0",
-    "@jamesacarr/eslint-formatter-github-actions": "^0.2.0",
     "@react-native-community/cli": "15.0.1",
     "@react-native-community/cli-platform-android": "15.0.1",
     "@react-native-community/cli-platform-ios": "15.0.1",
