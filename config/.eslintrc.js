@@ -16,7 +16,7 @@ module.exports = {
     'plugin:prettier/recommended',
     'plugin:@typescript-eslint/recommended',
   ],
-  plugins: ['@typescript-eslint', 'prettier', 'jest'],
+  plugins: ['@typescript-eslint', 'jest'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     project: true,
@@ -26,8 +26,5 @@ module.exports = {
     },
     ecmaVersion: 2018,
     sourceType: 'module',
-  },
-  rules: {
-    'prettier/prettier': 'warn',
   },
 }
