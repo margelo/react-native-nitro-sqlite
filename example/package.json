@@ -49,6 +49,6 @@
     "@types/node": "^22.7.4",
     "@types/react": "^19.2.0",
     "mocha": "^10.1.0",
-    "postinstall-postinstall": "^2.1.0",
+    "postinstall-postinstall": "^2.1.0"
   }
 }
