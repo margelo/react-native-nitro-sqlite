@@ -117,8 +117,9 @@ export function startOperationSync<
 
   // Execute synchronously
   databaseQueue.inProgress = true
-  const result = callback()
-  databaseQueue.inProgress = false
-
-  return result
+  try {
+    return callback()
+  } finally {
+    databaseQueue.inProgress = false
+  }
 }
