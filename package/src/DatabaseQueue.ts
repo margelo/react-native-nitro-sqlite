@@ -17,7 +17,7 @@ const databaseQueues = new Map<string, DatabaseQueue>()
 export function openDatabaseQueue(dbName: string) {
   if (isDatabaseOpen(dbName)) {
     throw new NitroSQLiteError(
-      `Database ${dbName} is already open. There is already a connection to the database.`
+      `Database ${dbName} is already open. There is already a connection to the database.`,
     )
   }
 
@@ -29,7 +29,7 @@ export function closeDatabaseQueue(dbName: string) {
 
   if (databaseQueue.inProgress || databaseQueue.queue.length > 0) {
     console.warn(
-      `Database queue for ${dbName} has operations in the queue. Closing anyway.`
+      `Database queue for ${dbName} has operations in the queue. Closing anyway.`,
     )
   }
 
@@ -43,7 +43,7 @@ export function isDatabaseOpen(dbName: string) {
 export function throwIfDatabaseIsNotOpen(dbName: string) {
   if (!isDatabaseOpen(dbName))
     throw new NitroSQLiteError(
-      `Database ${dbName} is not open. There is no connection to the database.`
+      `Database ${dbName} is not open. There is no connection to the database.`,
     )
 }
 
@@ -99,9 +99,7 @@ function startOperationAsync(dbName: string) {
   queue.inProgress = true
 
   const operation = queue.queue.shift()!
-  setImmediate(() => {
-    operation.start()
-  })
+  setImmediate(operation.start)
 }
 
 export function startOperationSync<
@@ -113,7 +111,7 @@ export function startOperationSync<
   // Database is busy - cannot execute synchronously
   if (databaseQueue.inProgress || databaseQueue.queue.length > 0) {
     throw new NitroSQLiteError(
-      `Cannot run synchronous operation on database. Database ${dbName} is busy with another operation.`
+      `Cannot run synchronous operation on database. Database ${dbName} is busy with another operation.`,
     )
   }
 
