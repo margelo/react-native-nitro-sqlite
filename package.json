@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "patch-package": "^8.0.0",
-    "react": "19.1.1",
+    "react": "19.2.0",
     "react-native": "0.82.1",
     "react-native-nitro-modules": "0.27.2"
   },
@@ -55,7 +55,7 @@
     "@tsconfig/react-native": "^2.0.2",
     "@types/eslint__js": "^8.42.3",
     "@types/jest": "^29.5.13",
-    "@types/react": "^19.1.1",
+    "@types/react": "^19.2.0",
     "babel-plugin-module-resolver": "^5.0.2",
     "babel-plugin-transform-typescript-metadata": "^0.3.2",
     "eslint": "8.57.1",
