@@ -14,8 +14,8 @@
   },
   "dependencies": {
     "@craftzdog/react-native-buffer": "^6.0.5",
-    "@react-navigation/native": "^7.0.14",
-    "@react-navigation/native-stack": "^7.2.0",
+    "@react-navigation/native": "^7.1.19",
+    "@react-navigation/native-stack": "^7.6.2",
     "chai": "^4.3.7",
     "chance": "^1.1.9",
     "events": "^3.3.0",
@@ -25,7 +25,7 @@
     "react-native-nitro-modules": "0.27.2",
     "react-native-nitro-sqlite": "9.1.11",
     "react-native-safe-area-context": "^5.5.2",
-    "react-native-screens": "^4.9.1",
+    "react-native-screens": "^4.18.0",
     "reflect-metadata": "^0.1.13",
     "stream-browserify": "^3.0.0",
     "typeorm": "0.3.20",
@@ -48,7 +48,9 @@
     "@types/mocha": "^10.0.1",
     "@types/node": "^22.7.4",
     "@types/react": "^19.2.0",
+    "@types/react-test-renderer": "^19.1.0",
     "mocha": "^10.1.0",
-    "postinstall-postinstall": "^2.1.0"
+    "postinstall-postinstall": "^2.1.0",
+    "react-test-renderer": "19.2.0"
   }
 }
