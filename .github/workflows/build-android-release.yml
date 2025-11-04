@@ -5,8 +5,8 @@ on:
     types: [published]
 
 jobs:
-  build_release:
-    name: Build Android Example App (release, new architecture)
+  build:
+    name: Build Android Example App (release)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

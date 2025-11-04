@@ -12,7 +12,7 @@ import type {
 
 export function executeBatch(
   dbName: string,
-  commands: BatchQueryCommand[]
+  commands: BatchQueryCommand[],
 ): BatchQueryResult {
   const transformedCommands = isSimpleNullHandlingEnabled()
     ? toNativeBatchQueryCommands(commands)
@@ -24,7 +24,7 @@ export function executeBatch(
 
 export async function executeBatchAsync(
   dbName: string,
-  commands: BatchQueryCommand[]
+  commands: BatchQueryCommand[],
 ): Promise<BatchQueryResult> {
   const transformedCommands = isSimpleNullHandlingEnabled()
     ? toNativeBatchQueryCommands(commands)
@@ -32,13 +32,13 @@ export async function executeBatchAsync(
 
   const result = await HybridNitroSQLite.executeBatchAsync(
     dbName,
-    transformedCommands
+    transformedCommands,
   )
   return result
 }
 
 function toNativeBatchQueryCommands(
-  commands: BatchQueryCommand[]
+  commands: BatchQueryCommand[],
 ): NativeBatchQueryCommand[] {
   return commands.map((command) => {
     const transformedParams = command.params?.map((param) => {
