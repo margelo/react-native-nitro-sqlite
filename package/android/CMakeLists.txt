@@ -66,7 +66,6 @@ endif()
 target_compile_options(
   ${CMAKE_PROJECT_NAME}
   PRIVATE
-  -DLOG_TAG=\"ReactNative\"
   -fexceptions
   -frtti
   -fstack-protector-all
