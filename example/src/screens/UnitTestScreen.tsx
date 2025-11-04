@@ -2,7 +2,10 @@ import React, { useEffect, useState } from 'react'
 import { ScrollView, Text } from 'react-native'
 import type { MochaTestResult } from '../tests/MochaSetup'
 import { runTests } from '../tests/MochaSetup'
-import { registerUnitTests } from '../tests/unitTests.spec'
+import {
+  registerUnitTests,
+  /* registerTypeORMUnitTests,  */
+} from '../tests/unit'
 import { ScreenStyles } from '../styles'
 
 export function UnitTestScreen() {
@@ -12,7 +15,7 @@ export function UnitTestScreen() {
     setResults([])
     runTests(
       registerUnitTests,
-      // registerTypeORMTests
+      // registerTypeORMUnitTests
     ).then(setResults)
   }, [])
 
