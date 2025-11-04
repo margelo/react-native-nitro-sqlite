@@ -36,13 +36,13 @@ const benchmarks: Benchmark[] = [
       resetTestDb()
       testDb?.execute('DROP TABLE IF EXISTS User;')
       testDb?.execute(
-        'CREATE TABLE User ( id REAL PRIMARY KEY, name TEXT NOT NULL, age REAL, networth REAL) STRICT;'
+        'CREATE TABLE User ( id REAL PRIMARY KEY, name TEXT NOT NULL, age REAL, networth REAL) STRICT;',
       )
     },
     run: (i) => {
       testDb?.execute(
         'INSERT INTO User (id, name, age, networth) VALUES(?, ?, ?, ?)',
-        [ids[i], stringValue, integerValue, doubleValue]
+        [ids[i], stringValue, integerValue, doubleValue],
       )
     },
   },
@@ -126,7 +126,10 @@ export function BenchmarkScreen() {
       benchmarks.map(({ description }, index) => {
         const time = results[description]
         return (
-          <View style={{ paddingBottom: 10 }} key={index}>
+          <View
+            style={{ paddingBottom: 10 }}
+            key={index}
+          >
             <View
               style={{
                 flexDirection: 'row',
@@ -159,7 +162,7 @@ export function BenchmarkScreen() {
           </View>
         )
       }),
-    [results]
+    [results],
   )
 
   return (
