@@ -50,7 +50,7 @@ jobs:
         with:
           ruby-version: 3.3.0
           bundler-cache: true
-          working-directory: example/ios
+          working-directory: example
 
       - name: Restore Pods cache
         uses: actions/cache@v4
