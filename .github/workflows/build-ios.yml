@@ -48,7 +48,7 @@ jobs:
       - name: Setup Ruby (bundle)
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 2.7.2
+          ruby-version: 3.3.0
           bundler-cache: true
           working-directory: example/ios
 
@@ -59,6 +59,7 @@ jobs:
           key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock', '**/Gemfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-pods-
+
       - name: Install Pods
         working-directory: example/ios
         run: pod install
