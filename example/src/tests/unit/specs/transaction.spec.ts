@@ -1,189 +1,9 @@
-import Chance from 'chance'
-import {
-  type NitroSQLiteConnection,
-  type BatchQueryCommand,
-  NITRO_SQLITE_NULL,
-  enableSimpleNullHandling,
-} from 'react-native-nitro-sqlite'
-import { beforeEach, describe, it } from './MochaRNAdapter'
-import chai from 'chai'
-import { testDb as testDbInternal, resetTestDb } from './db'
-import { User } from '../model/User'
+import { chance, expect, isError, testDb } from '../common'
+import { describe, it } from '../../MochaRNAdapter'
+import type { User } from '../../../model/User'
 
-function isError(e: unknown): e is Error {
-  return e instanceof Error
-}
-
-const expect = chai.expect
-const chance = new Chance()
-
-export function registerUnitTests() {
-  let testDb: NitroSQLiteConnection
-
-  beforeEach(() => {
-    enableSimpleNullHandling(false)
-
-    try {
-      resetTestDb()
-
-      if (testDbInternal == null)
-        throw new Error('Failed to reset test database')
-
-      testDbInternal.execute('DROP TABLE IF EXISTS User;')
-      testDbInternal.execute(
-        'CREATE TABLE User ( id REAL PRIMARY KEY, name TEXT NOT NULL, age REAL, networth REAL) STRICT;',
-      )
-
-      testDb = testDbInternal!
-    } catch (e) {
-      console.warn('Error resetting user database', e)
-    }
-  })
-
-  describe('Raw queries', () => {
-    it('Insert', () => {
-      const id = chance.integer()
-      const name = chance.name()
-      const age = chance.integer()
-      const networth = chance.floating()
-      const res = testDb.execute(
-        'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
-        [id, name, age, networth],
-      )
-
-      expect(res.rowsAffected).to.equal(1)
-      expect(res.insertId).to.equal(1)
-      expect(res.rows?._array).to.eql([])
-      expect(res.rows?.length).to.equal(0)
-      expect(res.rows?.item).to.be.a('function')
-    })
-
-    it('Insert with null', () => {
-      const id = chance.integer()
-      const name = chance.name()
-      const age = NITRO_SQLITE_NULL
-      const networth = NITRO_SQLITE_NULL
-      const res = testDb.execute(
-        'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
-        [id, name, age, networth],
-      )
-
-      expect(res.rowsAffected).to.equal(1)
-      expect(res.insertId).to.equal(1)
-      expect(res.rows?._array).to.eql([])
-      expect(res.rows?.length).to.equal(0)
-      expect(res.rows?.item).to.be.a('function')
-
-      const selectRes = testDb.execute('SELECT * FROM User')
-      expect(selectRes.rows?._array).to.eql([
-        {
-          id,
-          name,
-          age,
-          networth,
-        },
-      ])
-    })
-
-    it('Insert with null (simple null handling)', () => {
-      enableSimpleNullHandling(true)
-
-      const id = chance.integer()
-      const name = chance.name()
-      const age = undefined
-      const networth = null
-      const res = testDb.execute(
-        'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
-        [id, name, age, networth],
-      )
-
-      expect(res.rowsAffected).to.equal(1)
-      expect(res.insertId).to.equal(1)
-      expect(res.rows?._array).to.eql([])
-      expect(res.rows?.length).to.equal(0)
-      expect(res.rows?.item).to.be.a('function')
-
-      const selectRes = testDb.execute('SELECT * FROM User')
-      expect(selectRes.rows?._array).to.eql([
-        {
-          id,
-          name,
-          age: null,
-          networth: null,
-        },
-      ])
-    })
-
-    it('Query without params', () => {
-      const id = chance.integer()
-      const name = chance.name()
-      const age = chance.integer()
-      const networth = chance.floating()
-      testDb.execute(
-        'INSERT INTO User (id, name, age, networth) VALUES(?, ?, ?, ?)',
-        [id, name, age, networth],
-      )
-
-      const res = testDb.execute('SELECT * FROM User')
-
-      expect(res.rowsAffected).to.equal(1)
-      expect(res.insertId).to.equal(1)
-      expect(res.rows?._array).to.eql([
-        {
-          id,
-          name,
-          age,
-          networth,
-        },
-      ])
-    })
-
-    it('Query with params', () => {
-      const id = chance.integer()
-      const name = chance.name()
-      const age = chance.integer()
-      const networth = chance.floating()
-      testDb.execute(
-        'INSERT INTO User (id, name, age, networth) VALUES(?, ?, ?, ?)',
-        [id, name, age, networth],
-      )
-
-      const res = testDb.execute('SELECT * FROM User WHERE id = ?', [id])
-
-      expect(res.rowsAffected).to.equal(1)
-      expect(res.insertId).to.equal(1)
-      expect(res.rows?._array).to.eql([
-        {
-          id,
-          name,
-          age,
-          networth,
-        },
-      ])
-    })
-
-    it('Failed insert', () => {
-      const id = chance.integer()
-      const name = chance.name()
-      const age = chance.string()
-      const networth = chance.string()
-
-      try {
-        testDb.execute(
-          'INSERT INTO User (id, name, age, networth) VALUES(?, ?, ?, ?)',
-          [id, name, age, networth],
-        )
-      } catch (e: unknown) {
-        if (isError(e)) {
-          expect(e.message).to.include(
-            'cannot store TEXT value in REAL column User.age',
-          )
-        } else {
-          expect.fail('Should have thrown a valid NitroSQLiteException')
-        }
-      }
-    })
-
+export default function registerTransactionUnitTests() {
+  describe('transaction', () => {
     it('Transaction, auto commit', async () => {
       const id = chance.integer()
       const name = chance.name()
@@ -263,14 +83,14 @@ export function registerUnitTests() {
           // ACT: Upsert statement to create record / increment the value
           tx.execute(
             `
-              INSERT OR REPLACE INTO [User] ([id], [name], [age], [networth])
-              SELECT ?, ?, ?,
-                IFNULL((
-                  SELECT [networth] + 1000
-                  FROM [User]
-                  WHERE [id] = ?
-                ), 0)
-          `,
+            INSERT OR REPLACE INTO [User] ([id], [name], [age], [networth])
+            SELECT ?, ?, ?,
+              IFNULL((
+                SELECT [networth] + 1000
+                FROM [User]
+                WHERE [id] = ?
+              ), 0)
+        `,
             [id, name, age, id],
           )
 
@@ -357,21 +177,6 @@ export function registerUnitTests() {
 
       const res = testDb.execute('SELECT * FROM User')
       expect(res.rows?._array).to.eql([])
-    })
-
-    it('Correctly throws', () => {
-      const id = chance.string()
-      const name = chance.name()
-      const age = chance.integer()
-      const networth = chance.floating()
-      try {
-        testDb.execute(
-          'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
-          [id, name, age, networth],
-        )
-      } catch (e: unknown) {
-        expect(e).to.not.equal(undefined)
-      }
     })
 
     it('Rollback', async () => {
@@ -556,14 +361,14 @@ export function registerUnitTests() {
           // ACT: Upsert statement to create record / increment the value
           await tx.executeAsync(
             `
-              INSERT OR REPLACE INTO [User] ([id], [name], [age], [networth])
-              SELECT ?, ?, ?,
-                IFNULL((
-                  SELECT [networth] + 1000
-                  FROM [User]
-                  WHERE [id] = ?
-                ), 0)
-          `,
+            INSERT OR REPLACE INTO [User] ([id], [name], [age], [networth])
+            SELECT ?, ?, ?,
+              IFNULL((
+                SELECT [networth] + 1000
+                FROM [User]
+                WHERE [id] = ?
+              ), 0)
+        `,
             [id, name, age, id],
           )
 
@@ -624,79 +429,6 @@ export function registerUnitTests() {
           expect(e.message).to.include('no such table: tableThatDoesNotExist')
         else expect.fail('Should have thrown a valid NitroSQLiteException')
       }
-    })
-
-    it('Batch execute', () => {
-      const id1 = chance.integer()
-      const name1 = chance.name()
-      const age1 = chance.integer()
-      const networth1 = chance.floating()
-
-      const id2 = chance.integer()
-      const name2 = chance.name()
-      const age2 = chance.integer()
-      const networth2 = chance.floating()
-      const commands: BatchQueryCommand[] = [
-        {
-          query:
-            'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
-          params: [id1, name1, age1, networth1],
-        },
-        {
-          query:
-            'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
-          params: [id2, name2, age2, networth2],
-        },
-      ]
-
-      testDb.executeBatch(commands)
-
-      const res = testDb.execute('SELECT * FROM User')
-      expect(res.rows?._array).to.eql([
-        { id: id1, name: name1, age: age1, networth: networth1 },
-        {
-          id: id2,
-          name: name2,
-          age: age2,
-          networth: networth2,
-        },
-      ])
-    })
-
-    it('Async batch execute', async () => {
-      const id1 = chance.integer()
-      const name1 = chance.name()
-      const age1 = chance.integer()
-      const networth1 = chance.floating()
-      const id2 = chance.integer()
-      const name2 = chance.name()
-      const age2 = chance.integer()
-      const networth2 = chance.floating()
-      const commands: BatchQueryCommand[] = [
-        {
-          query:
-            'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
-          params: [id1, name1, age1, networth1],
-        },
-        {
-          query:
-            'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
-          params: [id2, name2, age2, networth2],
-        },
-      ]
-
-      await testDb.executeBatchAsync(commands)
-
-      const res = testDb.execute('SELECT * FROM User')
-      expect(res.rows?._array).to.eql([
-        { id: id1, name: name1, age: age1, networth: networth1 },
-        {
-          id: id2,
-          name: name2,
-          age: age2,
-          networth: networth2,
-        },
-      ])
     })
   })
 }
