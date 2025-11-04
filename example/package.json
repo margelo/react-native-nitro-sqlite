@@ -28,7 +28,7 @@
     "react-native-screens": "^4.18.0",
     "reflect-metadata": "^0.1.13",
     "stream-browserify": "^3.0.0",
-    "typeorm": "0.3.20",
+    "typeorm": "0.3.27",
     "util": "^0.12.5"
   },
   "devDependencies": {
