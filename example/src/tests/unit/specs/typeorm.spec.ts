@@ -1,18 +1,16 @@
+import { expect } from '../common'
+import { beforeAll, beforeEachAsync, describe, it } from '../../MochaRNAdapter'
 import type { Repository } from 'typeorm'
 import { DataSource } from 'typeorm'
-import { beforeAll, it, describe, beforeEachAsync } from './MochaRNAdapter'
 import { typeORMDriver } from 'react-native-nitro-sqlite'
-import { User } from '../model/User'
-import { Book } from '../model/Book'
-import chai from 'chai'
-
-const expect = chai.expect
+import { User } from '../../../model/User'
+import { Book } from '../../../model/Book'
 
 let dataSource: DataSource
 let userRepository: Repository<User>
 let bookRepository: Repository<Book>
 
-export function registerTypeORMTests() {
+export default function registerTypeORMUnitTests() {
   describe('Typeorm tests', () => {
     beforeAll((done) => {
       dataSource = new DataSource({
