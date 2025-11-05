@@ -9,6 +9,7 @@ import type {
   BatchQueryCommand,
   NativeBatchQueryCommand,
 } from '../types'
+import NitroSQLiteError from '../NitroSQLiteError'
 
 export function executeBatch(
   dbName: string,
@@ -18,8 +19,11 @@ export function executeBatch(
     ? toNativeBatchQueryCommands(commands)
     : (commands as NativeBatchQueryCommand[])
 
-  const result = HybridNitroSQLite.executeBatch(dbName, transformedCommands)
-  return result
+  try {
+    return HybridNitroSQLite.executeBatch(dbName, transformedCommands)
+  } catch (error) {
+    throw NitroSQLiteError.fromError(error)
+  }
 }
 
 export async function executeBatchAsync(
@@ -30,11 +34,14 @@ export async function executeBatchAsync(
     ? toNativeBatchQueryCommands(commands)
     : (commands as NativeBatchQueryCommand[])
 
-  const result = await HybridNitroSQLite.executeBatchAsync(
-    dbName,
-    transformedCommands,
-  )
-  return result
+  try {
+    return await HybridNitroSQLite.executeBatchAsync(
+      dbName,
+      transformedCommands,
+    )
+  } catch (error) {
+    throw NitroSQLiteError.fromError(error)
+  }
 }
 
 function toNativeBatchQueryCommands(

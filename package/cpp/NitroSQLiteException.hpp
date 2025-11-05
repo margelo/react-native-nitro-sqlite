@@ -4,6 +4,8 @@
 #include <iostream>
 #include <string>
 
+const std::string NITRO_SQLITE_EXCEPTION_PREFIX = "[NitroSQLiteException]";
+
 enum NitroSQLiteExceptionType {
   UnknownError,
   DatabaseCannotBeOpened,
@@ -33,7 +35,7 @@ public:
   explicit NitroSQLiteException(const std::string& message) : NitroSQLiteException(NitroSQLiteExceptionType::UnknownError, message) {}
   NitroSQLiteException(const NitroSQLiteExceptionType& type, const char* message) : NitroSQLiteException(type, std::string(message)) {}
   NitroSQLiteException(const NitroSQLiteExceptionType& type, const std::string& message)
-      : _exceptionString("[" + typeToString(type) + "] " + message) {}
+      : _exceptionString(NITRO_SQLITE_EXCEPTION_PREFIX + " [" + typeToString(type) + "] " + message) {}
 
 private:
   const std::string _exceptionString;

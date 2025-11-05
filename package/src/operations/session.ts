@@ -11,14 +11,30 @@ import type {
 } from '../types'
 import { execute, executeAsync } from './execute'
 import { executeBatch, executeBatchAsync } from './executeBatch'
+import NitroSQLiteError from '../NitroSQLiteError'
 
 export function open(
   options: NitroSQLiteConnectionOptions,
 ): NitroSQLiteConnection {
-  openDb(options.name, options.location)
+  try {
+    HybridNitroSQLite.open(options.name, options.location)
+    locks[options.name] = {
+      queue: [],
+      inProgress: false,
+    }
+  } catch (error) {
+    throw NitroSQLiteError.fromError(error)
+  }
 
   return {
-    close: () => close(options.name),
+    close: () => {
+      try {
+        HybridNitroSQLite.close(options.name)
+        delete locks[options.name]
+      } catch (error) {
+        throw NitroSQLiteError.fromError(error)
+      }
+    },
     delete: () => HybridNitroSQLite.drop(options.name, options.location),
     attach: (dbNameToAttach: string, alias: string, location?: string) =>
       HybridNitroSQLite.attach(options.name, dbNameToAttach, alias, location),
@@ -42,18 +58,4 @@ export function open(
     loadFileAsync: (location: string) =>
       HybridNitroSQLite.loadFileAsync(options.name, location),
   }
-}
-
-export function openDb(dbName: string, location?: string) {
-  HybridNitroSQLite.open(dbName, location)
-
-  locks[dbName] = {
-    queue: [],
-    inProgress: false,
-  }
-}
-
-export function close(dbName: string) {
-  HybridNitroSQLite.close(dbName)
-  delete locks[dbName]
 }

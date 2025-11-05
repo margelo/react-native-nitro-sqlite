@@ -1,4 +1,5 @@
 import { locks, HybridNitroSQLite } from '../nitro'
+import NitroSQLiteError from '../NitroSQLiteError'
 import type {
   QueryResult,
   Transaction,
@@ -25,7 +26,7 @@ export const transaction = (
   fn: (tx: Transaction) => Promise<void> | void,
 ): Promise<void> => {
   if (locks[dbName] == null)
-    throw Error(`Nitro SQLite Error: No lock found on db: ${dbName}`)
+    throw new NitroSQLiteError(`No lock found on db: ${dbName}`)
 
   let isFinalized = false
 
@@ -35,8 +36,10 @@ export const transaction = (
     params?: SQLiteQueryParams,
   ): QueryResult<Data> => {
     if (isFinalized) {
-      throw Error(
-        `Nitro SQLite Error: Cannot execute query on finalized transaction: ${dbName}`,
+      throw NitroSQLiteError.fromError(
+        new NitroSQLiteError(
+          `Cannot execute query on finalized transaction: ${dbName}`,
+        ),
       )
     }
     return execute(dbName, query, params)
@@ -47,8 +50,8 @@ export const transaction = (
     params?: SQLiteQueryParams,
   ): Promise<QueryResult<Data>> => {
     if (isFinalized) {
-      throw Error(
-        `Nitro SQLite Error: Cannot execute query on finalized transaction: ${dbName}`,
+      throw new NitroSQLiteError(
+        `Cannot execute query on finalized transaction: ${dbName}`,
       )
     }
     return executeAsync(dbName, query, params)
@@ -56,8 +59,8 @@ export const transaction = (
 
   const commit = () => {
     if (isFinalized) {
-      throw Error(
-        `Nitro SQLite Error: Cannot execute commit on finalized transaction: ${dbName}`,
+      throw new NitroSQLiteError(
+        `Cannot execute commit on finalized transaction: ${dbName}`,
       )
     }
     const result = HybridNitroSQLite.execute(dbName, 'COMMIT')
@@ -67,8 +70,8 @@ export const transaction = (
 
   const rollback = () => {
     if (isFinalized) {
-      throw Error(
-        `Nitro SQLite Error: Cannot execute rollback on finalized transaction: ${dbName}`,
+      throw new NitroSQLiteError(
+        `Cannot execute rollback on finalized transaction: ${dbName}`,
       )
     }
     const result = HybridNitroSQLite.execute(dbName, 'ROLLBACK')
@@ -108,7 +111,11 @@ export const transaction = (
   return new Promise((resolve, reject) => {
     const tx: PendingTransaction = {
       start: () => {
-        run().then(resolve).catch(reject)
+        try {
+          run().then(resolve)
+        } catch (error) {
+          reject(NitroSQLiteError.fromError(error))
+        }
       },
     }
 
@@ -118,7 +125,8 @@ export const transaction = (
 }
 
 function startNextTransaction(dbName: string) {
-  if (locks[dbName] == null) throw Error(`Lock not found for db: ${dbName}`)
+  if (locks[dbName] == null)
+    throw new NitroSQLiteError(`Lock not found for db: ${dbName}`)
 
   if (locks[dbName].inProgress) {
     // Transaction is already in process bail out
