@@ -1,13 +1,13 @@
 import NitroSQLiteError from './NitroSQLiteError'
 
-export interface QueuedOperation {
+interface QueuedOperation {
   /**
    * Starts the operation
    */
   start: () => void
 }
 
-export type DatabaseQueue = {
+type DatabaseQueue = {
   queue: QueuedOperation[]
   inProgress: boolean
 }
