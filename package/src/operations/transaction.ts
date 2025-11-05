@@ -36,10 +36,8 @@ export const transaction = (
     params?: SQLiteQueryParams,
   ): QueryResult<Data> => {
     if (isFinalized) {
-      throw NitroSQLiteError.fromError(
-        new NitroSQLiteError(
-          `Cannot execute query on finalized transaction: ${dbName}`,
-        ),
+      throw new NitroSQLiteError(
+        `Cannot execute query on finalized transaction: ${dbName}`,
       )
     }
     return execute(dbName, query, params)
