@@ -108,9 +108,10 @@ export const transaction = (
 
   return new Promise((resolve, reject) => {
     const tx: PendingTransaction = {
-      start: () => {
+      start: async () => {
         try {
-          run().then(resolve)
+          const result = await run()
+          resolve(result)
         } catch (error) {
           reject(NitroSQLiteError.fromError(error))
         }
