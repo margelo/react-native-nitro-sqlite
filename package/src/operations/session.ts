@@ -17,15 +17,27 @@ import { closeDatabaseQueue, openDatabaseQueue } from '../DatabaseQueue'
 export function open(
   options: NitroSQLiteConnectionOptions,
 ): NitroSQLiteConnection {
-  openDb(options.name, options.location)
+  try {
+    HybridNitroSQLite.open(options.name, options.location)
+    openDatabaseQueue(options.name)
+  } catch (error) {
+    throw NitroSQLiteError.fromError(error)
+  }
 
   return {
-    close: () => close(options.name),
+    close: () => {
+      try {
+        HybridNitroSQLite.close(options.name)
+        closeDatabaseQueue(options.name)
+      } catch (error) {
+        throw NitroSQLiteError.fromError(error)
+      }
+    },
     delete: () => HybridNitroSQLite.drop(options.name, options.location),
     attach: (dbNameToAttach: string, alias: string, location?: string) =>
       HybridNitroSQLite.attach(options.name, dbNameToAttach, alias, location),
     detach: (alias: string) => HybridNitroSQLite.detach(options.name, alias),
-    transaction: (fn: (tx: Transaction) => Promise<void> | void) =>
+    transaction: <Result = void>(fn: (tx: Transaction) => Promise<Result>) =>
       transaction(options.name, fn),
     execute: <Row extends QueryResultRow = never>(
       query: string,
@@ -43,23 +55,5 @@ export function open(
       HybridNitroSQLite.loadFile(options.name, location),
     loadFileAsync: (location: string) =>
       HybridNitroSQLite.loadFileAsync(options.name, location),
-  }
-}
-
-export function openDb(dbName: string, location?: string) {
-  try {
-    HybridNitroSQLite.open(dbName, location)
-    openDatabaseQueue(dbName)
-  } catch (error) {
-    throw NitroSQLiteError.fromError(error)
-  }
-}
-
-export function close(dbName: string) {
-  try {
-    HybridNitroSQLite.close(dbName)
-    closeDatabaseQueue(dbName)
-  } catch (error) {
-    throw NitroSQLiteError.fromError(error)
   }
 }
