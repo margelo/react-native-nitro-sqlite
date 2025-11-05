@@ -1,13 +1,13 @@
 import NitroSQLiteError from './NitroSQLiteError'
 
-interface QueuedOperation {
+export interface QueuedOperation {
   /**
    * Starts the operation
    */
   start: () => void
 }
 
-type DatabaseQueue = {
+export type DatabaseQueue = {
   queue: QueuedOperation[]
   inProgress: boolean
 }
@@ -47,7 +47,7 @@ export function throwIfDatabaseIsNotOpen(dbName: string) {
     )
 }
 
-function getDatabaseQueue(dbName: string) {
+export function getDatabaseQueue(dbName: string) {
   throwIfDatabaseIsNotOpen(dbName)
 
   const queue = databaseQueues.get(dbName)!

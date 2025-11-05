@@ -1,6 +1,7 @@
-import { chance, expect, isError, testDb } from '../common'
+import { chance, expect, isError } from '../common'
 import { describe, it } from '../../MochaRNAdapter'
 import type { User } from '../../../model/User'
+import { testDb, testDbQueue } from '../../db'
 
 export default function registerTransactionUnitTests() {
   describe('transaction', () => {
