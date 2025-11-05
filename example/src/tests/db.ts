@@ -7,6 +7,8 @@ import { open } from 'react-native-nitro-sqlite'
 
 const chance = new Chance()
 
+export const TEST_DB_NAME = 'test'
+
 export let testDb: NitroSQLiteConnection | undefined
 export function resetTestDb() {
   try {
@@ -15,12 +17,14 @@ export function resetTestDb() {
       testDb.delete()
     }
     testDb = open({
-      name: 'test',
+      name: TEST_DB_NAME,
     })
   } catch (e) {
     console.warn('Error resetting user database', e)
   }
 }
+
+const LARGE_DB_NAME = 'large'
 
 // Copyright 2024 Oscar Franco
 // Taken from "op-sqlite" example project.
@@ -34,7 +38,7 @@ export function resetLargeDb() {
       largeDb.delete()
     }
     largeDb = open({
-      name: 'large',
+      name: LARGE_DB_NAME,
     })
 
     largeDb.execute(
