@@ -62,25 +62,27 @@ export function closeDatabase(dbName: string) {
   databaseQueues.delete(dbName)
 }
 
-export function queueOperationAsync<
-  OperationCallback extends () => Promise<Result>,
-  Result = void,
->(dbName: string, callback: OperationCallback) {
+export function queueOperationAsync<Result>(
+  dbName: string,
+  callback: () => Promise<Result>,
+) {
   const databaseQueue = getDatabaseQueue(dbName)
 
   return new Promise<Result>((resolve, reject) => {
+    async function start() {
+      try {
+        const result = await callback()
+        resolve(result)
+      } catch (error) {
+        reject(error)
+      } finally {
+        databaseQueue.inProgress = false
+        startOperationAsync(dbName)
+      }
+    }
+
     const operation: QueuedOperation = {
-      start: async () => {
-        try {
-          const result = await callback()
-          resolve(result)
-        } catch (error) {
-          reject(error)
-        } finally {
-          databaseQueue.inProgress = false
-          startOperationAsync(dbName)
-        }
-      },
+      start,
     }
 
     databaseQueue.queue.push(operation)
@@ -99,7 +101,9 @@ function startOperationAsync(dbName: string) {
   queue.inProgress = true
 
   const operation = queue.queue.shift()!
-  setImmediate(operation.start)
+  setImmediate(() => {
+    operation.start()
+  })
 }
 
 export function startOperationSync<

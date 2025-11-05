@@ -1,4 +1,3 @@
-import { HybridNitroSQLite } from '../nitro'
 import { queueOperationAsync, throwIfDatabaseIsNotOpen } from '../DatabaseQueue'
 import type {
   QueryResult,
@@ -9,20 +8,19 @@ import type {
 import { execute, executeAsync } from './execute'
 import NitroSQLiteError from '../NitroSQLiteError'
 
-export const transaction = (
+export const transaction = async <Result = void>(
   dbName: string,
-  fn: (tx: Transaction) => Promise<void> | void,
+  transactionCallback: (tx: Transaction) => Promise<Result>,
   isExclusive = false,
-): Promise<void> => {
+) => {
   throwIfDatabaseIsNotOpen(dbName)
 
   let isFinalized = false
 
-  // Local transaction context object implementation
-  const executeOnTransaction = <Data extends QueryResultRow = never>(
+  const executeOnTransaction = <Row extends QueryResultRow = never>(
     query: string,
     params?: SQLiteQueryParams,
-  ): QueryResult<Data> => {
+  ): QueryResult<Row> => {
     if (isFinalized) {
       throw new NitroSQLiteError(
         `Cannot execute query on finalized transaction: ${dbName}`,
@@ -31,10 +29,10 @@ export const transaction = (
     return execute(dbName, query, params)
   }
 
-  const executeAsyncOnTransaction = <Data extends QueryResultRow = never>(
+  const executeAsyncOnTransaction = <Row extends QueryResultRow = never>(
     query: string,
     params?: SQLiteQueryParams,
-  ): Promise<QueryResult<Data>> => {
+  ): Promise<QueryResult<Row>> => {
     if (isFinalized) {
       throw new NitroSQLiteError(
         `Cannot execute query on finalized transaction: ${dbName}`,
@@ -49,9 +47,8 @@ export const transaction = (
         `Cannot execute commit on finalized transaction: ${dbName}`,
       )
     }
-    const result = HybridNitroSQLite.execute(dbName, 'COMMIT')
     isFinalized = true
-    return result
+    return execute(dbName, 'COMMIT')
   }
 
   const rollback = () => {
@@ -60,20 +57,19 @@ export const transaction = (
         `Cannot execute rollback on finalized transaction: ${dbName}`,
       )
     }
-    const result = HybridNitroSQLite.execute(dbName, 'ROLLBACK')
     isFinalized = true
-    return result
+    return execute(dbName, 'ROLLBACK')
   }
 
   try {
-    return queueOperationAsync(dbName, async () => {
+    return await queueOperationAsync(dbName, async () => {
       try {
-        await HybridNitroSQLite.executeAsync(
+        await executeAsync(
           dbName,
           isExclusive ? 'BEGIN EXCLUSIVE TRANSACTION' : 'BEGIN TRANSACTION',
         )
 
-        await fn({
+        const result = await transactionCallback({
           commit,
           execute: executeOnTransaction,
           executeAsync: executeAsyncOnTransaction,
@@ -81,6 +77,8 @@ export const transaction = (
         })
 
         if (!isFinalized) commit()
+
+        return result
       } catch (executionError) {
         if (!isFinalized) {
           try {
@@ -91,8 +89,6 @@ export const transaction = (
         }
 
         throw executionError
-      } finally {
-        isFinalized = false
       }
     })
   } catch (error) {
