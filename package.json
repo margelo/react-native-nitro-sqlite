@@ -78,7 +78,10 @@
     },
     "github": {
       "release": true,
-      "tokenRef": "RELEASE_IT_GITHUB_TOKEN"
+      "tokenRef": "RELEASE_IT_GITHUB_TOKEN",
+      "comments": {
+        "submit": true
+      }
     },
     "hooks": {
       "before:release": "bun example bundle-install && bun example pods && git add example/ios/Podfile.lock"
