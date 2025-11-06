@@ -201,7 +201,7 @@ export default function registerTransactionUnitTests() {
     })
 
     it('Transaction, rejects on callback error', async () => {
-      const promised = testDb.transaction(() => {
+      const promised = testDb.transaction(async () => {
         throw new Error(DUMMY_ERROR_MESSAGE)
       })
 
