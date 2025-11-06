@@ -79,16 +79,15 @@ export const transaction = async <Result = void>(
 
       return result
     } catch (executionError) {
-      if (isFinalized) {
-        throw NitroSQLiteError.fromError(executionError)
+      if (!isFinalized) {
+        try {
+          rollback()
+        } catch (rollbackError) {
+          throw NitroSQLiteError.fromError(rollbackError)
+        }
       }
 
-      try {
-        rollback()
-        return undefined as Result
-      } catch (rollbackError) {
-        throw NitroSQLiteError.fromError(rollbackError)
-      }
+      throw NitroSQLiteError.fromError(executionError)
     }
   })
 }
