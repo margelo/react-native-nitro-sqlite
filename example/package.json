@@ -1,6 +1,6 @@
 {
   "name": "react-native-nitro-sqlite-example",
-  "version": "8.2.2-nitro.1",
+  "version": "9.1.11",
   "private": true,
   "scripts": {
     "start": "react-native start",
