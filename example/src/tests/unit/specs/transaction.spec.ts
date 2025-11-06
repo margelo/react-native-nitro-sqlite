@@ -1,7 +1,10 @@
-import { chance, expect, isError } from '../common'
+import { chance, expect, isNitroSQLiteError } from '../common'
 import { describe, it } from '../../MochaRNAdapter'
 import type { User } from '../../../model/User'
 import { testDb, testDbQueue } from '../../db'
+
+const DUMMY_ERROR_NAME = 'Transaction Rejection Error'
+const DUMMY_ERROR_MESSAGE = 'Error from callback'
 
 export default function registerTransactionUnitTests() {
   describe('transaction', () => {
@@ -199,17 +202,18 @@ export default function registerTransactionUnitTests() {
 
     it('Transaction, rejects on callback error', async () => {
       const promised = testDb.transaction(() => {
-        throw new Error('Error from callback')
+        throw new Error(DUMMY_ERROR_MESSAGE)
       })
 
       // ASSERT: should return a promise that eventually rejects
       expect(promised).to.have.property('then').that.is.a('function')
       try {
         await promised
-        expect.fail('Should not resolve')
+        expect.fail(DUMMY_ERROR_NAME)
       } catch (e) {
-        if (isError(e)) expect(e.message).to.equal('Error from callback')
-        else expect.fail('Should have thrown a valid NitroSQLiteException')
+        if (isNitroSQLiteError(e))
+          expect(e.message).to.include(DUMMY_ERROR_MESSAGE)
+        else expect.fail('Should have thrown a valid NitroSQLiteError')
       }
     })
 
@@ -221,11 +225,11 @@ export default function registerTransactionUnitTests() {
       expect(promised).to.have.property('then').that.is.a('function')
       try {
         await promised
-        expect.fail('Should not resolve')
+        expect.fail(DUMMY_ERROR_NAME)
       } catch (e) {
-        if (isError(e))
+        if (isNitroSQLiteError(e))
           expect(e.message).to.include('no such table: tableThatDoesNotExist')
-        else expect.fail('Should have thrown a valid NitroSQLiteException')
+        else expect.fail('Should have thrown a valid NitroSQLiteError')
       }
     })
 
@@ -289,7 +293,7 @@ export default function registerTransactionUnitTests() {
           )
         })
       } catch (e) {
-        if (isError(e)) {
+        if (isNitroSQLiteError(e)) {
           expect(e.message)
             .to.include('SqlExecutionError')
             .and.to.include('cannot store TEXT value in REAL column User.id')
@@ -297,7 +301,7 @@ export default function registerTransactionUnitTests() {
           const res = testDb.execute('SELECT * FROM User')
           expect(res.rows?._array).to.eql([])
         } else {
-          expect.fail('Should have thrown a valid NitroSQLiteException')
+          expect.fail('Should have thrown a valid NitroSQLiteError')
         }
       }
     })
@@ -401,17 +405,18 @@ export default function registerTransactionUnitTests() {
 
     it('Async transaction, rejects on callback error', async () => {
       const promised = testDb.transaction(() => {
-        throw new Error('Error from callback')
+        throw new Error(DUMMY_ERROR_MESSAGE)
       })
 
       // ASSERT: should return a promise that eventually rejects
       expect(promised).to.have.property('then').that.is.a('function')
       try {
         await promised
-        expect.fail('Should not resolve')
+        expect.fail(DUMMY_ERROR_NAME)
       } catch (e) {
-        if (isError(e)) expect(e.message).to.equal('Error from callback')
-        else expect.fail('Should have thrown a valid NitroSQLiteException')
+        if (isNitroSQLiteError(e))
+          expect(e.message).to.include(DUMMY_ERROR_MESSAGE)
+        else expect.fail('Should have thrown a valid NitroSQLiteError')
       }
     })
 
@@ -424,11 +429,11 @@ export default function registerTransactionUnitTests() {
       expect(promised).to.have.property('then').that.is.a('function')
       try {
         await promised
-        expect.fail('Should not resolve')
+        expect.fail(DUMMY_ERROR_NAME)
       } catch (e) {
-        if (isError(e))
+        if (isNitroSQLiteError(e))
           expect(e.message).to.include('no such table: tableThatDoesNotExist')
-        else expect.fail('Should have thrown a valid NitroSQLiteException')
+        else expect.fail('Should have thrown a valid NitroSQLiteError')
       }
     })
 

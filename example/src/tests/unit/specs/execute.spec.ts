@@ -1,4 +1,4 @@
-import { chance, expect, isError } from '../common'
+import { chance, expect, isNitroSQLiteError } from '../common'
 import {
   enableSimpleNullHandling,
   NITRO_SQLITE_NULL,
@@ -94,7 +94,7 @@ export default function registerExecuteUnitTests() {
             [id, name, age, networth],
           )
         } catch (e: unknown) {
-          if (isError(e)) {
+          if (isNitroSQLiteError(e)) {
             expect(e.message).to.include(
               'cannot store TEXT value in REAL column User.age',
             )

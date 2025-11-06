@@ -1,10 +1,13 @@
 import { Chance } from 'chance'
-import { enableSimpleNullHandling } from 'react-native-nitro-sqlite'
+import {
+  enableSimpleNullHandling,
+  NitroSQLiteError,
+} from 'react-native-nitro-sqlite'
 import { resetTestDb } from '../db'
 import chai from 'chai'
 
-export function isError(e: unknown): e is Error {
-  return e instanceof Error
+export function isNitroSQLiteError(e: unknown): e is NitroSQLiteError {
+  return e instanceof NitroSQLiteError
 }
 
 export const expect = chai.expect
