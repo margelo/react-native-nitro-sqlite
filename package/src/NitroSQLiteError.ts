@@ -26,6 +26,7 @@ export default class NitroSQLiteError extends Error {
       const nitroSQLiteError = new NitroSQLiteError(error.message, {
         cause: error.cause,
       })
+
       // Preserve original stack trace if available
       if (error.stack) {
         nitroSQLiteError.stack = error.stack
