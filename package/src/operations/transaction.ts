@@ -15,13 +15,13 @@ export const transaction = async <Result = void>(
 ) => {
   throwIfDatabaseIsNotOpen(dbName)
 
-  let isFinalized = false
+  let isFinished = false
 
   const executeOnTransaction = <Row extends QueryResultRow = never>(
     query: string,
     params?: SQLiteQueryParams,
   ): QueryResult<Row> => {
-    if (isFinalized) {
+    if (isFinished) {
       throw new NitroSQLiteError(
         `Cannot execute query on finalized transaction: ${dbName}`,
       )
@@ -33,7 +33,7 @@ export const transaction = async <Result = void>(
     query: string,
     params?: SQLiteQueryParams,
   ): Promise<QueryResult<Row>> => {
-    if (isFinalized) {
+    if (isFinished) {
       throw new NitroSQLiteError(
         `Cannot execute query on finalized transaction: ${dbName}`,
       )
@@ -42,22 +42,22 @@ export const transaction = async <Result = void>(
   }
 
   const commit = () => {
-    if (isFinalized) {
+    if (isFinished) {
       throw new NitroSQLiteError(
         `Cannot execute commit on finalized transaction: ${dbName}`,
       )
     }
-    isFinalized = true
+    isFinished = true
     return execute(dbName, 'COMMIT')
   }
 
   const rollback = () => {
-    if (isFinalized) {
+    if (isFinished) {
       throw new NitroSQLiteError(
         `Cannot execute rollback on finalized transaction: ${dbName}`,
       )
     }
-    isFinalized = true
+    isFinished = true
     return execute(dbName, 'ROLLBACK')
   }
 
@@ -75,11 +75,11 @@ export const transaction = async <Result = void>(
         rollback,
       })
 
-      if (!isFinalized) commit()
+      if (!isFinished) commit()
 
       return result
     } catch (executionError) {
-      if (!isFinalized) {
+      if (!isFinished) {
         try {
           rollback()
         } catch (rollbackError) {
