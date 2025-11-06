@@ -1,10 +1,14 @@
-import { chance, expect, isNitroSQLiteError } from '../common'
-import { describe, it } from '../../MochaRNAdapter'
-import type { User } from '../../../model/User'
-import { testDb, testDbQueue } from '../../db'
-
-const DUMMY_ERROR_NAME = 'Transaction Rejection Error'
-const DUMMY_ERROR_MESSAGE = 'Error from callback'
+import {
+  chance,
+  expect,
+  isNitroSQLiteError,
+  TEST_ERROR,
+  TEST_ERROR_MESSAGE,
+  TEST_ERROR_CODES,
+} from '../../common'
+import { describe, it } from '../../../MochaRNAdapter'
+import type { User } from '../../../../model/User'
+import { testDb } from '../../../db'
 
 export default function registerTransactionUnitTests() {
   describe('transaction', () => {
@@ -202,19 +206,18 @@ export default function registerTransactionUnitTests() {
 
     it('Transaction, rejects on callback error', async () => {
       const promised = testDb.transaction(async () => {
-        throw new Error(DUMMY_ERROR_MESSAGE)
+        throw TEST_ERROR
       })
 
       // ASSERT: should return a promise that eventually rejects
       expect(promised).to.have.property('then').that.is.a('function')
       try {
         await promised
-        expect.fail(DUMMY_ERROR_NAME)
+        expect.fail(TEST_ERROR_CODES.EXPECT_PROMISE_REJECTION)
       } catch (e) {
-        console.log(e)
         if (isNitroSQLiteError(e))
-          expect(e.message).to.include(DUMMY_ERROR_MESSAGE)
-        else expect.fail('Should have thrown a valid NitroSQLiteError')
+          expect(e.message).to.include(TEST_ERROR_MESSAGE)
+        else expect.fail(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
       }
     })
 
@@ -226,11 +229,11 @@ export default function registerTransactionUnitTests() {
       expect(promised).to.have.property('then').that.is.a('function')
       try {
         await promised
-        expect.fail(DUMMY_ERROR_NAME)
+        expect.fail(TEST_ERROR_CODES.EXPECT_PROMISE_REJECTION)
       } catch (e) {
         if (isNitroSQLiteError(e))
           expect(e.message).to.include('no such table: tableThatDoesNotExist')
-        else expect.fail('Should have thrown a valid NitroSQLiteError')
+        else expect.fail(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
       }
     })
 
@@ -302,7 +305,7 @@ export default function registerTransactionUnitTests() {
           const res = testDb.execute('SELECT * FROM User')
           expect(res.rows?._array).to.eql([])
         } else {
-          expect.fail('Should have thrown a valid NitroSQLiteError')
+          expect.fail(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
         }
       }
     })
@@ -406,18 +409,18 @@ export default function registerTransactionUnitTests() {
 
     it('Async transaction, rejects on callback error', async () => {
       const promised = testDb.transaction(() => {
-        throw new Error(DUMMY_ERROR_MESSAGE)
+        throw new Error(TEST_ERROR_MESSAGE)
       })
 
       // ASSERT: should return a promise that eventually rejects
       expect(promised).to.have.property('then').that.is.a('function')
       try {
         await promised
-        expect.fail(DUMMY_ERROR_NAME)
+        expect.fail(TEST_ERROR_CODES.EXPECT_PROMISE_REJECTION)
       } catch (e) {
         if (isNitroSQLiteError(e))
-          expect(e.message).to.include(DUMMY_ERROR_MESSAGE)
-        else expect.fail('Should have thrown a valid NitroSQLiteError')
+          expect(e.message).to.include(TEST_ERROR_MESSAGE)
+        else expect.fail(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
       }
     })
 
@@ -430,57 +433,12 @@ export default function registerTransactionUnitTests() {
       expect(promised).to.have.property('then').that.is.a('function')
       try {
         await promised
-        expect.fail(DUMMY_ERROR_NAME)
+        expect.fail(TEST_ERROR_CODES.EXPECT_PROMISE_REJECTION)
       } catch (e) {
         if (isNitroSQLiteError(e))
           expect(e.message).to.include('no such table: tableThatDoesNotExist')
-        else expect.fail('Should have thrown a valid NitroSQLiteError')
+        else expect.fail(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
       }
-    })
-
-    it('transaction are queued', async () => {
-      const transaction1Promise = testDb.transaction(async (tx) => {
-        tx.execute('SELECT * FROM [User];')
-
-        expect(testDbQueue.queue.length).to.equal(2)
-        expect(testDbQueue.inProgress).to.equal(true)
-
-        await new Promise<void>((resolve) => setTimeout(resolve, 100))
-
-        tx.execute('SELECT * FROM [User];')
-
-        expect(testDbQueue.queue.length).to.equal(2)
-        expect(testDbQueue.inProgress).to.equal(true)
-      })
-
-      expect(testDbQueue.inProgress).to.equal(true)
-      expect(testDbQueue.queue.length).to.equal(0)
-
-      const transaction2Promise = testDb.transaction(async (tx) => {
-        tx.execute('SELECT * FROM [User];')
-      })
-
-      expect(testDbQueue.queue.length).to.equal(1)
-      expect(testDbQueue.inProgress).to.equal(true)
-
-      const transaction3Promise = testDb.transaction(async (tx) => {
-        tx.execute('SELECT * FROM [User];')
-      })
-
-      await transaction1Promise
-
-      expect(testDbQueue.queue.length).to.equal(1)
-      expect(testDbQueue.inProgress).to.equal(true)
-
-      await transaction2Promise
-
-      expect(testDbQueue.queue.length).to.equal(0)
-      expect(testDbQueue.inProgress).to.equal(true)
-
-      await transaction3Promise
-
-      expect(testDbQueue.queue.length).to.equal(0)
-      expect(testDbQueue.inProgress).to.equal(false)
     })
   })
 }

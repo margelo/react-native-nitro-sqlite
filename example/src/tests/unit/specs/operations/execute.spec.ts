@@ -1,10 +1,10 @@
-import { chance, expect, isNitroSQLiteError } from '../common'
+import { chance, expect, isNitroSQLiteError } from '../../common'
 import {
   enableSimpleNullHandling,
   NITRO_SQLITE_NULL,
 } from 'react-native-nitro-sqlite'
-import { describe, it } from '../../MochaRNAdapter'
-import { testDb } from '../../db'
+import { describe, it } from '../../../MochaRNAdapter'
+import { testDb } from '../../../db'
 
 export default function registerExecuteUnitTests() {
   describe('execute', () => {
