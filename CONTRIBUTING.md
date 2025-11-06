@@ -79,8 +79,9 @@ Our pre-commit hooks verify that the linter and tests pass when committing.
 The `package.json` file contains various scripts for common tasks:
 
 - `bun bootstrap`: setup project by installing all dependencies and pods.
-- `bun typescript`: type-check files with TypeScript.
+- `bun typecheck`: type-check files with TypeScript.
 - `bun lint`: lint files with ESLint.
+- `bun prettier`: format all source files according to Prettier config
 - `bun test`: run unit tests with Jest.
 - `bun example start`: start the Metro server for the example app.
 - `bun example android`: run the example app on Android.
