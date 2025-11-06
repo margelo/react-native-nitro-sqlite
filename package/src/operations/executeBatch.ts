@@ -45,20 +45,16 @@ export async function executeBatchAsync(
     ? toNativeBatchQueryCommands(commands)
     : (commands as NativeBatchQueryCommand[])
 
-  try {
-    return queueOperationAsync(dbName, async () => {
-      try {
-        return await HybridNitroSQLite.executeBatchAsync(
-          dbName,
-          transformedCommands,
-        )
-      } catch (error) {
-        throw NitroSQLiteError.fromError(error)
-      }
-    })
-  } catch (error) {
-    throw NitroSQLiteError.fromError(error)
-  }
+  return queueOperationAsync(dbName, async () => {
+    try {
+      return await HybridNitroSQLite.executeBatchAsync(
+        dbName,
+        transformedCommands,
+      )
+    } catch (error) {
+      throw NitroSQLiteError.fromError(error)
+    }
+  })
 }
 
 function toNativeBatchQueryCommands(

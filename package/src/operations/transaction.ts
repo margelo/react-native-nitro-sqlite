@@ -61,37 +61,33 @@ export const transaction = async <Result = void>(
     return execute(dbName, 'ROLLBACK')
   }
 
-  try {
-    return await queueOperationAsync(dbName, async () => {
-      try {
-        await executeAsync(
-          dbName,
-          isExclusive ? 'BEGIN EXCLUSIVE TRANSACTION' : 'BEGIN TRANSACTION',
-        )
+  return await queueOperationAsync(dbName, async () => {
+    try {
+      await executeAsync(
+        dbName,
+        isExclusive ? 'BEGIN EXCLUSIVE TRANSACTION' : 'BEGIN TRANSACTION',
+      )
 
-        const result = await transactionCallback({
-          commit,
-          execute: executeOnTransaction,
-          executeAsync: executeAsyncOnTransaction,
-          rollback,
-        })
+      const result = await transactionCallback({
+        commit,
+        execute: executeOnTransaction,
+        executeAsync: executeAsyncOnTransaction,
+        rollback,
+      })
 
-        if (!isFinalized) commit()
+      if (!isFinalized) commit()
 
-        return result
-      } catch (executionError) {
-        if (!isFinalized) {
-          try {
-            rollback()
-          } catch (rollbackError) {
-            throw rollbackError
-          }
-        }
-
-        throw executionError
+      return result
+    } catch (executionError) {
+      if (isFinalized) {
+        throw NitroSQLiteError.fromError(executionError)
       }
-    })
-  } catch (error) {
-    throw NitroSQLiteError.fromError(error)
-  }
+
+      try {
+        return rollback()
+      } catch (rollbackError) {
+        throw NitroSQLiteError.fromError(rollbackError)
+      }
+    }
+  })
 }

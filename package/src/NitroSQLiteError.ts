@@ -1,5 +1,4 @@
 const NITRO_SQLITE_ERROR_NAME = 'NitroSQLiteError' as const
-const NITRO_SQLITE_ERROR_PREFIX = '[NitroSQLite] ' as const
 
 /**
  * Custom error class for NitroSQLite operations
@@ -9,7 +8,6 @@ export default class NitroSQLiteError extends Error {
   constructor(message: string, options?: ErrorOptions) {
     super(message, options)
     this.name = NITRO_SQLITE_ERROR_NAME
-    this.message = NITRO_SQLITE_ERROR_PREFIX + message
 
     // Maintains proper prototype chain for instanceof checks
     Object.setPrototypeOf(this, NitroSQLiteError.prototype)
