@@ -4,8 +4,6 @@ import { open } from './operations/session'
 import { execute, executeAsync } from './operations/execute'
 import { init } from './OnLoad'
 import { executeBatch, executeBatchAsync } from './operations/executeBatch'
-export type * from './types'
-export { typeORMDriver } from './typeORM'
 
 init()
 
@@ -30,3 +28,6 @@ export {
   isSimpleNullHandlingEnabled,
   enableSimpleNullHandling,
 } from './nullHandling'
+export { default as NitroSQLiteError } from './NitroSQLiteError'
+export type * from './types'
+export { typeORMDriver } from './typeORM'
