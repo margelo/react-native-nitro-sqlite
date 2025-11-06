@@ -84,7 +84,8 @@ export const transaction = async <Result = void>(
       }
 
       try {
-        return rollback()
+        rollback()
+        return undefined as Result
       } catch (rollbackError) {
         throw NitroSQLiteError.fromError(rollbackError)
       }
