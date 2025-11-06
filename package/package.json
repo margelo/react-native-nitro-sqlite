@@ -37,8 +37,8 @@
     "!**/__mocks__"
   ],
   "scripts": {
-    "build": "bun typescript && bob build",
-    "specs": "bun typescript && bun nitro-codegen --logLevel=\"debug\"",
+    "build": "bun typecheck && bob build",
+    "specs": "bun typecheck && bun nitro-codegen --logLevel=\"debug\"",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\" --fix",
     "test": "jest",
@@ -100,7 +100,7 @@
       "release": false
     },
     "hooks": {
-      "before:init": "bun typescript && bun lint",
+      "before:init": "bun typecheck && bun lint",
       "after:bump": "bun run build"
     }
   },
