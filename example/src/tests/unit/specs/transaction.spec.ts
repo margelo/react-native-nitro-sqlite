@@ -14,7 +14,7 @@ export default function registerTransactionUnitTests() {
       const age = chance.integer()
       const networth = chance.floating()
 
-      await testDb.transaction((tx) => {
+      await testDb.transaction(async (tx) => {
         const res = tx.execute(
           'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
           [id, name, age, networth],
@@ -44,7 +44,7 @@ export default function registerTransactionUnitTests() {
       const age = chance.integer()
       const networth = chance.floating()
 
-      await testDb.transaction((tx) => {
+      await testDb.transaction(async (tx) => {
         const res = tx.execute(
           'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
           [id, name, age, networth],
@@ -83,7 +83,7 @@ export default function registerTransactionUnitTests() {
       // ACT: Start multiple transactions to upsert and select the same record
       const promises = []
       for (let iteration = 1; iteration <= iterations; iteration++) {
-        const promised = testDb.transaction((tx) => {
+        const promised = testDb.transaction(async (tx) => {
           // ACT: Upsert statement to create record / increment the value
           tx.execute(
             `
@@ -130,7 +130,7 @@ export default function registerTransactionUnitTests() {
       const age = chance.integer()
       const networth = chance.floating()
 
-      await testDb.transaction((tx) => {
+      await testDb.transaction(async (tx) => {
         const res = tx.execute(
           'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
           [id, name, age, networth],
@@ -168,7 +168,7 @@ export default function registerTransactionUnitTests() {
       const age = chance.integer()
       const networth = chance.floating()
 
-      await testDb.transaction((tx) => {
+      await testDb.transaction(async (tx) => {
         try {
           tx.execute(
             'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
@@ -189,7 +189,7 @@ export default function registerTransactionUnitTests() {
       const age = chance.integer()
       const networth = chance.floating()
 
-      await testDb.transaction((tx) => {
+      await testDb.transaction(async (tx) => {
         tx.execute(
           'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
           [id, name, age, networth],
@@ -211,6 +211,7 @@ export default function registerTransactionUnitTests() {
         await promised
         expect.fail(DUMMY_ERROR_NAME)
       } catch (e) {
+        console.log(e)
         if (isNitroSQLiteError(e))
           expect(e.message).to.include(DUMMY_ERROR_MESSAGE)
         else expect.fail('Should have thrown a valid NitroSQLiteError')
@@ -218,7 +219,7 @@ export default function registerTransactionUnitTests() {
     })
 
     it('Transaction, rejects on invalid query', async () => {
-      const promised = testDb.transaction((tx) => {
+      const promised = testDb.transaction(async (tx) => {
         tx.execute('SELECT * FROM [tableThatDoesNotExist];')
       })
       // ASSERT: should return a promise that eventually rejects
