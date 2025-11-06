@@ -1,6 +1,14 @@
-import { chance, expect, isError, testDb } from '../common'
-import { describe, it } from '../../MochaRNAdapter'
-import type { User } from '../../../model/User'
+import {
+  chance,
+  expect,
+  isNitroSQLiteError,
+  TEST_ERROR,
+  TEST_ERROR_MESSAGE,
+  TEST_ERROR_CODES,
+} from '../../common'
+import { describe, it } from '../../../MochaRNAdapter'
+import type { User } from '../../../../model/User'
+import { testDb } from '../../../db'
 
 export default function registerTransactionUnitTests() {
   describe('transaction', () => {
@@ -10,7 +18,7 @@ export default function registerTransactionUnitTests() {
       const age = chance.integer()
       const networth = chance.floating()
 
-      await testDb.transaction((tx) => {
+      await testDb.transaction(async (tx) => {
         const res = tx.execute(
           'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
           [id, name, age, networth],
@@ -40,7 +48,7 @@ export default function registerTransactionUnitTests() {
       const age = chance.integer()
       const networth = chance.floating()
 
-      await testDb.transaction((tx) => {
+      await testDb.transaction(async (tx) => {
         const res = tx.execute(
           'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
           [id, name, age, networth],
@@ -79,7 +87,7 @@ export default function registerTransactionUnitTests() {
       // ACT: Start multiple transactions to upsert and select the same record
       const promises = []
       for (let iteration = 1; iteration <= iterations; iteration++) {
-        const promised = testDb.transaction((tx) => {
+        const promised = testDb.transaction(async (tx) => {
           // ACT: Upsert statement to create record / increment the value
           tx.execute(
             `
@@ -126,7 +134,7 @@ export default function registerTransactionUnitTests() {
       const age = chance.integer()
       const networth = chance.floating()
 
-      await testDb.transaction((tx) => {
+      await testDb.transaction(async (tx) => {
         const res = tx.execute(
           'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
           [id, name, age, networth],
@@ -164,7 +172,7 @@ export default function registerTransactionUnitTests() {
       const age = chance.integer()
       const networth = chance.floating()
 
-      await testDb.transaction((tx) => {
+      await testDb.transaction(async (tx) => {
         try {
           tx.execute(
             'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
@@ -185,7 +193,7 @@ export default function registerTransactionUnitTests() {
       const age = chance.integer()
       const networth = chance.floating()
 
-      await testDb.transaction((tx) => {
+      await testDb.transaction(async (tx) => {
         tx.execute(
           'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
           [id, name, age, networth],
@@ -197,34 +205,35 @@ export default function registerTransactionUnitTests() {
     })
 
     it('Transaction, rejects on callback error', async () => {
-      const promised = testDb.transaction(() => {
-        throw new Error('Error from callback')
+      const promised = testDb.transaction(async () => {
+        throw TEST_ERROR
       })
 
       // ASSERT: should return a promise that eventually rejects
       expect(promised).to.have.property('then').that.is.a('function')
       try {
         await promised
-        expect.fail('Should not resolve')
+        expect.fail(TEST_ERROR_CODES.EXPECT_PROMISE_REJECTION)
       } catch (e) {
-        if (isError(e)) expect(e.message).to.equal('Error from callback')
-        else expect.fail('Should have thrown a valid NitroSQLiteException')
+        if (isNitroSQLiteError(e))
+          expect(e.message).to.include(TEST_ERROR_MESSAGE)
+        else expect.fail(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
       }
     })
 
     it('Transaction, rejects on invalid query', async () => {
-      const promised = testDb.transaction((tx) => {
+      const promised = testDb.transaction(async (tx) => {
         tx.execute('SELECT * FROM [tableThatDoesNotExist];')
       })
       // ASSERT: should return a promise that eventually rejects
       expect(promised).to.have.property('then').that.is.a('function')
       try {
         await promised
-        expect.fail('Should not resolve')
+        expect.fail(TEST_ERROR_CODES.EXPECT_PROMISE_REJECTION)
       } catch (e) {
-        if (isError(e))
+        if (isNitroSQLiteError(e))
           expect(e.message).to.include('no such table: tableThatDoesNotExist')
-        else expect.fail('Should have thrown a valid NitroSQLiteException')
+        else expect.fail(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
       }
     })
 
@@ -288,7 +297,7 @@ export default function registerTransactionUnitTests() {
           )
         })
       } catch (e) {
-        if (isError(e)) {
+        if (isNitroSQLiteError(e)) {
           expect(e.message)
             .to.include('SqlExecutionError')
             .and.to.include('cannot store TEXT value in REAL column User.id')
@@ -296,7 +305,7 @@ export default function registerTransactionUnitTests() {
           const res = testDb.execute('SELECT * FROM User')
           expect(res.rows?._array).to.eql([])
         } else {
-          expect.fail('Should have thrown a valid NitroSQLiteException')
+          expect.fail(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
         }
       }
     })
@@ -400,17 +409,18 @@ export default function registerTransactionUnitTests() {
 
     it('Async transaction, rejects on callback error', async () => {
       const promised = testDb.transaction(() => {
-        throw new Error('Error from callback')
+        throw new Error(TEST_ERROR_MESSAGE)
       })
 
       // ASSERT: should return a promise that eventually rejects
       expect(promised).to.have.property('then').that.is.a('function')
       try {
         await promised
-        expect.fail('Should not resolve')
+        expect.fail(TEST_ERROR_CODES.EXPECT_PROMISE_REJECTION)
       } catch (e) {
-        if (isError(e)) expect(e.message).to.equal('Error from callback')
-        else expect.fail('Should have thrown a valid NitroSQLiteException')
+        if (isNitroSQLiteError(e))
+          expect(e.message).to.include(TEST_ERROR_MESSAGE)
+        else expect.fail(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
       }
     })
 
@@ -423,11 +433,11 @@ export default function registerTransactionUnitTests() {
       expect(promised).to.have.property('then').that.is.a('function')
       try {
         await promised
-        expect.fail('Should not resolve')
+        expect.fail(TEST_ERROR_CODES.EXPECT_PROMISE_REJECTION)
       } catch (e) {
-        if (isError(e))
+        if (isNitroSQLiteError(e))
           expect(e.message).to.include('no such table: tableThatDoesNotExist')
-        else expect.fail('Should have thrown a valid NitroSQLiteException')
+        else expect.fail(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
       }
     })
   })

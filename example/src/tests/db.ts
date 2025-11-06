@@ -4,23 +4,39 @@ import type {
   BatchQueryCommand,
 } from 'react-native-nitro-sqlite'
 import { open } from 'react-native-nitro-sqlite'
+import {
+  getDatabaseQueue,
+  type DatabaseQueue,
+} from '../../../package/src/DatabaseQueue'
 
 const chance = new Chance()
 
-export let testDb: NitroSQLiteConnection | undefined
+export const TEST_DB_NAME = 'test'
+
+export let testDb: NitroSQLiteConnection
+export let testDbQueue: DatabaseQueue
 export function resetTestDb() {
   try {
     if (testDb != null) {
       testDb.close()
       testDb.delete()
     }
+
     testDb = open({
-      name: 'test',
+      name: TEST_DB_NAME,
     })
+    testDbQueue = getDatabaseQueue(TEST_DB_NAME)
+
+    testDb.execute('DROP TABLE IF EXISTS User;')
+    testDb.execute(
+      'CREATE TABLE User ( id REAL PRIMARY KEY, name TEXT NOT NULL, age REAL, networth REAL) STRICT;',
+    )
   } catch (e) {
     console.warn('Error resetting user database', e)
   }
 }
+
+const LARGE_DB_NAME = 'large'
 
 // Copyright 2024 Oscar Franco
 // Taken from "op-sqlite" example project.
@@ -34,7 +50,7 @@ export function resetLargeDb() {
       largeDb.delete()
     }
     largeDb = open({
-      name: 'large',
+      name: LARGE_DB_NAME,
     })
 
     largeDb.execute(

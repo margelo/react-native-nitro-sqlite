@@ -1,9 +1,10 @@
-import { chance, expect, isError, testDb } from '../common'
+import { chance, expect, isNitroSQLiteError } from '../../common'
 import {
   enableSimpleNullHandling,
   NITRO_SQLITE_NULL,
 } from 'react-native-nitro-sqlite'
-import { describe, it } from '../../MochaRNAdapter'
+import { describe, it } from '../../../MochaRNAdapter'
+import { testDb } from '../../../db'
 
 export default function registerExecuteUnitTests() {
   describe('execute', () => {
@@ -93,7 +94,7 @@ export default function registerExecuteUnitTests() {
             [id, name, age, networth],
           )
         } catch (e: unknown) {
-          if (isError(e)) {
+          if (isNitroSQLiteError(e)) {
             expect(e.message).to.include(
               'cannot store TEXT value in REAL column User.age',
             )

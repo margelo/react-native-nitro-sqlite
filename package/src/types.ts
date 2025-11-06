@@ -8,7 +8,9 @@ export interface NitroSQLiteConnection {
   delete(): void
   attach(dbNameToAttach: string, alias: string, location?: string): void
   detach(alias: string): void
-  transaction(fn: (tx: Transaction) => Promise<void> | void): Promise<void>
+  transaction: <Result = void>(
+    transactionCallback: (tx: Transaction) => Promise<Result>,
+  ) => Promise<Result>
   execute: ExecuteQuery
   executeAsync: ExecuteAsyncQuery
   executeBatch(commands: BatchQueryCommand[]): BatchQueryResult

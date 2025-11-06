@@ -1,35 +1,27 @@
 import { Chance } from 'chance'
 import {
-  NitroSQLiteConnection,
   enableSimpleNullHandling,
+  NitroSQLiteError,
 } from 'react-native-nitro-sqlite'
-import { testDb as testDbInternal, resetTestDb } from '../db'
+import { resetTestDb } from '../db'
 import chai from 'chai'
 
-export function isError(e: unknown): e is Error {
-  return e instanceof Error
+export const TEST_ERROR_CODES = {
+  EXPECT_NITRO_SQLITE_ERROR: 'Should have thrown a valid NitroSQLiteError',
+  EXPECT_PROMISE_REJECTION: 'Should have thrown a promise rejection',
+} as const
+
+export const TEST_ERROR_MESSAGE = 'Error from callback'
+export const TEST_ERROR = new Error(TEST_ERROR_MESSAGE)
+
+export function isNitroSQLiteError(e: unknown): e is NitroSQLiteError {
+  return e instanceof NitroSQLiteError
 }
 
 export const expect = chai.expect
 export const chance = new Chance()
 
-export let testDb: NitroSQLiteConnection
-
 export function setupTestDb() {
   enableSimpleNullHandling(false)
-
-  try {
-    resetTestDb()
-
-    if (testDbInternal == null) throw new Error('Failed to reset test database')
-
-    testDbInternal.execute('DROP TABLE IF EXISTS User;')
-    testDbInternal.execute(
-      'CREATE TABLE User ( id REAL PRIMARY KEY, name TEXT NOT NULL, age REAL, networth REAL) STRICT;',
-    )
-
-    testDb = testDbInternal!
-  } catch (e) {
-    console.warn('Error resetting user database', e)
-  }
+  resetTestDb()
 }

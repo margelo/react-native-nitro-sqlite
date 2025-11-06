@@ -1,4 +1,4 @@
-import { locks, HybridNitroSQLite } from '../nitro'
+import { HybridNitroSQLite } from '../nitro'
 import { transaction } from './transaction'
 import type {
   BatchQueryCommand,
@@ -12,16 +12,14 @@ import type {
 import { execute, executeAsync } from './execute'
 import { executeBatch, executeBatchAsync } from './executeBatch'
 import NitroSQLiteError from '../NitroSQLiteError'
+import { closeDatabaseQueue, openDatabaseQueue } from '../DatabaseQueue'
 
 export function open(
   options: NitroSQLiteConnectionOptions,
 ): NitroSQLiteConnection {
   try {
     HybridNitroSQLite.open(options.name, options.location)
-    locks[options.name] = {
-      queue: [],
-      inProgress: false,
-    }
+    openDatabaseQueue(options.name)
   } catch (error) {
     throw NitroSQLiteError.fromError(error)
   }
@@ -30,7 +28,7 @@ export function open(
     close: () => {
       try {
         HybridNitroSQLite.close(options.name)
-        delete locks[options.name]
+        closeDatabaseQueue(options.name)
       } catch (error) {
         throw NitroSQLiteError.fromError(error)
       }
@@ -39,7 +37,7 @@ export function open(
     attach: (dbNameToAttach: string, alias: string, location?: string) =>
       HybridNitroSQLite.attach(options.name, dbNameToAttach, alias, location),
     detach: (alias: string) => HybridNitroSQLite.detach(options.name, alias),
-    transaction: (fn: (tx: Transaction) => Promise<void> | void) =>
+    transaction: <Result = void>(fn: (tx: Transaction) => Promise<Result>) =>
       transaction(options.name, fn),
     execute: <Row extends QueryResultRow = never>(
       query: string,
