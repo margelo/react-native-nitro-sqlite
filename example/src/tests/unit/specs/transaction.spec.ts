@@ -431,5 +431,50 @@ export default function registerTransactionUnitTests() {
         else expect.fail('Should have thrown a valid NitroSQLiteException')
       }
     })
+
+    it('transaction are queued', async () => {
+      const transaction1Promise = testDb.transaction(async (tx) => {
+        tx.execute('SELECT * FROM [User];')
+
+        expect(testDbQueue.queue.length).to.equal(2)
+        expect(testDbQueue.inProgress).to.equal(true)
+
+        await new Promise<void>((resolve) => setTimeout(resolve, 100))
+
+        tx.execute('SELECT * FROM [User];')
+
+        expect(testDbQueue.queue.length).to.equal(2)
+        expect(testDbQueue.inProgress).to.equal(true)
+      })
+
+      expect(testDbQueue.inProgress).to.equal(true)
+      expect(testDbQueue.queue.length).to.equal(0)
+
+      const transaction2Promise = testDb.transaction(async (tx) => {
+        tx.execute('SELECT * FROM [User];')
+      })
+
+      expect(testDbQueue.queue.length).to.equal(1)
+      expect(testDbQueue.inProgress).to.equal(true)
+
+      const transaction3Promise = testDb.transaction(async (tx) => {
+        tx.execute('SELECT * FROM [User];')
+      })
+
+      await transaction1Promise
+
+      expect(testDbQueue.queue.length).to.equal(1)
+      expect(testDbQueue.inProgress).to.equal(true)
+
+      await transaction2Promise
+
+      expect(testDbQueue.queue.length).to.equal(0)
+      expect(testDbQueue.inProgress).to.equal(true)
+
+      await transaction3Promise
+
+      expect(testDbQueue.queue.length).to.equal(0)
+      expect(testDbQueue.inProgress).to.equal(false)
+    })
   })
 }
