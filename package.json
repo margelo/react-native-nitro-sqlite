@@ -77,7 +77,8 @@
       "requireCleanWorkingDir": false
     },
     "github": {
-      "release": true
+      "release": true,
+      "tokenRef": "RELEASE_IT_GITHUB_TOKEN"
     },
     "hooks": {
       "before:release": "bun example bundle-install && bun example pods && git add example/ios/Podfile.lock"
