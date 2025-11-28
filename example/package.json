@@ -23,7 +23,7 @@
     "react": "19.1.1",
     "react-native": "0.82.1",
     "react-native-nitro-modules": "0.27.2",
-    "react-native-nitro-sqlite": "9.2.0",
+    "react-native-nitro-sqlite": "*",
     "react-native-safe-area-context": "^5.5.2",
     "react-native-screens": "^4.18.0",
     "reflect-metadata": "^0.1.13",

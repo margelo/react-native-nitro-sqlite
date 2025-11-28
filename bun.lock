@@ -45,7 +45,7 @@
     },
     "example": {
       "name": "react-native-nitro-sqlite-example",
-      "version": "8.2.2-nitro.1",
+      "version": "9.1.11",
       "dependencies": {
         "@craftzdog/react-native-buffer": "^6.0.5",
         "@react-navigation/native": "^7.1.19",
@@ -57,7 +57,7 @@
         "react": "19.1.1",
         "react-native": "0.82.1",
         "react-native-nitro-modules": "0.27.2",
-        "react-native-nitro-sqlite": "9.1.11",
+        "react-native-nitro-sqlite": "9.2.0",
         "react-native-safe-area-context": "^5.5.2",
         "react-native-screens": "^4.18.0",
         "reflect-metadata": "^0.1.13",
