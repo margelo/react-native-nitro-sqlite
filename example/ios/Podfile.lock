@@ -2437,7 +2437,7 @@ PODS:
     - React-perflogger (= 0.82.1)
     - React-utils (= 0.82.1)
     - SocketRocket
-  - RNNitroSQLite (9.2.0):
+  - RNNitroSQLite (9.2.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -2845,7 +2845,7 @@ SPEC CHECKSUMS:
   ReactAppDependencyProvider: a45ef34bb22dc1c9b2ac1f74167d9a28af961176
   ReactCodegen: 09d235f636e22db7c2fbb24a59a56aa579591226
   ReactCommon: 801eff8cb9c940c04d3a89ce399c343ee3eff654
-  RNNitroSQLite: fb251387cfbee73b100cd484a3c886fda681b3b5
+  RNNitroSQLite: cdcaf76f0d5198795adf4f92728fe17701f0b6fd
   RNScreens: 98771ad898d1c0528fc8139606bbacf5a2e9d237
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: 526f25666395d30c297d53154398ffd249eaf9e1
