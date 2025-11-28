@@ -1,12 +1,12 @@
 diff --git a/node_modules/typeorm/package.json b/node_modules/typeorm/package.json
-index dd493ba..1350471 100644
+index cb64ad7..17e4941 100644
 --- a/node_modules/typeorm/package.json
 +++ b/node_modules/typeorm/package.json
-@@ -13,6 +13,7 @@
-     "node": ">=16.13.0"
+@@ -17,6 +17,7 @@
+     "email": "pleerock.me@gmail.com"
    },
    "exports": {
 +    "./package.json": "./package.json",
      ".": {
        "types": "./index.d.ts",
-       "node": {
+       "react-native": {
