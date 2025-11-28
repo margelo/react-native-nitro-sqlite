@@ -17,6 +17,7 @@ export interface NitroSQLiteConnection {
   executeBatchAsync(commands: BatchQueryCommand[]): Promise<BatchQueryResult>
   loadFile(location: string): FileLoadResult
   loadFileAsync(location: string): Promise<FileLoadResult>
+  loadExtension(path: string, entryPoint?: string): void
 }
 
 export enum ColumnType {
