@@ -21,4 +21,6 @@ SQLiteOperationResult sqliteExecuteLiteral(const std::string& dbName, const std:
 
 void sqliteCloseAll();
 
+void sqliteLoadExtension(const std::string& dbName, const std::string& path, const std::optional<std::string>& entryPoint);
+
 } // namespace margelo::rnnitrosqlite

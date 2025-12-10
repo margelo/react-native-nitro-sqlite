@@ -93,4 +93,8 @@ std::shared_ptr<Promise<FileLoadResult>> HybridNitroSQLite::loadFileAsync(const 
   });
 };
 
+void HybridNitroSQLite::loadExtension(const std::string& dbName, const std::string& path, const std::optional<std::string>& entryPoint) {
+  sqliteLoadExtension(dbName, path, entryPoint);
+};
+
 } // namespace margelo::nitro::rnnitrosqlite

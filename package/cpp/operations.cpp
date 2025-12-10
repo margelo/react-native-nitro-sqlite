@@ -287,4 +287,42 @@ SQLiteOperationResult sqliteExecuteLiteral(const std::string& dbName, const std:
   return {.rowsAffected = sqlite3_changes(db)};
 }
 
+void sqliteLoadExtension(const std::string& dbName, const std::string& path, const std::optional<std::string>& entryPoint) {
+  // Check if db connection is opened
+  if (dbMap.count(dbName) == 0) {
+    throw NitroSQLiteException::DatabaseNotOpen(dbName);
+  }
+
+  sqlite3* db = dbMap[dbName];
+  
+  // Enable extension loading (required before loading extensions)
+  int result = sqlite3_enable_load_extension(db, 1);
+  if (result != SQLITE_OK) {
+    throw NitroSQLiteException::SqlExecution("Failed to enable extensions: " + std::string(sqlite3_errmsg(db)));
+  }
+  
+  // Load the extension
+  char* error_msg = nullptr;
+  result = sqlite3_load_extension(
+    db, 
+    path.c_str(), 
+    entryPoint.has_value() ? entryPoint.value().c_str() : nullptr,
+    &error_msg
+  );
+  
+  // Check for errors
+  if (result != SQLITE_OK) {
+    std::string error = error_msg ? std::string(error_msg) : "Unknown error loading extension";
+    sqlite3_free(error_msg);
+    
+    // Disable extension loading
+    sqlite3_enable_load_extension(db, 0);
+    
+    throw NitroSQLiteException::SqlExecution("Failed to load extension: " + error);
+  }
+  
+  // Disable extension loading (security best practice)
+  sqlite3_enable_load_extension(db, 0);
+}
+
 } // namespace margelo::rnnitrosqlite

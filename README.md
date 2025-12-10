@@ -71,7 +71,8 @@ db = {
   executeBatch: (commands: BatchQueryCommand[]) => BatchQueryResult,
   executeBatchAsync: (commands: BatchQueryCommand[]) => Promise<BatchQueryResult>,
   loadFile: (location: string) => FileLoadResult;,
-  loadFileAsync: (location: string) => Promise<FileLoadResult>
+  loadFileAsync: (location: string) => Promise<FileLoadResult>,
+  loadExtension: (path: string, entryPoint?: string) => void
 }
 ```
 
@@ -248,6 +249,78 @@ These databases can have different configurations, like journal modes, and cache
 You can, at any moment, detach a database that you don't need anymore. You don't need to detach an attached database before closing your connection. Closing the main connection will detach any attached databases.
 
 SQLite has a limit for attached databases: A default of 10, and a global max of 125
+
+## Loading SQLite Extensions
+
+SQLite supports loading extensions that can add new functions, virtual tables, collations, and more to your database connection. NitroSQLite provides the `loadExtension` method to dynamically load SQLite extensions.
+
+```typescript
+import { open } from 'react-native-nitro-sqlite';
+
+try {
+  const db = open({ name: 'myDb.sqlite' });
+  
+  // Load the extension
+  db.loadExtension('/path/to/extension');
+  
+  // Now you can use the extension's functionality
+  const result = db.execute('SELECT extension_function(?) as result', [someValue]);
+} catch (e) {
+  console.error('Failed to load extension:', e.message);
+}
+```
+
+### Setting up extensions in your project
+
+To use SQLite extensions with your app, you need to:
+
+#### Android
+1. Place extension files (`.so` files) in your app's assets folder
+2. Add these files to your Android project
+3. At runtime, copy the file from assets to a readable location before loading
+
+#### iOS
+1. Add extension files (`.dylib` files) to your Xcode project
+2. Make sure they're included in "Build Phases → Copy Bundle Resources"
+3. At runtime, the files will be available in your app's bundle
+
+### Implementation example
+
+```typescript
+async loadExtension(): Promise<void> {
+  try {
+    const appDir = getAppDirectory();
+    
+    if (Platform.OS === 'android') {
+      const libFileName = `libextension.so`;
+      const destinationPath = `${appDir}/${libFileName}`;
+      
+      // Copy from assets to app directory then load
+      try {
+        await RNFS.copyFileAssets(libFileName, destinationPath);
+        this.db.loadExtension(`${appDir}/libextension`);
+      } catch (error) {
+        console.error('Failed to copy or load extension:', error);
+      }
+    } else if (Platform.OS === 'ios') {
+      const sourcePath = `${RNFS.MainBundlePath}/extension.dylib`;
+      const destPath = `${appDir}/libextension.dylib`;
+      
+      // Copy and load
+      try {
+        await RNFS.copyFile(sourcePath, destPath);
+        this.db.loadExtension(`${appDir}/libextension`);
+      } catch (error) {
+        console.error('Failed to copy or load extension:', error);
+      }
+    }
+  } catch (error) {
+    console.error('Failed to load SQLite extension:', error);
+  }
+}
+```
+
+You'll need the `react-native-fs` package for this implementation.
 
 References: [Attach](https://www.sqlite.org/lang_attach.html) - [Detach](https://www.sqlite.org/lang_detach.html)
 
