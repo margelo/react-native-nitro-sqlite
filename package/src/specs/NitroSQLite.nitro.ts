@@ -9,7 +9,7 @@ import type { NativeQueryResult } from './NativeQueryResult.nitro'
 
 export interface NitroSQLite
   extends HybridObject<{ ios: 'c++'; android: 'c++' }> {
-  open(dbName: string, location?: string): void
+  open(dbName: string, location?: string, encryptionKey?: string): void
   close(dbName: string): void
   drop(dbName: string, location?: string): void
   attach(

@@ -1,10 +1,14 @@
 #pragma once
 
+#ifdef SQLITE_ENABLE_SEE
+  #define SQLITE_HAS_CODEC 1 // Enable SQLite encryption support
+#endif
+
 #include "types.hpp"
 
 namespace margelo::rnnitrosqlite {
 
-void sqliteOpenDb(const std::string& dbName, const std::string& docPath);
+void sqliteOpenDb(const std::string& dbName, const std::string& docPath, const std::optional<std::string>& encryptionKey);
 
 void sqliteCloseDb(const std::string& dbName);
 

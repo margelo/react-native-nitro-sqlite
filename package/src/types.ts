@@ -1,6 +1,7 @@
 export interface NitroSQLiteConnectionOptions {
   name: string
   location?: string
+  encryptionKey?: string
 }
 
 export interface NitroSQLiteConnection {
