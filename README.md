@@ -287,6 +287,22 @@ NitroSQLite.loadFileAsync('myDatabase', '/absolute/path/to/file.sql').then(
 );
 ```
 
+## Encryption
+
+Database encryption is supported through [SQLite Encryption Extension](https://sqlite.org/see) (SEE).
+
+As SEE is a paid product, you need to patch the files `react-native-nitro-sqlite/cpp/sqlite/sqlite3.c` and `react-native-nitro-sqlite/cpp/sqlite/sqlite3.h` after installation using `bun patch react-native-nitro-sqlite`. Replace them with the `sqlite.h` and `sqlite3-see-<algorithm>.c` files from the SEE sources.
+
+In addition, the [pre-processor flag](#enable-compile-time-options) `SQLITE_ENABLE_SEE` needs to be specified.
+
+You can then use encryption, by passing an encryption key when opening the database
+
+```typescript
+import {open} from 'react-native-nitro-sqlite'
+
+const db = open({name: 'myDb.sqlite', encryptionKey: 'SUPER_SECURE_ENCRYPTION_KEY'})
+```
+
 # TypeORM
 
 This library is pretty barebones, you can write all your SQL queries manually but for any large application, an ORM is recommended.
