@@ -22,9 +22,9 @@ const std::string getDocPath(const std::optional<std::string>& location) {
   return tempDocPath;
 }
 
-void HybridNitroSQLite::open(const std::string& dbName, const std::optional<std::string>& location) {
+void HybridNitroSQLite::open(const std::string& dbName, const std::optional<std::string>& location, const std::optional<std::string>& encryptionKey) {
   const auto docPath = getDocPath(location);
-  sqliteOpenDb(dbName, docPath);
+  sqliteOpenDb(dbName, docPath, encryptionKey);
 }
 
 void HybridNitroSQLite::close(const std::string& dbName) {
