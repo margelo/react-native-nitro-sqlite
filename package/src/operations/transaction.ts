@@ -1,8 +1,8 @@
 import { queueOperationAsync, throwIfDatabaseIsNotOpen } from '../DatabaseQueue'
 import type {
-  QueryResult,
   Transaction,
   SQLiteQueryParams,
+  QueryResult,
   QueryResultRow,
 } from '../types'
 import { execute, executeAsync } from './execute'
