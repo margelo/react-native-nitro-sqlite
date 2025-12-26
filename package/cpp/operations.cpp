@@ -105,7 +105,7 @@ void bindStatement(sqlite3_stmt* statement, const SQLiteQueryParams& values) {
   for (int valueIndex = 0; valueIndex < values.size(); valueIndex++) {
     int sqliteIndex = valueIndex + 1;
     SQLiteValue value = values.at(valueIndex);
-    if (std::holds_alternative<SQLiteNullValue>(value)) {
+    if (std::holds_alternative<NullType>(value)) {
       sqlite3_bind_null(statement, sqliteIndex);
     } else if (std::holds_alternative<bool>(value)) {
       sqlite3_bind_int(statement, sqliteIndex, std::get<bool>(value));
@@ -191,7 +191,7 @@ SQLiteExecuteQueryResult sqliteExecute(const std::string& dbName, const std::str
             case SQLITE_NULL:
               // Intentionally left blank to switch to default case
             default:
-              row[column_name] = SQLiteNullValue(true);
+              row[column_name] = NullType::null;
               break;
           }
           i++;
@@ -205,7 +205,7 @@ SQLiteExecuteQueryResult sqliteExecute(const std::string& dbName, const std::str
           column_name = sqlite3_column_name(statement, i);
           const char* tp = sqlite3_column_decltype(statement, i);
           column_declared_type = mapSQLiteTypeToColumnType(tp);
-          auto columnMeta = SQLiteQueryColumnMetadata(std::move(column_name), std::move(column_declared_type), i);
+          auto columnMeta = NitroSQLiteQueryColumnMetadata(std::move(column_name), std::move(column_declared_type), i);
 
           if (!metadata) {
             metadata = std::make_optional<SQLiteQueryTableMetadata>();

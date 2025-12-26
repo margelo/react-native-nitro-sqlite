@@ -4,10 +4,10 @@ import type {
   BatchQueryCommand,
   NitroSQLiteConnection,
   NitroSQLiteConnectionOptions,
-  QueryResult,
   Transaction,
   SQLiteQueryParams,
   QueryResultRow,
+  QueryResult,
 } from '../types'
 import { execute, executeAsync } from './execute'
 import { executeBatch, executeBatchAsync } from './executeBatch'

@@ -1,8 +1,7 @@
 #pragma once
 
 #include "ColumnType.hpp"
-#include "SQLiteNullValue.hpp"
-#include "SQLiteQueryColumnMetadata.hpp"
+#include "NitroSQLiteQueryColumnMetadata.hpp"
 #include <NitroModules/ArrayBuffer.hpp>
 #include <string>
 
@@ -11,11 +10,11 @@ using namespace margelo::nitro::rnnitrosqlite;
 
 namespace margelo::rnnitrosqlite {
 
-using SQLiteValue = std::variant<std::string, double, bool, std::shared_ptr<ArrayBuffer>, SQLiteNullValue>;
+using SQLiteValue = std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>;
 using SQLiteQueryParams = std::vector<SQLiteValue>;
 using SQLiteQueryResultRow = std::unordered_map<std::string, SQLiteValue>;
 using SQLiteQueryResults = std::vector<SQLiteQueryResultRow>;
-using SQLiteQueryTableMetadata = std::unordered_map<std::string, SQLiteQueryColumnMetadata>;
+using SQLiteQueryTableMetadata = std::unordered_map<std::string, NitroSQLiteQueryColumnMetadata>;
 
 struct SQLiteOperationResult {
   int rowsAffected;

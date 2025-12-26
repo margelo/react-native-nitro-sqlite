@@ -6,10 +6,10 @@
 //     |_|     |_|  |_|    |______\____/|_|  \_\_|  |_| /_/    \_\_|   |_____|
 
 import type {
-  QueryResult,
   Transaction,
   SQLiteQueryParams,
   QueryResultRow,
+  QueryResult,
 } from './types'
 import * as Operations from './operations/session'
 

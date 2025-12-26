@@ -17,7 +17,6 @@
 
 #include "JHybridNitroSQLiteOnLoadSpec.hpp"
 #include "HybridNitroSQLite.hpp"
-#include <NitroModules/JNISharedPtr.hpp>
 #include <NitroModules/DefaultConstructableObject.hpp>
 
 namespace margelo::nitro::rnnitrosqlite {
@@ -46,8 +45,7 @@ int initialize(JavaVM* vm) {
       []() -> std::shared_ptr<HybridObject> {
         static DefaultConstructableObject<JHybridNitroSQLiteOnLoadSpec::javaobject> object("com/margelo/nitro/rnnitrosqlite/HybridNitroSQLiteOnLoad");
         auto instance = object.create();
-        auto globalRef = jni::make_global(instance);
-        return JNISharedPtr::make_shared_from_jni<JHybridNitroSQLiteOnLoadSpec>(globalRef);
+        return instance->cthis()->shared();
       }
     );
   });
