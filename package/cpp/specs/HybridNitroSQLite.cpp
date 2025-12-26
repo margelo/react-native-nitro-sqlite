@@ -1,5 +1,5 @@
 #include "HybridNitroSQLite.hpp"
-#include "HybridNativeQueryResult.hpp"
+#include "HybridNitroSQLiteQueryResult.hpp"
 #include "NitroSQLiteException.hpp"
 #include "importSqlFile.hpp"
 #include "logs.hpp"
@@ -50,23 +50,24 @@ void HybridNitroSQLite::detach(const std::string& mainDbName, const std::string&
   sqliteDetachDb(mainDbName, alias);
 };
 
-using ExecuteQueryResult = std::shared_ptr<HybridNativeQueryResultSpec>;
+using ExecuteQueryResult = std::shared_ptr<HybridNitroSQLiteQueryResultSpec>;
 
 ExecuteQueryResult HybridNitroSQLite::execute(const std::string& dbName, const std::string& query,
                                               const std::optional<SQLiteQueryParams>& params) {
   SQLiteExecuteQueryResult result = sqliteExecute(dbName, query, params);
-  return std::make_shared<HybridNativeQueryResult>(std::move(result));
+  return std::make_shared<HybridNitroSQLiteQueryResult>(std::move(result));
 };
 
-std::shared_ptr<Promise<std::shared_ptr<HybridNativeQueryResultSpec>>>
+std::shared_ptr<Promise<std::shared_ptr<HybridNitroSQLiteQueryResultSpec>>>
 HybridNitroSQLite::executeAsync(const std::string& dbName, const std::string& query, const std::optional<SQLiteQueryParams>& params) {
-  return Promise<std::shared_ptr<HybridNativeQueryResultSpec>>::async([=, this]() -> std::shared_ptr<HybridNativeQueryResultSpec> {
-    auto result = execute(dbName, query, params);
-    return result;
-  });
+  return Promise<std::shared_ptr<HybridNitroSQLiteQueryResultSpec>>::async(
+      [=, this]() -> std::shared_ptr<HybridNitroSQLiteQueryResultSpec> {
+        auto result = execute(dbName, query, params);
+        return result;
+      });
 };
 
-BatchQueryResult HybridNitroSQLite::executeBatch(const std::string& dbName, const std::vector<NativeBatchQueryCommand>& batchParams) {
+BatchQueryResult HybridNitroSQLite::executeBatch(const std::string& dbName, const std::vector<BatchQueryCommand>& batchParams) {
   const auto commands = batchParamsToCommands(batchParams);
 
   auto result = sqliteExecuteBatch(dbName, commands);
@@ -74,7 +75,7 @@ BatchQueryResult HybridNitroSQLite::executeBatch(const std::string& dbName, cons
 };
 
 std::shared_ptr<Promise<BatchQueryResult>> HybridNitroSQLite::executeBatchAsync(const std::string& dbName,
-                                                                                const std::vector<NativeBatchQueryCommand>& batchParams) {
+                                                                                const std::vector<BatchQueryCommand>& batchParams) {
   return Promise<BatchQueryResult>::async([=, this]() -> BatchQueryResult {
     auto result = executeBatch(dbName, batchParams);
     return result;

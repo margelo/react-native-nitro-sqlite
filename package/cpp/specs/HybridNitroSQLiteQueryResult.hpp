@@ -1,17 +1,17 @@
 #pragma once
 
-#include "HybridNativeQueryResultSpec.hpp"
-#include "types.hpp"
 #include <map>
+#include "HybridNitroSQLiteQueryResultSpec.hpp"
+#include "types.hpp"
 
 using namespace margelo::rnnitrosqlite;
 
 namespace margelo::nitro::rnnitrosqlite {
 
-class HybridNativeQueryResult : public HybridNativeQueryResultSpec {
+class HybridNitroSQLiteQueryResult : public HybridNitroSQLiteQueryResultSpec {
 public:
-  HybridNativeQueryResult() : HybridObject(TAG) {}
-  HybridNativeQueryResult(SQLiteExecuteQueryResult&& result) : HybridObject(TAG), _result(std::move(result)) {}
+  HybridNitroSQLiteQueryResult() : HybridObject(TAG) {}
+  HybridNitroSQLiteQueryResult(SQLiteExecuteQueryResult&& result) : HybridObject(TAG), _result(std::move(result)) {}
 
 private:
   SQLiteExecuteQueryResult _result;
@@ -21,6 +21,7 @@ public:
   std::optional<double> getInsertId() override;
   double getRowsAffected() override;
   SQLiteQueryResults getResults() override;
+  std::optional<NitroSQLiteQueryResultRows> getRows() override;
   std::optional<SQLiteQueryTableMetadata> getMetadata() override;
 };
 
