@@ -13,8 +13,6 @@
 #error NitroModules cannot be found! Are you sure you installed NitroModules properly?
 #endif
 
-// Forward declaration of `ArrayBuffer` to properly resolve imports.
-namespace NitroModules { class ArrayBuffer; }
 // Forward declaration of `SQLiteNullValue` to properly resolve imports.
 namespace margelo::nitro::rnnitrosqlite { struct SQLiteNullValue; }
 // Forward declaration of `SQLiteQueryColumnMetadata` to properly resolve imports.
@@ -58,7 +56,7 @@ namespace margelo::nitro::rnnitrosqlite {
       // Properties
       virtual double getRowsAffected() = 0;
       virtual std::optional<double> getInsertId() = 0;
-      virtual std::vector<std::unordered_map<std::string, std::variant<std::string, double, bool, std::shared_ptr<ArrayBuffer>, SQLiteNullValue>>> getResults() = 0;
+      virtual std::vector<std::unordered_map<std::string, std::variant<bool, std::shared_ptr<ArrayBuffer>, std::string, double, SQLiteNullValue>>> getResults() = 0;
       virtual std::optional<std::unordered_map<std::string, SQLiteQueryColumnMetadata>> getMetadata() = 0;
 
     public:

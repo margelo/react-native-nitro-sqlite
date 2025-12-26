@@ -36,16 +36,14 @@ namespace margelo::nitro::rnnitrosqlite {
 
 namespace margelo::nitro {
 
-  using namespace margelo::nitro::rnnitrosqlite;
-
   // C++ ColumnType <> JS ColumnType (enum)
   template <>
-  struct JSIConverter<ColumnType> final {
-    static inline ColumnType fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {
+  struct JSIConverter<margelo::nitro::rnnitrosqlite::ColumnType> final {
+    static inline margelo::nitro::rnnitrosqlite::ColumnType fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {
       int enumValue = JSIConverter<int>::fromJSI(runtime, arg);
-      return static_cast<ColumnType>(enumValue);
+      return static_cast<margelo::nitro::rnnitrosqlite::ColumnType>(enumValue);
     }
-    static inline jsi::Value toJSI(jsi::Runtime& runtime, ColumnType arg) {
+    static inline jsi::Value toJSI(jsi::Runtime& runtime, margelo::nitro::rnnitrosqlite::ColumnType arg) {
       int enumValue = static_cast<int>(arg);
       return JSIConverter<int>::toJSI(runtime, enumValue);
     }

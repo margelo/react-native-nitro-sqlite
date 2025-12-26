@@ -17,6 +17,16 @@
 #else
 #error NitroModules cannot be found! Are you sure you installed NitroModules properly?
 #endif
+#if __has_include(<NitroModules/JSIHelpers.hpp>)
+#include <NitroModules/JSIHelpers.hpp>
+#else
+#error NitroModules cannot be found! Are you sure you installed NitroModules properly?
+#endif
+#if __has_include(<NitroModules/PropNameIDCache.hpp>)
+#include <NitroModules/PropNameIDCache.hpp>
+#else
+#error NitroModules cannot be found! Are you sure you installed NitroModules properly?
+#endif
 
 
 
@@ -27,7 +37,7 @@ namespace margelo::nitro::rnnitrosqlite {
   /**
    * A struct which can be represented as a JavaScript object (FileLoadResult).
    */
-  struct FileLoadResult {
+  struct FileLoadResult final {
   public:
     std::optional<double> commands     SWIFT_PRIVATE;
     std::optional<double> rowsAffected     SWIFT_PRIVATE;
@@ -35,28 +45,29 @@ namespace margelo::nitro::rnnitrosqlite {
   public:
     FileLoadResult() = default;
     explicit FileLoadResult(std::optional<double> commands, std::optional<double> rowsAffected): commands(commands), rowsAffected(rowsAffected) {}
+
+  public:
+    friend bool operator==(const FileLoadResult& lhs, const FileLoadResult& rhs) = default;
   };
 
 } // namespace margelo::nitro::rnnitrosqlite
 
 namespace margelo::nitro {
 
-  using namespace margelo::nitro::rnnitrosqlite;
-
   // C++ FileLoadResult <> JS FileLoadResult (object)
   template <>
-  struct JSIConverter<FileLoadResult> final {
-    static inline FileLoadResult fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {
+  struct JSIConverter<margelo::nitro::rnnitrosqlite::FileLoadResult> final {
+    static inline margelo::nitro::rnnitrosqlite::FileLoadResult fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {
       jsi::Object obj = arg.asObject(runtime);
-      return FileLoadResult(
-        JSIConverter<std::optional<double>>::fromJSI(runtime, obj.getProperty(runtime, "commands")),
-        JSIConverter<std::optional<double>>::fromJSI(runtime, obj.getProperty(runtime, "rowsAffected"))
+      return margelo::nitro::rnnitrosqlite::FileLoadResult(
+        JSIConverter<std::optional<double>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "commands"))),
+        JSIConverter<std::optional<double>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "rowsAffected")))
       );
     }
-    static inline jsi::Value toJSI(jsi::Runtime& runtime, const FileLoadResult& arg) {
+    static inline jsi::Value toJSI(jsi::Runtime& runtime, const margelo::nitro::rnnitrosqlite::FileLoadResult& arg) {
       jsi::Object obj(runtime);
-      obj.setProperty(runtime, "commands", JSIConverter<std::optional<double>>::toJSI(runtime, arg.commands));
-      obj.setProperty(runtime, "rowsAffected", JSIConverter<std::optional<double>>::toJSI(runtime, arg.rowsAffected));
+      obj.setProperty(runtime, PropNameIDCache::get(runtime, "commands"), JSIConverter<std::optional<double>>::toJSI(runtime, arg.commands));
+      obj.setProperty(runtime, PropNameIDCache::get(runtime, "rowsAffected"), JSIConverter<std::optional<double>>::toJSI(runtime, arg.rowsAffected));
       return obj;
     }
     static inline bool canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
@@ -64,8 +75,11 @@ namespace margelo::nitro {
         return false;
       }
       jsi::Object obj = value.getObject(runtime);
-      if (!JSIConverter<std::optional<double>>::canConvert(runtime, obj.getProperty(runtime, "commands"))) return false;
-      if (!JSIConverter<std::optional<double>>::canConvert(runtime, obj.getProperty(runtime, "rowsAffected"))) return false;
+      if (!nitro::isPlainObject(runtime, obj)) {
+        return false;
+      }
+      if (!JSIConverter<std::optional<double>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "commands")))) return false;
+      if (!JSIConverter<std::optional<double>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "rowsAffected")))) return false;
       return true;
     }
   };

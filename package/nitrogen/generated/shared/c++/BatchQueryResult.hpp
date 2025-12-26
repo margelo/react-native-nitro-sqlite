@@ -17,6 +17,16 @@
 #else
 #error NitroModules cannot be found! Are you sure you installed NitroModules properly?
 #endif
+#if __has_include(<NitroModules/JSIHelpers.hpp>)
+#include <NitroModules/JSIHelpers.hpp>
+#else
+#error NitroModules cannot be found! Are you sure you installed NitroModules properly?
+#endif
+#if __has_include(<NitroModules/PropNameIDCache.hpp>)
+#include <NitroModules/PropNameIDCache.hpp>
+#else
+#error NitroModules cannot be found! Are you sure you installed NitroModules properly?
+#endif
 
 
 
@@ -27,33 +37,34 @@ namespace margelo::nitro::rnnitrosqlite {
   /**
    * A struct which can be represented as a JavaScript object (BatchQueryResult).
    */
-  struct BatchQueryResult {
+  struct BatchQueryResult final {
   public:
     std::optional<double> rowsAffected     SWIFT_PRIVATE;
 
   public:
     BatchQueryResult() = default;
     explicit BatchQueryResult(std::optional<double> rowsAffected): rowsAffected(rowsAffected) {}
+
+  public:
+    friend bool operator==(const BatchQueryResult& lhs, const BatchQueryResult& rhs) = default;
   };
 
 } // namespace margelo::nitro::rnnitrosqlite
 
 namespace margelo::nitro {
 
-  using namespace margelo::nitro::rnnitrosqlite;
-
   // C++ BatchQueryResult <> JS BatchQueryResult (object)
   template <>
-  struct JSIConverter<BatchQueryResult> final {
-    static inline BatchQueryResult fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {
+  struct JSIConverter<margelo::nitro::rnnitrosqlite::BatchQueryResult> final {
+    static inline margelo::nitro::rnnitrosqlite::BatchQueryResult fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {
       jsi::Object obj = arg.asObject(runtime);
-      return BatchQueryResult(
-        JSIConverter<std::optional<double>>::fromJSI(runtime, obj.getProperty(runtime, "rowsAffected"))
+      return margelo::nitro::rnnitrosqlite::BatchQueryResult(
+        JSIConverter<std::optional<double>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "rowsAffected")))
       );
     }
-    static inline jsi::Value toJSI(jsi::Runtime& runtime, const BatchQueryResult& arg) {
+    static inline jsi::Value toJSI(jsi::Runtime& runtime, const margelo::nitro::rnnitrosqlite::BatchQueryResult& arg) {
       jsi::Object obj(runtime);
-      obj.setProperty(runtime, "rowsAffected", JSIConverter<std::optional<double>>::toJSI(runtime, arg.rowsAffected));
+      obj.setProperty(runtime, PropNameIDCache::get(runtime, "rowsAffected"), JSIConverter<std::optional<double>>::toJSI(runtime, arg.rowsAffected));
       return obj;
     }
     static inline bool canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
@@ -61,7 +72,10 @@ namespace margelo::nitro {
         return false;
       }
       jsi::Object obj = value.getObject(runtime);
-      if (!JSIConverter<std::optional<double>>::canConvert(runtime, obj.getProperty(runtime, "rowsAffected"))) return false;
+      if (!nitro::isPlainObject(runtime, obj)) {
+        return false;
+      }
+      if (!JSIConverter<std::optional<double>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "rowsAffected")))) return false;
       return true;
     }
   };

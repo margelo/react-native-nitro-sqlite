@@ -17,6 +17,16 @@
 #else
 #error NitroModules cannot be found! Are you sure you installed NitroModules properly?
 #endif
+#if __has_include(<NitroModules/JSIHelpers.hpp>)
+#include <NitroModules/JSIHelpers.hpp>
+#else
+#error NitroModules cannot be found! Are you sure you installed NitroModules properly?
+#endif
+#if __has_include(<NitroModules/PropNameIDCache.hpp>)
+#include <NitroModules/PropNameIDCache.hpp>
+#else
+#error NitroModules cannot be found! Are you sure you installed NitroModules properly?
+#endif
 
 
 
@@ -27,33 +37,34 @@ namespace margelo::nitro::rnnitrosqlite {
   /**
    * A struct which can be represented as a JavaScript object (SQLiteNullValue).
    */
-  struct SQLiteNullValue {
+  struct SQLiteNullValue final {
   public:
     bool isNitroSQLiteNull     SWIFT_PRIVATE;
 
   public:
     SQLiteNullValue() = default;
     explicit SQLiteNullValue(bool isNitroSQLiteNull): isNitroSQLiteNull(isNitroSQLiteNull) {}
+
+  public:
+    friend bool operator==(const SQLiteNullValue& lhs, const SQLiteNullValue& rhs) = default;
   };
 
 } // namespace margelo::nitro::rnnitrosqlite
 
 namespace margelo::nitro {
 
-  using namespace margelo::nitro::rnnitrosqlite;
-
   // C++ SQLiteNullValue <> JS SQLiteNullValue (object)
   template <>
-  struct JSIConverter<SQLiteNullValue> final {
-    static inline SQLiteNullValue fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {
+  struct JSIConverter<margelo::nitro::rnnitrosqlite::SQLiteNullValue> final {
+    static inline margelo::nitro::rnnitrosqlite::SQLiteNullValue fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {
       jsi::Object obj = arg.asObject(runtime);
-      return SQLiteNullValue(
-        JSIConverter<bool>::fromJSI(runtime, obj.getProperty(runtime, "isNitroSQLiteNull"))
+      return margelo::nitro::rnnitrosqlite::SQLiteNullValue(
+        JSIConverter<bool>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "isNitroSQLiteNull")))
       );
     }
-    static inline jsi::Value toJSI(jsi::Runtime& runtime, const SQLiteNullValue& arg) {
+    static inline jsi::Value toJSI(jsi::Runtime& runtime, const margelo::nitro::rnnitrosqlite::SQLiteNullValue& arg) {
       jsi::Object obj(runtime);
-      obj.setProperty(runtime, "isNitroSQLiteNull", JSIConverter<bool>::toJSI(runtime, arg.isNitroSQLiteNull));
+      obj.setProperty(runtime, PropNameIDCache::get(runtime, "isNitroSQLiteNull"), JSIConverter<bool>::toJSI(runtime, arg.isNitroSQLiteNull));
       return obj;
     }
     static inline bool canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
@@ -61,7 +72,10 @@ namespace margelo::nitro {
         return false;
       }
       jsi::Object obj = value.getObject(runtime);
-      if (!JSIConverter<bool>::canConvert(runtime, obj.getProperty(runtime, "isNitroSQLiteNull"))) return false;
+      if (!nitro::isPlainObject(runtime, obj)) {
+        return false;
+      }
+      if (!JSIConverter<bool>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "isNitroSQLiteNull")))) return false;
       return true;
     }
   };

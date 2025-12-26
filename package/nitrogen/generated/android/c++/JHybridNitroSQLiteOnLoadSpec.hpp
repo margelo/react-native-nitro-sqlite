@@ -29,6 +29,7 @@ namespace margelo::nitro::rnnitrosqlite {
     // C++ constructor (called from Java via `initHybrid()`)
     explicit JHybridNitroSQLiteOnLoadSpec(jni::alias_ref<jhybridobject> jThis) :
       HybridObject(HybridNitroSQLiteOnLoadSpec::TAG),
+      HybridBase(jThis),
       _javaPart(jni::make_global(jThis)) {}
 
   public:
@@ -40,6 +41,7 @@ namespace margelo::nitro::rnnitrosqlite {
   public:
     size_t getExternalMemorySize() noexcept override;
     void dispose() noexcept override;
+    std::string toString() override;
 
   public:
     inline const jni::global_ref<JHybridNitroSQLiteOnLoadSpec::javaobject>& getJavaPart() const noexcept {
