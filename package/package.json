@@ -38,7 +38,7 @@
   ],
   "scripts": {
     "build": "bun typecheck && bob build",
-    "specs": "bun typecheck && bun nitro-codegen --logLevel=\"debug\"",
+    "specs": "bun typecheck && bun nitrogen --logLevel=\"debug\"",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\" --fix",
     "test": "jest",
