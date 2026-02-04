@@ -38,7 +38,7 @@
   ],
   "scripts": {
     "build": "bun typecheck && bob build",
-    "specs": "bun typecheck && bun nitro-codegen --logLevel=\"debug\"",
+    "specs": "bun typecheck && bun nitrogen --logLevel=\"debug\"",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\" --fix",
     "test": "jest",
@@ -70,16 +70,16 @@
   },
   "devDependencies": {
     "jest": "^30.2.0",
-    "nitro-codegen": "0.27.2",
+    "nitrogen": "0.33.5",
     "react": "19.1.1",
     "react-native": "0.82.1",
     "react-native-builder-bob": "^0.31.0",
-    "react-native-nitro-modules": "0.27.2"
+    "react-native-nitro-modules": "0.33.5"
   },
   "peerDependencies": {
     "react": ">=17.0.0",
     "react-native": ">=0.75.0",
-    "react-native-nitro-modules": ">=0.27.2"
+    "react-native-nitro-modules": ">=0.32.0"
   },
   "resolutions": {
     "@types/react": "^18.2.44"
