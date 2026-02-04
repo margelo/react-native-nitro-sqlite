@@ -34,13 +34,7 @@ export enum ColumnType {
   NULL_VALUE,
 }
 
-export type SQLiteValue =
-  | boolean
-  | number
-  | string
-  | ArrayBuffer
-  | null
-  | undefined
+export type SQLiteValue = boolean | number | string | ArrayBuffer | null
 
 export type SQLiteQueryParams = SQLiteValue[]
 
