@@ -27,6 +27,8 @@ export interface NitroSQLiteQueryResult
 }
 
 // TODO: Investigate why this cannot be represented in Nitro
+//   [key: string]: SQLiteValue
+// }
 
 // type NitroQueryResultRow = Record<string, SQLiteValue>
 
@@ -41,7 +43,7 @@ export type NitroSQLiteQueryResultRows<
    * @param idx the row index
    * @returns the row structure identified by column names
    */
-  item: (idx: number) => Record<string, SQLiteValue> | undefined
+  item: (idx: number) => Row | undefined
 }
 
 export type NitroSQLiteQueryColumnMetadata = {
