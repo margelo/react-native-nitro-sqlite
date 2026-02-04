@@ -27,6 +27,7 @@ export interface NitroSQLiteQueryResult
 }
 
 // TODO: Investigate why this cannot be represented in Nitro
+// export type NitroQueryResultRow = {
 //   [key: string]: SQLiteValue
 // }
 
