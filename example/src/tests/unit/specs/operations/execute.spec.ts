@@ -1,8 +1,4 @@
 import { chance, expect, isNitroSQLiteError } from '../../common'
-import {
-  enableSimpleNullHandling,
-  NITRO_SQLITE_NULL,
-} from 'react-native-nitro-sqlite'
 import { describe, it } from '../../../MochaRNAdapter'
 import { testDb } from '../../../db'
 
@@ -29,8 +25,8 @@ export default function registerExecuteUnitTests() {
       it('Insert with null', () => {
         const id = chance.integer()
         const name = chance.name()
-        const age = NITRO_SQLITE_NULL
-        const networth = NITRO_SQLITE_NULL
+        const age = null
+        const networth = null
         const res = testDb.execute(
           'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
           [id, name, age, networth],
@@ -49,35 +45,6 @@ export default function registerExecuteUnitTests() {
             name,
             age,
             networth,
-          },
-        ])
-      })
-
-      it('Insert with null (simple null handling)', () => {
-        enableSimpleNullHandling(true)
-
-        const id = chance.integer()
-        const name = chance.name()
-        const age = undefined
-        const networth = null
-        const res = testDb.execute(
-          'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
-          [id, name, age, networth],
-        )
-
-        expect(res.rowsAffected).to.equal(1)
-        expect(res.insertId).to.equal(1)
-        expect(res.rows?._array).to.eql([])
-        expect(res.rows?.length).to.equal(0)
-        expect(res.rows?.item).to.be.a('function')
-
-        const selectRes = testDb.execute('SELECT * FROM User')
-        expect(selectRes.rows?._array).to.eql([
-          {
-            id,
-            name,
-            age: null,
-            networth: null,
           },
         ])
       })
@@ -115,7 +82,7 @@ export default function registerExecuteUnitTests() {
             [id, name, age, networth],
           )
         } catch (e: unknown) {
-          expect(e).to.not.equal(undefined)
+          expect(e).to.not.equal(null)
         }
       })
     })

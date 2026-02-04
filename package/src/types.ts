@@ -1,3 +1,9 @@
+import type {
+  NitroSQLiteQueryColumnMetadata,
+  NitroSQLiteQueryResult,
+  NitroSQLiteQueryResultRows,
+} from './specs/NitroSQLiteQueryResult.nitro'
+
 export interface NitroSQLiteConnectionOptions {
   name: string
   location?: string
@@ -28,48 +34,30 @@ export enum ColumnType {
   NULL_VALUE,
 }
 
-// Passing null/undefined in array types is not possible, so we us a special struct as a workaround.
-export type SQLiteNullValue = {
-  isNitroSQLiteNull: true
-}
-export type SQLiteValue =
-  | boolean
-  | number
-  | string
-  | ArrayBuffer
-  | SQLiteNullValue
+export type SQLiteValue = boolean | number | string | ArrayBuffer | null
 
-/** Used internally to transform the query params into a native format without nullish values */
-export type NativeSQLiteQueryParams = SQLiteValue[]
+export type SQLiteQueryParams = SQLiteValue[]
 
-/**
- * Represents a value that can be stored in a SQLite database
- */
-export type SQLiteQueryParamItem = SQLiteValue | null | undefined
-export type SQLiteQueryParams = SQLiteQueryParamItem[]
+export type QueryResultRow = Record<string, SQLiteValue>
 
-export type QueryResultRowItem = SQLiteValue | undefined
-export type QueryResultRow = Record<string, QueryResultRowItem>
-export interface QueryResult<Row extends QueryResultRow = QueryResultRow> {
-  readonly insertId?: number
-  readonly rowsAffected: number
+export type QueryResult<Row extends QueryResultRow = QueryResultRow> =
+  NitroSQLiteQueryResult & {
+    readonly rowsAffected: number
+    readonly insertId?: number
 
-  readonly rows?: {
-    /** Raw array with all dataset */
-    _array: Row[]
-    /** The lengh of the dataset */
-    length: number
-    /** A convenience function to acess the index based the row object
-     * @param idx the row index
-     * @returns the row structure identified by column names
-     */
-    item: (idx: number) => Row | undefined
+    /** Query results */
+    readonly results: Row[]
+
+    /** Query results in a row format for TypeORM compatibility */
+    readonly rows?: NitroSQLiteQueryResultRows<Row>
+
+    /** Table metadata */
+    readonly metadata?: Record<string, NitroSQLiteQueryColumnMetadata>
   }
-}
 
 export type ExecuteQuery = <Row extends QueryResultRow = QueryResultRow>(
   query: string,
-  params?: SQLiteQueryParams,
+  params?: SQLiteValue[],
 ) => QueryResult<Row>
 
 export type ExecuteAsyncQuery = <Row extends QueryResultRow = QueryResultRow>(
@@ -78,8 +66,8 @@ export type ExecuteAsyncQuery = <Row extends QueryResultRow = QueryResultRow>(
 ) => Promise<QueryResult<Row>>
 
 export interface Transaction {
-  commit(): QueryResult
-  rollback(): QueryResult
+  commit(): NitroSQLiteQueryResult
+  rollback(): NitroSQLiteQueryResult
   execute: ExecuteQuery
   executeAsync: ExecuteAsyncQuery
 }
@@ -93,14 +81,6 @@ export interface Transaction {
 export interface BatchQueryCommand {
   query: string
   params?: SQLiteQueryParams | SQLiteQueryParams[]
-}
-
-/**
- * Used internally to transform the batch query commands into a native format without nullish values
- */
-export interface NativeBatchQueryCommand {
-  query: string
-  params?: NativeSQLiteQueryParams | NativeSQLiteQueryParams[]
 }
 
 /**
