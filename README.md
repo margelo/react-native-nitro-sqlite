@@ -148,62 +148,6 @@ const res = NitroSQLite.executeSqlBatch('myDatabase', commands);
 console.log(`Batch affected ${result.rowsAffected} rows`);
 ```
 
-## Sending and receiving nullish values
-
-Due to internal limitations with Nitro modules, we have to handle nullish values explicitly in NitroSQLite. There are two ways to send and receive null values:
-
-### Default null handling
-
-By default, the user can pass the `NITRO_SQLITE_NULL` constant instead of `null` or `undefined` to query params and will also receive this constant for nullish values in e.g. `SELECT` queries. `NITRO_SQLITE_NULL` is the object that is used internally to handle nullish values, therefore **this approach does NOT introduce any performance overhead**.
-
-A `INSERT` query with nullish values could look like this:
-
-```typescript
-import { NITRO_SQLITE_NULL } from 'react-native-nitro-sqlite'
-
-db.execute(
-  'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
-  [1, "Mike", NITRO_SQLITE_NULL, NITRO_SQLITE_NULL]
-)
-```
-
-Query results that are received from e.g. `execute()` will also return this special object/struct. To check for null values, the user can use the a special function:
-
-```typescript
-import { isNitroSQLiteNull } from 'react-native-nitro-sqlite'
-
-const res = db.execute('SELECT * FROM User')
-
-const firstItem = res.rows?.item(0)
-if (isNitroSQLiteNull(firstItem.age) {
-  // Handle null value
-}
-```
-
-### Simplified null handling
-
-To enable simple null handling, call `enableSimpleNullHandling()` in the root of your project. This will allow you to just pass `null` or `undefined` to NitroSQLite functions, e.g. as query params. in `execute()`:
-
-```typescript
-db.execute(
-  'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?)',
-  [1, "Mike", null, undefined]
-)
-```
-
-Note that in SQLite, both `undefined` and `null` are transformed into the same representation in the database. Therefore, nullish values received from `SELECT` queries will always evaluate to `null`, even if `undefined` was used in the `INSERT` query.
-
-```typescript
-const res = db.execute('SELECT * FROM User')
-
-const firstItem = res.rows?.item(0)
-if (firstItem.age === null) { // Nullish values will always be null and never undefined.
-  // Handle null value
-}
-```
-
-Simple null handling adds some logic to internally transform nullish values into a special object/struct and vice versa, that is sent/received from the native C++ side. This **might introduce some performance overhead**, since we have to loop over the params and query results and check for this structure.
-
 ## Dynamic Column Metadata
 
 In some scenarios, dynamic applications may need to get some metadata information about the returned result set.
