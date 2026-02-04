@@ -91,6 +91,14 @@
       "@release-it/bumper": {
         "out": [
           {
+            "file": "package.json",
+            "path": "version"
+          },
+          {
+            "file": "package/package.json",
+            "path": "version"
+          },
+          {
             "file": "example/package.json",
             "path": "version"
           },
