@@ -79,6 +79,7 @@
     "github": {
       "release": true,
       "tokenRef": "RELEASE_IT_GITHUB_TOKEN",
+      "skipChecks": true,
       "comments": {
         "submit": true
       }
