@@ -70,11 +70,11 @@
   },
   "devDependencies": {
     "jest": "^30.2.0",
-    "nitrogen": "0.32.0",
+    "nitrogen": "0.33.5",
     "react": "19.1.1",
     "react-native": "0.82.1",
     "react-native-builder-bob": "^0.31.0",
-    "react-native-nitro-modules": "0.32.0"
+    "react-native-nitro-modules": "0.33.5"
   },
   "peerDependencies": {
     "react": ">=17.0.0",
