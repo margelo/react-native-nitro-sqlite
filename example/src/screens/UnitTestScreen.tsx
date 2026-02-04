@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react'
-import { ScrollView, Text } from 'react-native'
+import { FlatList, StyleSheet, Text } from 'react-native'
 import type { MochaTestResult } from '../tests/MochaSetup'
 import { runTests } from '../tests/MochaSetup'
 import {
   registerUnitTests,
   /* registerTypeORMUnitTests,  */
 } from '../tests/unit'
-import { ScreenStyles } from '../styles'
 
 export function UnitTestScreen() {
   const [results, setResults] = useState<MochaTestResult[]>([])
@@ -20,26 +19,33 @@ export function UnitTestScreen() {
   }, [])
 
   return (
-    <ScrollView
-      contentContainerStyle={[
-        ScreenStyles.container,
-        // eslint-disable-next-line react-native/no-inline-styles
-        { alignItems: 'flex-start' },
-      ]}
-    >
-      {results.map((r, i) => {
-        if (r.type === 'grouping') return <Text key={i}>{r.description}</Text>
+    <FlatList
+      style={styles.unitTestsScreenContainer}
+      contentContainerStyle={styles.contentContainer}
+      data={results}
+      renderItem={({ item }) => {
+        if (item.type === 'grouping') return <Text>{item.description}</Text>
 
-        if (r.type === 'incorrect') {
+        if (item.type === 'incorrect') {
           return (
-            <Text key={i}>
-              🔴 {r.description}: {r.errorMsg}
+            <Text>
+              🔴 {item.description}: {item.errorMsg}
             </Text>
           )
         }
 
-        return <Text key={i}>🟢 {r.description}</Text>
-      })}
-    </ScrollView>
+        return <Text>🟢 {item.description}</Text>
+      }}
+    />
   )
 }
+
+const styles = StyleSheet.create({
+  unitTestsScreenContainer: {
+    flex: 1,
+  },
+  contentContainer: {
+    padding: 20,
+    paddingBottom: 50,
+  },
+})
