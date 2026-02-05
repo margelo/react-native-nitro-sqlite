@@ -1,6 +1,7 @@
 #include "operations.hpp"
 #include "NitroSQLiteException.hpp"
 #include "logs.hpp"
+#include "specs/HybridNitroSQLiteQueryResult.hpp"
 #include "utils.hpp"
 #include <NitroModules/ArrayBuffer.hpp>
 #include <cmath>
@@ -11,7 +12,6 @@
 #include <sqlite3.h>
 #include <sstream>
 #include <unistd.h>
-#include "specs/HybridNitroSQLiteQueryResult.hpp"
 
 using namespace facebook;
 using namespace margelo::nitro;
@@ -123,7 +123,7 @@ void bindStatement(sqlite3_stmt* statement, const SQLiteQueryParams& values) {
 }
 
 std::shared_ptr<HybridNitroSQLiteQueryResult> sqliteExecute(const std::string& dbName, const std::string& query,
-                                       const std::optional<SQLiteQueryParams>& params) {
+                                                            const std::optional<SQLiteQueryParams>& params) {
   if (dbMap.count(dbName) == 0) {
     throw NitroSQLiteException::DatabaseNotOpen(dbName);
   }
@@ -286,4 +286,3 @@ SQLiteOperationResult sqliteExecuteLiteral(const std::string& dbName, const std:
 }
 
 } // namespace margelo::rnnitrosqlite
-

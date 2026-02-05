@@ -1,7 +1,7 @@
 #pragma once
 
-#include "types.hpp"
 #include "specs/HybridNitroSQLiteQueryResult.hpp"
+#include "types.hpp"
 
 namespace margelo::rnnitrosqlite {
 
@@ -16,7 +16,8 @@ void sqliteAttachDb(const std::string& mainDBName, const std::string& docPath, c
 
 void sqliteDetachDb(const std::string& mainDBName, const std::string& alias);
 
-std::shared_ptr<HybridNitroSQLiteQueryResult> sqliteExecute(const std::string& dbName, const std::string& query, const std::optional<SQLiteQueryParams>& params);
+std::shared_ptr<HybridNitroSQLiteQueryResult> sqliteExecute(const std::string& dbName, const std::string& query,
+                                                            const std::optional<SQLiteQueryParams>& params);
 
 SQLiteOperationResult sqliteExecuteLiteral(const std::string& dbName, const std::string& query);
 
