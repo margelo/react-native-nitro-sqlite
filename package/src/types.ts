@@ -1,5 +1,4 @@
 import type {
-  NitroSQLiteQueryColumnMetadata,
   NitroSQLiteQueryResult,
   NitroSQLiteQueryResultRows,
 } from './specs/NitroSQLiteQueryResult.nitro'
@@ -42,17 +41,8 @@ export type QueryResultRow = Record<string, SQLiteValue>
 
 export type QueryResult<Row extends QueryResultRow = QueryResultRow> =
   NitroSQLiteQueryResult & {
-    readonly rowsAffected: number
-    readonly insertId?: number
-
-    /** Query results */
-    readonly results: Row[]
-
     /** Query results in a row format for TypeORM compatibility */
-    readonly rows?: NitroSQLiteQueryResultRows<Row>
-
-    /** Table metadata */
-    readonly metadata?: Record<string, NitroSQLiteQueryColumnMetadata>
+    rows?: NitroSQLiteQueryResultRows<Row>
   }
 
 export type ExecuteQuery = <Row extends QueryResultRow = QueryResultRow>(
