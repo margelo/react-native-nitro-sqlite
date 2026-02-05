@@ -10,6 +10,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "HybridNitroSQLiteQueryResult.hpp"
 
 namespace margelo::nitro::rnnitrosqlite {
 
@@ -50,12 +51,9 @@ void HybridNitroSQLite::detach(const std::string& mainDbName, const std::string&
   sqliteDetachDb(mainDbName, alias);
 };
 
-using ExecuteQueryResult = std::shared_ptr<HybridNitroSQLiteQueryResultSpec>;
-
-ExecuteQueryResult HybridNitroSQLite::execute(const std::string& dbName, const std::string& query,
+std::shared_ptr<HybridNitroSQLiteQueryResultSpec> HybridNitroSQLite::execute(const std::string& dbName, const std::string& query,
                                               const std::optional<SQLiteQueryParams>& params) {
-  SQLiteExecuteQueryResult result = sqliteExecute(dbName, query, params);
-  return std::make_shared<HybridNitroSQLiteQueryResult>(std::move(result));
+  return sqliteExecute(dbName, query, params);
 };
 
 std::shared_ptr<Promise<std::shared_ptr<HybridNitroSQLiteQueryResultSpec>>>

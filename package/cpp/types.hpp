@@ -18,16 +18,7 @@ using SQLiteQueryTableMetadata = std::unordered_map<std::string, NitroSQLiteQuer
 
 struct SQLiteOperationResult {
   int rowsAffected;
-  double insertId;
-  int commands;
-};
-
-struct SQLiteExecuteQueryResult {
-  int rowsAffected;
-  double insertId;
-
-  SQLiteQueryResults results;
-  std::optional<SQLiteQueryTableMetadata> metadata;
+  int commands = 0;
 };
 
 // constexpr function that maps SQLiteColumnType to string literals
