@@ -49,7 +49,7 @@ SQLiteOperationResult sqliteExecuteBatch(const std::string& dbName, const std::v
       auto metadata = std::optional<SQLiteQueryTableMetadata>(std::nullopt);
       try {
         auto result = sqliteExecute(dbName, command.sql, command.params);
-        rowsAffected += result.rowsAffected;
+        rowsAffected += result->getRowsAffected();
       } catch (NitroSQLiteException& e) {
         sqliteExecuteLiteral(dbName, "ROLLBACK");
         throw e;
