@@ -221,7 +221,7 @@ You can use this package as a TypeORM driver. Because of Metro and Node resoluti
 To use the system SQLite instead of the bundled one:
 
 ```bash
-Nitro_SQLITE_USE_PHONE_VERSION=1 npx pod-install
+NITRO_SQLITE_USE_PHONE_VERSION=1 npx pod-install
 ```
 
 ## Compile-time options (e.g. FTS5, Geopoly)
