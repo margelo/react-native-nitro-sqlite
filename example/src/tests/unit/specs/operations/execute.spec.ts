@@ -213,6 +213,45 @@ export default function registerExecuteUnitTests() {
           }
         })
       })
+
+      describe('executeBatchAsync', () => {
+        it('stores ArrayBuffer values in BLOB columns', async () => {
+          const dbName = 'array_buffer_batch_async'
+          const db = createArrayBufferTestDb(dbName)
+
+          const originalBytes = new Uint8Array([1, 2, 3, 4, 5])
+          const originalBuffer = originalBytes.buffer
+
+          try {
+            await db.executeBatchAsync([
+              {
+                query: 'INSERT INTO BlobData (id, data) VALUES (?, ?)',
+                params: [1, originalBuffer],
+              },
+            ])
+
+            const result = db.execute(
+              'SELECT data FROM BlobData WHERE id = ?',
+              [1],
+            )
+
+            expect(result.rowsAffected).to.equal(1)
+            expect(result.rows?.length).to.equal(1)
+
+            const row = result.results[0]
+            expect(row).to.not.equal(undefined)
+
+            const value = row?.data
+            expect(value).to.be.instanceOf(ArrayBuffer)
+
+            const returnedBytes = new Uint8Array(value as ArrayBuffer)
+            expect(Array.from(returnedBytes)).to.eql(Array.from(originalBytes))
+          } finally {
+            db.close()
+            db.delete()
+          }
+        })
+      })
     })
   })
 }

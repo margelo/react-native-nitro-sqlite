@@ -8,7 +8,9 @@
 #include "sqliteExecuteBatch.hpp"
 #include <iostream>
 #include <map>
+#include <optional>
 #include <string>
+#include <variant>
 #include <vector>
 
 namespace margelo::nitro::rnnitrosqlite {
@@ -34,6 +36,24 @@ static std::optional<SQLiteQueryParams> copyArrayBufferParamsForBackground(const
   }
 
   return copiedParams;
+}
+
+// Overload for batch execution: copy ArrayBuffer params inside each BatchQuery.
+static std::vector<BatchQuery> copyArrayBufferParamsForBackground(const std::vector<BatchQuery>& commands) {
+  std::vector<BatchQuery> copiedCommands;
+  copiedCommands.reserve(commands.size());
+
+  for (const auto& command : commands) {
+    BatchQuery copiedCommand = command;
+
+    if (command.params) {
+      copiedCommand.params = copyArrayBufferParamsForBackground(command.params);
+    }
+
+    copiedCommands.push_back(std::move(copiedCommand));
+  }
+
+  return copiedCommands;
 }
 
 const std::string getDocPath(const std::optional<std::string>& location) {
@@ -98,9 +118,14 @@ BatchQueryResult HybridNitroSQLite::executeBatch(const std::string& dbName, cons
 
 std::shared_ptr<Promise<BatchQueryResult>> HybridNitroSQLite::executeBatchAsync(const std::string& dbName,
                                                                                 const std::vector<BatchQueryCommand>& batchParams) {
+  // Convert BatchQueryCommand objects on the JS thread and copy any JS-backed
+  // ArrayBuffers into native buffers before going off-thread.
+  const auto commands = batchParamsToCommands(batchParams);
+  const auto copiedCommands = copyArrayBufferParamsForBackground(commands);
+
   return Promise<BatchQueryResult>::async([=, this]() -> BatchQueryResult {
-    auto result = executeBatch(dbName, batchParams);
-    return result;
+    auto result = sqliteExecuteBatch(dbName, copiedCommands);
+    return BatchQueryResult(result.rowsAffected);
   });
 };
 
