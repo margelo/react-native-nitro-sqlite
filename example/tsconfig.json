@@ -1,4 +1,10 @@
 {
   "extends": "../config/tsconfig.json",
-  "include": ["src", "index.js", "../package"]
+  "include": ["src", "index.js", "../package"],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "react-native-nitro-sqlite": ["../package/src"]
+    }
+  }
 }

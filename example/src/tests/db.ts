@@ -36,6 +36,19 @@ export function resetTestDb() {
   }
 }
 
+export function createArrayBufferTestDb(name: string) {
+  // Use a dedicated database so ArrayBuffer tests do not interfere
+  // with the default test database used in other specs.
+  const db = open({ name })
+
+  db.execute('DROP TABLE IF EXISTS BlobData;')
+  db.execute(
+    'CREATE TABLE BlobData (id INTEGER PRIMARY KEY, data BLOB NOT NULL) STRICT;',
+  )
+
+  return db
+}
+
 const LARGE_DB_NAME = 'large'
 
 // Copyright 2024 Oscar Franco

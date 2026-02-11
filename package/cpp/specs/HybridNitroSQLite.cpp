@@ -8,10 +8,53 @@
 #include "sqliteExecuteBatch.hpp"
 #include <iostream>
 #include <map>
+#include <optional>
 #include <string>
+#include <variant>
 #include <vector>
 
 namespace margelo::nitro::rnnitrosqlite {
+
+// Copy any JS-backed ArrayBuffers on the JS thread so they can be safely
+// accessed from the background thread used by Promise::async.
+static std::optional<SQLiteQueryParams> copyArrayBufferParamsForBackground(const std::optional<SQLiteQueryParams>& params) {
+  if (!params) {
+    return std::nullopt;
+  }
+
+  SQLiteQueryParams copiedParams;
+  copiedParams.reserve(params->size());
+
+  for (const auto& value : *params) {
+    if (std::holds_alternative<std::shared_ptr<ArrayBuffer>>(value)) {
+      const auto& buffer = std::get<std::shared_ptr<ArrayBuffer>>(value);
+      const auto copiedBuffer = ArrayBuffer::copy(buffer);
+      copiedParams.push_back(copiedBuffer);
+    } else {
+      copiedParams.push_back(value);
+    }
+  }
+
+  return copiedParams;
+}
+
+// Overload for batch execution: copy ArrayBuffer params inside each BatchQuery.
+static std::vector<BatchQuery> copyArrayBufferParamsForBackground(const std::vector<BatchQuery>& commands) {
+  std::vector<BatchQuery> copiedCommands;
+  copiedCommands.reserve(commands.size());
+
+  for (const auto& command : commands) {
+    BatchQuery copiedCommand = command;
+
+    if (command.params) {
+      copiedCommand.params = copyArrayBufferParamsForBackground(command.params);
+    }
+
+    copiedCommands.push_back(std::move(copiedCommand));
+  }
+
+  return copiedCommands;
+}
 
 const std::string getDocPath(const std::optional<std::string>& location) {
   std::string tempDocPath = std::string(HybridNitroSQLite::docPath);
@@ -57,9 +100,11 @@ std::shared_ptr<HybridNitroSQLiteQueryResultSpec> HybridNitroSQLite::execute(con
 
 std::shared_ptr<Promise<std::shared_ptr<HybridNitroSQLiteQueryResultSpec>>>
 HybridNitroSQLite::executeAsync(const std::string& dbName, const std::string& query, const std::optional<SQLiteQueryParams>& params) {
+  const auto copiedParams = copyArrayBufferParamsForBackground(params);
+
   return Promise<std::shared_ptr<HybridNitroSQLiteQueryResultSpec>>::async(
       [=, this]() -> std::shared_ptr<HybridNitroSQLiteQueryResultSpec> {
-        auto result = execute(dbName, query, params);
+        auto result = sqliteExecute(dbName, query, copiedParams);
         return result;
       });
 };
@@ -73,9 +118,14 @@ BatchQueryResult HybridNitroSQLite::executeBatch(const std::string& dbName, cons
 
 std::shared_ptr<Promise<BatchQueryResult>> HybridNitroSQLite::executeBatchAsync(const std::string& dbName,
                                                                                 const std::vector<BatchQueryCommand>& batchParams) {
+  // Convert BatchQueryCommand objects on the JS thread and copy any JS-backed
+  // ArrayBuffers into native buffers before going off-thread.
+  const auto commands = batchParamsToCommands(batchParams);
+  const auto copiedCommands = copyArrayBufferParamsForBackground(commands);
+
   return Promise<BatchQueryResult>::async([=, this]() -> BatchQueryResult {
-    auto result = executeBatch(dbName, batchParams);
-    return result;
+    auto result = sqliteExecuteBatch(dbName, copiedCommands);
+    return BatchQueryResult(result.rowsAffected);
   });
 };
 

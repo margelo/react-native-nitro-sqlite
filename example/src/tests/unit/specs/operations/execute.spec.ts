@@ -1,6 +1,6 @@
 import { chance, expect, isNitroSQLiteError } from '../../common'
 import { describe, it } from '../../../MochaRNAdapter'
-import { testDb } from '../../../db'
+import { createArrayBufferTestDb, testDb } from '../../../db'
 
 export default function registerExecuteUnitTests() {
   describe('execute', () => {
@@ -134,6 +134,123 @@ export default function registerExecuteUnitTests() {
             networth,
           },
         ])
+      })
+    })
+
+    describe('ArrayBuffer support', () => {
+      describe('execute', () => {
+        it('stores and reads ArrayBuffer values from BLOB columns', () => {
+          const dbName = 'array_buffer_read'
+          const db = createArrayBufferTestDb(dbName)
+
+          const originalBytes = new Uint8Array([10, 20, 30, 40])
+          const originalBuffer = originalBytes.buffer
+
+          try {
+            db.execute('INSERT INTO BlobData (id, data) VALUES (?, ?)', [
+              1,
+              originalBuffer,
+            ])
+
+            const result = db.execute(
+              'SELECT data FROM BlobData WHERE id = ?',
+              [1],
+            )
+
+            expect(result.rowsAffected).to.equal(1)
+            expect(result.rows?.length).to.equal(1)
+
+            const row = result.results[0]
+            // const row = result.rows?.item(0)
+            expect(row).to.not.equal(undefined)
+
+            const value = row?.data
+            expect(value).to.be.instanceOf(ArrayBuffer)
+
+            const returnedBytes = new Uint8Array(value as ArrayBuffer)
+            expect(Array.from(returnedBytes)).to.eql(Array.from(originalBytes))
+          } finally {
+            db.close()
+            db.delete()
+          }
+        })
+      })
+
+      describe('executeAsync', () => {
+        it('stores and reads ArrayBuffer values from BLOB columns', async () => {
+          const dbName = 'array_buffer_read'
+          const db = createArrayBufferTestDb(dbName)
+
+          const originalBytes = new Uint8Array([10, 20, 30, 40])
+          const originalBuffer = originalBytes.buffer
+
+          try {
+            await db.executeAsync(
+              'INSERT INTO BlobData (id, data) VALUES (?, ?)',
+              [1, originalBuffer],
+            )
+
+            const result = await db.executeAsync(
+              'SELECT data FROM BlobData WHERE id = ?',
+              [1],
+            )
+
+            expect(result.rowsAffected).to.equal(1)
+            expect(result.rows?.length).to.equal(1)
+
+            const row = result.results[0]
+            // const row = result.rows?.item(0)
+            expect(row).to.not.equal(undefined)
+
+            const value = row?.data
+            expect(value).to.be.instanceOf(ArrayBuffer)
+
+            const returnedBytes = new Uint8Array(value as ArrayBuffer)
+            expect(Array.from(returnedBytes)).to.eql(Array.from(originalBytes))
+          } finally {
+            db.close()
+            db.delete()
+          }
+        })
+      })
+
+      describe('executeBatchAsync', () => {
+        it('stores ArrayBuffer values in BLOB columns', async () => {
+          const dbName = 'array_buffer_batch_async'
+          const db = createArrayBufferTestDb(dbName)
+
+          const originalBytes = new Uint8Array([1, 2, 3, 4, 5])
+          const originalBuffer = originalBytes.buffer
+
+          try {
+            await db.executeBatchAsync([
+              {
+                query: 'INSERT INTO BlobData (id, data) VALUES (?, ?)',
+                params: [1, originalBuffer],
+              },
+            ])
+
+            const result = db.execute(
+              'SELECT data FROM BlobData WHERE id = ?',
+              [1],
+            )
+
+            expect(result.rowsAffected).to.equal(1)
+            expect(result.rows?.length).to.equal(1)
+
+            const row = result.results[0]
+            expect(row).to.not.equal(undefined)
+
+            const value = row?.data
+            expect(value).to.be.instanceOf(ArrayBuffer)
+
+            const returnedBytes = new Uint8Array(value as ArrayBuffer)
+            expect(Array.from(returnedBytes)).to.eql(Array.from(originalBytes))
+          } finally {
+            db.close()
+            db.delete()
+          }
+        })
       })
     })
   })

@@ -19,6 +19,8 @@ on:
       - "**/*.json"
       - "**/*.lockb"
       - "**/package.json"
+      - "**/tsconfig.json"
+      - "**/eslintrc.js"
   pull_request:
     paths:
       - ".github/workflows/lint-typescript.yml"
@@ -30,6 +32,8 @@ on:
       - "**/*.json"
       - "**/*.lockb"
       - "**/package.json"
+      - "**/tsconfig.json"
+      - "**/eslintrc.js"
 
 jobs:
   tsc:
