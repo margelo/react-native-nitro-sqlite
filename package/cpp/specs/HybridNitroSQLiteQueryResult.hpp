@@ -27,6 +27,21 @@ public:
   double getRowsAffected() override;
   SQLiteQueryResults getResults() override;
   std::optional<SQLiteQueryTableMetadata> getMetadata() override;
+
+  /**
+   * Approximate the native memory used by this query result.
+   *
+   * We account for:
+   * - The size of this C++ object (`sizeof(*this)`),
+   * - All rows and columns (including column name strings),
+   * - String values stored in the result set,
+   * - ArrayBuffers used for BLOB columns (object overhead + raw byte size),
+   * - Column metadata strings.
+   *
+   * This is a best-effort estimate and intentionally focuses on external
+   * heap allocations that can put pressure on the JS GC.
+   */
+  size_t getExternalMemorySize() noexcept override;
 };
 
 } // namespace margelo::nitro::rnnitrosqlite
