@@ -42,7 +42,7 @@ const benchmarks: Benchmark[] = [
     run: (i) => {
       testDb?.execute(
         'INSERT INTO User (id, name, age, networth) VALUES(?, ?, ?, ?)',
-        [ids[i], stringValue, integerValue, doubleValue],
+        [ids[i]!, stringValue, integerValue, doubleValue],
       )
     },
   },
@@ -55,7 +55,7 @@ const benchmarks: Benchmark[] = [
     },
     run: (i) => {
       testDb?.execute('INSERT INTO t1 (a, b, c) VALUES(?, ?, ?)', [
-        ids[i],
+        ids[i]!,
         integerValue,
         stringValue,
       ])
