@@ -184,9 +184,15 @@ std::shared_ptr<HybridNitroSQLiteQueryResult> sqliteExecute(const std::string& d
             case SQLITE_BLOB: {
               int blob_size = sqlite3_column_bytes(statement, i);
               const void* blob = sqlite3_column_blob(statement, i);
-              uint8_t* data = new uint8_t[blob_size];
-              memcpy(data, blob, blob_size);
-              row[column_name] = ArrayBuffer::wrap(data, blob_size, [&data]() -> void { delete[] data; });
+              // Copy the SQLite BLOB into a new native ArrayBuffer.
+              // This avoids manual memory management and unsafe pointer handling.
+              if (blob_size > 0) {
+                const auto* blob_data = reinterpret_cast<const uint8_t*>(blob);
+                row[column_name] = ArrayBuffer::copy(blob_data, static_cast<size_t>(blob_size));
+              } else {
+                // Represent empty BLOBs as an empty, but valid, ArrayBuffer.
+                row[column_name] = ArrayBuffer::allocate(0);
+              }
               break;
             }
             case SQLITE_NULL:
