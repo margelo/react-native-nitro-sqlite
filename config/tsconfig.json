@@ -23,7 +23,7 @@
     "lib": ["ESNext"],
     "module": "ESNext",
     "moduleResolution": "Node",
-    "noEmit": false,
+    "noEmit": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
     "noImplicitUseStrict": false,
