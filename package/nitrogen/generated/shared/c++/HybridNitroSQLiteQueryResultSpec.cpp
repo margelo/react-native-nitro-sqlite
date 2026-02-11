@@ -17,7 +17,6 @@ namespace margelo::nitro::rnnitrosqlite {
       prototype.registerHybridGetter("rowsAffected", &HybridNitroSQLiteQueryResultSpec::getRowsAffected);
       prototype.registerHybridGetter("insertId", &HybridNitroSQLiteQueryResultSpec::getInsertId);
       prototype.registerHybridGetter("results", &HybridNitroSQLiteQueryResultSpec::getResults);
-      prototype.registerHybridGetter("rows", &HybridNitroSQLiteQueryResultSpec::getRows);
       prototype.registerHybridGetter("metadata", &HybridNitroSQLiteQueryResultSpec::getMetadata);
     });
   }
