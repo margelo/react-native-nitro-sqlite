@@ -1,6 +1,7 @@
 #include "operations.hpp"
 #include "NitroSQLiteException.hpp"
 #include "logs.hpp"
+#include "specs/HybridNitroSQLiteQueryResult.hpp"
 #include "utils.hpp"
 #include <NitroModules/ArrayBuffer.hpp>
 #include <cmath>
@@ -121,8 +122,8 @@ void bindStatement(sqlite3_stmt* statement, const SQLiteQueryParams& values) {
   }
 }
 
-SQLiteExecuteQueryResult sqliteExecute(const std::string& dbName, const std::string& query,
-                                       const std::optional<SQLiteQueryParams>& params) {
+std::shared_ptr<HybridNitroSQLiteQueryResult> sqliteExecute(const std::string& dbName, const std::string& query,
+                                                            const std::optional<SQLiteQueryParams>& params) {
   if (dbMap.count(dbName) == 0) {
     throw NitroSQLiteException::DatabaseNotOpen(dbName);
   }
@@ -229,10 +230,7 @@ SQLiteExecuteQueryResult sqliteExecute(const std::string& dbName, const std::str
 
   int rowsAffected = sqlite3_changes(db);
   long long latestInsertRowId = sqlite3_last_insert_rowid(db);
-  return {.rowsAffected = rowsAffected,
-          .insertId = static_cast<double>(latestInsertRowId),
-          .results = std::move(results),
-          .metadata = std::move(metadata)};
+  return std::make_shared<HybridNitroSQLiteQueryResult>(results, static_cast<double>(latestInsertRowId), rowsAffected, metadata);
 }
 
 SQLiteOperationResult sqliteExecuteLiteral(const std::string& dbName, const std::string& query) {

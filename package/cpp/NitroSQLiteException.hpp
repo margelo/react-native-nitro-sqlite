@@ -2,11 +2,10 @@
 
 #include <exception>
 #include <iostream>
-#include <string>
 #include <optional>
+#include <string>
 
 const std::string NITRO_SQLITE_EXCEPTION_PREFIX = "[NativeNitroSQLiteException]";
-
 
 enum NitroSQLiteExceptionType {
   UnknownError,
