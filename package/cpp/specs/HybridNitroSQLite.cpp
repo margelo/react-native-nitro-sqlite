@@ -13,6 +13,29 @@
 
 namespace margelo::nitro::rnnitrosqlite {
 
+// Copy any JS-backed ArrayBuffers on the JS thread so they can be safely
+// accessed from the background thread used by Promise::async.
+static std::optional<SQLiteQueryParams> copyArrayBufferParamsForBackground(const std::optional<SQLiteQueryParams>& params) {
+  if (!params) {
+    return std::nullopt;
+  }
+
+  SQLiteQueryParams copiedParams;
+  copiedParams.reserve(params->size());
+
+  for (const auto& value : *params) {
+    if (std::holds_alternative<std::shared_ptr<ArrayBuffer>>(value)) {
+      const auto& buffer = std::get<std::shared_ptr<ArrayBuffer>>(value);
+      const auto copiedBuffer = ArrayBuffer::copy(buffer);
+      copiedParams.push_back(copiedBuffer);
+    } else {
+      copiedParams.push_back(value);
+    }
+  }
+
+  return copiedParams;
+}
+
 const std::string getDocPath(const std::optional<std::string>& location) {
   std::string tempDocPath = std::string(HybridNitroSQLite::docPath);
   if (location) {
@@ -57,9 +80,11 @@ std::shared_ptr<HybridNitroSQLiteQueryResultSpec> HybridNitroSQLite::execute(con
 
 std::shared_ptr<Promise<std::shared_ptr<HybridNitroSQLiteQueryResultSpec>>>
 HybridNitroSQLite::executeAsync(const std::string& dbName, const std::string& query, const std::optional<SQLiteQueryParams>& params) {
+  const auto copiedParams = copyArrayBufferParamsForBackground(params);
+
   return Promise<std::shared_ptr<HybridNitroSQLiteQueryResultSpec>>::async(
       [=, this]() -> std::shared_ptr<HybridNitroSQLiteQueryResultSpec> {
-        auto result = execute(dbName, query, params);
+        auto result = sqliteExecute(dbName, query, copiedParams);
         return result;
       });
 };
