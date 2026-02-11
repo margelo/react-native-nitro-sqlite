@@ -13,8 +13,6 @@
 #error NitroModules cannot be found! Are you sure you installed NitroModules properly?
 #endif
 
-// Forward declaration of `NitroSQLiteQueryResultRows` to properly resolve imports.
-namespace margelo::nitro::rnnitrosqlite { struct NitroSQLiteQueryResultRows; }
 // Forward declaration of `NitroSQLiteQueryColumnMetadata` to properly resolve imports.
 namespace margelo::nitro::rnnitrosqlite { struct NitroSQLiteQueryColumnMetadata; }
 
@@ -25,7 +23,6 @@ namespace margelo::nitro::rnnitrosqlite { struct NitroSQLiteQueryColumnMetadata;
 #include <variant>
 #include <unordered_map>
 #include <vector>
-#include "NitroSQLiteQueryResultRows.hpp"
 #include "NitroSQLiteQueryColumnMetadata.hpp"
 
 namespace margelo::nitro::rnnitrosqlite {
@@ -58,7 +55,6 @@ namespace margelo::nitro::rnnitrosqlite {
       virtual double getRowsAffected() = 0;
       virtual std::optional<double> getInsertId() = 0;
       virtual std::vector<std::unordered_map<std::string, std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>> getResults() = 0;
-      virtual std::optional<NitroSQLiteQueryResultRows> getRows() = 0;
       virtual std::optional<std::unordered_map<std::string, NitroSQLiteQueryColumnMetadata>> getMetadata() = 0;
 
     public:

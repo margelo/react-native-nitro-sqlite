@@ -1,7 +1,4 @@
-import type {
-  NitroSQLiteQueryResult,
-  NitroSQLiteQueryResultRows,
-} from './specs/NitroSQLiteQueryResult.nitro'
+import type { NitroSQLiteQueryResult } from './specs/NitroSQLiteQueryResult.nitro'
 
 export interface NitroSQLiteConnectionOptions {
   name: string
@@ -42,8 +39,24 @@ export type QueryResultRow = Record<string, SQLiteValue>
 export type QueryResult<Row extends QueryResultRow = QueryResultRow> =
   NitroSQLiteQueryResult & {
     /** Query results in a row format for TypeORM compatibility */
-    rows?: NitroSQLiteQueryResultRows<Row>
+    rows: NitroSQLiteQueryResultRows<Row>
   }
+
+export type NitroSQLiteQueryResultRows<
+  Row extends Record<string, SQLiteValue> = Record<string, SQLiteValue>,
+> = {
+  /** Raw array with all dataset */
+  _array: Row[]
+
+  /** The lengh of the dataset */
+  length: number
+
+  /** A convenience function to acess the index based the row object
+   * @param idx the row index
+   * @returns the row structure identified by column names
+   */
+  item: (idx: number) => Row | undefined
+}
 
 export type ExecuteQuery = <Row extends QueryResultRow = QueryResultRow>(
   query: string,

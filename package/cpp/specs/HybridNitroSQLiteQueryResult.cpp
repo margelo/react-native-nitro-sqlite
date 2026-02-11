@@ -20,10 +20,6 @@ SQLiteQueryResults HybridNitroSQLiteQueryResult::getResults() {
   return _results;
 };
 
-std::optional<NitroSQLiteQueryResultRows> HybridNitroSQLiteQueryResult::getRows() {
-  return _rows;
-}
-
 std::optional<SQLiteQueryTableMetadata> HybridNitroSQLiteQueryResult::getMetadata() {
   return _metadata;
 }
