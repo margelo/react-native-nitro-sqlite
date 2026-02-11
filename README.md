@@ -258,7 +258,6 @@ import {
   open,
   NitroSQLiteError,
   typeORMDriver,
-  enableSimpleNullHandling, // no-op from 9.3.0
 } from 'react-native-nitro-sqlite'
 import type { QueryResult, BatchQueryCommand, NitroSQLiteConnection, ... } from 'react-native-nitro-sqlite'
 ```

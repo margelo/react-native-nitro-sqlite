@@ -21,9 +21,6 @@ export const NitroSQLite = {
   executeBatchAsync,
 }
 
-/** NOOP on NitroSQLite versions >= 9.3.0 */
-export function enableSimpleNullHandling() {}
-
 export { open } from './operations/session'
 export { default as NitroSQLiteError } from './NitroSQLiteError'
 export type * from './types'

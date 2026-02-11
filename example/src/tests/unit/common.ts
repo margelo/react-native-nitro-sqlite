@@ -1,8 +1,5 @@
 import { Chance } from 'chance'
-import {
-  enableSimpleNullHandling,
-  NitroSQLiteError,
-} from 'react-native-nitro-sqlite'
+import { NitroSQLiteError } from 'react-native-nitro-sqlite'
 import { resetTestDb } from '../db'
 import chai from 'chai'
 
@@ -22,6 +19,5 @@ export const expect = chai.expect
 export const chance = new Chance()
 
 export function setupTestDb() {
-  enableSimpleNullHandling(false)
   resetTestDb()
 }
