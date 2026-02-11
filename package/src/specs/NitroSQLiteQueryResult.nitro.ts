@@ -19,9 +19,6 @@ export interface NitroSQLiteQueryResult
   /** Query results */
   readonly results: Record<string, SQLiteValue>[]
 
-  /** Query results in a row format for TypeORM compatibility */
-  readonly rows?: NitroSQLiteQueryResultRows
-
   /** Table metadata */
   readonly metadata?: Record<string, NitroSQLiteQueryColumnMetadata>
 }
@@ -32,20 +29,6 @@ export interface NitroSQLiteQueryResult
 // }
 
 // type NitroQueryResultRow = Record<string, SQLiteValue>
-
-export type NitroSQLiteQueryResultRows<
-  Row extends Record<string, SQLiteValue> = Record<string, SQLiteValue>,
-> = {
-  /** Raw array with all dataset */
-  _array: Row[]
-  /** The lengh of the dataset */
-  length: number
-  /** A convenience function to acess the index based the row object
-   * @param idx the row index
-   * @returns the row structure identified by column names
-   */
-  item: (idx: number) => Row | undefined
-}
 
 export type NitroSQLiteQueryColumnMetadata = {
   /** The name used for this column for this result set */
