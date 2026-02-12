@@ -89,13 +89,13 @@
     },
     "plugins": {
       "@release-it/bumper": {
+        "in": {
+          "file": "package/package.json",
+          "path": "version"
+        },
         "out": [
           {
             "file": "package.json",
-            "path": "version"
-          },
-          {
-            "file": "package/package.json",
             "path": "version"
           },
           {

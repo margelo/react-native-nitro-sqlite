@@ -93,7 +93,10 @@
   },
   "release-it": {
     "npm": {
-      "publish": true
+      "publish": true,
+      "versionArgs": [
+        "--allow-same-version"
+      ]
     },
     "git": false,
     "github": {

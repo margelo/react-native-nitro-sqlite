@@ -6,7 +6,8 @@ cd package
 bun release $@
 
 echo "Creating a Git bump commit and GitHub release"
-cd ..
-bun run release-it $@
 
+cd ..
+
+bun run release-it $@ && \
 echo "Successfully released react-native-nitro-sqlite!"
