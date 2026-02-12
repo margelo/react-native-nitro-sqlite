@@ -87,9 +87,7 @@ size_t getResultsExternalMemorySize(const SQLiteQueryResults& results) {
 size_t getMetadataExternalMemorySize(const SQLiteQueryTableMetadata& metadata) {
   size_t size = 0;
 
-  for (const auto& entry : metadata) {
-    const auto& columnName = entry.first;
-    const auto& columnMeta = entry.second;
+  for (const auto& [columnName, columnMeta] : metadata) {
 
     size += columnName.capacity();
     size += columnMeta.name.capacity();
