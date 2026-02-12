@@ -140,4 +140,5 @@ std::shared_ptr<Promise<FileLoadResult>> HybridNitroSQLite::loadFileAsync(const 
     return result;
   });
 };
+
 } // namespace margelo::nitro::rnnitrosqlite
