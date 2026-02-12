@@ -40,16 +40,6 @@ public:
 
   FileLoadResult loadFile(const std::string& dbName, const std::string& location) override;
   std::shared_ptr<Promise<FileLoadResult>> loadFileAsync(const std::string& dbName, const std::string& location) override;
-
-  /**
-   * Approximate the native memory used by this Hybrid Object.
-   *
-   * This object itself does not own any large external resources – database
-   * connections are handled by the shared `dbMap` in `operations.cpp`.
-   * We still report the size of this C++ instance so the JS GC can account
-   * for the object when it is retained from JS.
-   */
-  size_t getExternalMemorySize() noexcept override;
 };
 
 inline std::string HybridNitroSQLite::docPath = "";

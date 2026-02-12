@@ -140,13 +140,4 @@ std::shared_ptr<Promise<FileLoadResult>> HybridNitroSQLite::loadFileAsync(const 
     return result;
   });
 };
-
-size_t HybridNitroSQLite::getExternalMemorySize() noexcept {
-  // The HybridNitroSQLite instance itself does not own any heavy external
-  // memory. Database connections are tracked globally in `dbMap`.
-  // We still report the size of this instance so the JS GC can take it
-  // into account when estimating native memory pressure.
-  return sizeof(*this);
-}
-
 } // namespace margelo::nitro::rnnitrosqlite
