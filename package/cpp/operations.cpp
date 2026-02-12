@@ -1,7 +1,7 @@
 #include "operations.hpp"
 #include "NitroSQLiteException.hpp"
+#include "hybridObjects/HybridNitroSQLiteQueryResult.hpp"
 #include "logs.hpp"
-#include "specs/HybridNitroSQLiteQueryResult.hpp"
 #include "utils.hpp"
 #include <NitroModules/ArrayBuffer.hpp>
 #include <cmath>
