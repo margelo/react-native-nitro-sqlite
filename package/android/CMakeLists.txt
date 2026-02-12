@@ -24,7 +24,7 @@ include(${CMAKE_SOURCE_DIR}/../nitrogen/generated/android/RNNitroSQLite+autolink
 # Specifies a path to native header files.
 include_directories(
   ../cpp
-  ../cpp/specs
+  ../cpp/hybridObjects
   ../cpp/sqlite
   src/main/cpp
 )

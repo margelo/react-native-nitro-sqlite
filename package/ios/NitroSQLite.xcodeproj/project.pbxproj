@@ -173,7 +173,7 @@
 			path = ../nitrogen;
 			sourceTree = "<group>";
 		};
-		83BC6E5F2C8F78A200B954D2 /* specs */ = {
+		83BC6E5F2C8F78A200B954D2 /* hybridObjects */ = {
 			isa = PBXGroup;
 			children = (
 				83BC6E5A2C8F78A200B954D2 /* HybridNitroSQLite.cpp */,
@@ -188,7 +188,7 @@
 		83BC6E702C8F78A200B954D2 /* cpp */ = {
 			isa = PBXGroup;
 			children = (
-				83BC6E5F2C8F78A200B954D2 /* specs */,
+				83BC6E5F2C8F78A200B954D2 /* hybridObjects */,
 				83BC6E602C8F78A200B954D2 /* JSIHelper.cpp */,
 				83BC6E612C8F78A200B954D2 /* JSIHelper.h */,
 				83BC6E622C8F78A200B954D2 /* logs.h */,
