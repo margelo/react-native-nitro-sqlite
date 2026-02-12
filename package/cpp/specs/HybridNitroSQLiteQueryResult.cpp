@@ -66,7 +66,7 @@ size_t getRowExternalMemorySize(const SQLiteQueryResultRow& row) {
  * - All rows (column names + values).
  */
 size_t getResultsExternalMemorySize(const SQLiteQueryResults& results) {
-  size_t size = 0;
+  size_t size = sizeof(SQLiteQueryResults);
 
   const auto resultCapacity = results.capacity();
   size += resultCapacity * sizeof(SQLiteQueryResultRow);
