@@ -18,34 +18,33 @@ namespace margelo::nitro::rnnitrosqlite {
 
   using namespace facebook;
 
-  class JHybridNitroSQLiteOnLoadSpec: public jni::HybridClass<JHybridNitroSQLiteOnLoadSpec, JHybridObject>,
-                                      public virtual HybridNitroSQLiteOnLoadSpec {
+  class JHybridNitroSQLiteOnLoadSpec: public virtual HybridNitroSQLiteOnLoadSpec, public virtual JHybridObject {
   public:
-    static auto constexpr kJavaDescriptor = "Lcom/margelo/nitro/rnnitrosqlite/HybridNitroSQLiteOnLoadSpec;";
-    static jni::local_ref<jhybriddata> initHybrid(jni::alias_ref<jhybridobject> jThis);
-    static void registerNatives();
+    struct JavaPart: public jni::JavaClass<JavaPart, JHybridObject::JavaPart> {
+      static auto constexpr kJavaDescriptor = "Lcom/margelo/nitro/rnnitrosqlite/HybridNitroSQLiteOnLoadSpec;";
+      std::shared_ptr<JHybridNitroSQLiteOnLoadSpec> getJHybridNitroSQLiteOnLoadSpec();
+    };
+    struct CxxPart: public jni::HybridClass<CxxPart, JHybridObject::CxxPart> {
+      static auto constexpr kJavaDescriptor = "Lcom/margelo/nitro/rnnitrosqlite/HybridNitroSQLiteOnLoadSpec$CxxPart;";
+      static jni::local_ref<jhybriddata> initHybrid(jni::alias_ref<jhybridobject> jThis);
+      static void registerNatives();
+      using HybridBase::HybridBase;
+    protected:
+      std::shared_ptr<JHybridObject> createHybridObject(const jni::local_ref<JHybridObject::JavaPart>& javaPart) override;
+    };
 
-  protected:
-    // C++ constructor (called from Java via `initHybrid()`)
-    explicit JHybridNitroSQLiteOnLoadSpec(jni::alias_ref<jhybridobject> jThis) :
+  public:
+    explicit JHybridNitroSQLiteOnLoadSpec(const jni::local_ref<JHybridNitroSQLiteOnLoadSpec::JavaPart>& javaPart):
       HybridObject(HybridNitroSQLiteOnLoadSpec::TAG),
-      HybridBase(jThis),
-      _javaPart(jni::make_global(jThis)) {}
-
-  public:
+      JHybridObject(javaPart),
+      _javaPart(jni::make_global(javaPart)) {}
     ~JHybridNitroSQLiteOnLoadSpec() override {
       // Hermes GC can destroy JS objects on a non-JNI Thread.
       jni::ThreadScope::WithClassLoader([&] { _javaPart.reset(); });
     }
 
   public:
-    size_t getExternalMemorySize() noexcept override;
-    bool equals(const std::shared_ptr<HybridObject>& other) override;
-    void dispose() noexcept override;
-    std::string toString() override;
-
-  public:
-    inline const jni::global_ref<JHybridNitroSQLiteOnLoadSpec::javaobject>& getJavaPart() const noexcept {
+    inline const jni::global_ref<JHybridNitroSQLiteOnLoadSpec::JavaPart>& getJavaPart() const noexcept {
       return _javaPart;
     }
 
@@ -58,9 +57,7 @@ namespace margelo::nitro::rnnitrosqlite {
     void init() override;
 
   private:
-    friend HybridBase;
-    using HybridBase::HybridBase;
-    jni::global_ref<JHybridNitroSQLiteOnLoadSpec::javaobject> _javaPart;
+    jni::global_ref<JHybridNitroSQLiteOnLoadSpec::JavaPart> _javaPart;
   };
 
 } // namespace margelo::nitro::rnnitrosqlite
