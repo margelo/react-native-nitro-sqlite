@@ -48,10 +48,6 @@ jobs:
           bun pods
           cd ..
 
-          cd docs
-          bun install
-          cd ..
-
           git add bun.lock
           git add example/ios/Podfile.lock
           git add example/Gemfile.lock
