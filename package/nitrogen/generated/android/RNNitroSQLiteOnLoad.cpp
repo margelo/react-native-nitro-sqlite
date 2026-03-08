@@ -22,33 +22,43 @@
 namespace margelo::nitro::rnnitrosqlite {
 
 int initialize(JavaVM* vm) {
+  return facebook::jni::initialize(vm, []() {
+    ::margelo::nitro::rnnitrosqlite::registerAllNatives();
+  });
+}
+
+struct JHybridNitroSQLiteOnLoadSpecImpl: public jni::JavaClass<JHybridNitroSQLiteOnLoadSpecImpl, JHybridNitroSQLiteOnLoadSpec::JavaPart> {
+  static auto constexpr kJavaDescriptor = "Lcom/margelo/nitro/rnnitrosqlite/HybridNitroSQLiteOnLoad;";
+  static std::shared_ptr<JHybridNitroSQLiteOnLoadSpec> create() {
+    static auto constructorFn = javaClassStatic()->getConstructor<JHybridNitroSQLiteOnLoadSpecImpl::javaobject()>();
+    jni::local_ref<JHybridNitroSQLiteOnLoadSpec::JavaPart> javaPart = javaClassStatic()->newObject(constructorFn);
+    return javaPart->getJHybridNitroSQLiteOnLoadSpec();
+  }
+};
+
+void registerAllNatives() {
   using namespace margelo::nitro;
   using namespace margelo::nitro::rnnitrosqlite;
-  using namespace facebook;
 
-  return facebook::jni::initialize(vm, [] {
-    // Register native JNI methods
-    margelo::nitro::rnnitrosqlite::JHybridNitroSQLiteOnLoadSpec::registerNatives();
+  // Register native JNI methods
+  margelo::nitro::rnnitrosqlite::JHybridNitroSQLiteOnLoadSpec::CxxPart::registerNatives();
 
-    // Register Nitro Hybrid Objects
-    HybridObjectRegistry::registerHybridObjectConstructor(
-      "NitroSQLite",
-      []() -> std::shared_ptr<HybridObject> {
-        static_assert(std::is_default_constructible_v<HybridNitroSQLite>,
-                      "The HybridObject \"HybridNitroSQLite\" is not default-constructible! "
-                      "Create a public constructor that takes zero arguments to be able to autolink this HybridObject.");
-        return std::make_shared<HybridNitroSQLite>();
-      }
-    );
-    HybridObjectRegistry::registerHybridObjectConstructor(
-      "NitroSQLiteOnLoad",
-      []() -> std::shared_ptr<HybridObject> {
-        static DefaultConstructableObject<JHybridNitroSQLiteOnLoadSpec::javaobject> object("com/margelo/nitro/rnnitrosqlite/HybridNitroSQLiteOnLoad");
-        auto instance = object.create();
-        return instance->cthis()->shared();
-      }
-    );
-  });
+  // Register Nitro Hybrid Objects
+  HybridObjectRegistry::registerHybridObjectConstructor(
+    "NitroSQLite",
+    []() -> std::shared_ptr<HybridObject> {
+      static_assert(std::is_default_constructible_v<HybridNitroSQLite>,
+                    "The HybridObject \"HybridNitroSQLite\" is not default-constructible! "
+                    "Create a public constructor that takes zero arguments to be able to autolink this HybridObject.");
+      return std::make_shared<HybridNitroSQLite>();
+    }
+  );
+  HybridObjectRegistry::registerHybridObjectConstructor(
+    "NitroSQLiteOnLoad",
+    []() -> std::shared_ptr<HybridObject> {
+      return JHybridNitroSQLiteOnLoadSpecImpl::create();
+    }
+  );
 }
 
 } // namespace margelo::nitro::rnnitrosqlite
