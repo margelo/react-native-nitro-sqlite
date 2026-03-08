@@ -1838,7 +1838,7 @@ PODS:
     - React-utils (= 0.85.0-rc.0)
     - ReactNativeDependencies
   - ReactNativeDependencies (0.85.0-rc.0)
-  - RNNitroSQLite (9.4.0):
+  - RNNitroSQLite (9.6.0):
     - hermes-engine
     - NitroModules
     - RCTRequired
@@ -2222,7 +2222,7 @@ SPEC CHECKSUMS:
   ReactCodegen: ff6b8d9d619343c281b7700362fa3ac5ec0753bb
   ReactCommon: 7525e252c88d254545e3fdaea0000d1959dfbf20
   ReactNativeDependencies: 0cdc5c6985700a9d8f654762fa702169ef9cef9b
-  RNNitroSQLite: f5aea59f07665105100a3cc16e934533604d57e9
+  RNNitroSQLite: e354c4a31133050e6bbde1c136b8ac4857830236
   RNScreens: dd5c879d56b543c7ff8e593739eeb66093d60263
   Yoga: d68c8a4bde0af9c17b15540fffa330d26398d150
 
