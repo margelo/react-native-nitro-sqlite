@@ -102,8 +102,8 @@ jobs:
           xcodebuild \
             CC=clang CPLUSPLUS=clang++ LD=clang LDPLUSPLUS=clang++ \
             -derivedDataPath build -UseModernBuildSystem=YES \
-            -workspace NitroExample.xcworkspace \
-            -scheme NitroExample \
+            -workspace NitroSQLiteExample.xcworkspace \
+            -scheme NitroSQLiteExample \
             -sdk iphonesimulator \
             -configuration Debug \
             -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
