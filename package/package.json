@@ -71,8 +71,8 @@
   "devDependencies": {
     "jest": "^30.2.0",
     "nitrogen": "0.35.0",
-    "react": "19.1.1",
-    "react-native": "0.82.1",
+    "react": "19.2.3",
+    "react-native": "0.85.0-rc.0",
     "react-native-builder-bob": "^0.31.0",
     "react-native-nitro-modules": "0.35.0"
   },
