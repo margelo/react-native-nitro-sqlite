@@ -24,19 +24,17 @@ std::map<std::string, sqlite3*> dbMap = std::map<std::string, sqlite3*>();
 void sqliteOpenDb(const std::string& dbName, const std::string& docPath) {
   std::string dbPath = get_db_path(dbName, docPath);
 
-int sqlOpenFlags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX;
+  int sqlOpenFlags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX;
 
   sqlite3* db;
   int exit = 0;
-      exit = sqlite3_open_v2(dbPath.c_str(), &db, sqlOpenFlags, nullptr);
+  exit = sqlite3_open_v2(dbPath.c_str(), &db, sqlOpenFlags, nullptr);
 
   if (exit != SQLITE_OK) {
     throw NitroSQLiteException(NitroSQLiteExceptionType::DatabaseCannotBeOpened, sqlite3_errmsg(db));
   } else {
     dbMap[dbName] = db;
   }
-
-  
 }
 
 void sqliteCloseDb(const std::string& dbName) {
