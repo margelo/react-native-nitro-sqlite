@@ -1,4 +1,4 @@
-name: Validate C++
+name: Lint C++
 
 on:
   push:
@@ -11,9 +11,6 @@ on:
       - "**/*.cpp"
       - "**/*.c"
       - "**/*.mm"
-    paths-ignore:
-      - "node_modules"
-      - "**/node_modules"
   pull_request:
     paths:
       - ".github/workflows/lint-cpp.yml"
@@ -22,28 +19,17 @@ on:
       - "**/*.cpp"
       - "**/*.c"
       - "**/*.mm"
-    paths-ignore:
-      - "node_modules"
-      - "**/node_modules"
 
 jobs:
   lint:
-    name: Check clang-format
+    name: Format C++
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        path:
-          - "package/android/src/main/cpp"
-          - "package/cpp"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: oven-sh/setup-bun@v2
 
-      - name: Install npm dependencies (bun)
-        run: bun install
+      - name: Run clang-format
+        run: bun run lint-cpp
 
-      - name: Run clang-format style check
-        uses: jidicula/clang-format-action@v4.13.0
-        with:
-          clang-format-version: "18"
-          check-path: ${{ matrix.path }}
+      - name: Verify no files have changed after format
+        run: git diff --exit-code HEAD -- . ':(exclude)bun.lock'
