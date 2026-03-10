@@ -45,12 +45,4 @@ function buildJSQueryResult<Row extends QueryResultRow = never>(
   }
 
   return resultWithRows
-
-  // return Object.assign(result, {
-  //   rows: {
-  //     _array: result.results,
-  //     length: result.results.length,
-  //     item: (idx: number) => result.results[idx],
-  //   },
-  // })
 }
