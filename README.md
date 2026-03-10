@@ -233,7 +233,7 @@ installer.pods_project.targets.each do |target|
   if target.name == "RNNitroSQLite"
     target.build_configurations.each do |config|
       config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)']
-      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'SQLITE_ENABLE_FTS5=1'
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'SQLITE_ENABLE_FTS5=1 SQLITE_ENABLE_MATH_FUNCTIONS=1'
     end
   end
 end
@@ -242,7 +242,7 @@ end
 **Android** — in `android/gradle.properties`:
 
 ```properties
-nitroSqliteFlags="-DSQLITE_ENABLE_FTS5=1"
+nitroSqliteFlags=-DSQLITE_ENABLE_FTS5=1;-DSQLITE_ENABLE_MATH_FUNCTIONS=1
 ```
 
 ## App groups (iOS)
