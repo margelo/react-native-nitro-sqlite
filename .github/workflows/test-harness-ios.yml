@@ -1,0 +1,66 @@
+name: Test Harness iOS
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/test-harness-ios.yml"
+      - "example/ios/**"
+      - "example/src/tests/**"
+      - "example/__tests__/**"
+      - "example/rn-harness.config.mjs"
+      - "example/jest.config.js"
+      - "package/cpp/**"
+      - "package/ios/**"
+      - "**/Podfile.lock"
+      - "**/*.podspec"
+      - "**/react-native.config.js"
+      - "**/nitro.json"
+      - "**/bun.lock"
+
+jobs:
+  test:
+    name: Harness Tests (iOS)
+    runs-on: macOS-26
+
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Setup Ruby (bundle)
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.3.0
+          bundler-cache: true
+          working-directory: example
+
+      - name: Select Xcode 26.2
+        run: sudo xcode-select -s "/Applications/Xcode_26.2.app/Contents/Developer"
+
+      - name: Install Pods
+        working-directory: example
+        run: bun pods
+
+      - name: Boot iOS Simulator
+        run: |
+          xcrun simctl boot "iPhone 17 Pro (26.2)" || true
+          xcrun simctl bootstatus booted -b
+
+      - name: Build and install debug app
+        working-directory: example/ios
+        run: |
+          set -o pipefail
+          xcodebuild \
+            CC=clang CPLUSPLUS=clang++ LD=clang LDPLUSPLUS=clang++ \
+            -derivedDataPath build -UseModernBuildSystem=YES \
+            -workspace NitroSQLiteExample.xcworkspace \
+            -scheme NitroSQLiteExample \
+            -sdk iphonesimulator \
+            -configuration Debug \
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2' \
+            ONLY_ACTIVE_ARCH=YES \
+            install \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Run react-native-harness on iOS
+        run: bun --cwd example run test:harness:ios
+

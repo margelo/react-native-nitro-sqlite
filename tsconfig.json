@@ -1,5 +1,6 @@
 {
   "files": [],
+  "include": ["example/__tests__/**/*"],
   "references": [
     { "path": "./package/tsconfig.json" },
     { "path": "./example/tsconfig.json" }

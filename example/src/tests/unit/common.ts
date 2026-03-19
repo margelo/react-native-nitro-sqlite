@@ -1,7 +1,7 @@
 import { Chance } from 'chance'
 import { NitroSQLiteError } from 'react-native-nitro-sqlite'
 import { resetTestDb } from '../db'
-import chai from 'chai'
+import { expect as harnessExpect } from 'react-native-harness'
 
 export const TEST_ERROR_CODES = {
   EXPECT_NITRO_SQLITE_ERROR: 'Should have thrown a valid NitroSQLiteError',
@@ -15,7 +15,7 @@ export function isNitroSQLiteError(e: unknown): e is NitroSQLiteError {
   return e instanceof NitroSQLiteError
 }
 
-export const expect = chai.expect
+export const expect = harnessExpect
 export const chance = new Chance()
 
 export function setupTestDb() {

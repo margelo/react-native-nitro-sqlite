@@ -5,7 +5,7 @@ import {
   TEST_ERROR_CODES,
   TEST_ERROR_MESSAGE,
 } from '../common'
-import { describe, it } from '../../MochaRNAdapter'
+import { describe, it } from 'react-native-harness'
 import { testDb, testDbQueue } from '../../db'
 import type { BatchQueryCommand } from 'react-native-nitro-sqlite'
 
@@ -19,26 +19,26 @@ export default function registerDatabaseQueueUnitTests() {
       const transaction1Promise = testDb.transaction(async (tx) => {
         tx.execute(TEST_QUERY)
 
-        expect(testDbQueue.queue.length).to.equal(2)
-        expect(testDbQueue.inProgress).to.equal(true)
+        expect(testDbQueue.queue.length).toBe(2)
+        expect(testDbQueue.inProgress).toBe(true)
 
         await new Promise<void>((resolve) => setTimeout(resolve, 100))
 
         tx.execute(TEST_QUERY)
 
-        expect(testDbQueue.queue.length).to.equal(2)
-        expect(testDbQueue.inProgress).to.equal(true)
+        expect(testDbQueue.queue.length).toBe(2)
+        expect(testDbQueue.inProgress).toBe(true)
       })
 
-      expect(testDbQueue.inProgress).to.equal(true)
-      expect(testDbQueue.queue.length).to.equal(0)
+      expect(testDbQueue.inProgress).toBe(true)
+      expect(testDbQueue.queue.length).toBe(0)
 
       const transaction2Promise = testDb.transaction(async (tx) => {
         tx.execute(TEST_QUERY)
       })
 
-      expect(testDbQueue.queue.length).to.equal(1)
-      expect(testDbQueue.inProgress).to.equal(true)
+      expect(testDbQueue.queue.length).toBe(1)
+      expect(testDbQueue.inProgress).toBe(true)
 
       const transaction3Promise = testDb.transaction(async (tx) => {
         tx.execute(TEST_QUERY)
@@ -46,50 +46,50 @@ export default function registerDatabaseQueueUnitTests() {
 
       await transaction1Promise
 
-      expect(testDbQueue.queue.length).to.equal(1)
-      expect(testDbQueue.inProgress).to.equal(true)
+      expect(testDbQueue.queue.length).toBe(1)
+      expect(testDbQueue.inProgress).toBe(true)
 
       await transaction2Promise
 
-      expect(testDbQueue.queue.length).to.equal(0)
-      expect(testDbQueue.inProgress).to.equal(true)
+      expect(testDbQueue.queue.length).toBe(0)
+      expect(testDbQueue.inProgress).toBe(true)
 
       await transaction3Promise
 
-      expect(testDbQueue.queue.length).to.equal(0)
-      expect(testDbQueue.inProgress).to.equal(false)
+      expect(testDbQueue.queue.length).toBe(0)
+      expect(testDbQueue.inProgress).toBe(false)
     })
 
     it('multiple executeBatchAsync operations are queued', async () => {
       const executeBatch1Promise = testDb.executeBatchAsync(TEST_BATCH_COMMANDS)
 
-      expect(testDbQueue.queue.length).to.equal(0)
-      expect(testDbQueue.inProgress).to.equal(true)
+      expect(testDbQueue.queue.length).toBe(0)
+      expect(testDbQueue.inProgress).toBe(true)
 
       const executeBatch2Promise = testDb.executeBatchAsync(TEST_BATCH_COMMANDS)
 
-      expect(testDbQueue.queue.length).to.equal(1)
-      expect(testDbQueue.inProgress).to.equal(true)
+      expect(testDbQueue.queue.length).toBe(1)
+      expect(testDbQueue.inProgress).toBe(true)
 
       const executeBatch3Promise = testDb.executeBatchAsync(TEST_BATCH_COMMANDS)
 
-      expect(testDbQueue.queue.length).to.equal(2)
-      expect(testDbQueue.inProgress).to.equal(true)
+      expect(testDbQueue.queue.length).toBe(2)
+      expect(testDbQueue.inProgress).toBe(true)
 
       await executeBatch1Promise
 
-      expect(testDbQueue.queue.length).to.equal(1)
-      expect(testDbQueue.inProgress).to.equal(true)
+      expect(testDbQueue.queue.length).toBe(1)
+      expect(testDbQueue.inProgress).toBe(true)
 
       await executeBatch2Promise
 
-      expect(testDbQueue.queue.length).to.equal(0)
-      expect(testDbQueue.inProgress).to.equal(true)
+      expect(testDbQueue.queue.length).toBe(0)
+      expect(testDbQueue.inProgress).toBe(true)
 
       await executeBatch3Promise
 
-      expect(testDbQueue.queue.length).to.equal(0)
-      expect(testDbQueue.inProgress).to.equal(false)
+      expect(testDbQueue.queue.length).toBe(0)
+      expect(testDbQueue.inProgress).toBe(false)
     })
 
     it('mixed transactions and executeBatchAsync operations are queued', async () => {
@@ -97,45 +97,45 @@ export default function registerDatabaseQueueUnitTests() {
         tx.execute('SELECT * FROM [User];')
       })
 
-      expect(testDbQueue.queue.length).to.equal(0)
-      expect(testDbQueue.inProgress).to.equal(true)
+      expect(testDbQueue.queue.length).toBe(0)
+      expect(testDbQueue.inProgress).toBe(true)
 
       const executeBatch1Promise = testDb.executeBatchAsync(TEST_BATCH_COMMANDS)
 
-      expect(testDbQueue.queue.length).to.equal(1)
-      expect(testDbQueue.inProgress).to.equal(true)
+      expect(testDbQueue.queue.length).toBe(1)
+      expect(testDbQueue.inProgress).toBe(true)
 
       const transaction2Promise = testDb.transaction(async (tx) => {
         tx.execute(TEST_QUERY)
       })
 
-      expect(testDbQueue.queue.length).to.equal(2)
-      expect(testDbQueue.inProgress).to.equal(true)
+      expect(testDbQueue.queue.length).toBe(2)
+      expect(testDbQueue.inProgress).toBe(true)
 
       const executeBatch2Promise = testDb.executeBatchAsync(TEST_BATCH_COMMANDS)
 
-      expect(testDbQueue.queue.length).to.equal(3)
-      expect(testDbQueue.inProgress).to.equal(true)
+      expect(testDbQueue.queue.length).toBe(3)
+      expect(testDbQueue.inProgress).toBe(true)
 
       await transaction1Promise
 
-      expect(testDbQueue.queue.length).to.equal(2)
-      expect(testDbQueue.inProgress).to.equal(true)
+      expect(testDbQueue.queue.length).toBe(2)
+      expect(testDbQueue.inProgress).toBe(true)
 
       await executeBatch1Promise
 
-      expect(testDbQueue.queue.length).to.equal(1)
-      expect(testDbQueue.inProgress).to.equal(true)
+      expect(testDbQueue.queue.length).toBe(1)
+      expect(testDbQueue.inProgress).toBe(true)
 
       await transaction2Promise
 
-      expect(testDbQueue.queue.length).to.equal(0)
-      expect(testDbQueue.inProgress).to.equal(true)
+      expect(testDbQueue.queue.length).toBe(0)
+      expect(testDbQueue.inProgress).toBe(true)
 
       await executeBatch2Promise
 
-      expect(testDbQueue.queue.length).to.equal(0)
-      expect(testDbQueue.inProgress).to.equal(false)
+      expect(testDbQueue.queue.length).toBe(0)
+      expect(testDbQueue.inProgress).toBe(false)
     })
 
     it('errors are thrown through DatabaseQueue', async () => {
@@ -144,37 +144,37 @@ export default function registerDatabaseQueueUnitTests() {
         throw TEST_ERROR
       })
 
-      expect(testDbQueue.queue.length).to.equal(0)
-      expect(testDbQueue.inProgress).to.equal(true)
+      expect(testDbQueue.queue.length).toBe(0)
+      expect(testDbQueue.inProgress).toBe(true)
 
       const executeBatch1Promise = testDb.executeBatchAsync(TEST_BATCH_COMMANDS)
 
-      expect(testDbQueue.queue.length).to.equal(1)
-      expect(testDbQueue.inProgress).to.equal(true)
+      expect(testDbQueue.queue.length).toBe(1)
+      expect(testDbQueue.inProgress).toBe(true)
 
       try {
         await transaction1Promise
 
-        expect(testDbQueue.queue.length).to.equal(0)
-        expect(testDbQueue.inProgress).to.equal(true)
+        expect(testDbQueue.queue.length).toBe(0)
+        expect(testDbQueue.inProgress).toBe(true)
       } catch (e) {
         if (isNitroSQLiteError(e)) {
-          expect(e.message).to.include(TEST_ERROR_MESSAGE)
+          expect(e.message).toContain(TEST_ERROR_MESSAGE)
         } else {
-          expect.fail(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
+          throw new Error(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
         }
       }
 
       try {
         await executeBatch1Promise
 
-        expect(testDbQueue.queue.length).to.equal(0)
-        expect(testDbQueue.inProgress).to.equal(false)
+        expect(testDbQueue.queue.length).toBe(0)
+        expect(testDbQueue.inProgress).toBe(false)
       } catch (e) {
         if (isNitroSQLiteError(e)) {
-          expect(e.message).to.include(TEST_ERROR_MESSAGE)
+          expect(e.message).toContain(TEST_ERROR_MESSAGE)
         } else {
-          expect.fail(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
+          throw new Error(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
         }
       }
     })

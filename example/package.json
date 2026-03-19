@@ -10,7 +10,10 @@
     "pods": "cd ios && bundle exec pod install",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\" --fix",
-    "codegen": "bun react-native codegen"
+    "codegen": "bun react-native codegen",
+    "test:harness": "react-native-harness",
+    "test:harness:android": "react-native-harness --harnessRunner android",
+    "test:harness:ios": "react-native-harness --harnessRunner ios"
   },
   "dependencies": {
     "@craftzdog/react-native-buffer": "^6.0.5",
@@ -49,6 +52,11 @@
     "@types/node": "^22.7.4",
     "@types/react": "^19.1.1",
     "@types/react-test-renderer": "^19.1.0",
+    "@react-native-harness/cli": "1.0.0-alpha.21",
+    "@react-native-harness/jest": "1.0.0-alpha.21",
+    "@react-native-harness/platform-android": "1.0.0-alpha.21",
+    "@react-native-harness/platform-apple": "1.0.0-alpha.21",
+    "react-native-harness": "1.0.0-alpha.21",
     "mocha": "^10.1.0",
     "postinstall-postinstall": "^2.1.0",
     "react-test-renderer": "19.1.1"

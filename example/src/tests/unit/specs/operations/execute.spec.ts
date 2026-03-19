@@ -1,5 +1,5 @@
 import { chance, expect, isNitroSQLiteError } from '../../common'
-import { describe, it } from '../../../MochaRNAdapter'
+import { describe, it } from 'react-native-harness'
 import { createArrayBufferTestDb, testDb } from '../../../db'
 
 export default function registerExecuteUnitTests() {
@@ -15,11 +15,11 @@ export default function registerExecuteUnitTests() {
           [id, name, age, networth],
         )
 
-        expect(res.rowsAffected).to.equal(1)
-        expect(res.insertId).to.equal(1)
-        expect(res.rows?._array).to.eql([])
-        expect(res.rows?.length).to.equal(0)
-        expect(res.rows?.item).to.be.a('function')
+        expect(res.rowsAffected).toBe(1)
+        expect(res.insertId).toBe(1)
+        expect(res.rows?._array).toEqual([])
+        expect(res.rows?.length).toBe(0)
+        expect(res.rows?.item).toBeTypeOf('function')
       })
 
       it('Insert with null', () => {
@@ -32,14 +32,14 @@ export default function registerExecuteUnitTests() {
           [id, name, age, networth],
         )
 
-        expect(res.rowsAffected).to.equal(1)
-        expect(res.insertId).to.equal(1)
-        expect(res.rows?._array).to.eql([])
-        expect(res.rows?.length).to.equal(0)
-        expect(res.rows?.item).to.be.a('function')
+        expect(res.rowsAffected).toBe(1)
+        expect(res.insertId).toBe(1)
+        expect(res.rows?._array).toEqual([])
+        expect(res.rows?.length).toBe(0)
+        expect(res.rows?.item).toBeTypeOf('function')
 
         const selectRes = testDb.execute('SELECT * FROM User')
-        expect(selectRes.rows?._array).to.eql([
+        expect(selectRes.rows?._array).toEqual([
           {
             id,
             name,
@@ -62,11 +62,11 @@ export default function registerExecuteUnitTests() {
           )
         } catch (e: unknown) {
           if (isNitroSQLiteError(e)) {
-            expect(e.message).to.include(
+            expect(e.message).toContain(
               'cannot store TEXT value in REAL column User.age',
             )
           } else {
-            expect.fail('Should have thrown a valid NitroSQLiteException')
+            throw new Error('Should have thrown a valid NitroSQLiteException')
           }
         }
       })
@@ -82,7 +82,7 @@ export default function registerExecuteUnitTests() {
             [id, name, age, networth],
           )
         } catch (e: unknown) {
-          expect(e).to.not.equal(null)
+          expect(e).not.toBe(null)
         }
       })
     })
@@ -100,9 +100,9 @@ export default function registerExecuteUnitTests() {
 
         const res = testDb.execute('SELECT * FROM User')
 
-        expect(res.rowsAffected).to.equal(1)
-        expect(res.insertId).to.equal(1)
-        expect(res.rows?._array).to.eql([
+        expect(res.rowsAffected).toBe(1)
+        expect(res.insertId).toBe(1)
+        expect(res.rows?._array).toEqual([
           {
             id,
             name,
@@ -124,9 +124,9 @@ export default function registerExecuteUnitTests() {
 
         const res = testDb.execute('SELECT * FROM User WHERE id = ?', [id])
 
-        expect(res.rowsAffected).to.equal(1)
-        expect(res.insertId).to.equal(1)
-        expect(res.rows?._array).to.eql([
+        expect(res.rowsAffected).toBe(1)
+        expect(res.insertId).toBe(1)
+        expect(res.rows?._array).toEqual([
           {
             id,
             name,
@@ -157,18 +157,18 @@ export default function registerExecuteUnitTests() {
               [1],
             )
 
-            expect(result.rowsAffected).to.equal(1)
-            expect(result.rows?.length).to.equal(1)
+            expect(result.rowsAffected).toBe(1)
+            expect(result.rows?.length).toBe(1)
 
             const row = result.results[0]
             // const row = result.rows?.item(0)
-            expect(row).to.not.equal(undefined)
+            expect(row).not.toBe(undefined)
 
             const value = row?.data
-            expect(value).to.be.instanceOf(ArrayBuffer)
+            expect(value).toBeInstanceOf(ArrayBuffer)
 
             const returnedBytes = new Uint8Array(value as ArrayBuffer)
-            expect(Array.from(returnedBytes)).to.eql(Array.from(originalBytes))
+            expect(Array.from(returnedBytes)).toEqual(Array.from(originalBytes))
           } finally {
             db.close()
             db.delete()
@@ -195,18 +195,18 @@ export default function registerExecuteUnitTests() {
               [1],
             )
 
-            expect(result.rowsAffected).to.equal(1)
-            expect(result.rows?.length).to.equal(1)
+            expect(result.rowsAffected).toBe(1)
+            expect(result.rows?.length).toBe(1)
 
             const row = result.results[0]
             // const row = result.rows?.item(0)
-            expect(row).to.not.equal(undefined)
+            expect(row).not.toBe(undefined)
 
             const value = row?.data
-            expect(value).to.be.instanceOf(ArrayBuffer)
+            expect(value).toBeInstanceOf(ArrayBuffer)
 
             const returnedBytes = new Uint8Array(value as ArrayBuffer)
-            expect(Array.from(returnedBytes)).to.eql(Array.from(originalBytes))
+            expect(Array.from(returnedBytes)).toEqual(Array.from(originalBytes))
           } finally {
             db.close()
             db.delete()
@@ -235,17 +235,17 @@ export default function registerExecuteUnitTests() {
               [1],
             )
 
-            expect(result.rowsAffected).to.equal(1)
-            expect(result.rows?.length).to.equal(1)
+            expect(result.rowsAffected).toBe(1)
+            expect(result.rows?.length).toBe(1)
 
             const row = result.results[0]
-            expect(row).to.not.equal(undefined)
+            expect(row).not.toBe(undefined)
 
             const value = row?.data
-            expect(value).to.be.instanceOf(ArrayBuffer)
+            expect(value).toBeInstanceOf(ArrayBuffer)
 
             const returnedBytes = new Uint8Array(value as ArrayBuffer)
-            expect(Array.from(returnedBytes)).to.eql(Array.from(originalBytes))
+            expect(Array.from(returnedBytes)).toEqual(Array.from(originalBytes))
           } finally {
             db.close()
             db.delete()
