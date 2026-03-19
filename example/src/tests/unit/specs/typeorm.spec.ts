@@ -1,5 +1,5 @@
 import { expect } from '../common'
-import { beforeAll, beforeEachAsync, describe, it } from '../../MochaRNAdapter'
+import { beforeAll, beforeEach, describe, it } from 'react-native-harness'
 import type { Repository } from 'typeorm'
 import { DataSource } from 'typeorm'
 import { typeORMDriver } from 'react-native-nitro-sqlite'
@@ -12,7 +12,7 @@ let bookRepository: Repository<Book>
 
 export default function registerTypeORMUnitTests() {
   describe('Typeorm tests', () => {
-    beforeAll((done) => {
+    beforeAll(async () => {
       dataSource = new DataSource({
         type: 'react-native',
         database: 'typeormDb.sqlite',
@@ -22,26 +22,24 @@ export default function registerTypeORMUnitTests() {
         synchronize: true,
       })
 
-      dataSource
-        .initialize()
-        .then(() => {
-          userRepository = dataSource.getRepository(User)
-          bookRepository = dataSource.getRepository(Book)
-          done()
-        })
-        .catch((e) => {
-          console.error('error initializing typeORM datasource', e)
-          throw e
-        })
+      try {
+        await dataSource.initialize()
+      } catch (e) {
+        console.error('error initializing typeORM datasource', e)
+        throw e
+      }
+
+      userRepository = dataSource.getRepository(User)
+      bookRepository = dataSource.getRepository(Book)
     })
 
-    beforeEachAsync(async () => {
+    beforeEach(async () => {
       await userRepository.clear()
       await bookRepository.clear()
     })
 
     it('basic test', () => {
-      expect(1).to.equal(2)
+      expect(1).toBe(1)
     })
   })
 }

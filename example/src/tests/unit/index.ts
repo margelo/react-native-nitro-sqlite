@@ -1,4 +1,4 @@
-import { beforeEach, describe } from '../MochaRNAdapter'
+import { beforeEach, describe } from 'react-native-harness'
 import { setupTestDb } from './common'
 import registerExecuteUnitTests from './specs/operations/execute.spec'
 import registerTransactionUnitTests from './specs/operations/transaction.spec'

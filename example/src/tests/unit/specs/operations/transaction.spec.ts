@@ -6,7 +6,7 @@ import {
   TEST_ERROR_MESSAGE,
   TEST_ERROR_CODES,
 } from '../../common'
-import { describe, it } from '../../../MochaRNAdapter'
+import { describe, it } from 'react-native-harness'
 import type { User } from '../../../../model/User'
 import { testDb } from '../../../db'
 
@@ -24,15 +24,15 @@ export default function registerTransactionUnitTests() {
           [id, name, age, networth],
         )
 
-        expect(res.rowsAffected).to.equal(1)
-        expect(res.insertId).to.equal(1)
-        expect(res.rows?._array).to.eql([])
-        expect(res.rows?.length).to.equal(0)
-        expect(res.rows?.item).to.be.a('function')
+        expect(res.rowsAffected).toBe(1)
+        expect(res.insertId).toBe(1)
+        expect(res.rows?._array).toEqual([])
+        expect(res.rows?.length).toBe(0)
+        expect(res.rows?.item).toBeTypeOf('function')
       })
 
       const res = testDb.execute('SELECT * FROM User')
-      expect(res.rows?._array).to.eql([
+      expect(res.rows?._array).toEqual([
         {
           id,
           name,
@@ -54,17 +54,17 @@ export default function registerTransactionUnitTests() {
           [id, name, age, networth],
         )
 
-        expect(res.rowsAffected).to.equal(1)
-        expect(res.insertId).to.equal(1)
-        expect(res.rows?._array).to.eql([])
-        expect(res.rows?.length).to.equal(0)
-        expect(res.rows?.item).to.be.a('function')
+        expect(res.rowsAffected).toBe(1)
+        expect(res.insertId).toBe(1)
+        expect(res.rows?._array).toEqual([])
+        expect(res.rows?.length).toBe(0)
+        expect(res.rows?.item).toBeTypeOf('function')
 
         tx.commit()
       })
 
       const res = testDb.execute('SELECT * FROM User')
-      expect(res.rows?._array).to.eql([
+      expect(res.rows?._array).toEqual([
         {
           id,
           name,
@@ -122,10 +122,7 @@ export default function registerTransactionUnitTests() {
       const expected = Array(iterations)
         .fill(0)
         .map((_, index) => index * 1000)
-      expect(actual).to.eql(
-        expected,
-        'Each transaction should read a different value',
-      )
+      expect(actual).toEqual(expected)
     })
 
     it('Transaction, cannot execute after commit', async () => {
@@ -140,23 +137,23 @@ export default function registerTransactionUnitTests() {
           [id, name, age, networth],
         )
 
-        expect(res.rowsAffected).to.equal(1)
-        expect(res.insertId).to.equal(1)
-        expect(res.rows?._array).to.eql([])
-        expect(res.rows?.length).to.equal(0)
-        expect(res.rows?.item).to.be.a('function')
+        expect(res.rowsAffected).toBe(1)
+        expect(res.insertId).toBe(1)
+        expect(res.rows?._array).toEqual([])
+        expect(res.rows?.length).toBe(0)
+        expect(res.rows?.item).toBeTypeOf('function')
 
         tx.commit()
 
         try {
           tx.execute('SELECT * FROM "User"')
         } catch (e) {
-          expect(e).to.not.equal(undefined)
+          expect(e).not.toBe(undefined)
         }
       })
 
       const res = testDb.execute('SELECT * FROM User')
-      expect(res.rows?._array).to.eql([
+      expect(res.rows?._array).toEqual([
         {
           id,
           name,
@@ -184,7 +181,7 @@ export default function registerTransactionUnitTests() {
       })
 
       const res = testDb.execute('SELECT * FROM User')
-      expect(res.rows?._array).to.eql([])
+      expect(res.rows?._array).toEqual([])
     })
 
     it('Rollback', async () => {
@@ -200,7 +197,7 @@ export default function registerTransactionUnitTests() {
         )
         tx.rollback()
         const res = testDb.execute('SELECT * FROM User')
-        expect(res.rows?._array).to.eql([])
+        expect(res.rows?._array).toEqual([])
       })
     })
 
@@ -210,14 +207,16 @@ export default function registerTransactionUnitTests() {
       })
 
       // ASSERT: should return a promise that eventually rejects
-      expect(promised).to.have.property('then').that.is.a('function')
+      expect(typeof (promised as unknown as PromiseLike<unknown>).then).toBe(
+        'function',
+      )
       try {
         await promised
-        expect.fail(TEST_ERROR_CODES.EXPECT_PROMISE_REJECTION)
+        throw new Error(TEST_ERROR_CODES.EXPECT_PROMISE_REJECTION)
       } catch (e) {
         if (isNitroSQLiteError(e))
-          expect(e.message).to.include(TEST_ERROR_MESSAGE)
-        else expect.fail(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
+          expect(e.message).toContain(TEST_ERROR_MESSAGE)
+        else throw new Error(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
       }
     })
 
@@ -226,14 +225,16 @@ export default function registerTransactionUnitTests() {
         tx.execute('SELECT * FROM [tableThatDoesNotExist];')
       })
       // ASSERT: should return a promise that eventually rejects
-      expect(promised).to.have.property('then').that.is.a('function')
+      expect(typeof (promised as unknown as PromiseLike<unknown>).then).toBe(
+        'function',
+      )
       try {
         await promised
-        expect.fail(TEST_ERROR_CODES.EXPECT_PROMISE_REJECTION)
+        throw new Error(TEST_ERROR_CODES.EXPECT_PROMISE_REJECTION)
       } catch (e) {
         if (isNitroSQLiteError(e))
-          expect(e.message).to.include('no such table: tableThatDoesNotExist')
-        else expect.fail(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
+          expect(e.message).toContain('no such table: tableThatDoesNotExist')
+        else throw new Error(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
       }
     })
 
@@ -248,9 +249,11 @@ export default function registerTransactionUnitTests() {
       })
 
       // ASSERT: should return a promise that eventually rejects
-      expect(promised).to.have.property('then').that.is.a('function')
+      expect(typeof (promised as unknown as PromiseLike<unknown>).then).toBe(
+        'function',
+      )
       await promised
-      expect(ranCallback).to.equal(true, 'Should handle async callback')
+      expect(ranCallback).toBe(true)
     })
 
     it('Async transaction, auto commit', async () => {
@@ -265,15 +268,15 @@ export default function registerTransactionUnitTests() {
           [id, name, age, networth],
         )
 
-        expect(res.rowsAffected).to.equal(1)
-        expect(res.insertId).to.equal(1)
-        expect(res.rows?._array).to.eql([])
-        expect(res.rows?.length).to.equal(0)
-        expect(res.rows?.item).to.be.a('function')
+        expect(res.rowsAffected).toBe(1)
+        expect(res.insertId).toBe(1)
+        expect(res.rows?._array).toEqual([])
+        expect(res.rows?.length).toBe(0)
+        expect(res.rows?.item).toBeTypeOf('function')
       })
 
       const res = testDb.execute('SELECT * FROM User')
-      expect(res.rows?._array).to.eql([
+      expect(res.rows?._array).toEqual([
         {
           id,
           name,
@@ -298,14 +301,15 @@ export default function registerTransactionUnitTests() {
         })
       } catch (e) {
         if (isNitroSQLiteError(e)) {
-          expect(e.message)
-            .to.include('SqlExecutionError')
-            .and.to.include('cannot store TEXT value in REAL column User.id')
+          expect(e.message).toContain('SqlExecutionError')
+          expect(e.message).toContain(
+            'cannot store TEXT value in REAL column User.id',
+          )
 
           const res = testDb.execute('SELECT * FROM User')
-          expect(res.rows?._array).to.eql([])
+          expect(res.rows?._array).toEqual([])
         } else {
-          expect.fail(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
+          throw new Error(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
         }
       }
     })
@@ -325,7 +329,7 @@ export default function registerTransactionUnitTests() {
       })
 
       const res = testDb.execute('SELECT * FROM User')
-      expect(res.rows?._array).to.eql([
+      expect(res.rows?._array).toEqual([
         {
           id,
           name,
@@ -350,7 +354,7 @@ export default function registerTransactionUnitTests() {
       })
 
       const res = testDb.execute('SELECT * FROM User')
-      expect(res.rows?._array).to.eql([])
+      expect(res.rows?._array).toEqual([])
     })
 
     it('Async transaction, executed in order', async () => {
@@ -401,10 +405,7 @@ export default function registerTransactionUnitTests() {
       const expected = Array(iterations)
         .fill(0)
         .map((_, index) => index * 1000)
-      expect(actual).to.eql(
-        expected,
-        'Each transaction should read a different value',
-      )
+      expect(actual).toEqual(expected)
     })
 
     it('Async transaction, rejects on callback error', async () => {
@@ -413,14 +414,16 @@ export default function registerTransactionUnitTests() {
       })
 
       // ASSERT: should return a promise that eventually rejects
-      expect(promised).to.have.property('then').that.is.a('function')
+      expect(typeof (promised as unknown as PromiseLike<unknown>).then).toBe(
+        'function',
+      )
       try {
         await promised
-        expect.fail(TEST_ERROR_CODES.EXPECT_PROMISE_REJECTION)
+        throw new Error(TEST_ERROR_CODES.EXPECT_PROMISE_REJECTION)
       } catch (e) {
         if (isNitroSQLiteError(e))
-          expect(e.message).to.include(TEST_ERROR_MESSAGE)
-        else expect.fail(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
+          expect(e.message).toContain(TEST_ERROR_MESSAGE)
+        else throw new Error(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
       }
     })
 
@@ -430,14 +433,16 @@ export default function registerTransactionUnitTests() {
       })
 
       // ASSERT: should return a promise that eventually rejects
-      expect(promised).to.have.property('then').that.is.a('function')
+      expect(typeof (promised as unknown as PromiseLike<unknown>).then).toBe(
+        'function',
+      )
       try {
         await promised
-        expect.fail(TEST_ERROR_CODES.EXPECT_PROMISE_REJECTION)
+        throw new Error(TEST_ERROR_CODES.EXPECT_PROMISE_REJECTION)
       } catch (e) {
         if (isNitroSQLiteError(e))
-          expect(e.message).to.include('no such table: tableThatDoesNotExist')
-        else expect.fail(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
+          expect(e.message).toContain('no such table: tableThatDoesNotExist')
+        else throw new Error(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
       }
     })
   })
