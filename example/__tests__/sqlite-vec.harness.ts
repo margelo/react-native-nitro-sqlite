@@ -1,32 +1,4 @@
-/**
- * Harness spec for sqlite-vec vector search.
- *
- * sqlite-vec is exposed entirely through SQL (the `vec0` virtual table + a set
- * of `vec_*` scalar / table functions), so these tests drive the existing
- * `open()` / `execute()` API — no new JS surface is required.
- *
- * THIS IS A TEST-FIRST (TDD) SPEC. Until sqlite-vec is statically linked and
- * registered via `sqlite3_auto_extension(sqlite3_vec_init)`, every test here
- * fails with "no such function: vec_version" / "no such module: vec0". That is
- * the expected RED baseline; the suite goes green once the extension is built
- * into the native library.
- *
- * Coverage:
- *  - extension availability (vec_version / vec_debug)
- *  - constructors & introspection (vec_f32/int8/bit, vec_length/type/to_json)
- *  - vector math (vec_add/sub/normalize/slice, vec_each)
- *  - distance functions (L2 / L1 / cosine / hamming)
- *  - quantization (vec_quantize_binary)
- *  - vec0 KNN float32 (both `AND k = N` and `ORDER BY distance LIMIT N` forms,
- *    plus bound `?` query vectors)
- *  - vec0 distance_metric=cosine
- *  - vec0 metadata columns + filtering (=, >, BETWEEN)
- *  - vec0 auxiliary (+) columns
- *  - vec0 partition key columns
- *  - vec0 int8 and bit vectors
- *  - vec0 UPDATE / DELETE
- *  - error cases (dimension mismatch, missing k/limit)
- */
+/** Harness spec for sqlite-vec: drives vector search via the core open()/execute() API; covers availability, constructors, math, distances, quantization, and vec0 KNN/metadata/partition/aux/int8/bit/update/delete. */
 import {
   describe,
   it,
@@ -396,8 +368,7 @@ describe('sqlite-vec - vec0 int8 vectors', () => {
   beforeEach(() => {
     resetDb()
     db.execute('CREATE VIRTUAL TABLE vec_i8 USING vec0(embedding int8[4]);')
-    // int8 columns require an int8 vector; build it explicitly with vec_int8()
-    // (a bare JSON array is parsed as float32).
+    // int8 columns require an int8 vector via vec_int8() (a bare JSON array is parsed as float32).
     db.executeBatch([
       { query: 'INSERT INTO vec_i8(rowid, embedding) VALUES (?, vec_int8(?))', params: [1, '[1, 2, 3, 4]'] },
       { query: 'INSERT INTO vec_i8(rowid, embedding) VALUES (?, vec_int8(?))', params: [2, '[10, 20, 30, 40]'] },
@@ -418,8 +389,7 @@ describe('sqlite-vec - vec0 int8 vectors', () => {
 describe('sqlite-vec - vec0 bit vectors', () => {
   beforeEach(() => {
     resetDb()
-    // Bit vectors use hamming distance implicitly (it is not a distance_metric
-    // value; sqlite-vec only accepts L2/cosine/L1 for distance_metric).
+    // Bit vectors use hamming implicitly (not a distance_metric value; sqlite-vec accepts only L2/cosine/L1).
     db.execute('CREATE VIRTUAL TABLE vec_bits USING vec0(embedding bit[8]);')
     db.execute("INSERT INTO vec_bits(rowid, embedding) VALUES (1, vec_bit(X'0F'));")
     db.execute("INSERT INTO vec_bits(rowid, embedding) VALUES (2, vec_bit(X'FF'));")

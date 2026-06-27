@@ -54,8 +54,7 @@ SQLiteOperationResult sqliteExecuteBatch(const std::string& dbName, const std::v
         .commands = (int)commandCount,
     };
   } catch (NitroSQLiteException& e) {
-    // Roll back exactly once. The original error is preserved and rethrown;
-    // a failed ROLLBACK must not mask it.
+    // Roll back exactly once; a failed ROLLBACK must not mask the original error.
     try {
       sqliteExecuteLiteral(dbName, "ROLLBACK");
     } catch (...) {

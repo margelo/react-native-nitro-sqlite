@@ -14,10 +14,7 @@
 #include <unistd.h>
 
 #ifdef NITRO_SQLITE_VEC
-// Provided by react-native-nitro-sqlite-vec. Angle-bracket include so it
-// resolves via the header search path (-I) on both Android (CMake
-// target_include_directories) and iOS (CocoaPods intercepts quoted includes
-// with its header map before reaching -I paths).
+// From react-native-nitro-sqlite-vec; angle-bracket so it resolves via -I (CocoaPods intercepts quoted includes before -I).
 #include <registerVectorExtensions.hpp>
 #endif
 
@@ -31,8 +28,7 @@ std::map<std::string, sqlite3*> dbMap = std::map<std::string, sqlite3*>();
 
 void sqliteOpenDb(const std::string& dbName, const std::string& docPath) {
 #ifdef NITRO_SQLITE_VEC
-  // Register sqlite-vec (and any future ANN backends) before opening the
-  // connection, so the new connection exposes vec0 + vec_* functions.
+  // Register vector extensions before opening, so the new connection exposes vec0 + vec_*.
   margelo::rnnitrosqlitevec::registerVectorExtensions();
 #endif
 
@@ -125,11 +121,7 @@ void bindStatement(sqlite3_stmt* statement, const SQLiteQueryParams& values) {
     } else if (std::holds_alternative<bool>(value)) {
       sqlite3_bind_int(statement, sqliteIndex, std::get<bool>(value));
     } else if (std::holds_alternative<double>(value)) {
-      // JavaScript only has `number` (double). Bind whole numbers that fit in
-      // int64 as INTEGER so strict consumers get a true integer — notably
-      // sqlite-vec's vec0 rowid / primary-key / partition-key columns, which
-      // reject REAL. SQLite still coerces INTEGER to REAL for REAL-affinity
-      // columns, so behavior for ordinary tables is unchanged.
+      // JS has only `number` (double); bind whole numbers as INTEGER so vec0's rowid/pk/partition columns (which reject REAL) work. SQLite still coerces INTEGER->REAL for REAL columns.
       double doubleValue = std::get<double>(value);
       if (std::trunc(doubleValue) == doubleValue && doubleValue >= -9223372036854775808.0 &&
           doubleValue < 9223372036854775808.0) {

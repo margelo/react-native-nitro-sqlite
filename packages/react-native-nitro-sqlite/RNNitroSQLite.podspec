@@ -17,19 +17,11 @@ Pod::Spec.new do |s|
   s.platforms    = { :ios => min_ios_version_supported, :visionos => "1.0" }
   s.source       = { :git => "https://github.com/margelo/react-native-nitro-sqlite.git", :tag => "#{s.version}" }
 
-  # Optional vector search: when NITRO_SQLITE_VEC=1, compile
-  # react-native-nitro-sqlite-vec's sqlite-vec sources into this pod so they
-  # share our single sqlite3 build (static linking merges everything into one
-  # app binary). Default: off.
+  # Opt-in vector search (NITRO_SQLITE_VEC=1); the companion pod compiles sqlite-vec and static-links into our single sqlite3.
   nitro_sqlite_vec = ENV['NITRO_SQLITE_VEC'] == '1'
   nitro_sqlite_vec_cpp = File.expand_path(File.join(__dir__, "..", "react-native-nitro-sqlite-vec", "cpp"))
 
-  # On iOS the companion pod (RNNitroSqliteVec) compiles the sqlite-vec sources
-  # itself — CocoaPods won't compile source files from outside this pod's root.
-  # Static linking merges everything into one app binary, so the companion's
-  # sqlite-vec resolves against this pod's single sqlite3, and this pod's call to
-  # registerVectorExtensions() resolves against the companion. Here we only need
-  # the NITRO_SQLITE_VEC define + the companion header on the search path.
+  # CocoaPods can't compile sources outside a pod's root, so here we only add the define + companion header path (the companion pod compiles the sources).
   s.source_files = [
     # Implementation (Swift)
     "ios/**/*.{swift}",

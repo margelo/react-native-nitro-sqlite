@@ -75,9 +75,7 @@ def REACT_NATIVE_MINOR_VERSION = REACT_NATIVE_VERSION.startsWith("0.0.0-") ? 100
 
 def SQLITE_FLAGS = rootProject.properties['nitroSqliteFlags']
 
-// Opt-in vector search via the companion package react-native-nitro-sqlite-vec.
-// When `nitroSqliteVec=true`, resolve its cpp dir so CMake can compile its
-// sqlite-vec sources into this library (shared single sqlite3). Default: off.
+// Opt-in vector search: when nitroSqliteVec=true, resolve the companion's cpp dir so CMake compiles its sqlite-vec into this library (shared single sqlite3).
 def NITRO_SQLITE_VEC_ENABLED = (rootProject.findProperty('nitroSqliteVec') ?: 'false').toString() == 'true'
 def NITRO_SQLITE_VEC_CPP_DIR = ''
 if (NITRO_SQLITE_VEC_ENABLED) {

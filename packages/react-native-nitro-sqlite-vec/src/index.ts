@@ -1,20 +1,11 @@
 import type { NitroSQLiteConnection } from 'react-native-nitro-sqlite'
 
-/**
- * react-native-nitro-sqlite-vec
- *
- * sqlite-vec is statically linked into react-native-nitro-sqlite's single
- * sqlite3 build, so vector search works directly through the core's
- * `execute()` API (vec0 virtual tables + `vec_*` SQL functions). This module
- * adds optional, thin, typed helpers on top — it does not introduce a new way
- * to run queries.
- */
+/** Optional typed helpers over react-native-nitro-sqlite's execute() for sqlite-vec (statically linked); adds no new query path. */
 
 export type VectorColumnType = 'float' | 'int8' | 'bit'
 export type VectorDistanceMetric = 'L2' | 'cosine' | 'L1'
 
-/** A single KNN result row. Always includes `rowid` and `distance`; any
- * additional selected columns appear by name. */
+/** A KNN result row: always `rowid` + `distance`, plus any selected columns. */
 export interface KnnMatch {
   rowid: number
   distance: number
@@ -47,10 +38,7 @@ export function vecVersion(db: NitroSQLiteConnection): string {
   return firstValue<string>(db, 'SELECT vec_version() AS value')
 }
 
-/**
- * True if sqlite-vec is statically linked into the active sqlite3 build
- * (i.e. react-native-nitro-sqlite was built with the vector flag enabled).
- */
+/** True if sqlite-vec is linked into the active build (vector flag enabled). */
 export function isVecAvailable(db: NitroSQLiteConnection): boolean {
   try {
     vecVersion(db)
@@ -75,10 +63,7 @@ export function createVectorTable(
   )
 }
 
-/**
- * Runs a K-nearest-neighbours search. `query` may be a JSON string
- * (`'[0.1, 0.2]'`) or a numeric array (`[0.1, 0.2]`).
- */
+/** Runs a KNN search; `query` is a JSON string `'[0.1,0.2]'` or a numeric array. */
 export function knnSearch(
   db: NitroSQLiteConnection,
   table: string,
