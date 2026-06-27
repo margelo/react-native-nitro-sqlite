@@ -14,9 +14,11 @@
 #include <unistd.h>
 
 #ifdef NITRO_SQLITE_VEC
-// Provided by react-native-nitro-sqlite-vec, compiled into this library when
-// the `nitroSqliteVec` build flag is enabled.
-#include "registerVectorExtensions.hpp"
+// Provided by react-native-nitro-sqlite-vec. Angle-bracket include so it
+// resolves via the header search path (-I) on both Android (CMake
+// target_include_directories) and iOS (CocoaPods intercepts quoted includes
+// with its header map before reaching -I paths).
+#include <registerVectorExtensions.hpp>
 #endif
 
 using namespace facebook;

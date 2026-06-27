@@ -74,6 +74,30 @@ See the [`sqlite-vec` docs](https://alexgarcia.xyz/sqlite-vec/) for the full SQL
 - `distance_metric` accepts `L2` (default), `cosine`, `L1`. Bit vectors use hamming
   distance implicitly.
 
+## Benchmarks
+
+Vector-only benchmark vs **expo-sqlite** (which loads sqlite-vec as a *runtime* extension),
+both installed in the **same Expo app**, on the **same device**, over the **same seeded
+data**. Workload: 1000 inserts + 1000 KNN queries (k=10) on 128-dim float32 vectors, 5 runs.
+
+**Android — Samsung Galaxy M14 (SM-E146B), a low-end device, debug build, avg of 5 runs.**
+**Correctness:** for 100 queries/run, this library and expo-sqlite returned **bit-identical**
+KNN results — 100/100 match, max distance diff 0, every run.
+
+| Operation | this (static) | expo-sqlite (runtime-loaded) | speedup |
+|---|---:|---:|---:|
+| **scalar** `vec_distance_cosine` | **48.6 ms** · 20,576/s | 814.8 ms · 1,227/s | **~16.8×** |
+| **filtered KNN** (k=10 + metadata) | **555 ms** · 1,801/s | 2,132 ms · 469/s | **~3.8×** |
+| **KNN** (k=10) | **661 ms** · 1,514/s | 2,199 ms · 455/s | **~3.3×** |
+| insert (1000) | 13.9 s | 18.0 s | ~1.3× |
+| update (1000) | 14.9 s | 16.4 s | ~1.1× |
+| delete (500) | 7.8 s | 7.5 s | ~1.0× (noise) |
+
+Read/compute operations — which return data across the JS↔native boundary — are **3–17×
+faster** thanks to static linking + Nitro/JSI marshaling vs a runtime-loaded extension + bridge.
+Write ops are bind/exec-bound, so closer. _(Relative comparison; both run in the same debug
+build on the same device.)_
+
 ## Roadmap
 
 The native registration is a single seam (`registerVectorExtensions`), ready for an ANN
