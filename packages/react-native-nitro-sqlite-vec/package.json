@@ -9,6 +9,8 @@
   "files": [
     "src",
     "cpp",
+    "RNNitroSqliteVec.podspec",
+    "react-native.config.js",
     "README.md"
   ],
   "scripts": {

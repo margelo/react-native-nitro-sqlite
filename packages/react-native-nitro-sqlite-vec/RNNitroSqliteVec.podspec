@@ -1,0 +1,42 @@
+require "json"
+
+package = JSON.parse(File.read(File.join(__dir__, "package.json")))
+
+# iOS only. The native sqlite-vec sources live in this package; here we compile
+# them into their own pod and rely on static linking to share the core's single
+# sqlite3 (RNNitroSQLite). On Android the core's CMake compiles these same
+# sources directly (see react-native-nitro-sqlite/android/CMakeLists.txt).
+#
+# Enabled by the same opt-in flag as the core: `NITRO_SQLITE_VEC=1`.
+nitro_sqlite_vec = ENV['NITRO_SQLITE_VEC'] == '1'
+
+# The core's bundled sqlite3.h — sqlite-vec is compiled with SQLITE_CORE so it
+# links against it directly.
+core_sqlite_headers = File.expand_path(File.join(__dir__, "..", "react-native-nitro-sqlite", "cpp", "sqlite"))
+
+Pod::Spec.new do |s|
+  s.name         = "RNNitroSqliteVec"
+  s.version      = package["version"]
+  s.summary      = package["description"]
+  s.homepage     = "https://github.com/margelo/react-native-nitro-sqlite"
+  s.license      = "MIT"
+  s.authors      = "Margelo"
+  s.platforms    = { :ios => min_ios_version_supported, :visionos => "1.0" }
+  s.source       = { :git => "https://github.com/margelo/react-native-nitro-sqlite.git", :tag => "#{s.version}" }
+
+  if nitro_sqlite_vec
+    s.source_files = "cpp/**/*.{c,cpp,h,hpp}"
+    s.pod_target_xcconfig = {
+      "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) SQLITE_CORE=1 SQLITE_VEC_STATIC=1",
+.
+      "USER_HEADER_SEARCH_PATHS" => "\"#{core_sqlite_headers}\"",
+      "HEADER_SEARCH_PATHS" => "\"#{core_sqlite_headers}\"",
+      "WARNING_CFLAGS" => "-Wno-shorten-64-to-32 -Wno-comma -Wno-unreachable-code -Wno-conditional-uninitialized",
+    }
+    # Share the core's single sqlite3 (symbols resolve at app link).
+    s.dependency "RNNitroSQLite"
+  else
+    # Disabled: ship headers only, compile nothing.
+    s.source_files = "cpp/**/*.{h,hpp}"
+  end
+end

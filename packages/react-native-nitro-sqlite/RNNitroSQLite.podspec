@@ -17,6 +17,19 @@ Pod::Spec.new do |s|
   s.platforms    = { :ios => min_ios_version_supported, :visionos => "1.0" }
   s.source       = { :git => "https://github.com/margelo/react-native-nitro-sqlite.git", :tag => "#{s.version}" }
 
+  # Optional vector search: when NITRO_SQLITE_VEC=1, compile
+  # react-native-nitro-sqlite-vec's sqlite-vec sources into this pod so they
+  # share our single sqlite3 build (static linking merges everything into one
+  # app binary). Default: off.
+  nitro_sqlite_vec = ENV['NITRO_SQLITE_VEC'] == '1'
+  nitro_sqlite_vec_cpp = File.expand_path(File.join(__dir__, "..", "react-native-nitro-sqlite-vec", "cpp"))
+
+  # On iOS the companion pod (RNNitroSqliteVec) compiles the sqlite-vec sources
+  # itself — CocoaPods won't compile source files from outside this pod's root.
+  # Static linking merges everything into one app binary, so the companion's
+  # sqlite-vec resolves against this pod's single sqlite3, and this pod's call to
+  # registerVectorExtensions() resolves against the companion. Here we only need
+  # the NITRO_SQLITE_VEC define + the companion header on the search path.
   s.source_files = [
     # Implementation (Swift)
     "ios/**/*.{swift}",
@@ -32,10 +45,8 @@ Pod::Spec.new do |s|
     'CLANG_CXX_LANGUAGE_STANDARD' => 'c++20',
     'CLANG_CXX_LIBRARY' => 'libc++',
     'DEFINES_MODULE' => 'YES',
-    "HEADER_SEARCH_PATHS" => [
-      "${PODS_ROOT}/RCT-Folly",
-    ],
-    "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) FOLLY_NO_CONFIG FOLLY_CFG_NO_COROUTINES",
+    "HEADER_SEARCH_PATHS" => "\"${PODS_ROOT}/RCT-Folly\"" + (nitro_sqlite_vec ? " \"#{nitro_sqlite_vec_cpp}\"" : ""),
+    "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) FOLLY_NO_CONFIG FOLLY_CFG_NO_COROUTINES" + (nitro_sqlite_vec ? " NITRO_SQLITE_VEC=1" : ""),
     "OTHER_CPLUSPLUSFLAGS" => folly_compiler_flags,
   }
 
