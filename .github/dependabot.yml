@@ -10,7 +10,7 @@ updates:
 
   - package-ecosystem: 'gradle'
     directories:
-      - '/package/android/'
+      - '/packages/react-native-nitro-sqlite/android/'
       - '/example/android/'
     schedule:
       interval: 'daily'
@@ -20,7 +20,7 @@ updates:
 
   - package-ecosystem: 'npm'
     directories:
-      - '/package/'
+      - '/packages/react-native-nitro-sqlite/'
       - '/example/'
     schedule:
       interval: 'daily'

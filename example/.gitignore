@@ -58,3 +58,6 @@ npm-debug.log
 
 # testing
 /coverage
+
+# react-native-harness generated runtime manifest
+.harness/

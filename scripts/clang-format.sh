@@ -1,7 +1,7 @@
 #!/bin/bash
 
 CPP_DIRS=(
-  "package/cpp"
+  "packages/react-native-nitro-sqlite/cpp"
 )
 
 if which clang-format >/dev/null; then
