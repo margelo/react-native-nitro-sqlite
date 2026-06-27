@@ -26,6 +26,7 @@
     "react-native-harness": "^1.3.0",
     "react-native-nitro-modules": "*",
     "react-native-nitro-sqlite": "9.6.0",
+    "react-native-nitro-sqlite-vec": "*",
     "react-native-safe-area-context": "^5.5.2",
     "react-native-screens": "^4.18.0",
     "reflect-metadata": "^0.1.13",
