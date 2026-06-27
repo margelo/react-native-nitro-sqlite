@@ -194,3 +194,40 @@ describe('NitroSQLite - ArrayBuffer / BLOB', () => {
     }
   })
 })
+
+describe('NitroSQLite - Int64 / bigint params', () => {
+  it('binds a bigint as an exact int64 (value beyond 2^53)', () => {
+    const bigDb = open({ name: 'harness_int64' })
+    bigDb.execute('DROP TABLE IF EXISTS Big;')
+    bigDb.execute(
+      'CREATE TABLE Big (id INTEGER PRIMARY KEY, label TEXT) STRICT;',
+    )
+    try {
+      // 2^53 + 1 — not representable as a JS number, only as a bigint.
+      const big = 9007199254740993n
+      bigDb.execute('INSERT INTO Big (id, label) VALUES (?, ?)', [big, 'x'])
+      // Compare inside SQLite (int64) to avoid the lossy double round-trip on read-back.
+      const res = bigDb.execute(
+        'SELECT (id = ?) AS matches, typeof(id) AS t FROM Big WHERE label = ?',
+        [big, 'x'],
+      )
+      expect(res.rows?.item(0)?.matches).toBe(1)
+      expect(res.rows?.item(0)?.t).toBe('integer')
+    } finally {
+      closeQuietly(bigDb)
+    }
+  })
+
+  it('a whole `number` still binds as INTEGER (heuristic preserved)', () => {
+    const numDb = open({ name: 'harness_int64_num' })
+    numDb.execute('DROP TABLE IF EXISTS Whole;')
+    numDb.execute('CREATE TABLE Whole (id INTEGER PRIMARY KEY) STRICT;')
+    try {
+      numDb.execute('INSERT INTO Whole (id) VALUES (?)', [42])
+      const res = numDb.execute('SELECT typeof(id) AS t FROM Whole')
+      expect(res.rows?.item(0)?.t).toBe('integer')
+    } finally {
+      closeQuietly(numDb)
+    }
+  })
+})

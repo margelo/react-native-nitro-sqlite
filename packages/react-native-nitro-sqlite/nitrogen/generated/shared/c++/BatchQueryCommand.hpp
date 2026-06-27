@@ -45,11 +45,11 @@ namespace margelo::nitro::rnnitrosqlite {
   struct BatchQueryCommand final {
   public:
     std::string query     SWIFT_PRIVATE;
-    std::optional<std::variant<std::vector<std::vector<std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>>, std::vector<std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>>> params     SWIFT_PRIVATE;
+    std::optional<std::variant<std::vector<std::vector<std::variant<nitro::NullType, bool, int64_t, std::shared_ptr<ArrayBuffer>, std::string, double>>>, std::vector<std::variant<nitro::NullType, bool, int64_t, std::shared_ptr<ArrayBuffer>, std::string, double>>>> params     SWIFT_PRIVATE;
 
   public:
     BatchQueryCommand() = default;
-    explicit BatchQueryCommand(std::string query, std::optional<std::variant<std::vector<std::vector<std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>>, std::vector<std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>>> params): query(query), params(params) {}
+    explicit BatchQueryCommand(std::string query, std::optional<std::variant<std::vector<std::vector<std::variant<nitro::NullType, bool, int64_t, std::shared_ptr<ArrayBuffer>, std::string, double>>>, std::vector<std::variant<nitro::NullType, bool, int64_t, std::shared_ptr<ArrayBuffer>, std::string, double>>>> params): query(query), params(params) {}
 
   public:
     friend bool operator==(const BatchQueryCommand& lhs, const BatchQueryCommand& rhs) = default;
@@ -66,13 +66,13 @@ namespace margelo::nitro {
       jsi::Object obj = arg.asObject(runtime);
       return margelo::nitro::rnnitrosqlite::BatchQueryCommand(
         JSIConverter<std::string>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "query"))),
-        JSIConverter<std::optional<std::variant<std::vector<std::vector<std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>>, std::vector<std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>>>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "params")))
+        JSIConverter<std::optional<std::variant<std::vector<std::vector<std::variant<nitro::NullType, bool, int64_t, std::shared_ptr<ArrayBuffer>, std::string, double>>>, std::vector<std::variant<nitro::NullType, bool, int64_t, std::shared_ptr<ArrayBuffer>, std::string, double>>>>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "params")))
       );
     }
     static inline jsi::Value toJSI(jsi::Runtime& runtime, const margelo::nitro::rnnitrosqlite::BatchQueryCommand& arg) {
       jsi::Object obj(runtime);
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "query"), JSIConverter<std::string>::toJSI(runtime, arg.query));
-      obj.setProperty(runtime, PropNameIDCache::get(runtime, "params"), JSIConverter<std::optional<std::variant<std::vector<std::vector<std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>>, std::vector<std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>>>>::toJSI(runtime, arg.params));
+      obj.setProperty(runtime, PropNameIDCache::get(runtime, "params"), JSIConverter<std::optional<std::variant<std::vector<std::vector<std::variant<nitro::NullType, bool, int64_t, std::shared_ptr<ArrayBuffer>, std::string, double>>>, std::vector<std::variant<nitro::NullType, bool, int64_t, std::shared_ptr<ArrayBuffer>, std::string, double>>>>>::toJSI(runtime, arg.params));
       return obj;
     }
     static inline bool canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
@@ -84,7 +84,7 @@ namespace margelo::nitro {
         return false;
       }
       if (!JSIConverter<std::string>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "query")))) return false;
-      if (!JSIConverter<std::optional<std::variant<std::vector<std::vector<std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>>, std::vector<std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>>>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "params")))) return false;
+      if (!JSIConverter<std::optional<std::variant<std::vector<std::vector<std::variant<nitro::NullType, bool, int64_t, std::shared_ptr<ArrayBuffer>, std::string, double>>>, std::vector<std::variant<nitro::NullType, bool, int64_t, std::shared_ptr<ArrayBuffer>, std::string, double>>>>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "params")))) return false;
       return true;
     }
   };

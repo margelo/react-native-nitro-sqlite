@@ -1,3 +1,4 @@
+import type { Int64 } from 'react-native-nitro-modules'
 import type { NitroSQLiteQueryResult } from './specs/NitroSQLiteQueryResult.nitro'
 
 export interface NitroSQLiteConnectionOptions {
@@ -32,7 +33,10 @@ export enum ColumnType {
 
 export type SQLiteValue = boolean | number | string | ArrayBuffer | null
 
-export type SQLiteQueryParams = SQLiteValue[]
+/** Param values also accept Nitro's `Int64` (a branded bigint) to bind a true int64 (e.g. ids beyond 2^53); a whole `number` still binds as INTEGER. */
+export type SQLiteParamValue = boolean | number | Int64 | string | ArrayBuffer | null
+
+export type SQLiteQueryParams = SQLiteParamValue[]
 
 export type QueryResultRow = Record<string, SQLiteValue>
 
@@ -60,7 +64,7 @@ export type NitroSQLiteQueryResultRows<
 
 export type ExecuteQuery = <Row extends QueryResultRow = QueryResultRow>(
   query: string,
-  params?: SQLiteValue[],
+  params?: SQLiteQueryParams,
 ) => QueryResult<Row>
 
 export type ExecuteAsyncQuery = <Row extends QueryResultRow = QueryResultRow>(

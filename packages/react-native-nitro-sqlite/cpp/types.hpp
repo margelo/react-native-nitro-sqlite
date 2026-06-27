@@ -11,7 +11,9 @@ using namespace margelo::nitro::rnnitrosqlite;
 namespace margelo::rnnitrosqlite {
 
 using SQLiteValue = std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>;
-using SQLiteQueryParams = std::vector<SQLiteValue>;
+// Param values additionally accept int64_t (Nitro's Int64/bigint); order must match nitrogen's generated execute() param variant.
+using SQLiteParamValue = std::variant<nitro::NullType, bool, int64_t, std::shared_ptr<ArrayBuffer>, std::string, double>;
+using SQLiteQueryParams = std::vector<SQLiteParamValue>;
 using SQLiteQueryResultRow = std::unordered_map<std::string, SQLiteValue>;
 using SQLiteQueryResults = std::vector<SQLiteQueryResultRow>;
 using SQLiteQueryTableMetadata = std::unordered_map<std::string, NitroSQLiteQueryColumnMetadata>;
