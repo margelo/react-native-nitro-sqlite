@@ -58,6 +58,7 @@
         "react-native-harness": "^1.3.0",
         "react-native-nitro-modules": "*",
         "react-native-nitro-sqlite": "9.6.0",
+        "react-native-nitro-sqlite-vec": "*",
         "react-native-safe-area-context": "^5.5.2",
         "react-native-screens": "^4.18.0",
         "reflect-metadata": "^0.1.13",
@@ -108,6 +109,17 @@
         "react": ">=17.0.0",
         "react-native": ">=0.75.0",
         "react-native-nitro-modules": ">=0.35.0",
+      },
+    },
+    "packages/react-native-nitro-sqlite-vec": {
+      "name": "react-native-nitro-sqlite-vec",
+      "version": "9.6.0",
+      "devDependencies": {
+        "react-native-nitro-sqlite": "9.6.0",
+        "typescript": "^5.8.3",
+      },
+      "peerDependencies": {
+        "react-native-nitro-sqlite": ">=9.0.0",
       },
     },
   },
@@ -2041,6 +2053,8 @@
     "react-native-nitro-sqlite": ["react-native-nitro-sqlite@workspace:packages/react-native-nitro-sqlite"],
 
     "react-native-nitro-sqlite-example": ["react-native-nitro-sqlite-example@workspace:example"],
+
+    "react-native-nitro-sqlite-vec": ["react-native-nitro-sqlite-vec@workspace:packages/react-native-nitro-sqlite-vec"],
 
     "react-native-quick-base64": ["react-native-quick-base64@2.2.2", "", { "peerDependencies": { "react": "*", "react-native": "*" } }, "sha512-WLHSifHLoamr2kF00Gov0W9ud6CfPshe1rmqWTquVIi9c62qxOaJCFVDrXFZhEBU8B8PvGLVuOlVKH78yhY0Fg=="],
 

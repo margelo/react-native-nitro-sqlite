@@ -315,7 +315,7 @@ describe('sqlite-vec - vec0 metadata columns + filtering', () => {
     )
     db.executeBatch([
       { query: 'INSERT INTO vec_docs(id, embedding, genre, rating) VALUES (?, ?, ?, ?)', params: [1, '[1, 1]', 'scifi', 4.5] },
-      { query: 'INSERT INTO vec_docs(id, embedding, genre, rating) VALUES (?, ?, ?, ?)', params: [2, '[2, 2]', 'horror', 3.0] },
+      { query: 'INSERT INTO vec_docs(id, embedding, genre, rating) VALUES (?, ?, ?, ?)', params: [2, '[2, 2]', 'horror', 3.5] },
       { query: 'INSERT INTO vec_docs(id, embedding, genre, rating) VALUES (?, ?, ?, ?)', params: [3, '[1, 2]', 'scifi', 4.8] },
     ])
   })
@@ -396,16 +396,18 @@ describe('sqlite-vec - vec0 int8 vectors', () => {
   beforeEach(() => {
     resetDb()
     db.execute('CREATE VIRTUAL TABLE vec_i8 USING vec0(embedding int8[4]);')
+    // int8 columns require an int8 vector; build it explicitly with vec_int8()
+    // (a bare JSON array is parsed as float32).
     db.executeBatch([
-      { query: 'INSERT INTO vec_i8(rowid, embedding) VALUES (?, ?)', params: [1, '[1, 2, 3, 4]'] },
-      { query: 'INSERT INTO vec_i8(rowid, embedding) VALUES (?, ?)', params: [2, '[10, 20, 30, 40]'] },
+      { query: 'INSERT INTO vec_i8(rowid, embedding) VALUES (?, vec_int8(?))', params: [1, '[1, 2, 3, 4]'] },
+      { query: 'INSERT INTO vec_i8(rowid, embedding) VALUES (?, vec_int8(?))', params: [2, '[10, 20, 30, 40]'] },
     ])
   })
   afterAll(() => closeQuietly(db))
 
   it('runs KNN over int8 vectors', () => {
     const result = rows(
-      "SELECT rowid, distance FROM vec_i8 WHERE embedding MATCH '[1, 2, 3, 4]' AND k = 1 ORDER BY distance",
+      "SELECT rowid, distance FROM vec_i8 WHERE embedding MATCH vec_int8('[1, 2, 3, 4]') AND k = 1 ORDER BY distance",
     )
     expect(result).toHaveLength(1)
     expect(result[0]?.rowid).toBe(1)
@@ -416,9 +418,9 @@ describe('sqlite-vec - vec0 int8 vectors', () => {
 describe('sqlite-vec - vec0 bit vectors', () => {
   beforeEach(() => {
     resetDb()
-    db.execute(
-      'CREATE VIRTUAL TABLE vec_bits USING vec0(embedding bit[8] distance_metric=hamming);',
-    )
+    // Bit vectors use hamming distance implicitly (it is not a distance_metric
+    // value; sqlite-vec only accepts L2/cosine/L1 for distance_metric).
+    db.execute('CREATE VIRTUAL TABLE vec_bits USING vec0(embedding bit[8]);')
     db.execute("INSERT INTO vec_bits(rowid, embedding) VALUES (1, vec_bit(X'0F'));")
     db.execute("INSERT INTO vec_bits(rowid, embedding) VALUES (2, vec_bit(X'FF'));")
   })
