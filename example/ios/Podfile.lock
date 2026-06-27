@@ -1861,6 +1861,8 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - RNNitroSqliteVec (9.6.0):
+    - RNNitroSQLite
   - RNScreens (4.18.0):
     - hermes-engine
     - RCTRequired
@@ -1986,7 +1988,8 @@ DEPENDENCIES:
   - ReactCodegen (from `build/generated/ios/ReactCodegen`)
   - ReactCommon/turbomodule/core (from `../../node_modules/react-native/ReactCommon`)
   - ReactNativeDependencies (from `../../node_modules/react-native/third-party-podspecs/ReactNativeDependencies.podspec`)
-  - RNNitroSQLite (from `../../package`)
+  - RNNitroSQLite (from `../../packages/react-native-nitro-sqlite`)
+  - RNNitroSqliteVec (from `../../node_modules/react-native-nitro-sqlite-vec`)
   - RNScreens (from `../../node_modules/react-native-screens`)
   - Yoga (from `../../node_modules/react-native/ReactCommon/yoga`)
 
@@ -2141,7 +2144,9 @@ EXTERNAL SOURCES:
   ReactNativeDependencies:
     :podspec: "../../node_modules/react-native/third-party-podspecs/ReactNativeDependencies.podspec"
   RNNitroSQLite:
-    :path: "../../package"
+    :path: "../../packages/react-native-nitro-sqlite"
+  RNNitroSqliteVec:
+    :path: "../../node_modules/react-native-nitro-sqlite-vec"
   RNScreens:
     :path: "../../node_modules/react-native-screens"
   Yoga:
@@ -2149,7 +2154,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   FBLazyVector: 4ee5f665093abe339f4b579fc3d59f65c8af196c
-  hermes-engine: 56e1f8e0c324283e1cc2c35f56dc6037c141f67d
+  hermes-engine: 71ecd6d3564f7d48f5e3c40daf0532cd792d7797
   NitroModules: 1d1ba303ec12cf1920170fbbecf29eb6c7170dbb
   RCTDeprecation: b73940ea69ab57c2c59f845b37b09e1d8b0d0588
   RCTRequired: f3a52c914af5f19f04d02b2091d83e43cf71676c
@@ -2159,7 +2164,7 @@ SPEC CHECKSUMS:
   React: e3af85e498bf268511ed5899200e3d267e548ddf
   React-callinvoker: 9dc4fbc61d34cd3e3d496fa4558c9cfbc1caa2ce
   React-Core: 5dc2976a6931ed3c36157d19111c4a265bffcff6
-  React-Core-prebuilt: 1a645974bd5f850a1234bf55ccee6b8b07ef4610
+  React-Core-prebuilt: 8224d92fcc4dc2ee5d059f7ee4f867629b7e15b4
   React-CoreModules: d80b3b37587eb5c199632c9abd7c2319c594f729
   React-cxxreact: 851adbc413c9d58befb2792026bf3918e31aeb2f
   React-debug: ae23c7439aa4b4b64162909de91eff3897d28263
@@ -2221,8 +2226,9 @@ SPEC CHECKSUMS:
   ReactAppDependencyProvider: 6e87125b0a52058c037d674435761b4db4579f4b
   ReactCodegen: ff6b8d9d619343c281b7700362fa3ac5ec0753bb
   ReactCommon: 7525e252c88d254545e3fdaea0000d1959dfbf20
-  ReactNativeDependencies: 0cdc5c6985700a9d8f654762fa702169ef9cef9b
-  RNNitroSQLite: e354c4a31133050e6bbde1c136b8ac4857830236
+  ReactNativeDependencies: e56ea940d8666fa75eebfd33e7679e451295d3b9
+  RNNitroSQLite: 2051ff785ceaf84724bf1aa161d7237980faf08c
+  RNNitroSqliteVec: 405ab844049105dc481c561b3e09ede45ef7af6c
   RNScreens: dd5c879d56b543c7ff8e593739eeb66093d60263
   Yoga: d68c8a4bde0af9c17b15540fffa330d26398d150
 
