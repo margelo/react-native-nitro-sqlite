@@ -7,6 +7,7 @@
 #include <cmath>
 #include <ctime>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <optional>
 #include <sqlite3.h>
@@ -112,23 +113,31 @@ void sqliteRemoveDb(const std::string& dbName, const std::string& docPath) {
   remove(dbFilePath.c_str());
 }
 
+// A JS `number` is always an IEEE-754 double, so `5` is indistinguishable from `5.0` here; bind integral values as INTEGER so storage-class-sensitive consumers (vec0 rowid/pk/partition) accept them, while SQLite still coerces INTEGER->REAL for REAL columns.
+static void bindJsNumber(sqlite3_stmt* statement, int index, double value) {
+  constexpr double minInt64 = static_cast<double>(std::numeric_limits<int64_t>::min()); // -2^63, exactly representable as a double
+  constexpr double int64UpperBound = -minInt64; // 2^63 = INT64_MAX + 1; INT64_MAX isn't representable as a double, so the bound is exclusive
+  bool fitsInt64 = std::trunc(value) == value && value >= minInt64 && value < int64UpperBound;
+  if (fitsInt64) {
+    sqlite3_bind_int64(statement, index, static_cast<sqlite3_int64>(value));
+  } else {
+    sqlite3_bind_double(statement, index, value);
+  }
+}
+
 void bindStatement(sqlite3_stmt* statement, const SQLiteQueryParams& values) {
   for (int valueIndex = 0; valueIndex < values.size(); valueIndex++) {
     int sqliteIndex = valueIndex + 1;
-    SQLiteValue value = values.at(valueIndex);
+    SQLiteParamValue value = values.at(valueIndex);
     if (std::holds_alternative<NullType>(value)) {
       sqlite3_bind_null(statement, sqliteIndex);
     } else if (std::holds_alternative<bool>(value)) {
       sqlite3_bind_int(statement, sqliteIndex, std::get<bool>(value));
+    } else if (std::holds_alternative<int64_t>(value)) {
+      // Caller opted into an exact int64 via Nitro's Int64 (bigint): bind it directly.
+      sqlite3_bind_int64(statement, sqliteIndex, std::get<int64_t>(value));
     } else if (std::holds_alternative<double>(value)) {
-      // JS has only `number` (double); bind whole numbers as INTEGER so vec0's rowid/pk/partition columns (which reject REAL) work. SQLite still coerces INTEGER->REAL for REAL columns.
-      double doubleValue = std::get<double>(value);
-      if (std::trunc(doubleValue) == doubleValue && doubleValue >= -9223372036854775808.0 &&
-          doubleValue < 9223372036854775808.0) {
-        sqlite3_bind_int64(statement, sqliteIndex, static_cast<sqlite3_int64>(doubleValue));
-      } else {
-        sqlite3_bind_double(statement, sqliteIndex, doubleValue);
-      }
+      bindJsNumber(statement, sqliteIndex, std::get<double>(value));
     } else if (std::holds_alternative<std::string>(value)) {
       const auto stringValue = std::get<std::string>(value);
       sqlite3_bind_text(statement, sqliteIndex, stringValue.c_str(), stringValue.length(), SQLITE_TRANSIENT);
