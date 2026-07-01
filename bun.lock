@@ -89,7 +89,7 @@
         "react-test-renderer": "19.1.1",
       },
     },
-    "package": {
+    "packages/react-native-nitro-sqlite": {
       "name": "react-native-nitro-sqlite",
       "version": "9.6.0",
       "dependencies": {
@@ -1895,7 +1895,7 @@
 
     "react-native-nitro-modules": ["react-native-nitro-modules@0.36.1", "", { "peerDependencies": { "react": "*", "react-native": "*" } }, "sha512-kBv/VvKqAmkXAvP1DxJMC9b/fRhh7JdSO4EUnPP46hJjrIFeFR8AwKm8mYaKZEuF014M/TVdv2vomVUW0umsQQ=="],
 
-    "react-native-nitro-sqlite": ["react-native-nitro-sqlite@workspace:package"],
+    "react-native-nitro-sqlite": ["react-native-nitro-sqlite@workspace:packages/react-native-nitro-sqlite"],
 
     "react-native-nitro-sqlite-example": ["react-native-nitro-sqlite-example@workspace:example"],
 

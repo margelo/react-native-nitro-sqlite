@@ -1,10 +1,10 @@
 const path = require('path')
-const pak = require('../package/package.json')
+const pak = require('../packages/react-native-nitro-sqlite/package.json')
 
 module.exports = {
   dependencies: {
     [pak.name]: {
-      root: path.join(__dirname, '../package'),
+      root: path.join(__dirname, '../packages/react-native-nitro-sqlite'),
     },
   },
 }

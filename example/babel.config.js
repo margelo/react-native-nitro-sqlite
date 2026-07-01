@@ -1,5 +1,5 @@
 const path = require('path')
-const pak = require('../package/package.json')
+const pak = require('../packages/react-native-nitro-sqlite/package.json')
 
 module.exports = {
   presets: ['module:@react-native/babel-preset'],
@@ -9,7 +9,11 @@ module.exports = {
       {
         extensions: ['.tsx', '.ts', '.js', '.json'],
         alias: {
-          [pak.name]: path.join(__dirname, '../package', pak.source),
+          [pak.name]: path.join(
+            __dirname,
+            '../packages/react-native-nitro-sqlite',
+            pak.source,
+          ),
           'stream': 'stream-browserify',
           'react-native-sqlite-storage': 'react-native-nitro-sqlite',
         },

@@ -2,7 +2,7 @@ echo "Starting the release process..."
 echo "Provided options: $@"
 
 echo "Publishing react-native-nitro-sqlite to NPM"
-cd package
+cd packages/react-native-nitro-sqlite
 bun release $@
 
 echo "Creating a Git bump commit and GitHub release"

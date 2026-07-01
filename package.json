@@ -4,7 +4,7 @@
   "packageManager": "bun@1.3.1",
   "private": "true",
   "workspaces": [
-    "package",
+    "packages/*",
     "example"
   ],
   "repository": {
@@ -23,9 +23,9 @@
     "lint": "bun package lint && bun example lint",
     "lint-cpp": "./scripts/clang-format.sh",
     "prettier": "prettier --write .",
-    "clean": "rm -rf **/tsconfig.tsbuildinfo node_modules package/node_module package/lib",
+    "clean": "rm -rf **/tsconfig.tsbuildinfo node_modules packages/react-native-nitro-sqlite/node_module packages/react-native-nitro-sqlite/lib",
     "release": "./scripts/release.sh",
-    "package": "bun --cwd package",
+    "package": "bun --cwd packages/react-native-nitro-sqlite",
     "example": "bun --cwd example"
   },
   "engines": {
@@ -90,7 +90,7 @@
     "plugins": {
       "@release-it/bumper": {
         "in": {
-          "file": "package/package.json",
+          "file": "packages/react-native-nitro-sqlite/package.json",
           "path": "version"
         },
         "out": [
