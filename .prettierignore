@@ -6,7 +6,7 @@
 *.md
 *.markdown
 
-package/lib
+packages/react-native-nitro-sqlite/lib
 
 .well-known
 android

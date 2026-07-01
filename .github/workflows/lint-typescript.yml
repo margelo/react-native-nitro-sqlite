@@ -64,7 +64,7 @@ jobs:
         working-directory: example
         run: bun lint
       - name: Run ESLint with auto-fix in react-native-nitro-sqlite
-        working-directory: package
+        working-directory: packages/react-native-nitro-sqlite
         run: bun lint
 
       - name: Verify no files have changed after auto-fix

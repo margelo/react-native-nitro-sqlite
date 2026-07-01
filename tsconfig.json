@@ -1,7 +1,7 @@
 {
   "files": [],
   "references": [
-    { "path": "./package/tsconfig.json" },
+    { "path": "./packages/react-native-nitro-sqlite/tsconfig.json" },
     { "path": "./example/tsconfig.json" }
   ]
 }
