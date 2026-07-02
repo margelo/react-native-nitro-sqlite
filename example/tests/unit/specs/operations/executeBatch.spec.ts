@@ -1,7 +1,7 @@
-import { chance, expect } from '../../common'
+import { chance, expect } from '@tests/unit/common'
 import type { BatchQueryCommand } from 'react-native-nitro-sqlite'
-import { describe, it } from '../../../MochaRNAdapter'
-import { testDb } from '../../../db'
+import { describe, it } from '@tests/TestApi'
+import { testDb } from '@tests/db'
 
 export default function registerExecuteBatchUnitTests() {
   describe('executeBatch', () => {
@@ -31,7 +31,7 @@ export default function registerExecuteBatchUnitTests() {
       testDb.executeBatch(commands)
 
       const res = testDb.execute('SELECT * FROM User')
-      expect(res.rows?._array).to.eql([
+      expect(res.rows?._array).toEqual([
         { id: id1, name: name1, age: age1, networth: networth1 },
         {
           id: id2,
@@ -67,7 +67,7 @@ export default function registerExecuteBatchUnitTests() {
       await testDb.executeBatchAsync(commands)
 
       const res = testDb.execute('SELECT * FROM User')
-      expect(res.rows?._array).to.eql([
+      expect(res.rows?._array).toEqual([
         { id: id1, name: name1, age: age1, networth: networth1 },
         {
           id: id2,

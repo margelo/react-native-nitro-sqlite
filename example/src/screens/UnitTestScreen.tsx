@@ -1,21 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import { FlatList, StyleSheet, Text } from 'react-native'
-import type { MochaTestResult } from '../tests/MochaSetup'
-import { runTests } from '../tests/MochaSetup'
-import {
-  registerUnitTests,
-  /* registerTypeORMUnitTests,  */
-} from '../tests/unit'
+import type { MochaTestResult } from '@tests/MochaSetup'
+import { runTests } from '@tests/MochaSetup'
+import { registerUnitTests, registerTypeORMUnitTests } from '@tests/unit'
 
 export function UnitTestScreen() {
   const [results, setResults] = useState<MochaTestResult[]>([])
 
   useEffect(() => {
     setResults([])
-    runTests(
-      registerUnitTests,
-      // registerTypeORMUnitTests
-    ).then(setResults)
+    runTests(registerUnitTests, registerTypeORMUnitTests).then(setResults)
   }, [])
 
   return (

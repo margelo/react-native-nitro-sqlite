@@ -10,7 +10,7 @@ import {
 } from 'react-native'
 import { StatusBar } from 'expo-status-bar'
 import { ScreenStyles } from '../styles'
-import { resetLargeDb, largeDb, testDb, resetTestDb } from '../tests/db'
+import { resetLargeDb, largeDb, testDb, resetTestDb } from '@tests/db'
 
 const chance = new Chance()
 const ids = Array(100000)

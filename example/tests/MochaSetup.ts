@@ -1,5 +1,7 @@
 import 'mocha'
+import * as mochaTestApi from './MochaRNAdapter'
 import { clearTests, rootSuite } from './MochaRNAdapter'
+import { setTestApi } from './TestApi'
 
 export interface MochaTestResult {
   description: string
@@ -58,6 +60,7 @@ export function runTests(...registrators: (() => void)[]) {
         resolve(results)
       })
 
+    setTestApi(mochaTestApi)
     registrators.forEach((register) => register())
     runner.run()
   })

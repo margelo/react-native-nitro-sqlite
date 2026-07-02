@@ -26,6 +26,32 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - OpenSSL-Universal (3.6.2000)
+  - QuickCrypto (1.1.5):
+    - hermes-engine
+    - NitroModules
+    - OpenSSL-Universal (~> 3.6.2000)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-callinvoker
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - RCTDeprecation (0.85.0-rc.0)
   - RCTRequired (0.85.0-rc.0)
   - RCTSwiftUI (0.85.0-rc.0)
@@ -1384,6 +1410,28 @@ PODS:
     - React-RCTFBReactNativeSpec
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
+  - react-native-quick-base64 (3.0.0):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - react-native-safe-area-context (5.6.2):
     - hermes-engine
     - RCTRequired
@@ -1936,6 +1984,7 @@ DEPENDENCIES:
   - FBLazyVector (from `../../node_modules/react-native/Libraries/FBLazyVector`)
   - hermes-engine (from `../../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - NitroModules (from `../../node_modules/react-native-nitro-modules`)
+  - QuickCrypto (from `../../node_modules/react-native-quick-crypto`)
   - RCTDeprecation (from `../../node_modules/react-native/ReactApple/Libraries/RCTFoundation/RCTDeprecation`)
   - RCTRequired (from `../../node_modules/react-native/Libraries/Required`)
   - RCTSwiftUI (from `../../node_modules/react-native/ReactApple/RCTSwiftUI`)
@@ -1973,6 +2022,7 @@ DEPENDENCIES:
   - React-logger (from `../../node_modules/react-native/ReactCommon/logger`)
   - React-Mapbuffer (from `../../node_modules/react-native/ReactCommon`)
   - React-microtasksnativemodule (from `../../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
+  - react-native-quick-base64 (from `../../node_modules/react-native-quick-base64`)
   - react-native-safe-area-context (from `../../node_modules/react-native-safe-area-context`)
   - React-NativeModulesApple (from `../../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
   - React-networking (from `../../node_modules/react-native/ReactCommon/react/networking`)
@@ -2013,6 +2063,10 @@ DEPENDENCIES:
   - RNScreens (from `../../node_modules/react-native-screens`)
   - Yoga (from `../../node_modules/react-native/ReactCommon/yoga`)
 
+SPEC REPOS:
+  trunk:
+    - OpenSSL-Universal
+
 EXTERNAL SOURCES:
   FBLazyVector:
     :path: "../../node_modules/react-native/Libraries/FBLazyVector"
@@ -2021,6 +2075,8 @@ EXTERNAL SOURCES:
     :tag: hermes-v250829098.0.10
   NitroModules:
     :path: "../../node_modules/react-native-nitro-modules"
+  QuickCrypto:
+    :path: "../../node_modules/react-native-quick-crypto"
   RCTDeprecation:
     :path: "../../node_modules/react-native/ReactApple/Libraries/RCTFoundation/RCTDeprecation"
   RCTRequired:
@@ -2093,6 +2149,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/react-native/ReactCommon"
   React-microtasksnativemodule:
     :path: "../../node_modules/react-native/ReactCommon/react/nativemodule/microtasks"
+  react-native-quick-base64:
+    :path: "../../node_modules/react-native-quick-base64"
   react-native-safe-area-context:
     :path: "../../node_modules/react-native-safe-area-context"
   React-NativeModulesApple:
@@ -2176,6 +2234,8 @@ SPEC CHECKSUMS:
   FBLazyVector: 4ee5f665093abe339f4b579fc3d59f65c8af196c
   hermes-engine: 56e1f8e0c324283e1cc2c35f56dc6037c141f67d
   NitroModules: 587af3c2bc93f5c9f9b39aec315eb29509a7c537
+  OpenSSL-Universal: ecee7b138fa75a74ecf00d7ffd248fb584739b9e
+  QuickCrypto: 790e6537bb81a11d036a24ce3248b51f66857ceb
   RCTDeprecation: b73940ea69ab57c2c59f845b37b09e1d8b0d0588
   RCTRequired: f3a52c914af5f19f04d02b2091d83e43cf71676c
   RCTSwiftUI: 6dea7b613e8930a973b723c121aa8646374ee694
@@ -2212,6 +2272,7 @@ SPEC CHECKSUMS:
   React-logger: dbf8f36688ca7ccdb14cd2c2a9a738162fa87fbd
   React-Mapbuffer: 82c344b9a3dc807a40aefece0714587be25d7718
   React-microtasksnativemodule: c6299f5e04ba84779dc08f884caf8f42f370e9da
+  react-native-quick-base64: 740f0799082262a4f0a0001647288840bc54a3c4
   react-native-safe-area-context: 4b3960e27c8a3ca0c1523348f97513e27f8509b7
   React-NativeModulesApple: f8da6e477ffca7ad38869d16d7fd0b4289771f6a
   React-networking: 3b027fd335be928ee4ac5172937fe96729a6eb27

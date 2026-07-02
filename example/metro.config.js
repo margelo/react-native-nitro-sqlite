@@ -1,38 +1,9 @@
-const fs = require('fs')
 const path = require('path')
 const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config')
 const pak = require('../package.json')
 
 const root = path.resolve(__dirname, '..')
 const modules = Object.keys({ ...pak.peerDependencies })
-
-function getPackageNames(nodeModulesPath) {
-  if (!fs.existsSync(nodeModulesPath)) {
-    return []
-  }
-
-  const allFiles = fs.readdirSync(nodeModulesPath)
-
-  // Filter out only directories (package names)
-  const packageNames = allFiles.filter((file) => {
-    const filePath = path.join(nodeModulesPath, file)
-    return fs.statSync(filePath).isDirectory()
-  })
-
-  // Handle scoped packages (e.g., @scope/package)
-  const scopedPackages = packageNames
-    .filter((pkg) => pkg.startsWith('@'))
-    .flatMap((scope) => {
-      const scopePath = path.join(nodeModulesPath, scope)
-      const scopedFiles = fs.readdirSync(scopePath)
-      return scopedFiles.map((scopedFile) => `${scope}/${scopedFile}`)
-    })
-
-  // Return both regular and scoped package names
-  return packageNames
-    .filter((pkg) => !pkg.startsWith('@'))
-    .concat(scopedPackages)
-}
 
 const config = {
   projectRoot: __dirname,
