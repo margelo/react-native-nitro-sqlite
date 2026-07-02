@@ -2059,7 +2059,7 @@ DEPENDENCIES:
   - ReactCommon/turbomodule/core (from `../../node_modules/react-native/ReactCommon`)
   - ReactNativeDependencies (from `../../node_modules/react-native/third-party-podspecs/ReactNativeDependencies.podspec`)
   - "RNCClipboard (from `../../node_modules/@react-native-clipboard/clipboard`)"
-  - RNNitroSQLite (from `../../package`)
+  - RNNitroSQLite (from `../../packages/react-native-nitro-sqlite`)
   - RNScreens (from `../../node_modules/react-native-screens`)
   - Yoga (from `../../node_modules/react-native/ReactCommon/yoga`)
 
@@ -2224,7 +2224,7 @@ EXTERNAL SOURCES:
   RNCClipboard:
     :path: "../../node_modules/@react-native-clipboard/clipboard"
   RNNitroSQLite:
-    :path: "../../package"
+    :path: "../../packages/react-native-nitro-sqlite"
   RNScreens:
     :path: "../../node_modules/react-native-screens"
   Yoga:
