@@ -26,7 +26,7 @@ jobs:
       IOS_SIMULATOR_OS: "26.2"
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies (bun)
