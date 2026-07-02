@@ -13,6 +13,11 @@
 #include <sstream>
 #include <unistd.h>
 
+#ifdef NITRO_SQLITE_VEC
+// Angle-bracket so it resolves via -I (CocoaPods intercepts quoted includes).
+#include <registerVectorExtensions.hpp>
+#endif
+
 using namespace facebook;
 using namespace margelo::nitro;
 using namespace margelo::nitro::rnnitrosqlite;
@@ -22,6 +27,11 @@ namespace margelo::rnnitrosqlite {
 std::map<std::string, sqlite3*> dbMap = std::map<std::string, sqlite3*>();
 
 void sqliteOpenDb(const std::string& dbName, const std::string& docPath) {
+#ifdef NITRO_SQLITE_VEC
+  // Register before opening so the connection exposes vec0 + vec_*.
+  margelo::rnnitrosqlitevec::registerVectorExtensions();
+#endif
+
   std::string dbPath = get_db_path(dbName, docPath);
 
   int sqlOpenFlags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX;
@@ -111,7 +121,14 @@ void bindStatement(sqlite3_stmt* statement, const SQLiteQueryParams& values) {
     } else if (std::holds_alternative<bool>(value)) {
       sqlite3_bind_int(statement, sqliteIndex, std::get<bool>(value));
     } else if (std::holds_alternative<double>(value)) {
-      sqlite3_bind_double(statement, sqliteIndex, std::get<double>(value));
+      // Bind whole numbers as INTEGER so vec0 rowid/pk/partition (which reject REAL) work; SQLite still coerces to REAL for REAL columns.
+      double doubleValue = std::get<double>(value);
+      if (std::trunc(doubleValue) == doubleValue && doubleValue >= -9223372036854775808.0 &&
+          doubleValue < 9223372036854775808.0) {
+        sqlite3_bind_int64(statement, sqliteIndex, static_cast<sqlite3_int64>(doubleValue));
+      } else {
+        sqlite3_bind_double(statement, sqliteIndex, doubleValue);
+      }
     } else if (std::holds_alternative<std::string>(value)) {
       const auto stringValue = std::get<std::string>(value);
       sqlite3_bind_text(statement, sqliteIndex, stringValue.c_str(), stringValue.length(), SQLITE_TRANSIENT);

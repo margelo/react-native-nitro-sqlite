@@ -29,6 +29,21 @@ include_directories(
   src/main/cpp
 )
 
+# Opt-in: compile the companion's sqlite-vec into this library (shared single sqlite3).
+if(NITRO_SQLITE_VEC)
+  message(STATUS "[react-native-nitro-sqlite] vector search ENABLED (sqlite-vec from ${NITRO_SQLITE_VEC_CPP_DIR})")
+  set(NITRO_SQLITE_VEC_SOURCES
+    "${NITRO_SQLITE_VEC_CPP_DIR}/sqlite-vec/sqlite-vec.c"
+    "${NITRO_SQLITE_VEC_CPP_DIR}/registerVectorExtensions.cpp"
+  )
+  target_sources(${CMAKE_PROJECT_NAME} PRIVATE ${NITRO_SQLITE_VEC_SOURCES})
+  # SQLITE_CORE: link against our bundled sqlite3; SQLITE_VEC_STATIC: drop Windows dllexport.
+  set_source_files_properties(${NITRO_SQLITE_VEC_SOURCES}
+    PROPERTIES COMPILE_DEFINITIONS "SQLITE_CORE;SQLITE_VEC_STATIC")
+  target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE "${NITRO_SQLITE_VEC_CPP_DIR}")
+  target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE NITRO_SQLITE_VEC)
+endif()
+
 set_target_properties(
   ${CMAKE_PROJECT_NAME} PROPERTIES
   CXX_STANDARD ${CMAKE_CXX_STANDARD}

@@ -44,16 +44,9 @@ SQLiteOperationResult sqliteExecuteBatch(const std::string& dbName, const std::v
     for (int i = 0; i < commandCount; i++) {
       const auto command = commands.at(i);
 
-      // We do not provide a datas tructure to receive query data because we don't need/want to handle this results in a batch execution
-      auto results = SQLiteQueryResults();
-      auto metadata = std::optional<SQLiteQueryTableMetadata>(std::nullopt);
-      try {
-        auto result = sqliteExecute(dbName, command.sql, command.params);
-        rowsAffected += result->getRowsAffected();
-      } catch (NitroSQLiteException& e) {
-        sqliteExecuteLiteral(dbName, "ROLLBACK");
-        throw e;
-      }
+      // Batch only aggregates rowsAffected; per-command result rows are discarded.
+      auto result = sqliteExecute(dbName, command.sql, command.params);
+      rowsAffected += result->getRowsAffected();
     }
     sqliteExecuteLiteral(dbName, "COMMIT");
     return {
@@ -61,7 +54,12 @@ SQLiteOperationResult sqliteExecuteBatch(const std::string& dbName, const std::v
         .commands = (int)commandCount,
     };
   } catch (NitroSQLiteException& e) {
-    sqliteExecuteLiteral(dbName, "ROLLBACK");
+    // Roll back exactly once; a failed ROLLBACK must not mask the original error.
+    try {
+      sqliteExecuteLiteral(dbName, "ROLLBACK");
+    } catch (...) {
+      // ignore — surface the original error below
+    }
     throw e;
   }
 }

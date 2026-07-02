@@ -75,6 +75,18 @@ def REACT_NATIVE_MINOR_VERSION = REACT_NATIVE_VERSION.startsWith("0.0.0-") ? 100
 
 def SQLITE_FLAGS = rootProject.properties['nitroSqliteFlags']
 
+// Opt-in: resolve the companion's cpp dir so CMake compiles its sqlite-vec into this library.
+def NITRO_SQLITE_VEC_ENABLED = (rootProject.findProperty('nitroSqliteVec') ?: 'false').toString() == 'true'
+def NITRO_SQLITE_VEC_CPP_DIR = ''
+if (NITRO_SQLITE_VEC_ENABLED) {
+  try {
+    def vecPkgJson = ["node", "--print", "require.resolve('react-native-nitro-sqlite-vec/package.json')"].execute(null, rootDir).text.trim()
+    NITRO_SQLITE_VEC_CPP_DIR = new File(new File(vecPkgJson).parentFile, "cpp").absolutePath
+  } catch (Exception e) {
+    throw new GradleException("[react-native-nitro-sqlite] nitroSqliteVec=true but 'react-native-nitro-sqlite-vec' could not be resolved. Install it in your app (e.g. `bun add react-native-nitro-sqlite-vec`).")
+  }
+}
+
 apply plugin: "com.android.library"
 apply plugin: "kotlin-android"
 
@@ -111,6 +123,8 @@ android {
           "-DANDROID_TOOLCHAIN=clang",
           "-DREACT_NATIVE_MINOR_VERSION=${REACT_NATIVE_MINOR_VERSION}",
           "-DSQLITE_FLAGS='${SQLITE_FLAGS ? SQLITE_FLAGS : ''}'",
+          "-DNITRO_SQLITE_VEC=${NITRO_SQLITE_VEC_ENABLED ? 'ON' : 'OFF'}",
+          "-DNITRO_SQLITE_VEC_CPP_DIR=${NITRO_SQLITE_VEC_CPP_DIR}",
           "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
         abiFilters (*reactNativeArchitectures())
       }
