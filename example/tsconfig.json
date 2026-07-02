@@ -4,7 +4,7 @@
     "src",
     "tests",
     "index.js",
-    "../package",
+    "../packages/react-native-nitro-sqlite/src",
     "rn-harness.config.mjs"
   ],
   "compilerOptions": {
