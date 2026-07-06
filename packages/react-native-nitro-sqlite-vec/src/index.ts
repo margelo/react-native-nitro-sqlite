@@ -30,7 +30,7 @@ export interface KnnSearchOptions {
 
 function firstValue<T>(db: NitroSQLiteConnection, sql: string): T {
   const row = db.execute(sql).rows?._array?.[0]
-  return (row?.value as T)
+  return row?.value as T
 }
 
 /** Returns the linked sqlite-vec version string, e.g. `"v0.1.9"`. */

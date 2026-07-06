@@ -83,7 +83,9 @@ export default function registerSqliteVecUnitTests() {
     })
 
     it('vec_type() and vec_length() of a bit vector', () => {
-      expect(val<string>("SELECT vec_type(vec_bit(X'F0')) AS value")).toBe('bit')
+      expect(val<string>("SELECT vec_type(vec_bit(X'F0')) AS value")).toBe(
+        'bit',
+      )
       expect(val<number>("SELECT vec_length(vec_bit(X'F0')) AS value")).toBe(8)
     })
 
@@ -217,12 +219,26 @@ export default function registerSqliteVecUnitTests() {
   describe('sqlite-vec - vec0 KNN (float32, default L2)', () => {
     beforeEach(() => {
       resetDb()
-      db.execute('CREATE VIRTUAL TABLE vec_items USING vec0(embedding float[4]);')
+      db.execute(
+        'CREATE VIRTUAL TABLE vec_items USING vec0(embedding float[4]);',
+      )
       db.executeBatch([
-        { query: 'INSERT INTO vec_items(rowid, embedding) VALUES (?, ?)', params: [1, '[1, 1, 1, 1]'] },
-        { query: 'INSERT INTO vec_items(rowid, embedding) VALUES (?, ?)', params: [2, '[1, 1, 1, 2]'] },
-        { query: 'INSERT INTO vec_items(rowid, embedding) VALUES (?, ?)', params: [3, '[5, 5, 5, 5]'] },
-        { query: 'INSERT INTO vec_items(rowid, embedding) VALUES (?, ?)', params: [4, '[9, 9, 9, 9]'] },
+        {
+          query: 'INSERT INTO vec_items(rowid, embedding) VALUES (?, ?)',
+          params: [1, '[1, 1, 1, 1]'],
+        },
+        {
+          query: 'INSERT INTO vec_items(rowid, embedding) VALUES (?, ?)',
+          params: [2, '[1, 1, 1, 2]'],
+        },
+        {
+          query: 'INSERT INTO vec_items(rowid, embedding) VALUES (?, ?)',
+          params: [3, '[5, 5, 5, 5]'],
+        },
+        {
+          query: 'INSERT INTO vec_items(rowid, embedding) VALUES (?, ?)',
+          params: [4, '[9, 9, 9, 9]'],
+        },
       ])
     })
     afterAll(() => closeQuietly(db))
@@ -266,9 +282,18 @@ export default function registerSqliteVecUnitTests() {
         'CREATE VIRTUAL TABLE vec_cos USING vec0(embedding float[4] distance_metric=cosine);',
       )
       db.executeBatch([
-        { query: 'INSERT INTO vec_cos(rowid, embedding) VALUES (?, ?)', params: [1, '[1, 0, 0, 0]'] },
-        { query: 'INSERT INTO vec_cos(rowid, embedding) VALUES (?, ?)', params: [2, '[0, 1, 0, 0]'] },
-        { query: 'INSERT INTO vec_cos(rowid, embedding) VALUES (?, ?)', params: [3, '[2, 0, 0, 0]'] },
+        {
+          query: 'INSERT INTO vec_cos(rowid, embedding) VALUES (?, ?)',
+          params: [1, '[1, 0, 0, 0]'],
+        },
+        {
+          query: 'INSERT INTO vec_cos(rowid, embedding) VALUES (?, ?)',
+          params: [2, '[0, 1, 0, 0]'],
+        },
+        {
+          query: 'INSERT INTO vec_cos(rowid, embedding) VALUES (?, ?)',
+          params: [3, '[2, 0, 0, 0]'],
+        },
       ])
     })
     afterAll(() => closeQuietly(db))
@@ -294,9 +319,21 @@ export default function registerSqliteVecUnitTests() {
         'CREATE VIRTUAL TABLE vec_docs USING vec0(id integer primary key, embedding float[2], genre text, rating float);',
       )
       db.executeBatch([
-        { query: 'INSERT INTO vec_docs(id, embedding, genre, rating) VALUES (?, ?, ?, ?)', params: [1, '[1, 1]', 'scifi', 4.5] },
-        { query: 'INSERT INTO vec_docs(id, embedding, genre, rating) VALUES (?, ?, ?, ?)', params: [2, '[2, 2]', 'horror', 3.5] },
-        { query: 'INSERT INTO vec_docs(id, embedding, genre, rating) VALUES (?, ?, ?, ?)', params: [3, '[1, 2]', 'scifi', 4.8] },
+        {
+          query:
+            'INSERT INTO vec_docs(id, embedding, genre, rating) VALUES (?, ?, ?, ?)',
+          params: [1, '[1, 1]', 'scifi', 4.5],
+        },
+        {
+          query:
+            'INSERT INTO vec_docs(id, embedding, genre, rating) VALUES (?, ?, ?, ?)',
+          params: [2, '[2, 2]', 'horror', 3.5],
+        },
+        {
+          query:
+            'INSERT INTO vec_docs(id, embedding, genre, rating) VALUES (?, ?, ?, ?)',
+          params: [3, '[1, 2]', 'scifi', 4.8],
+        },
       ])
     })
     afterAll(() => closeQuietly(db))
@@ -335,8 +372,16 @@ export default function registerSqliteVecUnitTests() {
         'CREATE VIRTUAL TABLE vec_aux USING vec0(embedding float[2], +title text);',
       )
       db.executeBatch([
-        { query: 'INSERT INTO vec_aux(rowid, embedding, title) VALUES (?, ?, ?)', params: [1, '[1, 1]', 'closest'] },
-        { query: 'INSERT INTO vec_aux(rowid, embedding, title) VALUES (?, ?, ?)', params: [2, '[9, 9]', 'far'] },
+        {
+          query:
+            'INSERT INTO vec_aux(rowid, embedding, title) VALUES (?, ?, ?)',
+          params: [1, '[1, 1]', 'closest'],
+        },
+        {
+          query:
+            'INSERT INTO vec_aux(rowid, embedding, title) VALUES (?, ?, ?)',
+          params: [2, '[9, 9]', 'far'],
+        },
       ])
     })
     afterAll(() => closeQuietly(db))
@@ -357,9 +402,18 @@ export default function registerSqliteVecUnitTests() {
         'CREATE VIRTUAL TABLE vec_parts USING vec0(user_id integer partition key, embedding float[2]);',
       )
       db.executeBatch([
-        { query: 'INSERT INTO vec_parts(user_id, embedding) VALUES (?, ?)', params: [1, '[1, 1]'] },
-        { query: 'INSERT INTO vec_parts(user_id, embedding) VALUES (?, ?)', params: [1, '[2, 2]'] },
-        { query: 'INSERT INTO vec_parts(user_id, embedding) VALUES (?, ?)', params: [2, '[1, 1]'] },
+        {
+          query: 'INSERT INTO vec_parts(user_id, embedding) VALUES (?, ?)',
+          params: [1, '[1, 1]'],
+        },
+        {
+          query: 'INSERT INTO vec_parts(user_id, embedding) VALUES (?, ?)',
+          params: [1, '[2, 2]'],
+        },
+        {
+          query: 'INSERT INTO vec_parts(user_id, embedding) VALUES (?, ?)',
+          params: [2, '[1, 1]'],
+        },
       ])
     })
     afterAll(() => closeQuietly(db))
@@ -379,8 +433,14 @@ export default function registerSqliteVecUnitTests() {
       db.execute('CREATE VIRTUAL TABLE vec_i8 USING vec0(embedding int8[4]);')
       // int8 columns require an int8 vector via vec_int8() (a bare JSON array is parsed as float32).
       db.executeBatch([
-        { query: 'INSERT INTO vec_i8(rowid, embedding) VALUES (?, vec_int8(?))', params: [1, '[1, 2, 3, 4]'] },
-        { query: 'INSERT INTO vec_i8(rowid, embedding) VALUES (?, vec_int8(?))', params: [2, '[10, 20, 30, 40]'] },
+        {
+          query: 'INSERT INTO vec_i8(rowid, embedding) VALUES (?, vec_int8(?))',
+          params: [1, '[1, 2, 3, 4]'],
+        },
+        {
+          query: 'INSERT INTO vec_i8(rowid, embedding) VALUES (?, vec_int8(?))',
+          params: [2, '[10, 20, 30, 40]'],
+        },
       ])
     })
     afterAll(() => closeQuietly(db))
@@ -400,8 +460,12 @@ export default function registerSqliteVecUnitTests() {
       resetDb()
       // Bit vectors use hamming implicitly (not a distance_metric value; sqlite-vec accepts only L2/cosine/L1).
       db.execute('CREATE VIRTUAL TABLE vec_bits USING vec0(embedding bit[8]);')
-      db.execute("INSERT INTO vec_bits(rowid, embedding) VALUES (1, vec_bit(X'0F'));")
-      db.execute("INSERT INTO vec_bits(rowid, embedding) VALUES (2, vec_bit(X'FF'));")
+      db.execute(
+        "INSERT INTO vec_bits(rowid, embedding) VALUES (1, vec_bit(X'0F'));",
+      )
+      db.execute(
+        "INSERT INTO vec_bits(rowid, embedding) VALUES (2, vec_bit(X'FF'));",
+      )
     })
     afterAll(() => closeQuietly(db))
 
@@ -423,14 +487,22 @@ export default function registerSqliteVecUnitTests() {
       resetDb()
       db.execute('CREATE VIRTUAL TABLE vec_mut USING vec0(embedding float[4]);')
       db.executeBatch([
-        { query: 'INSERT INTO vec_mut(rowid, embedding) VALUES (?, ?)', params: [1, '[1, 1, 1, 1]'] },
-        { query: 'INSERT INTO vec_mut(rowid, embedding) VALUES (?, ?)', params: [2, '[5, 5, 5, 5]'] },
+        {
+          query: 'INSERT INTO vec_mut(rowid, embedding) VALUES (?, ?)',
+          params: [1, '[1, 1, 1, 1]'],
+        },
+        {
+          query: 'INSERT INTO vec_mut(rowid, embedding) VALUES (?, ?)',
+          params: [2, '[5, 5, 5, 5]'],
+        },
       ])
     })
     afterAll(() => closeQuietly(db))
 
     it('reflects an UPDATE to a vector in subsequent KNN results', () => {
-      db.execute("UPDATE vec_mut SET embedding = '[9, 9, 9, 9]' WHERE rowid = 1")
+      db.execute(
+        "UPDATE vec_mut SET embedding = '[9, 9, 9, 9]' WHERE rowid = 1",
+      )
       const result = rows(
         "SELECT rowid, distance FROM vec_mut WHERE embedding MATCH '[1, 1, 1, 1]' AND k = 1 ORDER BY distance",
       )
@@ -452,14 +524,18 @@ export default function registerSqliteVecUnitTests() {
     beforeEach(() => {
       resetDb()
       db.execute('CREATE VIRTUAL TABLE vec_err USING vec0(embedding float[4]);')
-      db.execute("INSERT INTO vec_err(rowid, embedding) VALUES (1, '[1, 1, 1, 1]');")
+      db.execute(
+        "INSERT INTO vec_err(rowid, embedding) VALUES (1, '[1, 1, 1, 1]');",
+      )
     })
     afterAll(() => closeQuietly(db))
 
     it('rejects an INSERT with the wrong dimension count', () => {
       let threw = false
       try {
-        db.execute("INSERT INTO vec_err(rowid, embedding) VALUES (2, '[1, 2, 3]')")
+        db.execute(
+          "INSERT INTO vec_err(rowid, embedding) VALUES (2, '[1, 2, 3]')",
+        )
       } catch (e) {
         threw = true
         expect(isNitroSQLiteError(e)).toBe(true)
