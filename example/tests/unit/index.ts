@@ -5,6 +5,7 @@ import registerTransactionUnitTests from './specs/operations/transaction.spec'
 import registerExecuteBatchUnitTests from './specs/operations/executeBatch.spec'
 import registerTypeORMUnitTestsSpecs from './specs/typeorm.spec'
 import registerDatabaseQueueUnitTests from './specs/DatabaseQueue.spec'
+import registerSqliteVecUnitTestsSpecs from './specs/sqlite-vec.spec'
 
 export function registerUnitTests() {
   beforeEach(setupTestDb)
@@ -20,4 +21,8 @@ export function registerUnitTests() {
 
 export function registerTypeORMUnitTests() {
   registerTypeORMUnitTestsSpecs()
+}
+
+export function registerSqliteVecUnitTests() {
+  registerSqliteVecUnitTestsSpecs()
 }

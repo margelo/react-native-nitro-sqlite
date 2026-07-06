@@ -7,6 +7,7 @@
 #include <cmath>
 #include <ctime>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <optional>
 #include <sqlite3.h>
@@ -23,6 +24,10 @@ using namespace margelo::nitro;
 using namespace margelo::nitro::rnnitrosqlite;
 
 namespace margelo::rnnitrosqlite {
+
+
+static constexpr double kInt64MinAsDouble = static_cast<double>(std::numeric_limits<int64_t>::min());
+static constexpr double kInt64UpperBoundAsDouble = -kInt64MinAsDouble;
 
 std::map<std::string, sqlite3*> dbMap = std::map<std::string, sqlite3*>();
 
@@ -123,8 +128,8 @@ void bindStatement(sqlite3_stmt* statement, const SQLiteQueryParams& values) {
     } else if (std::holds_alternative<double>(value)) {
       // Bind whole numbers as INTEGER so vec0 rowid/pk/partition (which reject REAL) work; SQLite still coerces to REAL for REAL columns.
       double doubleValue = std::get<double>(value);
-      if (std::trunc(doubleValue) == doubleValue && doubleValue >= -9223372036854775808.0 &&
-          doubleValue < 9223372036854775808.0) {
+      if (std::trunc(doubleValue) == doubleValue && doubleValue >= kInt64MinAsDouble &&
+          doubleValue < kInt64UpperBoundAsDouble) {
         sqlite3_bind_int64(statement, sqliteIndex, static_cast<sqlite3_int64>(doubleValue));
       } else {
         sqlite3_bind_double(statement, sqliteIndex, doubleValue);
