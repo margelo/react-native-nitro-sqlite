@@ -33,7 +33,7 @@ export async function executeAsync<Row extends QueryResultRow = never>(
   }
 }
 
-function buildJSQueryResult<Row extends QueryResultRow = never>(
+export function buildJSQueryResult<Row extends QueryResultRow = never>(
   result: NitroSQLiteQueryResult,
 ): QueryResult<Row> {
   const resultWithRows = result as QueryResult<Row>

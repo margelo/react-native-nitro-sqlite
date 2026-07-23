@@ -24,7 +24,7 @@
     "chance": "^1.1.9",
     "events": "^3.3.0",
     "expo-status-bar": "^1.12.1",
-    "react": "19.2.3",
+    "react": "19.2.8",
     "react-native": "0.85.0-rc.0",
     "react-native-nitro-modules": "*",
     "react-native-nitro-sqlite": "9.7.0",
