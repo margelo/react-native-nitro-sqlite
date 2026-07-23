@@ -2,6 +2,7 @@ import { transaction } from './operations/transaction'
 import { HybridNitroSQLite } from './nitro'
 import { open } from './operations/session'
 import { execute, executeAsync } from './operations/execute'
+import { prepare } from './operations/prepare'
 import { init } from './OnLoad'
 import { executeBatch, executeBatchAsync } from './operations/executeBatch'
 
@@ -17,6 +18,7 @@ export const NitroSQLite = {
   transaction,
   execute,
   executeAsync,
+  prepare,
   executeBatch,
   executeBatchAsync,
 }
