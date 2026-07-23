@@ -31,7 +31,7 @@
 <br />
 
 > [!NOTE]
-> Requires [Nitro modules](https://nitro.margelo.com/) and React Native `0.71` or later.
+> Requires [Nitro modules](https://nitro.margelo.com/) and React Native `0.75` or later.
 
 Nitro SQLite embeds SQLite and exposes a JSI API. Each operation is available in **sync** and **async** form; async runs off the JS thread to avoid blocking the UI.
 
@@ -54,7 +54,8 @@ Open a database with `open()`. The returned connection is used for all operation
 import { open } from 'react-native-nitro-sqlite'
 
 const db = open({ name: 'myDb.sqlite' })
-// Optional: open({ name: 'myDb.sqlite', location: '/some/path' })
+// Optional: location is relative to the platform database directory.
+// open({ name: 'myDb.sqlite', location: 'databases' })
 ```
 
 | Method | Sync | Async | Description |
@@ -81,6 +82,8 @@ const db = open({ name: 'myDb.sqlite' })
 
 Both return a result with `results` (array of rows), `rowsAffected`, and `insertId` (when relevant). Rows are plain objects keyed by column name.
 
+Query parameters accept `boolean`, `number`, `string`, `ArrayBuffer`, and `null`. Always bind user-supplied values as parameters rather than building SQL strings.
+
 ```typescript
 // Sync — blocks JS thread
 const { results, rowsAffected } = db.execute(
@@ -91,6 +94,11 @@ const { results, rowsAffected } = db.execute(
 // Async — off JS thread
 const { results } = await db.executeAsync('SELECT * FROM sometable')
 results.forEach((row) => console.log(row))
+
+// Type the row shape when it is known.
+const users = db.execute<{ id: number; name: string }>(
+  'SELECT id, name FROM users',
+).rows._array
 ```
 
 ## Transactions (async only)
@@ -128,8 +136,6 @@ const { rowsAffected } = db.executeBatch(commands)
 // Or: await db.executeBatchAsync(commands)
 ```
 
-## Dynamic Column Metadata
-
 # Column metadata
 
 When you need column types or names for the result set, use the `metadata` field on the query result. Keys are column names; values include `name`, `type` (e.g. from `ColumnType`), and `index`.
@@ -161,7 +167,7 @@ db.detach('other')
 
 # Loading SQL files
 
-Execute all statements in a file (e.g. a dump). Sync and async; async is better for large files.
+Execute all statements in a file (e.g. a dump). The loader executes one non-empty SQL command per line inside an exclusive transaction, so multi-line statements are not supported. Sync and async are available; async is better for large files.
 
 ```typescript
 const { rowsAffected, commands } = db.loadFile('/absolute/path/to/file.sql')
@@ -172,7 +178,81 @@ const { rowsAffected, commands } = db.loadFile('/absolute/path/to/file.sql')
 
 # Loading existing databases
 
-Databases are created under the app documents directory (iOS) or files directory (Android). To open an existing file elsewhere, use `location` in `open()`, or use relative paths from that root (e.g. `../www/myDb.sqlite`). On iOS you cannot access paths outside the app sandbox. You can also copy or move files with a React Native file library before opening.
+Databases are created under the app documents directory (iOS) or files directory (Android). `location` is a directory path relative to that root, not an absolute file path. For example, `open({ name: 'myDb.sqlite', location: 'databases' })` opens `myDb.sqlite` under the `databases` directory. To use a database from another app-accessible location, copy or move it into this directory first. On iOS, files outside the app sandbox are inaccessible.
+
+Close a connection before deleting its database. A connection must not be used after `close()` or `delete()`.
+
+```ts
+db.close()
+db.delete()
+```
+
+---
+
+# Errors
+
+The JavaScript helpers—including `open`, `execute`, `executeAsync`, batch methods, transactions, and `close`—normalize database failures to `NitroSQLiteError`. Catch this class when you need to distinguish database failures from errors thrown by your application.
+
+```ts
+import { NitroSQLiteError } from 'react-native-nitro-sqlite'
+
+try {
+  db.execute('SELECT * FROM missing_table')
+} catch (error) {
+  if (error instanceof NitroSQLiteError) {
+    console.error(error.message)
+  }
+}
+```
+
+---
+
+# Vector search (sqlite-vec)
+
+Vector search is an opt-in companion package. It statically links sqlite-vec into Nitro SQLite's SQLite build—there is no runtime extension loading.
+
+1. Install the companion package:
+   ```bash
+   npm install react-native-nitro-sqlite-vec
+   ```
+2. Enable it for each native platform, then rebuild the app:
+   - **iOS:** run CocoaPods with `NITRO_SQLITE_VEC=1`, for example:
+     ```bash
+     NITRO_SQLITE_VEC=1 npx pod-install
+     ```
+   - **Android:** add this to `android/gradle.properties`:
+     ```properties
+     nitroSqliteVec=true
+     ```
+
+The companion exports small typed helpers. Its full API is also documented in [the package README](./packages/react-native-nitro-sqlite-vec/README.md).
+
+```ts
+import { open } from 'react-native-nitro-sqlite'
+import {
+  createVectorTable,
+  isVecAvailable,
+  knnSearch,
+  vecVersion,
+} from 'react-native-nitro-sqlite-vec'
+
+const db = open({ name: 'vectors.sqlite' })
+
+if (!isVecAvailable(db)) {
+  throw new Error('sqlite-vec is not enabled in this build')
+}
+
+console.log(vecVersion(db))
+createVectorTable(db, 'embeddings', { dimensions: 3 })
+db.execute('INSERT INTO embeddings (rowid, embedding) VALUES (?, ?)', [
+  1,
+  '[0.1, 0.2, 0.3]',
+])
+
+const matches = knnSearch(db, 'embeddings', [0.1, 0.2, 0.25], 10)
+```
+
+The helper APIs interpolate table and column names into SQL; use trusted identifiers only.
 
 ---
 
@@ -256,11 +336,22 @@ To put the database in an app group (e.g. for extensions), set `RNNitroSQLite_Ap
 ```typescript
 import {
   open,
+  NitroSQLite,
   NitroSQLiteError,
   typeORMDriver,
 } from 'react-native-nitro-sqlite'
-import type { QueryResult, BatchQueryCommand, NitroSQLiteConnection, ... } from 'react-native-nitro-sqlite'
+import type {
+  BatchQueryCommand,
+  BatchQueryResult,
+  FileLoadResult,
+  NitroSQLiteConnection,
+  QueryResult,
+  SQLiteValue,
+  Transaction,
+} from 'react-native-nitro-sqlite'
 ```
+
+`open()` is the recommended API. `NitroSQLite` exposes the underlying database-name-based methods for advanced integrations; prefer the connection returned by `open()` because it binds the database name and adds the JavaScript transaction and result helpers.
 
 ---
 
