@@ -13,7 +13,7 @@ public:
   HybridNitroSQLiteQueryResult() : HybridObject(TAG) {}
   HybridNitroSQLiteQueryResult(SQLiteQueryResults results, std::optional<double> insertId, double rowsAffected,
                                std::optional<SQLiteQueryTableMetadata> metadata)
-      : HybridObject(TAG), _insertId(insertId), _rowsAffected(rowsAffected), _results(std::move(results)), _metadata(metadata) {}
+      : HybridObject(TAG), _insertId(insertId), _rowsAffected(rowsAffected), _results(std::move(results)), _metadata(std::move(metadata)) {}
 
 private:
   std::optional<double> _insertId;

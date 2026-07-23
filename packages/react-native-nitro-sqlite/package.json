@@ -94,6 +94,7 @@
   "release-it": {
     "npm": {
       "publish": true,
+      "skipChecks": true,
       "versionArgs": [
         "--allow-same-version"
       ]

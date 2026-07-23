@@ -85,7 +85,7 @@
       }
     },
     "hooks": {
-      "before:release": "bun example bundle-install && bun example pods && git add example/ios/Podfile.lock"
+      "before:release": "bun install --lockfile-only && bun example bundle-install && bun example pods && git add bun.lock example/ios/Podfile.lock"
     },
     "plugins": {
       "@release-it/bumper": {
@@ -94,6 +94,17 @@
           "path": "version"
         },
         "out": [
+          {
+            "file": "packages/react-native-nitro-sqlite/package.json",
+            "path": "version"
+          },
+          {
+            "file": "packages/react-native-nitro-sqlite-vec/package.json",
+            "path": [
+              "version",
+              "devDependencies.react-native-nitro-sqlite"
+            ]
+          },
           {
             "file": "package.json",
             "path": "version"
@@ -104,7 +115,10 @@
           },
           {
             "file": "example/package.json",
-            "path": "dependencies.react-native-nitro-sqlite"
+            "path": [
+              "dependencies.react-native-nitro-sqlite",
+              "dependencies.react-native-nitro-sqlite-vec"
+            ]
           }
         ]
       },

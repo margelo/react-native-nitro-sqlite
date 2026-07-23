@@ -28,7 +28,7 @@
     "react-native": "0.85.0-rc.0",
     "react-native-nitro-modules": "*",
     "react-native-nitro-sqlite": "9.6.0",
-    "react-native-nitro-sqlite-vec": "*",
+    "react-native-nitro-sqlite-vec": "9.6.0",
     "react-native-quick-base64": "^3.0.0",
     "react-native-quick-crypto": "^1.1.5",
     "react-native-safe-area-context": "^5.5.2",
