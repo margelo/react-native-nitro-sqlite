@@ -63,7 +63,7 @@ jobs:
             CODE_SIGNING_ALLOWED=NO
 
       - name: Run react-native-harness on iOS
-        uses: callstackincubator/react-native-harness@v1.2.0
+        uses: callstackincubator/react-native-harness@v1.4.0
         with:
           app: ios/build/Build/Products/Debug-iphonesimulator/NitroSQLiteExample.app
           runner: ios
