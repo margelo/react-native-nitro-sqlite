@@ -46,10 +46,12 @@ jobs:
           cd example
           bundle install
           bun pods
+          bun pods:macos
           cd ..
 
           git add bun.lock
           git add example/ios/Podfile.lock
+          git add example/macos/Podfile.lock
           git add example/Gemfile.lock
 
           git config --global user.name 'dependabot[bot]'

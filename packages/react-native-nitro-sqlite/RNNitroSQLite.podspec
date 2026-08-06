@@ -1,14 +1,15 @@
 require "json"
 
 package = JSON.parse(File.read(File.join(__dir__, "package.json")))
+sqlite_threadsafe = ENV.fetch("NITRO_SQLITE_THREADSAFE", "0")
+
+unless %w[0 1].include?(sqlite_threadsafe)
+  raise "NITRO_SQLITE_THREADSAFE must be either 0 or 1"
+end
 folly_compiler_flags = '-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1'
 log_message = lambda do |message|
   puts "\e[34m#{message}\e[0m"
 end
-
-# TODO: Should be customizable in package.json.
-# Used to create comparable benchmark results
-performance_mode = 1
 
 Pod::Spec.new do |s|
   s.name         = "RNNitroSQLite"
@@ -17,7 +18,11 @@ Pod::Spec.new do |s|
   s.homepage     = package["homepage"]
   s.license      = package["license"]
   s.authors      = package["author"]
-  s.platforms    = { :ios => min_ios_version_supported, :visionos => "1.0" }
+  s.platforms    = {
+    :ios => min_ios_version_supported,
+    :visionos => "1.0",
+    :osx => "10.13",
+  }
   s.source       = { :git => "https://github.com/margelo/react-native-nitro-sqlite.git", :tag => "#{s.version}" }
 
   # Opt-in vector search (NITRO_SQLITE_VEC=1); the companion pod compiles the sources.
@@ -25,9 +30,9 @@ Pod::Spec.new do |s|
   nitro_sqlite_vec_cpp = File.expand_path(File.join(__dir__, "..", "react-native-nitro-sqlite-vec", "cpp"))
 
   s.source_files = [
-    # Implementation (Swift)
+    # Apple platform implementation (Swift)
     "ios/**/*.{swift}",
-    # Autolinking/Registration (Objective-C++)
+    # Apple platform autolinking/registration (Objective-C++)
     "ios/**/*.{h,hpp,m,mm}",
     # Implementation (C++ objects)
     "cpp/**/*.{h,hpp,c,cpp}"
@@ -35,13 +40,9 @@ Pod::Spec.new do |s|
 
   optimizedCflags = '$(inherited) -DSQLITE_DQS=0 -DSQLITE_DEFAULT_MEMSTATUS=0 -DSQLITE_DEFAULT_WAL_SYNCHRONOUS=1 -DSQLITE_LIKE_DOESNT_MATCH_BLOBS=1 -DSQLITE_MAX_EXPR_DEPTH=0 -DSQLITE_OMIT_DEPRECATED=1 -DSQLITE_OMIT_PROGRESS_CALLBACK=1 -DSQLITE_OMIT_SHARED_CACHE=1 -DSQLITE_USE_ALLOCA=1'
 
-  if performance_mode == 1
-    log_message.call("Thread unsafe (1) performance mode enabled. Use only transactions! 🚀🚀")
-    other_cflags = optimizedCflags + ' -DSQLITE_THREADSAFE=0 '
-  elsif performance_mode == 2
-    log_message.call("Thread safe (2) performance mode enabled 🚀")
-    other_cflags = optimizedCflags + ' -DSQLITE_THREADSAFE=1 '
-  end
+  thread_safety = sqlite_threadsafe == "1" ? "safe" : "unsafe"
+  log_message.call("Thread-#{thread_safety} SQLite mode enabled")
+  other_cflags = optimizedCflags + " -DSQLITE_THREADSAFE=#{sqlite_threadsafe} "
 
   s.pod_target_xcconfig = {
     :GCC_PREPROCESSOR_DEFINITIONS => "HAVE_FULLFSYNC=1",

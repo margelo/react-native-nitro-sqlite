@@ -8,8 +8,8 @@
 
 #include "types.hpp"
 
-namespace margelo::rnnitrosqlite {
+namespace margelo::nitro::rnnitrosqlite {
 
 SQLiteOperationResult importSqlFile(const std::string& dbName, const std::string& fileLocation);
 
-}
+} // namespace margelo::nitro::rnnitrosqlite

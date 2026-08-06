@@ -1,0 +1,39 @@
+{
+  "name": "react-native-nitro-sqlite-macos-example",
+  "private": true,
+  "scripts": {
+    "macos": "node scripts/react-native-macos.js run-macos --project-path .",
+    "start": "node scripts/react-native-macos.js start",
+    "test": "node scripts/test-macos.mjs"
+  },
+  "dependencies": {
+    "@react-native-clipboard/clipboard": "^1.16.3",
+    "@react-navigation/native": "^7.1.19",
+    "buffer": "^6.0.3",
+    "chai": "^4.3.7",
+    "chance": "^1.1.9",
+    "events": "^3.3.0",
+    "expo-status-bar": "^1.12.1",
+    "mocha": "^10.1.0",
+    "readable-stream": "^4.7.0",
+    "react": "19.1.4",
+    "react-native": "0.81.6",
+    "react-native-get-random-values": "^2.0.0",
+    "react-native-macos-local": "npm:react-native-macos@0.81.9",
+    "react-native-nitro-modules": "0.36.1",
+    "react-native-nitro-sqlite": "workspace:*",
+    "react-native-nitro-sqlite-vec": "workspace:*",
+    "reflect-metadata": "^0.1.13",
+    "typeorm": "0.3.27",
+    "util": "^0.12.5"
+  },
+  "devDependencies": {
+    "@react-native-community/cli": "19.1.2",
+    "@react-native-community/cli-platform-android": "19.1.2",
+    "@react-native-community/cli-platform-apple": "19.1.2",
+    "@react-native-community/cli-platform-ios": "19.1.2",
+    "@react-native/babel-preset": "0.81.6",
+    "@react-native/community-cli-plugin": "0.81.6",
+    "@react-native/metro-config": "0.81.6"
+  }
+}

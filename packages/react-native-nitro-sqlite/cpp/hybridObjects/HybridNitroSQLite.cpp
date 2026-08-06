@@ -1,11 +1,11 @@
 #include "HybridNitroSQLite.hpp"
 #include "HybridNitroSQLiteQueryResult.hpp"
-#include "NitroSQLiteException.hpp"
-#include "importSqlFile.hpp"
-#include "logs.hpp"
-#include "macros.hpp"
-#include "operations.hpp"
-#include "sqliteExecuteBatch.hpp"
+#include "../NitroSQLiteException.hpp"
+#include "../importSqlFile.hpp"
+#include "../logs.hpp"
+#include "../macros.hpp"
+#include "../operations.hpp"
+#include "../sqliteExecuteBatch.hpp"
 #include <iostream>
 #include <map>
 #include <optional>

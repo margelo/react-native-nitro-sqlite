@@ -3,7 +3,7 @@
 #include "hybridObjects/HybridNitroSQLiteQueryResult.hpp"
 #include "types.hpp"
 
-namespace margelo::rnnitrosqlite {
+namespace margelo::nitro::rnnitrosqlite {
 
 void sqliteOpenDb(const std::string& dbName, const std::string& docPath);
 
@@ -24,4 +24,4 @@ SQLiteOperationResult sqliteExecuteCommand(const std::string& dbName, const std:
 
 void sqliteCloseAll();
 
-} // namespace margelo::rnnitrosqlite
+} // namespace margelo::nitro::rnnitrosqlite

@@ -8,7 +8,7 @@
 #include <fstream>
 #include <iostream>
 
-namespace margelo::rnnitrosqlite {
+namespace margelo::nitro::rnnitrosqlite {
 
 SQLiteOperationResult importSqlFile(const std::string& dbName, const std::string& fileLocation) {
   std::string line;
@@ -45,4 +45,4 @@ SQLiteOperationResult importSqlFile(const std::string& dbName, const std::string
   }
 }
 
-} // namespace margelo::rnnitrosqlite
+} // namespace margelo::nitro::rnnitrosqlite

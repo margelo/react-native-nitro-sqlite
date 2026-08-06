@@ -33,7 +33,7 @@
 > [!NOTE]
 > Requires [Nitro modules](https://nitro.margelo.com/) and React Native `0.75` or later.
 
-Nitro SQLite embeds SQLite and exposes a JSI API. Each operation is available in **sync** and **async** form; async runs off the JS thread to avoid blocking the UI.
+Nitro SQLite embeds SQLite and exposes a JSI API on iOS, macOS, visionOS, and Android. Each operation is available in **sync** and **async** form; async runs off the JS thread to avoid blocking the UI.
 
 ---
 
@@ -42,6 +42,41 @@ Nitro SQLite embeds SQLite and exposes a JSI API. Each operation is available in
 ```bash
 npm install react-native-nitro-sqlite react-native-nitro-modules
 npx pod-install
+```
+
+For a React Native macOS app, run CocoaPods from the `macos` directory:
+
+```bash
+cd macos && pod install
+```
+
+## Run the macOS example
+
+From this repository's root, install dependencies and pods once, then launch the example in development mode:
+
+```bash
+bun install
+bun --cwd example bundle-install
+bun --cwd example pods:macos
+bun --cwd example macos
+```
+
+The macOS app shares the iOS example's screens: **Unit Tests** runs the SQLite, TypeORM, and sqlite-vec suites; **SQL Console** runs ad-hoc queries against sample data; and **Benchmarks** measures inserts and reads.
+
+To keep Metro in the current terminal, use:
+
+```bash
+# Terminal 1
+bun --cwd example/macos start
+
+# Terminal 2
+bun --cwd example macos --no-packager
+```
+
+Build and launch the embedded production bundle with:
+
+```bash
+bun --cwd example macos --mode Release --no-packager
 ```
 
 ---
@@ -73,6 +108,24 @@ const db = open({ name: 'myDb.sqlite' })
 
 - **Sync** (`execute`, `executeBatch`, `loadFile`): Run on the JS thread. Use for small, fast work; heavy work can block the UI.
 - **Async** (`executeAsync`, `executeBatchAsync`, `loadFileAsync`, `transaction`): Run off the JS thread. Prefer these for larger or many queries to keep the app responsive.
+
+---
+
+# SQLite thread safety on Apple platforms
+
+Apple builds default to `NITRO_SQLITE_THREADSAFE=0` to preserve the existing iOS performance configuration. Set `NITRO_SQLITE_THREADSAFE=1` before installing Pods when one SQLite connection can be used from more than one native thread:
+
+```bash
+NITRO_SQLITE_THREADSAFE=1 npx pod-install
+```
+
+For React Native macOS, run the equivalent command from `macos/`:
+
+```bash
+NITRO_SQLITE_THREADSAFE=1 pod install
+```
+
+The repository's macOS example sets this automatically because Nitro async APIs run on worker threads.
 
 ---
 
@@ -178,7 +231,7 @@ const { rowsAffected, commands } = db.loadFile('/absolute/path/to/file.sql')
 
 # Loading existing databases
 
-Databases are created under the app documents directory (iOS) or files directory (Android). `location` is a directory path relative to that root, not an absolute file path. For example, `open({ name: 'myDb.sqlite', location: 'databases' })` opens `myDb.sqlite` under the `databases` directory. To use a database from another app-accessible location, copy or move it into this directory first. On iOS, files outside the app sandbox are inaccessible.
+Databases are created under the app Documents directory (iOS and visionOS), Application Support directory (macOS), or files directory (Android). `location` is a directory path relative to that root, not an absolute file path. For example, `open({ name: 'myDb.sqlite', location: 'databases' })` opens `myDb.sqlite` under the `databases` directory. To use a database from another app-accessible location, copy or move it into this directory first. In sandboxed Apple apps, files outside the app sandbox are inaccessible.
 
 Close a connection before deleting its database. A connection must not be used after `close()` or `delete()`.
 
@@ -216,10 +269,11 @@ Vector search is an opt-in companion package. It statically links sqlite-vec int
    npm install react-native-nitro-sqlite-vec
    ```
 2. Enable it for each native platform, then rebuild the app:
-   - **iOS:** run CocoaPods with `NITRO_SQLITE_VEC=1`, for example:
+   - **Apple platforms (iOS, macOS, visionOS):** run CocoaPods with `NITRO_SQLITE_VEC=1`, for example:
      ```bash
      NITRO_SQLITE_VEC=1 npx pod-install
      ```
+     For React Native macOS, run `NITRO_SQLITE_VEC=1 pod install` from `macos/`.
    - **Android:** add this to `android/gradle.properties`:
      ```properties
      nitroSqliteVec=true
@@ -296,7 +350,7 @@ You can use this package as a TypeORM driver. Because of Metro and Node resoluti
 
 # Configuration
 
-## Use system SQLite on iOS
+## Use system SQLite on Apple platforms
 
 To use the system SQLite instead of the bundled one:
 
@@ -304,9 +358,11 @@ To use the system SQLite instead of the bundled one:
 NITRO_SQLITE_USE_PHONE_VERSION=1 npx pod-install
 ```
 
+For React Native macOS, run the command from `macos/` with `pod install` instead of `npx pod-install`.
+
 ## Compile-time options (e.g. FTS5, Geopoly)
 
-**iOS** — in your app’s `ios/Podfile`, in a `post_install` block:
+**Apple platforms** — in your app’s `Podfile`, in a `post_install` block:
 
 ```ruby
 installer.pods_project.targets.each do |target|
@@ -325,7 +381,7 @@ end
 nitroSqliteFlags="-DSQLITE_ENABLE_FTS5=1"
 ```
 
-## App groups (iOS)
+## App groups (Apple platforms)
 
 To put the database in an app group (e.g. for extensions), set `RNNitroSQLite_AppGroup` in your `Info.plist` to the app group ID and add the App Groups capability in Xcode.
 

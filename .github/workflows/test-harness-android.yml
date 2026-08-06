@@ -1,6 +1,7 @@
 name: Test Harness Android
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - ".github/workflows/test-harness-android.yml"
@@ -9,8 +10,8 @@ on:
       - "example/tests/**"
       - "example/rn-harness.config.mjs"
       - "example/jest.config.js"
-      - "package/cpp/**"
-      - "package/android/**"
+      - "packages/react-native-nitro-sqlite/cpp/**"
+      - "packages/react-native-nitro-sqlite/android/**"
       - "**/bun.lock"
       - "**/react-native.config.js"
       - "**/nitro.json"
