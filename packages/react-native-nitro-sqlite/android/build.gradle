@@ -51,6 +51,14 @@ def supportsNamespace() {
   return (major == 7 && minor >= 3) || major >= 8
 }
 
+def resolveNodePackageJson(packageName) {
+  def packageJsonPath = providers.exec {
+    workingDir(rootDir)
+    commandLine("node", "--print", "require.resolve('${packageName}/package.json')")
+  }.standardOutput.asText.get().trim()
+  return file(packageJsonPath)
+}
+
 def resolveReactNativeDirectory() {
   def reactNativeLocation = safeAppExtGet("REACT_NATIVE_NODE_MODULES_DIR", null)
   if (reactNativeLocation != null) {
@@ -58,7 +66,7 @@ def resolveReactNativeDirectory() {
   }
 
   // Fallback to node resolver for custom directory structures like monorepos.
-  def reactNativePackage = file(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim())
+  def reactNativePackage = resolveNodePackageJson("react-native")
   if (reactNativePackage.exists()) {
     return reactNativePackage.parentFile
   }
@@ -80,8 +88,8 @@ def NITRO_SQLITE_VEC_ENABLED = (rootProject.findProperty('nitroSqliteVec') ?: 'f
 def NITRO_SQLITE_VEC_CPP_DIR = ''
 if (NITRO_SQLITE_VEC_ENABLED) {
   try {
-    def vecPkgJson = ["node", "--print", "require.resolve('react-native-nitro-sqlite-vec/package.json')"].execute(null, rootDir).text.trim()
-    NITRO_SQLITE_VEC_CPP_DIR = new File(new File(vecPkgJson).parentFile, "cpp").absolutePath
+    def vecPkgJson = resolveNodePackageJson("react-native-nitro-sqlite-vec")
+    NITRO_SQLITE_VEC_CPP_DIR = new File(vecPkgJson.parentFile, "cpp").absolutePath
   } catch (Exception e) {
     throw new GradleException("[react-native-nitro-sqlite] nitroSqliteVec=true but 'react-native-nitro-sqlite-vec' could not be resolved. Install it in your app (e.g. `bun add react-native-nitro-sqlite-vec`).")
   }
