@@ -25,15 +25,15 @@ struct SQLiteOperationResult {
 inline ColumnType mapSQLiteTypeToColumnType(const char* type) {
   if (type == NULL) {
     return ColumnType::NULL_VALUE;
-  } else if (strcmp(type, "BOOLEAN")) {
+  } else if (strcmp(type, "BOOLEAN") == 0) {
     return ColumnType::BOOLEAN;
-  } else if (strcmp(type, "FLOAT")) {
+  } else if (strcmp(type, "FLOAT") == 0) {
     return ColumnType::NUMBER;
-  } else if (strcmp(type, "INTEGER")) {
+  } else if (strcmp(type, "INTEGER") == 0) {
     return ColumnType::INT64;
-  } else if (strcmp(type, "TEXT")) {
+  } else if (strcmp(type, "TEXT") == 0) {
     return ColumnType::TEXT;
-  } else if (strcmp(type, "BLOB")) {
+  } else if (strcmp(type, "BLOB") == 0) {
     return ColumnType::ARRAY_BUFFER;
   } else {
     return ColumnType::NULL_VALUE;
