@@ -1,4 +1,4 @@
-import { chance, expect } from '@tests/unit/common'
+import { chance, expect, isNitroSQLiteError } from '@tests/unit/common'
 import type { BatchQueryCommand } from 'react-native-nitro-sqlite'
 import { describe, it } from '@tests/TestApi'
 import { testDb } from '@tests/db'
@@ -93,6 +93,56 @@ export default function registerExecuteBatchUnitTests() {
           networth: networth2,
         },
       ])
+    })
+
+    it('throws when executeBatch receives an extra parameter without exposing it', () => {
+      const extraParameter = 'do-not-expose-batch-parameter'
+
+      try {
+        testDb.executeBatch([
+          {
+            query: 'SELECT ?',
+            params: [1, extraParameter],
+          },
+        ])
+        throw new Error(
+          'Expected executeBatch to throw for the extra parameter',
+        )
+      } catch (error: unknown) {
+        if (!isNitroSQLiteError(error)) {
+          throw new Error('Should have thrown a valid NitroSQLiteError')
+        }
+
+        expect(error.message).toContain('parameter 2')
+        expect(error.message).toContain('25')
+        expect(error.message).toContain('column index out of range')
+        expect(error.message.includes(extraParameter)).toBe(false)
+      }
+    })
+
+    it('rejects when executeBatchAsync receives an extra parameter without exposing it', async () => {
+      const extraParameter = 'do-not-expose-batch-async-parameter'
+
+      try {
+        await testDb.executeBatchAsync([
+          {
+            query: 'SELECT ?',
+            params: [1, extraParameter],
+          },
+        ])
+        throw new Error(
+          'Expected executeBatchAsync to reject for the extra parameter',
+        )
+      } catch (error: unknown) {
+        if (!isNitroSQLiteError(error)) {
+          throw new Error('Should have thrown a valid NitroSQLiteError')
+        }
+
+        expect(error.message).toContain('parameter 2')
+        expect(error.message).toContain('25')
+        expect(error.message).toContain('column index out of range')
+        expect(error.message.includes(extraParameter)).toBe(false)
+      }
     })
   })
 }

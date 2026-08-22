@@ -121,24 +121,30 @@ void bindStatement(sqlite3_stmt* statement, const SQLiteQueryParams& values) {
   for (int valueIndex = 0; valueIndex < values.size(); valueIndex++) {
     int sqliteIndex = valueIndex + 1;
     SQLiteValue value = values.at(valueIndex);
+    int bindStatus = SQLITE_OK;
     if (std::holds_alternative<NullType>(value)) {
-      sqlite3_bind_null(statement, sqliteIndex);
+      bindStatus = sqlite3_bind_null(statement, sqliteIndex);
     } else if (std::holds_alternative<bool>(value)) {
-      sqlite3_bind_int(statement, sqliteIndex, std::get<bool>(value));
+      bindStatus = sqlite3_bind_int(statement, sqliteIndex, std::get<bool>(value));
     } else if (std::holds_alternative<double>(value)) {
       // Bind whole numbers as INTEGER so vec0 rowid/pk/partition (which reject REAL) work; SQLite still coerces to REAL for REAL columns.
       double doubleValue = std::get<double>(value);
       if (std::trunc(doubleValue) == doubleValue && doubleValue >= kInt64MinAsDouble && doubleValue < kInt64UpperBoundAsDouble) {
-        sqlite3_bind_int64(statement, sqliteIndex, static_cast<sqlite3_int64>(doubleValue));
+        bindStatus = sqlite3_bind_int64(statement, sqliteIndex, static_cast<sqlite3_int64>(doubleValue));
       } else {
-        sqlite3_bind_double(statement, sqliteIndex, doubleValue);
+        bindStatus = sqlite3_bind_double(statement, sqliteIndex, doubleValue);
       }
     } else if (std::holds_alternative<std::string>(value)) {
       const auto stringValue = std::get<std::string>(value);
-      sqlite3_bind_text(statement, sqliteIndex, stringValue.c_str(), stringValue.length(), SQLITE_TRANSIENT);
+      bindStatus = sqlite3_bind_text(statement, sqliteIndex, stringValue.c_str(), stringValue.length(), SQLITE_TRANSIENT);
     } else if (std::holds_alternative<std::shared_ptr<ArrayBuffer>>(value)) {
       const auto arrayBufferValue = std::get<std::shared_ptr<ArrayBuffer>>(value);
-      sqlite3_bind_blob(statement, sqliteIndex, arrayBufferValue->data(), arrayBufferValue->size(), SQLITE_STATIC);
+      bindStatus = sqlite3_bind_blob(statement, sqliteIndex, arrayBufferValue->data(), arrayBufferValue->size(), SQLITE_STATIC);
+    }
+
+    if (bindStatus != SQLITE_OK) {
+      throw NitroSQLiteException::SqlExecution("Failed to bind parameter " + std::to_string(sqliteIndex) + " (SQLite error " +
+                                               std::to_string(bindStatus) + "): " + sqlite3_errstr(bindStatus));
     }
   }
 }
