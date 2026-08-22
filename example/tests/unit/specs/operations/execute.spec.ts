@@ -137,6 +137,37 @@ export default function registerExecuteUnitTests() {
       })
     })
 
+    describe('SQLite extensions', () => {
+      it('creates and queries an RTree virtual table', () => {
+        testDb.execute('DROP TABLE IF EXISTS SpatialIndex')
+
+        try {
+          testDb.execute(`
+            CREATE VIRTUAL TABLE SpatialIndex USING rtree(
+              id,
+              minX, maxX,
+              minY, maxY
+            )
+          `)
+          testDb.execute(
+            'INSERT INTO SpatialIndex (id, minX, maxX, minY, maxY) VALUES (?, ?, ?, ?, ?)',
+            [1, 10, 20, 30, 40],
+          )
+
+          const result = testDb.execute(
+            'SELECT id, minX, maxX, minY, maxY FROM SpatialIndex WHERE minX <= ? AND maxX >= ?',
+            [15, 15],
+          )
+
+          expect(result.results).toEqual([
+            { id: 1, minX: 10, maxX: 20, minY: 30, maxY: 40 },
+          ])
+        } finally {
+          testDb.execute('DROP TABLE IF EXISTS SpatialIndex')
+        }
+      })
+    })
+
     describe('ArrayBuffer support', () => {
       describe('execute', () => {
         it('stores and reads ArrayBuffer values from BLOB columns', () => {

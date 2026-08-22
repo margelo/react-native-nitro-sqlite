@@ -5,6 +5,7 @@ set (CMAKE_VERBOSE_MAKEFILE ON)
 set (CMAKE_CXX_STANDARD 20)
 
 add_definitions(
+  -DSQLITE_ENABLE_RTREE=1
   ${SQLITE_FLAGS}
 )
 
