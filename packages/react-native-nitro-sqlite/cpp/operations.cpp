@@ -32,6 +32,10 @@ static constexpr double kInt64UpperBoundAsDouble = -kInt64MinAsDouble;
 std::map<std::string, sqlite3*> dbMap = std::map<std::string, sqlite3*>();
 
 void sqliteOpenDb(const std::string& dbName, const std::string& docPath) {
+  if (dbMap.contains(dbName)) {
+    throw NitroSQLiteException::DatabaseAlreadyOpen(dbName);
+  }
+
 #ifdef NITRO_SQLITE_VEC
   // Register before opening so the connection exposes vec0 + vec_*.
   margelo::rnnitrosqlitevec::registerVectorExtensions();
@@ -41,15 +45,20 @@ void sqliteOpenDb(const std::string& dbName, const std::string& docPath) {
 
   int sqlOpenFlags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX;
 
-  sqlite3* db;
-  int exit = 0;
-  exit = sqlite3_open_v2(dbPath.c_str(), &db, sqlOpenFlags, nullptr);
+  sqlite3* rawDatabase = nullptr;
+  const int openStatus = sqlite3_open_v2(dbPath.c_str(), &rawDatabase, sqlOpenFlags, nullptr);
+  std::unique_ptr<sqlite3, decltype(&sqlite3_close_v2)> database(rawDatabase, sqlite3_close_v2);
 
-  if (exit != SQLITE_OK) {
-    throw NitroSQLiteException(NitroSQLiteExceptionType::DatabaseCannotBeOpened, sqlite3_errmsg(db));
-  } else {
-    dbMap[dbName] = db;
+  if (openStatus != SQLITE_OK) {
+    const std::string errorMessage = rawDatabase == nullptr ? sqlite3_errstr(openStatus) : sqlite3_errmsg(rawDatabase);
+    throw NitroSQLiteException(NitroSQLiteExceptionType::DatabaseCannotBeOpened, errorMessage);
   }
+
+  const bool inserted = dbMap.emplace(dbName, database.get()).second;
+  if (!inserted) {
+    throw NitroSQLiteException::DatabaseAlreadyOpen(dbName);
+  }
+  database.release();
 }
 
 void sqliteCloseDb(const std::string& dbName) {
