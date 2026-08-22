@@ -306,6 +306,8 @@ NITRO_SQLITE_USE_PHONE_VERSION=1 npx pod-install
 
 ## Compile-time options (e.g. FTS5, Geopoly)
 
+The bundled SQLite build enables the RTree extension by default on iOS and Android.
+
 **iOS** — in your app’s `ios/Podfile`, in a `post_install` block:
 
 ```ruby
