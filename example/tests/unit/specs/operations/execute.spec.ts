@@ -137,6 +137,46 @@ export default function registerExecuteUnitTests() {
       })
     })
 
+    describe('Bind errors', () => {
+      it('throws when execute receives an extra parameter without exposing it', () => {
+        const extraParameter = 'do-not-expose-sync-parameter'
+
+        try {
+          testDb.execute('SELECT ?', [1, extraParameter])
+          throw new Error('Expected execute to throw for the extra parameter')
+        } catch (error: unknown) {
+          if (!isNitroSQLiteError(error)) {
+            throw new Error('Should have thrown a valid NitroSQLiteError')
+          }
+
+          expect(error.message).toContain('parameter 2')
+          expect(error.message).toContain('25')
+          expect(error.message).toContain('column index out of range')
+          expect(error.message.includes(extraParameter)).toBe(false)
+        }
+      })
+
+      it('rejects when executeAsync receives an extra parameter without exposing it', async () => {
+        const extraParameter = 'do-not-expose-async-parameter'
+
+        try {
+          await testDb.executeAsync('SELECT ?', [1, extraParameter])
+          throw new Error(
+            'Expected executeAsync to reject for the extra parameter',
+          )
+        } catch (error: unknown) {
+          if (!isNitroSQLiteError(error)) {
+            throw new Error('Should have thrown a valid NitroSQLiteError')
+          }
+
+          expect(error.message).toContain('parameter 2')
+          expect(error.message).toContain('25')
+          expect(error.message).toContain('column index out of range')
+          expect(error.message.includes(extraParameter)).toBe(false)
+        }
+      })
+    })
+
     describe('ArrayBuffer support', () => {
       describe('execute', () => {
         it('stores and reads ArrayBuffer values from BLOB columns', () => {
