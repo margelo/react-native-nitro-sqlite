@@ -14,6 +14,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
+    if let loadFileFixturePath = Bundle.main.path(
+      forResource: "load-file-with-error",
+      ofType: "sql"
+    ) {
+      UserDefaults.standard.set(loadFileFixturePath, forKey: "loadFileFixturePath")
+    }
+
     let delegate = ReactNativeDelegate()
     let factory = RCTReactNativeFactory(delegate: delegate)
     delegate.dependencyProvider = RCTAppDependencyProvider()

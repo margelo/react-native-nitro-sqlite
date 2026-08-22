@@ -12,6 +12,7 @@
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		7B5735B8E367752583C44170 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		D463F2F53B094E469119C69E /* load-file-with-error.sql in Resources */ = {isa = PBXBuildFile; fileRef = D463F2F53B094E469119C69F /* load-file-with-error.sql */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,6 +25,7 @@
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = NitroSQLiteExample/AppDelegate.swift; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = NitroSQLiteExample/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		C3E89C92C507841F368080BD /* Pods_NitroSQLiteExample.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_NitroSQLiteExample.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		D463F2F53B094E469119C69F /* load-file-with-error.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "load-file-with-error.sql"; path = "NitroSQLiteExample/load-file-with-error.sql"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -42,6 +44,7 @@
 		13B07FAE1A68108700A75B9A /* NitroSQLiteExample */ = {
 			isa = PBXGroup;
 			children = (
+				D463F2F53B094E469119C69F /* load-file-with-error.sql */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				761780EC2CA45674006654EE /* AppDelegate.swift */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
@@ -158,6 +161,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D463F2F53B094E469119C69E /* load-file-with-error.sql in Resources */,
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				7B5735B8E367752583C44170 /* PrivacyInfo.xcprivacy in Resources */,
