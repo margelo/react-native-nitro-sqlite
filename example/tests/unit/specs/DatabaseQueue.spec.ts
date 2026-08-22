@@ -7,11 +7,30 @@ import {
 } from '@tests/unit/common'
 import { describe, it } from '@tests/TestApi'
 import { testDb, testDbQueue } from '@tests/db'
-import type { BatchQueryCommand } from 'react-native-nitro-sqlite'
+import {
+  NitroSQLite,
+  NitroSQLiteError,
+  open,
+  type BatchQueryCommand,
+} from 'react-native-nitro-sqlite'
 
 const TEST_QUERY = 'SELECT * FROM [User];'
 
 const TEST_BATCH_COMMANDS: BatchQueryCommand[] = [{ query: TEST_QUERY }]
+
+function dropDatabaseIfExists(dbName: string, location?: string) {
+  try {
+    NitroSQLite.native.drop(dbName, location)
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.includes('Database file not found')
+    ) {
+      return
+    }
+    throw error
+  }
+}
 
 export default function registerDatabaseQueueUnitTests() {
   describe('Database Queue', () => {
@@ -176,6 +195,77 @@ export default function registerDatabaseQueueUnitTests() {
         } else {
           throw new Error(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
         }
+      }
+    })
+
+    it('rejects a duplicate session open without replacing the original connection', () => {
+      const dbName = 'duplicate-session-open'
+      dropDatabaseIfExists(dbName)
+      dropDatabaseIfExists(dbName, '..')
+
+      const db = open({ name: dbName })
+
+      try {
+        db.execute('CREATE TABLE ConnectionMarker (value TEXT NOT NULL)')
+        db.execute('INSERT INTO ConnectionMarker (value) VALUES (?)', [
+          'original',
+        ])
+
+        let duplicateError: unknown
+        try {
+          open({ name: dbName, location: '..' })
+        } catch (error) {
+          duplicateError = error
+        }
+
+        expect(duplicateError).toBeInstanceOf(NitroSQLiteError)
+        expect((duplicateError as Error).message).toContain('already open')
+        expect(
+          db.execute<{ value: string }>('SELECT value FROM ConnectionMarker')
+            .results,
+        ).toEqual([{ value: 'original' }])
+      } finally {
+        db.close()
+        dropDatabaseIfExists(dbName)
+        dropDatabaseIfExists(dbName, '..')
+      }
+    })
+
+    it('rejects duplicate direct native opens', () => {
+      const dbName = 'duplicate-native-open'
+      dropDatabaseIfExists(dbName)
+
+      NitroSQLite.native.open(dbName)
+
+      try {
+        NitroSQLite.execute(
+          dbName,
+          'CREATE TABLE ConnectionMarker (value TEXT NOT NULL)',
+        )
+        NitroSQLite.execute(
+          dbName,
+          'INSERT INTO ConnectionMarker (value) VALUES (?)',
+          ['original'],
+        )
+
+        let duplicateError: unknown
+        try {
+          NitroSQLite.native.open(dbName)
+        } catch (error) {
+          duplicateError = error
+        }
+
+        expect(duplicateError).toBeInstanceOf(Error)
+        expect((duplicateError as Error).message).toContain('already open')
+        expect(
+          NitroSQLite.execute<{ value: string }>(
+            dbName,
+            'SELECT value FROM ConnectionMarker',
+          ).results,
+        ).toEqual([{ value: 'original' }])
+      } finally {
+        NitroSQLite.native.close(dbName)
+        dropDatabaseIfExists(dbName)
       }
     })
   })
