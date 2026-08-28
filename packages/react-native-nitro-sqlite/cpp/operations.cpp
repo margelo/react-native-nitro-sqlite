@@ -47,9 +47,21 @@ void sqliteOpenDb(const std::string& dbName, const std::string& docPath) {
 
   if (exit != SQLITE_OK) {
     throw NitroSQLiteException(NitroSQLiteExceptionType::DatabaseCannotBeOpened, sqlite3_errmsg(db));
-  } else {
-    dbMap[dbName] = db;
   }
+
+  if (encryptionKey.has_value()) {
+     #ifdef SQLITE_ENABLE_SEE
+       exit = sqlite3_key_v2(db, "main", encryptionKey.value().c_str(), -1);
+
+       if (exit != SQLITE_OK) {
+         throw NitroSQLiteException(NitroSQLiteExceptionType::DatabaseCannotBeDecrypted, sqlite3_errmsg(db));
+       }
+     #else
+       throw NitroSQLiteException(NitroSQLiteExceptionType::EncryptionNotEnabled, "Enable encryption by specifying SQLITE_ENABLE_SEE pre-processor flag and replacing sqlite.h / sqlite.c.");
+     #endif
+  }
+
+  dbMap[dbName] = db;
 }
 
 void sqliteCloseDb(const std::string& dbName) {
