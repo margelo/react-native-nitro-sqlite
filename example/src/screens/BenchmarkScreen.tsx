@@ -10,7 +10,7 @@ import {
 } from 'react-native'
 import { StatusBar } from 'expo-status-bar'
 import { ScreenStyles } from '../styles'
-import { resetLargeDb, largeDb, testDb, resetTestDb } from '../tests/db'
+import { resetLargeDb, largeDb, testDb, resetTestDb } from '@tests/db'
 
 const chance = new Chance()
 const ids = Array(100000)
@@ -42,7 +42,7 @@ const benchmarks: Benchmark[] = [
     run: (i) => {
       testDb?.execute(
         'INSERT INTO User (id, name, age, networth) VALUES(?, ?, ?, ?)',
-        [ids[i], stringValue, integerValue, doubleValue],
+        [ids[i]!, stringValue, integerValue, doubleValue],
       )
     },
   },
@@ -55,7 +55,7 @@ const benchmarks: Benchmark[] = [
     },
     run: (i) => {
       testDb?.execute('INSERT INTO t1 (a, b, c) VALUES(?, ?, ?)', [
-        ids[i],
+        ids[i]!,
         integerValue,
         stringValue,
       ])

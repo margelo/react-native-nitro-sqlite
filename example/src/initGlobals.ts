@@ -1,8 +1,12 @@
 import { Buffer as CraftzdogBuffer } from '@craftzdog/react-native-buffer'
+import {
+  install as installQuickCrypto,
+  Buffer as QuickCryptoBuffer,
+} from 'react-native-quick-crypto'
 
 declare global {
   // eslint-disable-next-line no-var
-  var Buffer: typeof CraftzdogBuffer
+  var Buffer: typeof CraftzdogBuffer | typeof QuickCryptoBuffer
 }
 
 if (!globalThis.process) {
@@ -10,6 +14,8 @@ if (!globalThis.process) {
   globalThis.process = {}
 }
 
-globalThis.Buffer = CraftzdogBuffer
+globalThis.Buffer = QuickCryptoBuffer
 globalThis.process.cwd = () => 'sxsx'
 globalThis.process.env = { NODE_ENV: 'production' }
+
+installQuickCrypto()

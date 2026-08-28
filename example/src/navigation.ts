@@ -3,12 +3,14 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { HomeScreen } from './screens/HomeScreen'
 import { UnitTestScreen } from './screens/UnitTestScreen'
 import { BenchmarkScreen } from './screens/BenchmarkScreen'
+import { SqlConsoleScreen } from './screens/SqlConsoleScreen'
 
 export const RootStack = createNativeStackNavigator({
   screens: {
     'NitroSQLite Example': HomeScreen,
     'Unit Tests': UnitTestScreen,
     'Benchmarks': BenchmarkScreen,
+    'SQL Console': SqlConsoleScreen,
   },
 })
 

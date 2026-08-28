@@ -4,26 +4,29 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build Android Example App (release)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
 
       - name: Install npm dependencies (bun)
         run: bun install
 
       - name: Setup JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: "zulu"
           java-version: 17
           java-package: jdk
 
       - name: Restore Gradle cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.gradle/caches
@@ -35,14 +38,12 @@ jobs:
         run: ./gradlew assembleRelease --no-daemon --build-cache
 
       - name: Upload APK to Release
-        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: example/android/app/build/outputs/apk/release/app-release.apk
-          asset_name: "NitroSQLiteExample-${{ github.event.release.tag_name }}.apk"
-          asset_content_type: application/vnd.android.package-archive
+        run: |
+          gh release upload "${{ github.event.release.tag_name }}" \
+            example/android/app/build/outputs/apk/release/app-release.apk#NitroSQLiteExample-${{ github.event.release.tag_name }}.apk \
+            --clobber
 
       # Gradle cache doesn't like daemons
       - name: Stop Gradle Daemon

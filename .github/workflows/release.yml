@@ -1,0 +1,63 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version or increment"
+        required: true
+        default: "patch"
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Publish packages and GitHub release
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: main
+          token: ${{ secrets.RELEASE_IT_GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Setup Ruby (bundle)
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.3.0
+          bundler-cache: true
+          working-directory: example
+
+      - name: Select Xcode 26.5
+        run: sudo xcode-select -s "/Applications/Xcode_26.5.app/Contents/Developer"
+
+      - name: Install npm dependencies (bun)
+        run: bun install
+
+      - name: Configure Git author
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Release
+        run: bun release "${{ inputs.version }}" --ci --no-git.requireUpstream
+        env:
+          RELEASE_IT_GITHUB_TOKEN: ${{ secrets.RELEASE_IT_GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_CACHE: ${{ runner.temp }}/npm-cache
+          NPM_CONFIG_PROVENANCE: "true"
