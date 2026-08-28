@@ -17,7 +17,7 @@ public:
 
 public:
   // Methods
-  void open(const std::string& dbName, const std::optional<std::string>& location) override;
+  void open(const std::string& dbName, const std::optional<std::string>& location, const std::optional<std::string>& encryptionKey) override;
 
   void close(const std::string& dbName) override;
 

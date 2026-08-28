@@ -3,6 +3,7 @@ import type { NitroSQLiteQueryResult } from './specs/NitroSQLiteQueryResult.nitr
 export interface NitroSQLiteConnectionOptions {
   name: string
   location?: string
+  encryptionKey?: string
 }
 
 export interface NitroSQLiteConnection {

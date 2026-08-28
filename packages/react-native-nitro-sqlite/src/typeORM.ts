@@ -40,6 +40,7 @@ export const typeORMDriver = {
     options: {
       name: string
       location?: string
+      encryptionKey?: string
     },
     ok: (db: TypeOrmNitroSQLiteConnection) => void,
     fail: (msg: string) => void,
