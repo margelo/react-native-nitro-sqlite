@@ -5,12 +5,9 @@
 #include <NitroModules/ArrayBuffer.hpp>
 #include <string>
 
-using namespace margelo::nitro;
-using namespace margelo::nitro::rnnitrosqlite;
+namespace margelo::nitro::rnnitrosqlite {
 
-namespace margelo::rnnitrosqlite {
-
-using SQLiteValue = std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>;
+using SQLiteValue = std::variant<NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>;
 using SQLiteQueryParams = std::vector<SQLiteValue>;
 using SQLiteQueryResultRow = std::unordered_map<std::string, SQLiteValue>;
 using SQLiteQueryResults = std::vector<SQLiteQueryResultRow>;
@@ -40,4 +37,4 @@ inline ColumnType mapSQLiteTypeToColumnType(const char* type) {
   }
 }
 
-} // namespace margelo::rnnitrosqlite
+} // namespace margelo::nitro::rnnitrosqlite
