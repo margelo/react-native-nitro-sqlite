@@ -5,7 +5,7 @@ import type {
   QueryResult,
   QueryResultRow,
 } from '../types'
-import { execute, executeAsync } from './execute'
+import { executeAsyncNative, executeNative } from './execute'
 import NitroSQLiteError from '../NitroSQLiteError'
 
 export const transaction = async <Result = void>(
@@ -26,7 +26,7 @@ export const transaction = async <Result = void>(
         `Cannot execute query on finalized transaction: ${dbName}`,
       )
     }
-    return execute(dbName, query, params)
+    return executeNative(dbName, query, params)
   }
 
   const executeAsyncOnTransaction = <Row extends QueryResultRow = never>(
@@ -38,7 +38,7 @@ export const transaction = async <Result = void>(
         `Cannot execute query on finalized transaction: ${dbName}`,
       )
     }
-    return executeAsync(dbName, query, params)
+    return executeAsyncNative(dbName, query, params)
   }
 
   const commit = () => {
@@ -48,7 +48,7 @@ export const transaction = async <Result = void>(
       )
     }
     isFinished = true
-    return execute(dbName, 'COMMIT')
+    return executeNative(dbName, 'COMMIT')
   }
 
   const rollback = () => {
@@ -58,12 +58,12 @@ export const transaction = async <Result = void>(
       )
     }
     isFinished = true
-    return execute(dbName, 'ROLLBACK')
+    return executeNative(dbName, 'ROLLBACK')
   }
 
   return await queueOperationAsync(dbName, async () => {
     try {
-      await executeAsync(
+      await executeAsyncNative(
         dbName,
         isExclusive ? 'BEGIN EXCLUSIVE TRANSACTION' : 'BEGIN TRANSACTION',
       )

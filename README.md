@@ -74,6 +74,10 @@ const db = open({ name: 'myDb.sqlite' })
 - **Sync** (`execute`, `executeBatch`, `loadFile`): Run on the JS thread. Use for small, fast work; heavy work can block the UI.
 - **Async** (`executeAsync`, `executeBatchAsync`, `loadFileAsync`, `transaction`): Run off the JS thread. Prefer these for larger or many queries to keep the app responsive.
 
+Async operations submitted on the opened `db` connection outside a transaction callback run in call order. Async work waits for an active transaction to finish, while a conflicting sync operation or `close()` throws a busy error.
+
+`NitroSQLite.native` bypasses this JavaScript queue. Native calls keep each individual SQLite handle safe, but mixing them with a session transaction can still run statements inside that transaction. A build with `SQLITE_THREADSAFE=0` also remains unsafe when different database handles run concurrently unless the caller serializes every SQLite call globally.
+
 ---
 
 # Basic usage
@@ -104,6 +108,8 @@ const users = db.execute<{ id: number; name: string }>(
 ## Transactions (async only)
 
 Use `db.transaction()` for multiple statements in a single transaction. The callback receives a `tx` object with `execute`, `executeAsync`, `commit`, and `rollback`. If the callback throws, the transaction is rolled back. Otherwise it is committed when the callback resolves (or you can call `tx.commit()` / `tx.rollback()` explicitly).
+
+Inside the callback, all database work, including work in helper functions, must use the passed `tx` object. Do not await `db.executeAsync()`, `db.executeBatchAsync()`, or another queued session/global operation for the same database from inside the callback. Those operations wait for the transaction to finish, while the transaction would wait for them, creating a deadlock. Sync session/global calls for that database throw a busy error instead.
 
 ```typescript
 await db.transaction(async (tx) => {

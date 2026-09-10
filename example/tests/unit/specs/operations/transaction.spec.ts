@@ -196,9 +196,10 @@ export default function registerTransactionUnitTests() {
           [id, name, age, networth],
         )
         tx.rollback()
-        const res = testDb.execute('SELECT * FROM User')
-        expect(res.rows?._array).toEqual([])
       })
+
+      const res = testDb.execute('SELECT * FROM User')
+      expect(res.rows?._array).toEqual([])
     })
 
     it('Transaction, rejects on callback error', async () => {

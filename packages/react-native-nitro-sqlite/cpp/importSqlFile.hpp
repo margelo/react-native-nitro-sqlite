@@ -7,9 +7,13 @@
 #pragma once
 
 #include "types.hpp"
+#include <memory>
 
 namespace margelo::rnnitrosqlite {
 
-SQLiteOperationResult importSqlFile(const std::string& dbName, const std::string& fileLocation);
+struct SQLiteConnection;
 
-}
+SQLiteOperationResult importSqlFile(const std::string& dbName, const std::string& fileLocation);
+SQLiteOperationResult importSqlFile(const std::shared_ptr<SQLiteConnection>& connection, const std::string& fileLocation);
+
+} // namespace margelo::rnnitrosqlite
