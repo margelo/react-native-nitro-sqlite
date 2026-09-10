@@ -298,9 +298,17 @@ You can use this package as a TypeORM driver. Because of Metro and Node resoluti
 
 ## Configure bundled SQLite thread safety on iOS
 
-The bundled SQLite library compiles with `SQLITE_THREADSAFE=1` by default. This includes SQLite's mutex code and selects serialized mode, which lets SQLite serialize concurrent access to database connections and prepared statements.
+The bundled SQLite library compiles with `SQLITE_THREADSAFE=1` by default. This includes SQLite's mutex code and selects serialized mode, which lets SQLite serialize concurrent access to database connections and prepared statements. Configure it in your app's `package.json`:
 
-`NITRO_SQLITE_THREADSAFE` accepts `0` or `1`. Set it to `0` before installing Pods to compile the bundled library without mutex support:
+```json
+{
+  "nitroSQLite": {
+    "threadSafe": 1
+  }
+}
+```
+
+`threadSafe` accepts `0` or `1`. You can override it for one Pod installation with the `NITRO_SQLITE_THREADSAFE` environment variable:
 
 ```bash
 cd ios

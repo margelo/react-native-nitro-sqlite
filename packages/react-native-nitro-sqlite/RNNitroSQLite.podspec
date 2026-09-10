@@ -1,7 +1,15 @@
 require "json"
 
 package = JSON.parse(File.read(File.join(__dir__, "package.json")))
-sqlite_threadsafe = ENV.fetch("NITRO_SQLITE_THREADSAFE", "1")
+app_package_json_path = File.expand_path("../package.json", Pod::Config.instance.installation_root)
+app_package = File.exist?(app_package_json_path) ? JSON.parse(File.read(app_package_json_path)) : {}
+app_config = app_package.fetch("nitroSQLite", {})
+
+unless app_config.is_a?(Hash)
+  raise "nitroSQLite in package.json must be an object"
+end
+
+sqlite_threadsafe = ENV.fetch("NITRO_SQLITE_THREADSAFE", app_config.fetch("threadSafe", 1).to_s)
 
 unless %w[0 1].include?(sqlite_threadsafe)
   raise "NITRO_SQLITE_THREADSAFE must be either 0 or 1"
