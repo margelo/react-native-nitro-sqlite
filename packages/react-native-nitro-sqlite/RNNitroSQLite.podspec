@@ -1,14 +1,23 @@
 require "json"
 
 package = JSON.parse(File.read(File.join(__dir__, "package.json")))
+app_package_json_path = File.expand_path("../package.json", Pod::Config.instance.installation_root)
+app_package = File.exist?(app_package_json_path) ? JSON.parse(File.read(app_package_json_path)) : {}
+app_config = app_package.fetch("nitroSQLite", {})
+
+unless app_config.is_a?(Hash)
+  raise "nitroSQLite in package.json must be an object"
+end
+
+sqlite_threadsafe = ENV.fetch("NITRO_SQLITE_THREADSAFE", app_config.fetch("threadSafe", 1).to_s)
+
+unless %w[0 1].include?(sqlite_threadsafe)
+  raise "NITRO_SQLITE_THREADSAFE must be either 0 or 1"
+end
 folly_compiler_flags = '-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1'
 log_message = lambda do |message|
   puts "\e[34m#{message}\e[0m"
 end
-
-# TODO: Should be customizable in package.json.
-# Used to create comparable benchmark results
-performance_mode = 1
 
 Pod::Spec.new do |s|
   s.name         = "RNNitroSQLite"
@@ -35,13 +44,8 @@ Pod::Spec.new do |s|
 
   optimizedCflags = '$(inherited) -DSQLITE_DQS=0 -DSQLITE_DEFAULT_MEMSTATUS=0 -DSQLITE_DEFAULT_WAL_SYNCHRONOUS=1 -DSQLITE_LIKE_DOESNT_MATCH_BLOBS=1 -DSQLITE_MAX_EXPR_DEPTH=0 -DSQLITE_OMIT_DEPRECATED=1 -DSQLITE_OMIT_PROGRESS_CALLBACK=1 -DSQLITE_OMIT_SHARED_CACHE=1 -DSQLITE_USE_ALLOCA=1'
 
-  if performance_mode == 1
-    log_message.call("Thread unsafe (1) performance mode enabled. Use only transactions! 🚀🚀")
-    other_cflags = optimizedCflags + ' -DSQLITE_THREADSAFE=0 '
-  elsif performance_mode == 2
-    log_message.call("Thread safe (2) performance mode enabled 🚀")
-    other_cflags = optimizedCflags + ' -DSQLITE_THREADSAFE=1 '
-  end
+  log_message.call("SQLite thread safety: SQLITE_THREADSAFE=#{sqlite_threadsafe}")
+  other_cflags = optimizedCflags + " -DSQLITE_THREADSAFE=#{sqlite_threadsafe} "
 
   s.pod_target_xcconfig = {
     :GCC_PREPROCESSOR_DEFINITIONS => "HAVE_FULLFSYNC=1",
