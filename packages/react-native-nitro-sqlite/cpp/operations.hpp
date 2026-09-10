@@ -7,7 +7,7 @@
 #include <sqlite3.h>
 #include <string>
 
-namespace margelo::rnnitrosqlite {
+namespace margelo::nitro::rnnitrosqlite {
 
 // Calls against one connection are serialized by `mutex`. Separate connections
 // intentionally remain independent, so SQLITE_THREADSAFE=0 still requires the
@@ -53,4 +53,4 @@ SQLiteOperationResult sqliteExecuteCommand(const SQLiteConnectionPtr& connection
 
 void sqliteCloseAll();
 
-} // namespace margelo::rnnitrosqlite
+} // namespace margelo::nitro::rnnitrosqlite
