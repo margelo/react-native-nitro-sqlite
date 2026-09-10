@@ -8,7 +8,8 @@
 - (void)applicationDidFinishLaunching:(NSNotification *)notification
 {
   self.moduleName = @"NitroSQLiteExample";
-  self.initialProps = @{};
+  NSString *testReportURL = NSProcessInfo.processInfo.environment[@"NITRO_SQLITE_TEST_REPORT_URL"];
+  self.initialProps = testReportURL.length > 0 ? @{ @"macosTestReportUrl" : testReportURL } : @{};
   self.dependencyProvider = [RCTAppDependencyProvider new];
 
   return [super applicationDidFinishLaunching:notification];
@@ -22,6 +23,15 @@
 - (NSURL *)bundleURL
 {
 #if DEBUG
+  NSString *testMetroPort = NSProcessInfo.processInfo.environment[@"NITRO_SQLITE_TEST_METRO_PORT"];
+  if (testMetroPort.length > 0) {
+    return [RCTBundleURLProvider jsBundleURLForBundleRoot:@"index"
+                                              packagerHost:[NSString stringWithFormat:@"127.0.0.1:%@", testMetroPort]
+                                                 enableDev:YES
+                                        enableMinification:NO
+                                           inlineSourceMap:NO];
+  }
+
   return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];
 #else
   return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];

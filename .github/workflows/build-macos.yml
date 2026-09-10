@@ -1,0 +1,114 @@
+name: Build macOS
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/build-macos.yml"
+      - "example/macos/**"
+      - "example/src/**"
+      - "example/app.json"
+      - "example/index.js"
+      - "example/babel.config*.js"
+      - "packages/react-native-nitro-sqlite/**"
+      - "packages/react-native-nitro-sqlite-vec/**"
+      - "patches/**"
+      - "**/Podfile.lock"
+      - "**/Gemfile.lock"
+      - "**/bun.lock"
+      - "**/package.json"
+      - "**/react-native.config.js"
+      - "**/nitro.json"
+  pull_request:
+    paths:
+      - ".github/workflows/build-macos.yml"
+      - "example/macos/**"
+      - "example/src/**"
+      - "example/app.json"
+      - "example/index.js"
+      - "example/babel.config*.js"
+      - "packages/react-native-nitro-sqlite/**"
+      - "packages/react-native-nitro-sqlite-vec/**"
+      - "patches/**"
+      - "**/Podfile.lock"
+      - "**/Gemfile.lock"
+      - "**/bun.lock"
+      - "**/package.json"
+      - "**/react-native.config.js"
+      - "**/nitro.json"
+
+env:
+  USE_CCACHE: 1
+
+jobs:
+  build:
+    name: Build macOS Example App
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install npm dependencies (bun)
+        run: bun install
+
+      - name: Install Ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          max-size: 1.5G
+          key: ${{ runner.os }}-ccache-example-macos
+          create-symlink: true
+      - name: Setup ccache behavior
+        run: |
+          {
+            echo "CCACHE_SLOPPINESS=clang_index_store,file_stat_matches,include_file_ctime,include_file_mtime,ivfsoverlay,pch_defines,modules,system_headers,time_macros"
+            echo "CCACHE_FILECLONE=true"
+            echo "CCACHE_DEPEND=true"
+            echo "CCACHE_INODECACHE=true"
+          } >> "$GITHUB_ENV"
+
+      - name: Setup Ruby (bundle)
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.3.0
+          bundler-cache: true
+          working-directory: example
+
+      - name: Select Xcode 26.5
+        run: sudo xcode-select -s "/Applications/Xcode_26.5.app/Contents/Developer"
+
+      - name: Restore Pods cache
+        uses: actions/cache@v6
+        with:
+          path: example/macos/Pods
+          key: ${{ runner.os }}-pods-macos-${{ hashFiles('example/macos/Podfile.lock', 'example/Gemfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-macos-
+      - name: Clean generated macOS codegen
+        run: rm -rf example/macos/build/generated
+      - name: Install Pods
+        run: bun --cwd example pods:macos
+
+      - name: Restore DerivedData cache
+        uses: actions/cache@v6
+        with:
+          path: example/macos/build/DerivedData
+          key: ${{ runner.os }}-dd-macos-${{ hashFiles('example/macos/Podfile.lock', 'example/Gemfile.lock', '**/package.json', '**/bun.lock') }}-xcode26.5
+          restore-keys: |
+            ${{ runner.os }}-dd-macos-${{ hashFiles('example/macos/Podfile.lock', 'example/Gemfile.lock', '**/package.json', '**/bun.lock') }}-xcode26.5
+
+      - name: Build App
+        working-directory: example/macos
+        run: |
+          set -o pipefail
+          xcodebuild \
+            CC=clang CPLUSPLUS=clang++ LD=clang LDPLUSPLUS=clang++ \
+            -derivedDataPath build/DerivedData -UseModernBuildSystem=YES \
+            -workspace NitroSQLiteExample.xcworkspace \
+            -scheme NitroSQLiteExample-macOS \
+            -configuration Debug \
+            -destination 'platform=macOS,arch=arm64' \
+            -showBuildTimingSummary \
+            ONLY_ACTIVE_ARCH=YES \
+            build \
+            CODE_SIGNING_ALLOWED=NO | xcbeautify --renderer github-actions
