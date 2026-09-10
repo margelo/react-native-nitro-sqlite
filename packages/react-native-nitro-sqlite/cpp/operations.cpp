@@ -10,6 +10,7 @@
 #include <limits>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <sqlite3.h>
 #include <sstream>
@@ -118,27 +119,33 @@ void sqliteRemoveDb(const std::string& dbName, const std::string& docPath) {
 }
 
 void bindStatement(sqlite3_stmt* statement, const SQLiteQueryParams& values) {
-  for (int valueIndex = 0; valueIndex < values.size(); valueIndex++) {
+  for (size_t valueIndex = 0; valueIndex < values.size(); valueIndex++) {
     int sqliteIndex = valueIndex + 1;
-    SQLiteValue value = values.at(valueIndex);
+    const SQLiteValue& value = values.at(valueIndex);
+    int bindStatus = SQLITE_OK;
+
     if (std::holds_alternative<NullType>(value)) {
-      sqlite3_bind_null(statement, sqliteIndex);
+      bindStatus = sqlite3_bind_null(statement, sqliteIndex);
     } else if (std::holds_alternative<bool>(value)) {
-      sqlite3_bind_int(statement, sqliteIndex, std::get<bool>(value));
+      bindStatus = sqlite3_bind_int(statement, sqliteIndex, std::get<bool>(value));
     } else if (std::holds_alternative<double>(value)) {
       // Bind whole numbers as INTEGER so vec0 rowid/pk/partition (which reject REAL) work; SQLite still coerces to REAL for REAL columns.
       double doubleValue = std::get<double>(value);
       if (std::trunc(doubleValue) == doubleValue && doubleValue >= kInt64MinAsDouble && doubleValue < kInt64UpperBoundAsDouble) {
-        sqlite3_bind_int64(statement, sqliteIndex, static_cast<sqlite3_int64>(doubleValue));
+        bindStatus = sqlite3_bind_int64(statement, sqliteIndex, static_cast<sqlite3_int64>(doubleValue));
       } else {
-        sqlite3_bind_double(statement, sqliteIndex, doubleValue);
+        bindStatus = sqlite3_bind_double(statement, sqliteIndex, doubleValue);
       }
     } else if (std::holds_alternative<std::string>(value)) {
-      const auto stringValue = std::get<std::string>(value);
-      sqlite3_bind_text(statement, sqliteIndex, stringValue.c_str(), stringValue.length(), SQLITE_TRANSIENT);
+      const auto& stringValue = std::get<std::string>(value);
+      bindStatus = sqlite3_bind_text(statement, sqliteIndex, stringValue.c_str(), stringValue.length(), SQLITE_TRANSIENT);
     } else if (std::holds_alternative<std::shared_ptr<ArrayBuffer>>(value)) {
-      const auto arrayBufferValue = std::get<std::shared_ptr<ArrayBuffer>>(value);
-      sqlite3_bind_blob(statement, sqliteIndex, arrayBufferValue->data(), arrayBufferValue->size(), SQLITE_STATIC);
+      const auto& arrayBufferValue = std::get<std::shared_ptr<ArrayBuffer>>(value);
+      bindStatus = sqlite3_bind_blob(statement, sqliteIndex, arrayBufferValue->data(), arrayBufferValue->size(), SQLITE_TRANSIENT);
+    }
+
+    if (bindStatus != SQLITE_OK) {
+      throw NitroSQLiteException::SqlExecution(sqlite3_errmsg(sqlite3_db_handle(statement)));
     }
   }
 }
@@ -197,70 +204,74 @@ namespace {
     }
   }
 
+  std::shared_ptr<HybridNitroSQLiteQueryResult> executeStatement(sqlite3* db, sqlite3_stmt* statement) {
+    SQLiteQueryResults results;
+
+    consumeStatement(db, statement, [&](sqlite3_stmt* currentStatement) {
+      SQLiteQueryResultRow row;
+      int count = sqlite3_column_count(currentStatement);
+
+      for (int i = 0; i < count; i++) {
+        int columnType = sqlite3_column_type(currentStatement, i);
+        std::string columnName = sqlite3_column_name(currentStatement, i);
+
+        switch (columnType) {
+          case SQLITE_INTEGER:
+          case SQLITE_FLOAT:
+            row[columnName] = sqlite3_column_double(currentStatement, i);
+            break;
+          case SQLITE_TEXT: {
+            auto columnValue = reinterpret_cast<const char*>(sqlite3_column_text(currentStatement, i));
+            row[columnName] = columnValue;
+            break;
+          }
+          case SQLITE_BLOB: {
+            int blobSize = sqlite3_column_bytes(currentStatement, i);
+            const void* blob = sqlite3_column_blob(currentStatement, i);
+            if (blobSize > 0) {
+              const auto* blobData = reinterpret_cast<const uint8_t*>(blob);
+              row[columnName] = ArrayBuffer::copy(blobData, static_cast<size_t>(blobSize));
+            } else {
+              row[columnName] = ArrayBuffer::allocate(0);
+            }
+            break;
+          }
+          case SQLITE_NULL:
+          default:
+            row[columnName] = NullType::null;
+            break;
+        }
+      }
+
+      results.push_back(std::move(row));
+    });
+
+    std::optional<SQLiteQueryTableMetadata> metadata = std::nullopt;
+    int count = sqlite3_column_count(statement);
+    for (int i = 0; i < count; i++) {
+      std::string columnName = sqlite3_column_name(statement, i);
+      ColumnType columnDeclaredType = mapSQLiteTypeToColumnType(sqlite3_column_decltype(statement, i));
+      auto columnMeta = NitroSQLiteQueryColumnMetadata(columnName, std::move(columnDeclaredType), i);
+
+      if (!metadata) {
+        metadata = std::make_optional<SQLiteQueryTableMetadata>();
+      }
+      metadata->insert({columnName, std::move(columnMeta)});
+    }
+
+    int rowsAffected = sqlite3_changes(db);
+    long long latestInsertRowId = sqlite3_last_insert_rowid(db);
+    return std::make_shared<HybridNitroSQLiteQueryResult>(std::move(results), static_cast<double>(latestInsertRowId), rowsAffected,
+                                                          std::move(metadata));
+  }
+
 } // namespace
 
 std::shared_ptr<HybridNitroSQLiteQueryResult> sqliteExecute(const std::string& dbName, const std::string& query,
                                                             const std::optional<SQLiteQueryParams>& params) {
   auto db = getOpenDatabase(dbName);
   auto statement = prepareStatement(db, query, params);
-  SQLiteQueryResults results;
-
-  consumeStatement(db, statement.get(), [&](sqlite3_stmt* currentStatement) {
-    SQLiteQueryResultRow row;
-    int count = sqlite3_column_count(currentStatement);
-
-    for (int i = 0; i < count; i++) {
-      int columnType = sqlite3_column_type(currentStatement, i);
-      std::string columnName = sqlite3_column_name(currentStatement, i);
-
-      switch (columnType) {
-        case SQLITE_INTEGER:
-        case SQLITE_FLOAT:
-          row[columnName] = sqlite3_column_double(currentStatement, i);
-          break;
-        case SQLITE_TEXT: {
-          auto columnValue = reinterpret_cast<const char*>(sqlite3_column_text(currentStatement, i));
-          row[columnName] = columnValue;
-          break;
-        }
-        case SQLITE_BLOB: {
-          int blobSize = sqlite3_column_bytes(currentStatement, i);
-          const void* blob = sqlite3_column_blob(currentStatement, i);
-          if (blobSize > 0) {
-            const auto* blobData = reinterpret_cast<const uint8_t*>(blob);
-            row[columnName] = ArrayBuffer::copy(blobData, static_cast<size_t>(blobSize));
-          } else {
-            row[columnName] = ArrayBuffer::allocate(0);
-          }
-          break;
-        }
-        case SQLITE_NULL:
-        default:
-          row[columnName] = NullType::null;
-          break;
-      }
-    }
-
-    results.push_back(std::move(row));
-  });
-
-  std::optional<SQLiteQueryTableMetadata> metadata = std::nullopt;
-  int count = sqlite3_column_count(statement.get());
-  for (int i = 0; i < count; i++) {
-    std::string columnName = sqlite3_column_name(statement.get(), i);
-    ColumnType columnDeclaredType = mapSQLiteTypeToColumnType(sqlite3_column_decltype(statement.get(), i));
-    auto columnMeta = NitroSQLiteQueryColumnMetadata(columnName, std::move(columnDeclaredType), i);
-
-    if (!metadata) {
-      metadata = std::make_optional<SQLiteQueryTableMetadata>();
-    }
-    metadata->insert({columnName, std::move(columnMeta)});
-  }
-
-  int rowsAffected = sqlite3_changes(db);
-  long long latestInsertRowId = sqlite3_last_insert_rowid(db);
-  return std::make_shared<HybridNitroSQLiteQueryResult>(std::move(results), static_cast<double>(latestInsertRowId), rowsAffected,
-                                                        std::move(metadata));
+  return executeStatement(db, statement.get());
 }
 
 SQLiteOperationResult sqliteExecuteCommand(const std::string& dbName, const std::string& query,
@@ -272,6 +283,72 @@ SQLiteOperationResult sqliteExecuteCommand(const std::string& dbName, const std:
   consumeStatement(db, statement.get(), [](sqlite3_stmt*) {});
 
   return {.rowsAffected = isReadOnly ? 0 : sqlite3_changes(db)};
+}
+
+struct SQLitePreparedStatement::State {
+  State(std::string dbName, sqlite3* database, SQLiteStatement statement)
+      : dbName(std::move(dbName)), database(database), statement(std::move(statement)) {}
+
+  std::string dbName;
+  sqlite3* database;
+  SQLiteStatement statement;
+  mutable std::mutex mutex;
+};
+
+SQLitePreparedStatement::SQLitePreparedStatement(std::shared_ptr<State> state) : _state(std::move(state)) {}
+
+SQLitePreparedStatement::~SQLitePreparedStatement() {
+  finalize();
+}
+
+std::shared_ptr<HybridNitroSQLiteQueryResult> SQLitePreparedStatement::execute(const std::optional<SQLiteQueryParams>& params) {
+  std::lock_guard lock(_state->mutex);
+
+  if (!_state->statement) {
+    throw NitroSQLiteException("Prepared statement has been finalized");
+  }
+
+  auto database = getOpenDatabase(_state->dbName);
+  if (database != _state->database) {
+    throw NitroSQLiteException("Prepared statement belongs to a closed database connection");
+  }
+
+  int resetStatus = sqlite3_reset(_state->statement.get());
+  if (resetStatus != SQLITE_OK) {
+    throw NitroSQLiteException::SqlExecution(sqlite3_errmsg(database));
+  }
+
+  int clearBindingsStatus = sqlite3_clear_bindings(_state->statement.get());
+  if (clearBindingsStatus != SQLITE_OK) {
+    throw NitroSQLiteException::SqlExecution(sqlite3_errmsg(database));
+  }
+
+  if (params) {
+    bindStatement(_state->statement.get(), *params);
+  }
+
+  return executeStatement(database, _state->statement.get());
+}
+
+void SQLitePreparedStatement::finalize() {
+  std::lock_guard lock(_state->mutex);
+  _state->statement.reset();
+}
+
+bool SQLitePreparedStatement::isFinalized() const {
+  std::lock_guard lock(_state->mutex);
+  return !_state->statement;
+}
+
+size_t SQLitePreparedStatement::getExternalMemorySize() const noexcept {
+  return sizeof(*this) + sizeof(State);
+}
+
+std::shared_ptr<SQLitePreparedStatement> sqlitePrepare(const std::string& dbName, const std::string& query) {
+  auto database = getOpenDatabase(dbName);
+  auto statement = prepareStatement(database, query, std::nullopt);
+  auto state = std::make_shared<SQLitePreparedStatement::State>(dbName, database, std::move(statement));
+  return std::shared_ptr<SQLitePreparedStatement>(new SQLitePreparedStatement(std::move(state)));
 }
 
 } // namespace margelo::rnnitrosqlite

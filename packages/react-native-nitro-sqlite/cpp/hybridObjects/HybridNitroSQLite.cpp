@@ -1,4 +1,5 @@
 #include "HybridNitroSQLite.hpp"
+#include "HybridNitroSQLitePreparedStatement.hpp"
 #include "HybridNitroSQLiteQueryResult.hpp"
 #include "NitroSQLiteException.hpp"
 #include "importSqlFile.hpp"
@@ -108,6 +109,10 @@ HybridNitroSQLite::executeAsync(const std::string& dbName, const std::string& qu
         return result;
       });
 };
+
+std::shared_ptr<HybridNitroSQLitePreparedStatementSpec> HybridNitroSQLite::prepare(const std::string& dbName, const std::string& query) {
+  return std::make_shared<HybridNitroSQLitePreparedStatement>(sqlitePrepare(dbName, query));
+}
 
 BatchQueryResult HybridNitroSQLite::executeBatch(const std::string& dbName, const std::vector<BatchQueryCommand>& batchParams) {
   const auto commands = batchParamsToCommands(batchParams);

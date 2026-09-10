@@ -61,6 +61,7 @@ const db = open({ name: 'myDb.sqlite' })
 | Method | Sync | Async | Description |
 |--------|------|-------|-------------|
 | **Execute** | `db.execute(query, params?)` | `db.executeAsync(query, params?)` | Run a single SQL statement. |
+| **Prepared statement** | `db.prepare(query)` | Statement `executeAsync(params?)` | Prepare once and execute repeatedly with different parameters. |
 | **Batch** | `db.executeBatch(commands)` | `db.executeBatchAsync(commands)` | Run multiple statements in one transaction. |
 | **Load file** | `db.loadFile(path)` | `db.loadFileAsync(path)` | Execute SQL from a file. |
 | **Transaction** | — | `db.transaction(async (tx) => { ... })` | Run multiple statements in a transaction (async only). |
@@ -134,6 +135,21 @@ const commands = [
 
 const { rowsAffected } = db.executeBatch(commands)
 // Or: await db.executeBatchAsync(commands)
+```
+
+## Prepared statements
+
+Use `db.prepare()` when the same SQL statement is executed repeatedly with different parameters. Call `finalize()` once the statement is no longer needed, and always finalize it before closing its database connection.
+
+```typescript
+const insertUser = db.prepare(
+  'INSERT INTO users (id, name) VALUES (?, ?)',
+)
+
+insertUser.execute([1, 'Ada'])
+await insertUser.executeAsync([2, 'Grace'])
+
+insertUser.finalize()
 ```
 
 # Column metadata

@@ -11,6 +11,7 @@ import type {
 } from '../types'
 import { execute, executeAsync } from './execute'
 import { executeBatch, executeBatchAsync } from './executeBatch'
+import { prepare } from './prepare'
 import NitroSQLiteError from '../NitroSQLiteError'
 import { closeDatabaseQueue, openDatabaseQueue } from '../DatabaseQueue'
 
@@ -47,6 +48,7 @@ export function open(
       query: string,
       params?: SQLiteQueryParams,
     ): Promise<QueryResult<Row>> => executeAsync(options.name, query, params),
+    prepare: (query: string) => prepare(options.name, query),
     executeBatch: (commands: BatchQueryCommand[]) =>
       executeBatch(options.name, commands),
     executeBatchAsync: (commands: BatchQueryCommand[]) =>

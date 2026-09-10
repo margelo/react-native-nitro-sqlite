@@ -6,6 +6,7 @@ import type {
   SQLiteQueryParams,
 } from '../types'
 import type { NitroSQLiteQueryResult } from './NitroSQLiteQueryResult.nitro'
+import type { NitroSQLitePreparedStatement } from './NitroSQLitePreparedStatement.nitro'
 
 export interface NitroSQLite
   extends HybridObject<{
@@ -32,6 +33,7 @@ export interface NitroSQLite
     query: string,
     params?: SQLiteQueryParams,
   ): Promise<NitroSQLiteQueryResult>
+  prepare(dbName: string, query: string): NitroSQLitePreparedStatement
   executeBatch(dbName: string, commands: BatchQueryCommand[]): BatchQueryResult
   executeBatchAsync(
     dbName: string,
