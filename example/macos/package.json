@@ -3,7 +3,8 @@
   "private": true,
   "scripts": {
     "macos": "node scripts/react-native-macos.js run-macos --project-path .",
-    "start": "node scripts/react-native-macos.js start"
+    "start": "node scripts/react-native-macos.js start",
+    "test": "node scripts/test-macos.mjs"
   },
   "dependencies": {
     "@react-native-clipboard/clipboard": "^1.16.3",
