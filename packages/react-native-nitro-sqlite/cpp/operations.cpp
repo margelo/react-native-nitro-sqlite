@@ -10,6 +10,7 @@
 #include <limits>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <sqlite3.h>
 #include <sstream>
@@ -29,11 +30,37 @@ namespace margelo::rnnitrosqlite {
 static constexpr double kInt64MinAsDouble = static_cast<double>(std::numeric_limits<int64_t>::min());
 static constexpr double kInt64UpperBoundAsDouble = -kInt64MinAsDouble;
 
-std::map<std::string, sqlite3*> dbMap = std::map<std::string, sqlite3*>();
+namespace {
+
+  std::map<std::string, SQLiteConnectionPtr> dbMap;
+  std::mutex dbMapMutex;
+  std::mutex dbLifecycleMutex;
+
+} // namespace
+
+SQLiteConnection::SQLiteConnection(std::string connectionName, sqlite3* database) : name(std::move(connectionName)), database(database) {}
+
+SQLiteConnection::~SQLiteConnection() {
+  close();
+}
+
+void SQLiteConnection::close() noexcept {
+  std::lock_guard lock(mutex);
+  if (database == nullptr) {
+    return;
+  }
+
+  sqlite3_close_v2(database);
+  database = nullptr;
+}
 
 void sqliteOpenDb(const std::string& dbName, const std::string& docPath) {
-  if (dbMap.contains(dbName)) {
-    throw NitroSQLiteException::DatabaseAlreadyOpen(dbName);
+  std::lock_guard lifecycleLock(dbLifecycleMutex);
+  {
+    std::lock_guard lock(dbMapMutex);
+    if (dbMap.contains(dbName)) {
+      throw NitroSQLiteException::DatabaseAlreadyOpen(dbName);
+    }
   }
 
 #ifdef NITRO_SQLITE_VEC
@@ -54,33 +81,45 @@ void sqliteOpenDb(const std::string& dbName, const std::string& docPath) {
     throw NitroSQLiteException(NitroSQLiteExceptionType::DatabaseCannotBeOpened, errorMessage);
   }
 
-  const bool inserted = dbMap.emplace(dbName, database.get()).second;
-  if (!inserted) {
-    throw NitroSQLiteException::DatabaseAlreadyOpen(dbName);
-  }
+  auto connection = std::make_shared<SQLiteConnection>(dbName, database.get());
   database.release();
+  {
+    std::lock_guard lock(dbMapMutex);
+    const bool inserted = dbMap.emplace(dbName, connection).second;
+    if (!inserted) {
+      throw NitroSQLiteException::DatabaseAlreadyOpen(dbName);
+    }
+  }
 }
 
 void sqliteCloseDb(const std::string& dbName) {
+  std::lock_guard lifecycleLock(dbLifecycleMutex);
+  SQLiteConnectionPtr connection;
+  {
+    std::lock_guard lock(dbMapMutex);
+    auto iterator = dbMap.find(dbName);
+    if (iterator == dbMap.end()) {
+      throw NitroSQLiteException::DatabaseNotOpen(dbName);
+    }
 
-  if (dbMap.count(dbName) == 0) {
-    throw NitroSQLiteException::DatabaseNotOpen(dbName);
+    connection = std::move(iterator->second);
+    dbMap.erase(iterator);
   }
 
-  sqlite3* db = dbMap[dbName];
-
-  sqlite3_close_v2(db);
-
-  dbMap.erase(dbName);
+  connection->close();
 }
 
 void sqliteCloseAll() {
-  for (auto const& x : dbMap) {
-    // In certain cases, this will return SQLITE_OK, mark the database connection as an unusable "zombie",
-    // and deallocate the connection later.
-    sqlite3_close_v2(x.second);
+  std::lock_guard lifecycleLock(dbLifecycleMutex);
+  std::map<std::string, SQLiteConnectionPtr> connections;
+  {
+    std::lock_guard lock(dbMapMutex);
+    connections.swap(dbMap);
   }
-  dbMap.clear();
+
+  for (const auto& [_, connection] : connections) {
+    connection->close();
+  }
 }
 
 void sqliteAttachDb(const std::string& mainDBName, const std::string& docPath, const std::string& databaseToAttach,
@@ -114,13 +153,24 @@ void sqliteDetachDb(const std::string& mainDBName, const std::string& alias) {
 }
 
 void sqliteRemoveDb(const std::string& dbName, const std::string& docPath) {
-  if (dbMap.count(dbName) == 1) {
-    sqliteCloseDb(dbName);
-  }
-
-  std::string dbFilePath = get_db_path(dbName, docPath);
+  std::lock_guard lifecycleLock(dbLifecycleMutex);
+  const std::string dbFilePath = get_db_path(dbName, docPath);
   if (!file_exists(dbFilePath)) {
     throw NitroSQLiteException::DatabaseFileNotFound(dbFilePath);
+  }
+
+  SQLiteConnectionPtr connection;
+  {
+    std::lock_guard lock(dbMapMutex);
+    auto iterator = dbMap.find(dbName);
+    if (iterator != dbMap.end()) {
+      connection = std::move(iterator->second);
+      dbMap.erase(iterator);
+    }
+  }
+
+  if (connection) {
+    connection->close();
   }
 
   remove(dbFilePath.c_str());
@@ -164,14 +214,6 @@ namespace {
 
   using SQLiteStatement = std::unique_ptr<sqlite3_stmt, SQLiteStatementFinalizer>;
 
-  sqlite3* getOpenDatabase(const std::string& dbName) {
-    if (dbMap.count(dbName) == 0) {
-      throw NitroSQLiteException::DatabaseNotOpen(dbName);
-    }
-
-    return dbMap[dbName];
-  }
-
   SQLiteStatement prepareStatement(sqlite3* db, const std::string& query, const std::optional<SQLiteQueryParams>& params) {
     sqlite3_stmt* rawStatement = nullptr;
     int statementStatus = sqlite3_prepare_v2(db, query.c_str(), -1, &rawStatement, nullptr);
@@ -208,9 +250,29 @@ namespace {
 
 } // namespace
 
+SQLiteConnectionPtr sqliteGetOpenDatabase(const std::string& dbName) {
+  std::lock_guard lock(dbMapMutex);
+  auto iterator = dbMap.find(dbName);
+  if (iterator == dbMap.end()) {
+    throw NitroSQLiteException::DatabaseNotOpen(dbName);
+  }
+
+  return iterator->second;
+}
+
 std::shared_ptr<HybridNitroSQLiteQueryResult> sqliteExecute(const std::string& dbName, const std::string& query,
                                                             const std::optional<SQLiteQueryParams>& params) {
-  auto db = getOpenDatabase(dbName);
+  return sqliteExecute(sqliteGetOpenDatabase(dbName), query, params);
+}
+
+std::shared_ptr<HybridNitroSQLiteQueryResult> sqliteExecute(const SQLiteConnectionPtr& connection, const std::string& query,
+                                                            const std::optional<SQLiteQueryParams>& params) {
+  std::lock_guard lock(connection->mutex);
+  sqlite3* db = connection->database;
+  if (db == nullptr) {
+    throw NitroSQLiteException::DatabaseNotOpen(connection->name);
+  }
+
   auto statement = prepareStatement(db, query, params);
   SQLiteQueryResults results;
 
@@ -274,7 +336,17 @@ std::shared_ptr<HybridNitroSQLiteQueryResult> sqliteExecute(const std::string& d
 
 SQLiteOperationResult sqliteExecuteCommand(const std::string& dbName, const std::string& query,
                                            const std::optional<SQLiteQueryParams>& params) {
-  auto db = getOpenDatabase(dbName);
+  return sqliteExecuteCommand(sqliteGetOpenDatabase(dbName), query, params);
+}
+
+SQLiteOperationResult sqliteExecuteCommand(const SQLiteConnectionPtr& connection, const std::string& query,
+                                           const std::optional<SQLiteQueryParams>& params) {
+  std::lock_guard lock(connection->mutex);
+  sqlite3* db = connection->database;
+  if (db == nullptr) {
+    throw NitroSQLiteException::DatabaseNotOpen(connection->name);
+  }
+
   auto statement = prepareStatement(db, query, params);
   bool isReadOnly = sqlite3_stmt_readonly(statement.get()) != 0;
 
