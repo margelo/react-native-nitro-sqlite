@@ -18,6 +18,8 @@ module.exports = {
           'stream': 'readable-stream',
           'buffer': 'react-native-quick-crypto',
           'react-native-sqlite-storage': 'react-native-nitro-sqlite',
+          '^@nitro-sqlite/(.+)':
+            '../packages/react-native-nitro-sqlite/src/\\1',
           '^@/(.+)': './src/\\1',
           '^@tests/(.+)': './tests/\\1',
         },
