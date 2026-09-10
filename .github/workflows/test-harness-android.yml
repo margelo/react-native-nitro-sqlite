@@ -49,7 +49,7 @@ jobs:
           -PreactNativeArchitectures=${{ env.TARGET_ANDROID_ARCH }}
 
       - name: Run react-native-harness on Android
-        uses: callstackincubator/react-native-harness@v1.2.0
+        uses: callstackincubator/react-native-harness@v1.4.1
         with:
           app: android/app/build/outputs/apk/debug/app-debug.apk
           runner: android
