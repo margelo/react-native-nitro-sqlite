@@ -8,12 +8,14 @@ on:
       - ".github/workflows/test-cpp.yml"
       - "packages/react-native-nitro-sqlite/cpp/databaseMigration.*"
       - "packages/react-native-nitro-sqlite/cpp/hybridObjects/HybridNitroSQLite.cpp"
+      - "packages/react-native-nitro-sqlite/cpp/sqlite/sqlite3.*"
       - "packages/react-native-nitro-sqlite/tests/cpp/**"
   pull_request:
     paths:
       - ".github/workflows/test-cpp.yml"
       - "packages/react-native-nitro-sqlite/cpp/databaseMigration.*"
       - "packages/react-native-nitro-sqlite/cpp/hybridObjects/HybridNitroSQLite.cpp"
+      - "packages/react-native-nitro-sqlite/cpp/sqlite/sqlite3.*"
       - "packages/react-native-nitro-sqlite/tests/cpp/**"
 
 jobs:
@@ -23,6 +25,14 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Build bundled SQLite
+        run: |
+          clang \
+            -std=c11 \
+            -DSQLITE_THREADSAFE=2 \
+            -c packages/react-native-nitro-sqlite/cpp/sqlite/sqlite3.c \
+            -o /tmp/sqlite3.o
+
       - name: Build migration tests
         run: |
           clang++ \
@@ -31,8 +41,13 @@ jobs:
             -Wextra \
             -Werror \
             -Ipackages/react-native-nitro-sqlite/cpp \
+            -Ipackages/react-native-nitro-sqlite/cpp/sqlite \
             packages/react-native-nitro-sqlite/cpp/databaseMigration.cpp \
             packages/react-native-nitro-sqlite/tests/cpp/databaseMigration.test.cpp \
+            /tmp/sqlite3.o \
+            -ldl \
+            -lm \
+            -pthread \
             -o /tmp/databaseMigrationTests
 
       - name: Run migration tests
