@@ -5,7 +5,8 @@
   "private": "true",
   "workspaces": [
     "packages/*",
-    "example"
+    "example",
+    "example/macos"
   ],
   "repository": {
     "type": "git",
@@ -85,7 +86,7 @@
       }
     },
     "hooks": {
-      "before:release": "bun install --lockfile-only && bun example bundle-install && bun example pods && git add bun.lock example/ios/Podfile.lock"
+      "before:release": "bun install --lockfile-only && bun example bundle-install && bun example pods && bun example pods:macos && git add bun.lock example/ios/Podfile.lock example/macos/Podfile.lock"
     },
     "plugins": {
       "@release-it/bumper": {
