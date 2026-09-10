@@ -12,6 +12,10 @@ function createExampleBabelConfig(projectRoot, { buffer, crypto } = {}) {
     ),
     'stream': 'readable-stream',
     'react-native-sqlite-storage': libraryPackage.name,
+    '^@nitro-sqlite/(.+)': path.join(
+      __dirname,
+      '../packages/react-native-nitro-sqlite/src/\\1',
+    ),
     '^@/(.+)': `${sourceDirectory}/\\1`,
     '^@tests/(.+)': `${testsDirectory}/\\1`,
   }

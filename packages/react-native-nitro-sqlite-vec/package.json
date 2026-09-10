@@ -14,7 +14,7 @@
     "README.md"
   ],
   "scripts": {
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --build",
     "lint": "eslint \"**/*.{js,ts,tsx}\" --fix",
     "release": "release-it",
     "prepublishOnly": "bun typecheck"
