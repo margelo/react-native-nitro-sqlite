@@ -342,7 +342,7 @@ To store databases in `Library/Application Support` instead (persistent, backed 
 
 Supported values are `Documents` (the default) and `ApplicationSupport`.
 
-Databases created while the app was still using the Documents directory are automatically moved to `Library/Application Support` the first time they are opened after enabling this option, so existing users keep their data. If you later remove the option, databases already moved to `Library/Application Support` are **not** moved back.
+Databases created while the app was still using the Documents directory are automatically moved to `Library/Application Support` the first time they are opened or attached after enabling this option, so existing users keep their data. Deleting a database also removes any copy left in Documents by an interrupted migration. If you later remove the option, databases already moved to `Library/Application Support` are **not** moved back.
 
 This option has no effect when `RNNitroSQLite_AppGroup` is set, since app group databases live in the shared container.
 
