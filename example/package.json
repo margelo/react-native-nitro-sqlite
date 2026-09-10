@@ -3,7 +3,8 @@
   "version": "9.6.0",
   "private": true,
   "nitroSQLite": {
-    "threadSafe": true
+    "threadSafe": true,
+    "performanceMode": true
   },
   "scripts": {
     "start": "react-native start",

@@ -91,12 +91,36 @@ def main
   assert_threadsafe(environment_unsafe_flags, "0")
   assert_optimization_flags(environment_unsafe_flags)
 
+  unoptimized_flags = with_app_package("nitroSQLite" => {"performanceMode" => false}) do
+    flags_for(nil)
+  end
+  assert_threadsafe(unoptimized_flags, "1")
+  refute_optimization_flags(unoptimized_flags)
+
+  environment_enabled_flags = with_app_package("nitroSQLite" => {"performanceMode" => false}) do
+    flags_for(nil, "true")
+  end
+  assert_optimization_flags(environment_enabled_flags)
+
+  environment_override_invalid_package = with_app_package("nitroSQLite" => {"performanceMode" => 2}) do
+    flags_for(nil, "true")
+  end
+  assert_optimization_flags(environment_override_invalid_package)
+
+  environment_disabled_flags = with_app_package("nitroSQLite" => {"performanceMode" => true}) do
+    flags_for(nil, "false")
+  end
+  refute_optimization_flags(environment_disabled_flags)
+
   assert_invalid_package_value_rejected
   assert_invalid_package_config_rejected
   assert_invalid_environment_value_rejected
+  assert_invalid_package_performance_mode_rejected
+  assert_invalid_environment_performance_mode_rejected
   with_app_package({}) { assert_system_sqlite_configuration }
   compile_and_probe(unsafe_flags, "0")
   compile_and_probe(safe_flags, "1")
+  compile_and_probe(unoptimized_flags, "1")
 
   puts "SQLite pod configuration tests passed"
 end
@@ -111,9 +135,10 @@ def with_app_package(contents)
   end
 end
 
-def flags_for(threadsafe)
+def flags_for(threadsafe, performance_mode = nil)
   spec = evaluate_podspec(
     "NITRO_SQLITE_THREADSAFE" => threadsafe,
+    "NITRO_SQLITE_PERFORMANCE_MODE" => performance_mode,
     "NITRO_SQLITE_USE_PHONE_VERSION" => nil,
   )
   spec.attributes_hash.fetch("pod_target_xcconfig").fetch("OTHER_CFLAGS")
@@ -143,6 +168,14 @@ def assert_threadsafe(flags, expected)
 end
 
 def assert_optimization_flags(flags)
+  optimization_flags.each { |flag| assert_includes(flags, flag) }
+end
+
+def refute_optimization_flags(flags)
+  optimization_flags.each { |flag| refute_includes(flags, flag) }
+end
+
+def optimization_flags
   %w[
     -DSQLITE_DQS=0
     -DSQLITE_DEFAULT_MEMSTATUS=0
@@ -153,7 +186,7 @@ def assert_optimization_flags(flags)
     -DSQLITE_OMIT_PROGRESS_CALLBACK=1
     -DSQLITE_OMIT_SHARED_CACHE=1
     -DSQLITE_USE_ALLOCA=1
-  ].each { |flag| assert_includes(flags, flag) }
+  ]
 end
 
 def assert_invalid_package_value_rejected
@@ -181,6 +214,32 @@ def assert_invalid_environment_value_rejected
   fail "Expected an invalid NITRO_SQLITE_THREADSAFE value to fail"
 rescue RuntimeError => error
   expected = "NITRO_SQLITE_THREADSAFE must be true, false, 1, or 0"
+  fail "Unexpected validation error: #{error.message}" unless error.message == expected
+end
+
+def assert_invalid_package_performance_mode_rejected
+  with_app_package("nitroSQLite" => {"performanceMode" => 1}) do
+    evaluate_podspec(
+      "NITRO_SQLITE_THREADSAFE" => nil,
+      "NITRO_SQLITE_PERFORMANCE_MODE" => nil,
+    )
+  end
+  fail "Expected an invalid nitroSQLite.performanceMode value to fail"
+rescue RuntimeError => error
+  expected = "nitroSQLite.performanceMode in package.json must be true or false"
+  fail "Unexpected validation error: #{error.message}" unless error.message == expected
+end
+
+def assert_invalid_environment_performance_mode_rejected
+  with_app_package({}) do
+    evaluate_podspec(
+      "NITRO_SQLITE_THREADSAFE" => nil,
+      "NITRO_SQLITE_PERFORMANCE_MODE" => "enabled",
+    )
+  end
+  fail "Expected an invalid NITRO_SQLITE_PERFORMANCE_MODE value to fail"
+rescue RuntimeError => error
+  expected = "NITRO_SQLITE_PERFORMANCE_MODE must be true, false, 1, or 0"
   fail "Unexpected validation error: #{error.message}" unless error.message == expected
 end
 

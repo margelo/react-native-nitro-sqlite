@@ -24,6 +24,21 @@ else
 
   sqlite_threadsafe = thread_safe_value ? "1" : "0"
 end
+
+if ENV.key?("NITRO_SQLITE_PERFORMANCE_MODE")
+  performance_mode_value = ENV["NITRO_SQLITE_PERFORMANCE_MODE"]
+  unless %w[true false 1 0].include?(performance_mode_value)
+    raise "NITRO_SQLITE_PERFORMANCE_MODE must be true, false, 1, or 0"
+  end
+
+  performance_mode = %w[true 1].include?(performance_mode_value)
+else
+  performance_mode = app_config.fetch("performanceMode", true)
+
+  unless [true, false].include?(performance_mode)
+    raise "nitroSQLite.performanceMode in package.json must be true or false"
+  end
+end
 folly_compiler_flags = '-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1'
 log_message = lambda do |message|
   puts "\e[34m#{message}\e[0m"
@@ -52,10 +67,13 @@ Pod::Spec.new do |s|
     "cpp/**/*.{h,hpp,c,cpp}"
   ]
 
-  optimizedCflags = '$(inherited) -DSQLITE_DQS=0 -DSQLITE_DEFAULT_MEMSTATUS=0 -DSQLITE_DEFAULT_WAL_SYNCHRONOUS=1 -DSQLITE_LIKE_DOESNT_MATCH_BLOBS=1 -DSQLITE_MAX_EXPR_DEPTH=0 -DSQLITE_OMIT_DEPRECATED=1 -DSQLITE_OMIT_PROGRESS_CALLBACK=1 -DSQLITE_OMIT_SHARED_CACHE=1 -DSQLITE_USE_ALLOCA=1'
+  inherited_cflags = '$(inherited)'
+  optimized_cflags = '-DSQLITE_DQS=0 -DSQLITE_DEFAULT_MEMSTATUS=0 -DSQLITE_DEFAULT_WAL_SYNCHRONOUS=1 -DSQLITE_LIKE_DOESNT_MATCH_BLOBS=1 -DSQLITE_MAX_EXPR_DEPTH=0 -DSQLITE_OMIT_DEPRECATED=1 -DSQLITE_OMIT_PROGRESS_CALLBACK=1 -DSQLITE_OMIT_SHARED_CACHE=1 -DSQLITE_USE_ALLOCA=1'
 
   log_message.call("SQLite thread safety: SQLITE_THREADSAFE=#{sqlite_threadsafe}")
-  other_cflags = optimizedCflags + " -DSQLITE_THREADSAFE=#{sqlite_threadsafe} "
+  log_message.call("SQLite performance mode: #{performance_mode ? "enabled" : "disabled"}")
+  performance_cflags = performance_mode ? " #{optimized_cflags}" : ""
+  other_cflags = "#{inherited_cflags}#{performance_cflags} -DSQLITE_THREADSAFE=#{sqlite_threadsafe} "
 
   s.pod_target_xcconfig = {
     :GCC_PREPROCESSOR_DEFINITIONS => "HAVE_FULLFSYNC=1",
