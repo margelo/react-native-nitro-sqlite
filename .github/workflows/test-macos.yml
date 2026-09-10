@@ -33,6 +33,9 @@ jobs:
       - name: Install dependencies (bun)
         run: bun install
 
+      - name: Test desktop runner failure handling
+        run: node --test example/macos/scripts/test-macos.test.mjs
+
       - name: Setup Ruby (bundle)
         uses: ruby/setup-ruby@v1
         with:

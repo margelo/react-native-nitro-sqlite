@@ -15,14 +15,6 @@ const extraNodeModules = Object.keys(libraryPackage.peerDependencies).reduce(
   {},
 )
 
-// TypeORM resolves this driver from node_modules, where the workspace package
-// has no built artifacts. Resolve it to its TypeScript source instead.
-extraNodeModules[libraryPackage.name] = path.join(
-  root,
-  'packages/react-native-nitro-sqlite',
-  libraryPackage.source,
-)
-
 const config = {
   projectRoot: __dirname,
   watchFolders: [exampleRoot, root],
@@ -35,6 +27,18 @@ const config = {
     platforms: ['macos', 'ios', 'android'],
     extraNodeModules,
     resolveRequest: (context, moduleName, platform) => {
+      // TypeORM imports the workspace package without going through Babel.
+      // Resolve its source before package exports look for build artifacts.
+      if (moduleName === libraryPackage.name) {
+        return {
+          type: 'sourceFile',
+          filePath: path.join(
+            root,
+            'packages/react-native-nitro-sqlite/src/index.ts',
+          ),
+        }
+      }
+
       if (
         platform === 'macos' &&
         (moduleName === 'react-native' ||

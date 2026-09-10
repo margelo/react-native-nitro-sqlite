@@ -52,32 +52,11 @@ cd macos && pod install
 
 ## Run the macOS example
 
-From this repository's root, install dependencies and pods once, then launch the example in development mode:
+The example targets macOS 14 or later with React Native macOS 0.81. This is the tested example configuration, not a guarantee that every older macOS version allowed by the podspec is supported.
 
-```bash
-bun install
-bun --cwd example bundle-install
-bun --cwd example pods:macos
-bun --cwd example macos
-```
+Install the workspace dependencies and the example's Ruby dependencies, then run its `pods:macos` and `macos` scripts. The desktop app shares the mobile example's SQLite, TypeORM, sqlite-vec, SQL console, and benchmark screens.
 
-The macOS app shares the iOS example's screens: **Unit Tests** runs the SQLite, TypeORM, and sqlite-vec suites; **SQL Console** runs ad-hoc queries against sample data; and **Benchmarks** measures inserts and reads.
-
-To keep Metro in the current terminal, use:
-
-```bash
-# Terminal 1
-bun --cwd example/macos start
-
-# Terminal 2
-bun --cwd example macos --no-packager
-```
-
-Build and launch the embedded production bundle with:
-
-```bash
-bun --cwd example macos --mode Release --no-packager
-```
+To keep Metro in a separate terminal, run the `start` script in `example/macos` and launch the `macos` script with `--no-packager`. Use `--mode Release --no-packager` to build and launch the embedded production bundle.
 
 ---
 

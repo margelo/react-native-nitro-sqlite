@@ -1,8 +1,8 @@
 #pragma once
 
+#include "../types.hpp"
 #include "HybridNitroSQLiteQueryResultSpec.hpp"
 #include "HybridNitroSQLiteSpec.hpp"
-#include "../types.hpp"
 
 namespace margelo::nitro::rnnitrosqlite {
 

@@ -24,17 +24,4 @@ if (result.status !== 0) {
   process.exit(result.status ?? 1)
 }
 
-const config = JSON.parse(result.stdout)
-
-// React Native macOS 0.81.9 exposes the macOS project configuration but
-// accidentally uses its project resolver for dependency configuration. Its
-// CocoaPods integration still consumes the Apple podspec shape, so mirror the
-// equivalent iOS dependency entries before CocoaPods writes the codegen input.
-for (const dependency of Object.values(config.dependencies)) {
-  const platforms = dependency.platforms
-  if (platforms?.macos == null && platforms?.ios != null) {
-    platforms.macos = platforms.ios
-  }
-}
-
-process.stdout.write(JSON.stringify(config))
+process.stdout.write(result.stdout)

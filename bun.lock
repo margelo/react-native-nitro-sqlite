@@ -137,6 +137,7 @@
         "typeorm": "0.3.27",
       },
       "devDependencies": {
+        "jest": "^30.2.0",
         "nitrogen": "0.36.1",
         "react": "19.2.3",
         "react-native": "0.85.0-rc.0",

@@ -51,7 +51,7 @@ async function getAvailablePort() {
   })
 }
 
-async function waitForMetro(metro, metroPort, getMetroOutput) {
+async function waitForMetro(metro, metroPort, getMetroOutput, signal) {
   const deadline = Date.now() + 60_000
   const metroStatusUrl = `http://127.0.0.1:${metroPort}/status`
 
@@ -63,7 +63,7 @@ async function waitForMetro(metro, metroPort, getMetroOutput) {
     }
 
     try {
-      const response = await fetch(metroStatusUrl)
+      const response = await fetchMetroStatus(metroStatusUrl, signal)
       if (
         response.ok &&
         (await response.text()).includes('packager-status:running')
@@ -71,13 +71,30 @@ async function waitForMetro(metro, metroPort, getMetroOutput) {
         return
       }
     } catch {
+      signal.throwIfAborted()
       // Metro has not started listening yet.
     }
 
-    await delay(250)
+    await delay(250, undefined, { signal })
   }
 
   throw new Error(`Timed out waiting for Metro.\n${getMetroOutput()}`)
+}
+
+async function fetchMetroStatus(url, signal) {
+  signal.throwIfAborted()
+
+  const request = new AbortController()
+  const abortRequest = () => request.abort(signal.reason)
+  const timeout = setTimeout(() => request.abort(), 1_000)
+  signal.addEventListener('abort', abortRequest, { once: true })
+
+  try {
+    return await fetch(url, { signal: request.signal })
+  } finally {
+    clearTimeout(timeout)
+    signal.removeEventListener('abort', abortRequest)
+  }
 }
 
 async function createResultServer() {
@@ -261,14 +278,26 @@ async function main() {
   let appFailure
 
   try {
-    metro = spawn('bun', ['run', 'start', '--', '--port', String(metroPort)], {
-      cwd: process.cwd(),
-      detached: true,
-      stdio: ['ignore', 'pipe', 'pipe'],
-    })
+    metro = spawn(
+      process.execPath,
+      ['scripts/react-native-macos.js', 'start', '--port', String(metroPort)],
+      {
+        cwd: process.cwd(),
+        detached: true,
+        stdio: ['ignore', 'pipe', 'pipe'],
+      },
+    )
     const getMetroOutput = captureOutput(metro)
-    await waitForMetro(metro, metroPort, getMetroOutput)
     metroFailure = watchProcessFailure(metro, 'Metro', getMetroOutput)
+    const startup = new AbortController()
+    try {
+      await Promise.race([
+        waitForMetro(metro, metroPort, getMetroOutput, startup.signal),
+        metroFailure.failure,
+      ])
+    } finally {
+      startup.abort()
+    }
 
     app = spawn(appExecutable, [], {
       detached: true,

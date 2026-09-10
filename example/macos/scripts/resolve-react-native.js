@@ -27,3 +27,25 @@ Module._resolveFilename = function resolveMacOSReactNative(
 
   return resolveFilename.call(this, request, parent, isMain, options)
 }
+
+// React Native macOS 0.81.9 uses its project resolver for dependencies. Use
+// the Apple dependency resolver so explicit macOS exclusions stay effective.
+const macosConfig = require('react-native-macos-local/react-native.config.js')
+const {
+  getDependencyConfig,
+} = require('@react-native-community/cli-platform-apple')
+const resolveMacOSDependency = getDependencyConfig({ platformName: 'macos' })
+const supportedDependencies = new Set([
+  '@react-native-clipboard/clipboard',
+  'react-native-get-random-values',
+  'react-native-nitro-modules',
+  'react-native-nitro-sqlite',
+  'react-native-nitro-sqlite-vec',
+])
+
+macosConfig.platforms.macos.dependencyConfig = (packageRoot, config) => {
+  const { name } = require(path.join(packageRoot, 'package.json'))
+  if (!supportedDependencies.has(name)) return null
+
+  return resolveMacOSDependency(packageRoot, config)
+}

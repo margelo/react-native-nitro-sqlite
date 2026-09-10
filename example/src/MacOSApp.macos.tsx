@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import App from './App'
-import type { MochaTestResult } from '../tests/MochaSetup'
-import { runAllTests } from '../tests/runAll'
+import type { MochaTestResult } from '@tests/MochaSetup'
+import { runAllTests } from '@tests/runAll'
 
 type MacOSTestReport = {
   error?: string
@@ -13,20 +13,12 @@ type MacOSAppProps = {
   macosTestReportUrl?: string
 }
 
-function toErrorMessage(error: unknown) {
-  return error instanceof Error ? error.message : String(error)
-}
-
-async function postReport(reportUrl: string, report: MacOSTestReport) {
-  const response = await fetch(reportUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(report),
-  })
-
-  if (!response.ok) {
-    throw new Error(`Unable to report test results: HTTP ${response.status}`)
+export default function MacOSApp({ macosTestReportUrl }: MacOSAppProps) {
+  if (macosTestReportUrl != null) {
+    return <MacOSTestApp reportUrl={macosTestReportUrl} />
   }
+
+  return <App />
 }
 
 function MacOSTestApp({ reportUrl }: { reportUrl: string }) {
@@ -40,11 +32,10 @@ function MacOSTestApp({ reportUrl }: { reportUrl: string }) {
 
       try {
         const results = await runAllTests()
+        const passed = results.filter((result) => result.type === 'correct')
         const failures = results.filter((result) => result.type === 'incorrect')
         report = { results }
-        setStatus(
-          `${results.length - failures.length} passed, ${failures.length} failed`,
-        )
+        setStatus(`${passed.length} passed, ${failures.length} failed`)
       } catch (error) {
         const errorMessage = toErrorMessage(error)
         report = { error: errorMessage, results: [] }
@@ -83,12 +74,20 @@ function MacOSTestApp({ reportUrl }: { reportUrl: string }) {
   )
 }
 
-export default function MacOSApp({ macosTestReportUrl }: MacOSAppProps) {
-  if (macosTestReportUrl != null) {
-    return <MacOSTestApp reportUrl={macosTestReportUrl} />
-  }
+async function postReport(reportUrl: string, report: MacOSTestReport) {
+  const response = await fetch(reportUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(report),
+  })
 
-  return <App />
+  if (!response.ok) {
+    throw new Error(`Unable to report test results: HTTP ${response.status}`)
+  }
+}
+
+function toErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : String(error)
 }
 
 const styles = StyleSheet.create({

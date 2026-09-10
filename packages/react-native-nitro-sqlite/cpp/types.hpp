@@ -3,7 +3,6 @@
 #include "ColumnType.hpp"
 #include "NitroSQLiteQueryColumnMetadata.hpp"
 #include <NitroModules/ArrayBuffer.hpp>
-#include <cstring>
 #include <string>
 
 namespace margelo::nitro::rnnitrosqlite {
@@ -23,15 +22,15 @@ struct SQLiteOperationResult {
 inline ColumnType mapSQLiteTypeToColumnType(const char* type) {
   if (type == NULL) {
     return ColumnType::NULL_VALUE;
-  } else if (std::strcmp(type, "BOOLEAN") == 0) {
+  } else if (strcmp(type, "BOOLEAN")) {
     return ColumnType::BOOLEAN;
-  } else if (std::strcmp(type, "FLOAT") == 0) {
+  } else if (strcmp(type, "FLOAT")) {
     return ColumnType::NUMBER;
-  } else if (std::strcmp(type, "INTEGER") == 0) {
+  } else if (strcmp(type, "INTEGER")) {
     return ColumnType::INT64;
-  } else if (std::strcmp(type, "TEXT") == 0) {
+  } else if (strcmp(type, "TEXT")) {
     return ColumnType::TEXT;
-  } else if (std::strcmp(type, "BLOB") == 0) {
+  } else if (strcmp(type, "BLOB")) {
     return ColumnType::ARRAY_BUFFER;
   } else {
     return ColumnType::NULL_VALUE;

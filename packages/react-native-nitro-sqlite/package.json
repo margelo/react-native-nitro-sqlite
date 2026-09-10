@@ -9,7 +9,6 @@
   "react-native": "./src/index",
   "exports": {
     ".": {
-      "react-native": "./src/index.ts",
       "import": {
         "types": "./lib/typescript/module/index.d.ts",
         "default": "./lib/module/index.js"
@@ -42,6 +41,7 @@
     "specs": "bun typecheck && bun nitrogen --logLevel=\"debug\"",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\" --fix",
+    "test": "jest",
     "release": "release-it",
     "prepublishOnly": "bun run build"
   },
@@ -70,6 +70,7 @@
     "typeorm": "0.3.27"
   },
   "devDependencies": {
+    "jest": "^30.2.0",
     "nitrogen": "0.36.1",
     "react": "19.2.3",
     "react-native": "0.85.0-rc.0",
@@ -83,6 +84,13 @@
   },
   "resolutions": {
     "@types/react": "^18.2.44"
+  },
+  "jest": {
+    "preset": "react-native",
+    "modulePathIgnorePatterns": [
+      "<rootDir>/example/node_modules",
+      "<rootDir>/lib/"
+    ]
   },
   "release-it": {
     "npm": {
