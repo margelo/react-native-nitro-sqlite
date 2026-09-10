@@ -50,6 +50,14 @@ For a React Native macOS app, run CocoaPods from the `macos` directory:
 cd macos && pod install
 ```
 
+## Run the macOS example
+
+The example targets macOS 14 or later with React Native macOS 0.81. This is the tested example configuration, not a guarantee that every older macOS version allowed by the podspec is supported.
+
+Install the workspace dependencies and the example's Ruby dependencies, then run its `pods:macos` and `macos` scripts. The desktop app shares the mobile example's SQLite, TypeORM, sqlite-vec, SQL console, and benchmark screens.
+
+To keep Metro in a separate terminal, run the `start` script in `example/macos` and launch the `macos` script with `--no-packager`. Use `--mode Release --no-packager` to build and launch the embedded production bundle.
+
 ---
 
 # API overview
