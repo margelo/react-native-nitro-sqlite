@@ -319,6 +319,21 @@ With `SQLITE_THREADSAFE=0`, SQLite removes its mutex code and cannot be made thr
 
 When `NITRO_SQLITE_USE_PHONE_VERSION=1`, the pod links the system SQLite library instead of compiling the bundled source. `NITRO_SQLITE_THREADSAFE` does not change how that system library was compiled.
 
+## Configure SQLite performance mode on iOS
+
+The bundled SQLite library enables NitroSQLite's performance compile flags by default. Disable them independently from thread safety in your app's `package.json`:
+
+```json
+{
+  "nitroSQLite": {
+    "threadSafe": true,
+    "performanceMode": false
+  }
+}
+```
+
+`performanceMode` accepts `true` or `false`. `NITRO_SQLITE_PERFORMANCE_MODE` overrides the package setting for one Pod installation and accepts `true`, `false`, `1`, or `0`. Disabling performance mode omits NitroSQLite's SQLite optimization flags but does not change `SQLITE_THREADSAFE`.
+
 ## Use system SQLite on iOS
 
 To use the system SQLite instead of the bundled one:
