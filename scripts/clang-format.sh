@@ -2,6 +2,7 @@
 
 CPP_DIRS=(
   "packages/react-native-nitro-sqlite/cpp"
+  "packages/react-native-nitro-sqlite/tests/cpp"
 )
 
 if which clang-format >/dev/null; then
