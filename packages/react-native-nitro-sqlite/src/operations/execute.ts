@@ -33,15 +33,16 @@ export async function executeAsync<Row extends QueryResultRow = never>(
   }
 }
 
-function buildJSQueryResult<Row extends QueryResultRow = never>(
+export function buildJSQueryResult<Row extends QueryResultRow = never>(
   result: NitroSQLiteQueryResult,
 ): QueryResult<Row> {
   const resultWithRows = result as QueryResult<Row>
+  const results = result.results as Row[]
 
   resultWithRows.rows = {
-    _array: result.results as Row[],
-    length: result.results.length,
-    item: (idx: number) => result.results[idx] as Row | undefined,
+    _array: results,
+    length: results.length,
+    item: (idx: number) => results[idx],
   }
 
   return resultWithRows

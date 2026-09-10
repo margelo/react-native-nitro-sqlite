@@ -1,9 +1,122 @@
 import { chance, expect, isNitroSQLiteError } from '@tests/unit/common'
 import { describe, it } from '@tests/TestApi'
 import { createArrayBufferTestDb, testDb } from '@tests/db'
+import { open } from 'react-native-nitro-sqlite'
+import { buildJSQueryResult } from '../../../../../packages/react-native-nitro-sqlite/src/operations/execute'
+import type { NitroSQLiteQueryResult } from '../../../../../packages/react-native-nitro-sqlite/src/specs/NitroSQLiteQueryResult.nitro'
+
+const QUERY_RESULT_SIZES = [60, 1_000, 10_000]
+
+function createQueryResultTestDb(name: string) {
+  const db = open({ name })
+
+  db.execute('DROP TABLE IF EXISTS QueryResultRows;')
+  db.execute(
+    'CREATE TABLE QueryResultRows (id INTEGER PRIMARY KEY, name TEXT NOT NULL, nullable TEXT, payload BLOB) STRICT;',
+  )
+  db.execute(`
+    WITH RECURSIVE counter(id) AS (
+      SELECT 1
+      UNION ALL
+      SELECT id + 1 FROM counter WHERE id < 10000
+    )
+    INSERT INTO QueryResultRows (id, name, nullable, payload)
+    SELECT
+      id,
+      'row-' || id,
+      CASE WHEN id = 1 THEN NULL ELSE 'value-' || id END,
+      CASE WHEN id = 1 THEN zeroblob(4) ELSE NULL END
+    FROM counter;
+  `)
+
+  return db
+}
+
+function expectQueryResultRows(
+  result: ReturnType<typeof testDb.execute>,
+  size: number,
+) {
+  expect(result.rows._array).toHaveLength(size)
+  expect(result.rows.length).toBe(size)
+
+  for (let index = 0; index < size; index++) {
+    expect(result.rows.item(index)).toBe(result.rows._array[index])
+  }
+
+  expect(result.rows.item(size)).toBe(undefined)
+  expect(result.rows.item(0)?.id).toBe(1)
+  expect(result.rows.item(size - 1)?.id).toBe(size)
+  expect(result.rows.item(0)?.nullable).toBe(null)
+
+  const payload = result.rows.item(0)?.payload
+  expect(payload).toBeInstanceOf(ArrayBuffer)
+  expect(Array.from(new Uint8Array(payload as ArrayBuffer))).toEqual([
+    0, 0, 0, 0,
+  ])
+}
 
 export default function registerExecuteUnitTests() {
   describe('execute', () => {
+    it('materializes native query results once', () => {
+      const sourceRows = [
+        { id: 1, nullable: null },
+        { id: 2, nullable: 'value' },
+      ]
+      let resultsReads = 0
+      const nativeResult = {
+        rowsAffected: sourceRows.length,
+        get results() {
+          resultsReads += 1
+          return [...sourceRows]
+        },
+      } as unknown as NitroSQLiteQueryResult
+
+      const result = buildJSQueryResult(nativeResult)
+
+      expect(result.rows._array).toEqual(sourceRows)
+      expect(result.rows.length).toBe(sourceRows.length)
+      expect(result.rows.item(0)).toEqual(sourceRows[0])
+      expect(result.rows.item(1)).toEqual(sourceRows[1])
+      expect(result.rows.item(sourceRows.length)).toBe(undefined)
+      expect(resultsReads).toBe(1)
+    })
+
+    it('preserves row access for large synchronous results', () => {
+      const db = createQueryResultTestDb('query_result_rows_sync')
+
+      try {
+        for (const size of QUERY_RESULT_SIZES) {
+          const result = db.execute(
+            'SELECT * FROM QueryResultRows ORDER BY id LIMIT ?',
+            [size],
+          )
+
+          expectQueryResultRows(result, size)
+        }
+      } finally {
+        db.close()
+        db.delete()
+      }
+    })
+
+    it('preserves row access for large asynchronous results', async () => {
+      const db = createQueryResultTestDb('query_result_rows_async')
+
+      try {
+        for (const size of QUERY_RESULT_SIZES) {
+          const result = await db.executeAsync(
+            'SELECT * FROM QueryResultRows ORDER BY id LIMIT ?',
+            [size],
+          )
+
+          expectQueryResultRows(result, size)
+        }
+      } finally {
+        db.close()
+        db.delete()
+      }
+    })
+
     describe('Insert', () => {
       it('Insert', () => {
         const id = chance.integer()
