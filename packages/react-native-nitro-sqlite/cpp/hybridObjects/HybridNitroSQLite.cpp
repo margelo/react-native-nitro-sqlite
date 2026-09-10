@@ -6,6 +6,7 @@
 #include "macros.hpp"
 #include "operations.hpp"
 #include "sqliteExecuteBatch.hpp"
+#include <exception>
 #include <iostream>
 #include <map>
 #include <optional>
@@ -101,10 +102,16 @@ std::shared_ptr<HybridNitroSQLiteQueryResultSpec> HybridNitroSQLite::execute(con
 std::shared_ptr<Promise<std::shared_ptr<HybridNitroSQLiteQueryResultSpec>>>
 HybridNitroSQLite::executeAsync(const std::string& dbName, const std::string& query, const std::optional<SQLiteQueryParams>& params) {
   const auto copiedParams = copyArrayBufferParamsForBackground(params);
+  SQLiteConnectionPtr connection;
+  try {
+    connection = sqliteGetOpenDatabase(dbName);
+  } catch (...) {
+    return Promise<std::shared_ptr<HybridNitroSQLiteQueryResultSpec>>::rejected(std::current_exception());
+  }
 
   return Promise<std::shared_ptr<HybridNitroSQLiteQueryResultSpec>>::async(
-      [=, this]() -> std::shared_ptr<HybridNitroSQLiteQueryResultSpec> {
-        auto result = sqliteExecute(dbName, query, copiedParams);
+      [connection, query, copiedParams]() -> std::shared_ptr<HybridNitroSQLiteQueryResultSpec> {
+        auto result = sqliteExecute(connection, query, copiedParams);
         return result;
       });
 };
@@ -122,9 +129,15 @@ std::shared_ptr<Promise<BatchQueryResult>> HybridNitroSQLite::executeBatchAsync(
   // ArrayBuffers into native buffers before going off-thread.
   const auto commands = batchParamsToCommands(batchParams);
   const auto copiedCommands = copyArrayBufferParamsForBackground(commands);
+  SQLiteConnectionPtr connection;
+  try {
+    connection = sqliteGetOpenDatabase(dbName);
+  } catch (...) {
+    return Promise<BatchQueryResult>::rejected(std::current_exception());
+  }
 
-  return Promise<BatchQueryResult>::async([=, this]() -> BatchQueryResult {
-    auto result = sqliteExecuteBatch(dbName, copiedCommands);
+  return Promise<BatchQueryResult>::async([connection, copiedCommands]() -> BatchQueryResult {
+    auto result = sqliteExecuteBatch(connection, copiedCommands);
     return BatchQueryResult(result.rowsAffected);
   });
 };
@@ -135,9 +148,15 @@ FileLoadResult HybridNitroSQLite::loadFile(const std::string& dbName, const std:
 };
 
 std::shared_ptr<Promise<FileLoadResult>> HybridNitroSQLite::loadFileAsync(const std::string& dbName, const std::string& location) {
-  return Promise<FileLoadResult>::async([=, this]() -> FileLoadResult {
-    auto result = loadFile(dbName, location);
-    return result;
+  SQLiteConnectionPtr connection;
+  try {
+    connection = sqliteGetOpenDatabase(dbName);
+  } catch (...) {
+    return Promise<FileLoadResult>::rejected(std::current_exception());
+  }
+  return Promise<FileLoadResult>::async([connection, location]() -> FileLoadResult {
+    const auto result = importSqlFile(connection, location);
+    return FileLoadResult(result.commands, result.rowsAffected);
   });
 };
 
