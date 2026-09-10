@@ -329,6 +329,23 @@ nitroSqliteFlags="-DSQLITE_ENABLE_FTS5=1"
 
 To put the database in an app group (e.g. for extensions), set `RNNitroSQLite_AppGroup` in your `Info.plist` to the app group ID and add the App Groups capability in Xcode.
 
+## Database location (iOS)
+
+By default, databases are stored in the app's **Documents** directory. If your app enables file sharing (`UIFileSharingEnabled` + `LSSupportsOpeningDocumentsInPlace`), that directory — including your raw database and its `-wal`/`-shm` journal files — becomes visible to users in the Files app, where they can be shared, modified, or deleted from outside your app.
+
+To store databases in `Library/Application Support` instead (persistent, backed up, and never user-visible), set `RNNitroSQLite_DatabaseLocation` in your `Info.plist`:
+
+```xml
+<key>RNNitroSQLite_DatabaseLocation</key>
+<string>ApplicationSupport</string>
+```
+
+Supported values are `Documents` (the default) and `ApplicationSupport`.
+
+Databases created while the app was still using the Documents directory are automatically moved to `Library/Application Support` the first time they are opened or attached after enabling this option, so existing users keep their data. Deleting a database also removes any copy left in Documents by an interrupted migration. If you later remove the option, databases already moved to `Library/Application Support` are **not** moved back.
+
+This option has no effect when `RNNitroSQLite_AppGroup` is set, since app group databases live in the shared container.
+
 ---
 
 # Exports

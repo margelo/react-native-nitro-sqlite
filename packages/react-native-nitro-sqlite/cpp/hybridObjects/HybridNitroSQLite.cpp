@@ -1,11 +1,13 @@
 #include "HybridNitroSQLite.hpp"
 #include "HybridNitroSQLiteQueryResult.hpp"
 #include "NitroSQLiteException.hpp"
+#include "databaseMigration.hpp"
 #include "importSqlFile.hpp"
 #include "logs.hpp"
 #include "macros.hpp"
 #include "operations.hpp"
 #include "sqliteExecuteBatch.hpp"
+#include <filesystem>
 #include <iostream>
 #include <map>
 #include <optional>
@@ -65,8 +67,26 @@ const std::string getDocPath(const std::optional<std::string>& location) {
   return tempDocPath;
 }
 
+const std::string getOldDocPath(const std::optional<std::string>& location) {
+  std::string oldDocPath = HybridNitroSQLite::migrationDocPath;
+  if (location) {
+    oldDocPath = oldDocPath + "/" + *location;
+  }
+
+  return oldDocPath;
+}
+
+const std::string getMigratedDocPath(const std::string& dbName, const std::optional<std::string>& location) {
+  const auto currentDocPath = getDocPath(location);
+  if (HybridNitroSQLite::migrationDocPath.empty()) {
+    return currentDocPath;
+  }
+
+  return migrateDatabase(dbName, getOldDocPath(location), currentDocPath).string();
+}
+
 void HybridNitroSQLite::open(const std::string& dbName, const std::optional<std::string>& location) {
-  const auto docPath = getDocPath(location);
+  const auto docPath = getMigratedDocPath(dbName, location);
   sqliteOpenDb(dbName, docPath);
 }
 
@@ -75,18 +95,28 @@ void HybridNitroSQLite::close(const std::string& dbName) {
 };
 
 void HybridNitroSQLite::drop(const std::string& dbName, const std::optional<std::string>& location) {
-  const auto docPath = getDocPath(location);
-  sqliteRemoveDb(dbName, docPath);
+  const auto currentDocPath = getDocPath(location);
+  if (migrationDocPath.empty()) {
+    sqliteRemoveDb(dbName, currentDocPath);
+    return;
+  }
+
+  const auto oldDocPath = getOldDocPath(location);
+  std::error_code ec;
+  const bool oldDatabaseExists = std::filesystem::exists(std::filesystem::path(oldDocPath) / dbName, ec);
+  if (ec) {
+    LOGW("Failed to inspect database %s in its old location: %s", dbName.c_str(), ec.message().c_str());
+  }
+
+  sqliteRemoveDb(dbName, oldDatabaseExists || ec ? oldDocPath : currentDocPath);
+  removeDatabaseFiles(dbName, oldDocPath);
+  removeDatabaseFiles(dbName, currentDocPath);
 };
 
 void HybridNitroSQLite::attach(const std::string& mainDbName, const std::string& dbNameToAttach, const std::string& alias,
                                const std::optional<std::string>& location) {
-  std::string tempDocPath = std::string(docPath);
-  if (location) {
-    tempDocPath = tempDocPath + "/" + *location;
-  }
-
-  sqliteAttachDb(mainDbName, tempDocPath, dbNameToAttach, alias);
+  const auto attachedDocPath = getMigratedDocPath(dbNameToAttach, location);
+  sqliteAttachDb(mainDbName, attachedDocPath, dbNameToAttach, alias);
 };
 
 void HybridNitroSQLite::detach(const std::string& mainDbName, const std::string& alias) {

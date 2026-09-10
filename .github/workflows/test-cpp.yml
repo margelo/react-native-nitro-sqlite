@@ -1,0 +1,39 @@
+name: Test C++
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/test-cpp.yml"
+      - "packages/react-native-nitro-sqlite/cpp/databaseMigration.*"
+      - "packages/react-native-nitro-sqlite/cpp/hybridObjects/HybridNitroSQLite.cpp"
+      - "packages/react-native-nitro-sqlite/tests/cpp/**"
+  pull_request:
+    paths:
+      - ".github/workflows/test-cpp.yml"
+      - "packages/react-native-nitro-sqlite/cpp/databaseMigration.*"
+      - "packages/react-native-nitro-sqlite/cpp/hybridObjects/HybridNitroSQLite.cpp"
+      - "packages/react-native-nitro-sqlite/tests/cpp/**"
+
+jobs:
+  test:
+    name: Database migration tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build migration tests
+        run: |
+          clang++ \
+            -std=c++20 \
+            -Wall \
+            -Wextra \
+            -Werror \
+            -Ipackages/react-native-nitro-sqlite/cpp \
+            packages/react-native-nitro-sqlite/cpp/databaseMigration.cpp \
+            packages/react-native-nitro-sqlite/tests/cpp/databaseMigration.test.cpp \
+            -o /tmp/databaseMigrationTests
+
+      - name: Run migration tests
+        run: /tmp/databaseMigrationTests
