@@ -5,11 +5,14 @@
 
 #include "BatchQueryCommand.hpp"
 #include "types.hpp"
+#include <memory>
 
 using namespace facebook;
 using namespace margelo::nitro;
 
 namespace margelo::rnnitrosqlite {
+
+struct SQLiteConnection;
 
 struct BatchQuery {
   std::string sql;
@@ -26,5 +29,6 @@ std::vector<BatchQuery> batchParamsToCommands(const std::vector<BatchQueryComman
  * Execute a batch of commands in a exclusive transaction
  */
 SQLiteOperationResult sqliteExecuteBatch(const std::string& dbName, const std::vector<BatchQuery>& commands);
+SQLiteOperationResult sqliteExecuteBatch(const std::shared_ptr<SQLiteConnection>& connection, const std::vector<BatchQuery>& commands);
 
 } // namespace margelo::rnnitrosqlite
