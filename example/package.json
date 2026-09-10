@@ -2,6 +2,9 @@
   "name": "react-native-nitro-sqlite-example",
   "version": "9.6.0",
   "private": true,
+  "nitroSQLite": {
+    "threadSafe": 1
+  },
   "scripts": {
     "start": "react-native start",
     "android": "react-native run-android",
