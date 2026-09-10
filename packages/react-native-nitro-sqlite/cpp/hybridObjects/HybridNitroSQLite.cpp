@@ -7,8 +7,8 @@
 #include "macros.hpp"
 #include "operations.hpp"
 #include "sqliteExecuteBatch.hpp"
-#include <filesystem>
 #include <exception>
+#include <filesystem>
 #include <iostream>
 #include <map>
 #include <optional>
