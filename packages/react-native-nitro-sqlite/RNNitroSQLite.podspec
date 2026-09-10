@@ -1,10 +1,28 @@
 require "json"
 
 package = JSON.parse(File.read(File.join(__dir__, "package.json")))
-sqlite_threadsafe = ENV.fetch("NITRO_SQLITE_THREADSAFE", "1")
+app_package_json_path = File.expand_path("../package.json", Pod::Config.instance.installation_root)
+app_package = File.exist?(app_package_json_path) ? JSON.parse(File.read(app_package_json_path)) : {}
+app_config = app_package.fetch("nitroSQLite", {})
 
-unless %w[0 1].include?(sqlite_threadsafe)
-  raise "NITRO_SQLITE_THREADSAFE must be either 0 or 1"
+unless app_config.is_a?(Hash)
+  raise "nitroSQLite in package.json must be an object"
+end
+
+if ENV.key?("NITRO_SQLITE_THREADSAFE")
+  thread_safe_value = ENV["NITRO_SQLITE_THREADSAFE"]
+  unless %w[true false 1 0].include?(thread_safe_value)
+    raise "NITRO_SQLITE_THREADSAFE must be true, false, 1, or 0"
+  end
+
+  sqlite_threadsafe = %w[true 1].include?(thread_safe_value) ? "1" : "0"
+else
+  thread_safe_value = app_config.fetch("threadSafe", true)
+  unless [true, false].include?(thread_safe_value)
+    raise "nitroSQLite.threadSafe in package.json must be true or false"
+  end
+
+  sqlite_threadsafe = thread_safe_value ? "1" : "0"
 end
 folly_compiler_flags = '-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1'
 log_message = lambda do |message|

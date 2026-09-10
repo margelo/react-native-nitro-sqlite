@@ -2,6 +2,7 @@
 
 require "shellwords"
 require "tmpdir"
+require "json"
 
 ROOT = File.expand_path("..", __dir__)
 PACKAGE_DIRECTORY = File.join(ROOT, "packages", "react-native-nitro-sqlite")
@@ -49,6 +50,16 @@ module Pod
       true
     end
   end
+
+  class Config
+    class << self
+      attr_accessor :installation_root
+
+      def instance
+        self
+      end
+    end
+  end
 end
 
 def min_ios_version_supported
@@ -58,24 +69,46 @@ end
 def install_modules_dependencies(_spec) end
 
 def main
-  default_flags = flags_for(nil)
+  default_flags = with_app_package({}) { flags_for(nil) }
   assert_threadsafe(default_flags, "1")
   assert_optimization_flags(default_flags)
 
-  unsafe_flags = flags_for("0")
+  unsafe_flags = with_app_package("nitroSQLite" => {"threadSafe" => false}) do
+    flags_for(nil)
+  end
   assert_threadsafe(unsafe_flags, "0")
   assert_optimization_flags(unsafe_flags)
 
-  safe_flags = flags_for("1")
+  safe_flags = with_app_package("nitroSQLite" => {"threadSafe" => false}) do
+    flags_for("true")
+  end
   assert_threadsafe(safe_flags, "1")
   assert_optimization_flags(safe_flags)
 
-  assert_invalid_value_rejected
-  assert_system_sqlite_configuration
+  environment_unsafe_flags = with_app_package("nitroSQLite" => {"threadSafe" => true}) do
+    flags_for("false")
+  end
+  assert_threadsafe(environment_unsafe_flags, "0")
+  assert_optimization_flags(environment_unsafe_flags)
+
+  assert_invalid_package_value_rejected
+  assert_invalid_package_config_rejected
+  assert_invalid_environment_value_rejected
+  with_app_package({}) { assert_system_sqlite_configuration }
   compile_and_probe(unsafe_flags, "0")
   compile_and_probe(safe_flags, "1")
 
   puts "SQLite pod configuration tests passed"
+end
+
+def with_app_package(contents)
+  Dir.mktmpdir("nitro-sqlite-app") do |directory|
+    ios_directory = File.join(directory, "ios")
+    Dir.mkdir(ios_directory)
+    File.write(File.join(directory, "package.json"), JSON.generate(contents))
+    Pod::Config.installation_root = ios_directory
+    yield
+  end
 end
 
 def flags_for(threadsafe)
@@ -123,11 +156,31 @@ def assert_optimization_flags(flags)
   ].each { |flag| assert_includes(flags, flag) }
 end
 
-def assert_invalid_value_rejected
-  evaluate_podspec("NITRO_SQLITE_THREADSAFE" => "2")
+def assert_invalid_package_value_rejected
+  with_app_package("nitroSQLite" => {"threadSafe" => 1}) do
+    evaluate_podspec("NITRO_SQLITE_THREADSAFE" => nil)
+  end
   fail "Expected an invalid NITRO_SQLITE_THREADSAFE value to fail"
 rescue RuntimeError => error
-  expected = "NITRO_SQLITE_THREADSAFE must be either 0 or 1"
+  expected = "nitroSQLite.threadSafe in package.json must be true or false"
+  fail "Unexpected validation error: #{error.message}" unless error.message == expected
+end
+
+def assert_invalid_package_config_rejected
+  with_app_package("nitroSQLite" => true) do
+    evaluate_podspec("NITRO_SQLITE_THREADSAFE" => nil)
+  end
+  fail "Expected an invalid nitroSQLite configuration to fail"
+rescue RuntimeError => error
+  expected = "nitroSQLite in package.json must be an object"
+  fail "Unexpected validation error: #{error.message}" unless error.message == expected
+end
+
+def assert_invalid_environment_value_rejected
+  with_app_package({}) { evaluate_podspec("NITRO_SQLITE_THREADSAFE" => "2") }
+  fail "Expected an invalid NITRO_SQLITE_THREADSAFE value to fail"
+rescue RuntimeError => error
+  expected = "NITRO_SQLITE_THREADSAFE must be true, false, 1, or 0"
   fail "Unexpected validation error: #{error.message}" unless error.message == expected
 end
 
