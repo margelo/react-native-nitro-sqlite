@@ -55,20 +55,27 @@ const LARGE_DB_NAME = 'large'
 // Taken from "op-sqlite" example project.
 // Used to demonstrate the performance of NitroSQLite.
 const ROWS = 300000
+const LARGE_DB_SCHEMA: BatchQueryCommand[] = [
+  { query: 'DROP TABLE IF EXISTS Test;' },
+  {
+    query:
+      'CREATE TABLE Test ( id INT PRIMARY KEY, v1 TEXT, v2 TEXT, v3 TEXT, v4 TEXT, v5 TEXT, v6 INT, v7 INT, v8 INT, v9 INT, v10 INT, v11 REAL, v12 REAL, v13 REAL, v14 REAL) STRICT;',
+  },
+]
+
+export function resetLargeDbSchema(db: NitroSQLiteConnection) {
+  db.executeBatch(LARGE_DB_SCHEMA)
+}
+
 export let largeDb: NitroSQLiteConnection | undefined
 export function resetLargeDb() {
   try {
-    if (largeDb != null) {
-      largeDb.close()
-      largeDb.delete()
-    }
-    largeDb = open({
-      name: LARGE_DB_NAME,
-    })
+    largeDb ??= open({ name: LARGE_DB_NAME })
 
-    largeDb.execute(
-      'CREATE TABLE Test ( id INT PRIMARY KEY, v1 TEXT, v2 TEXT, v3 TEXT, v4 TEXT, v5 TEXT, v6 INT, v7 INT, v8 INT, v9 INT, v10 INT, v11 REAL, v12 REAL, v13 REAL, v14 REAL) STRICT;',
-    )
+    // The database file survives app restarts, while this module state does
+    // not. Rebuild the benchmark schema every time instead of assuming an
+    // absent connection means an absent table.
+    resetLargeDbSchema(largeDb)
 
     largeDb.execute('PRAGMA mmap_size=268435456')
 
@@ -99,6 +106,6 @@ export function resetLargeDb() {
 
     largeDb.executeBatch(insertions)
   } catch (e) {
-    console.warn('Error resetting user database', e)
+    console.warn('Error resetting large database', e)
   }
 }
