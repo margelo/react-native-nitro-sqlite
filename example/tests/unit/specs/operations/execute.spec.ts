@@ -2,8 +2,8 @@ import { chance, expect, isNitroSQLiteError } from '@tests/unit/common'
 import { describe, it } from '@tests/TestApi'
 import { createArrayBufferTestDb, testDb } from '@tests/db'
 import { open } from 'react-native-nitro-sqlite'
-import { buildJSQueryResult } from '../../../../../packages/react-native-nitro-sqlite/src/operations/execute'
-import type { NitroSQLiteQueryResult } from '../../../../../packages/react-native-nitro-sqlite/src/specs/NitroSQLiteQueryResult.nitro'
+import { buildJSQueryResult } from '@nitro-sqlite/operations/execute'
+import type { NitroSQLiteQueryResult } from '@nitro-sqlite/specs/NitroSQLiteQueryResult.nitro'
 
 const QUERY_RESULT_SIZES = [60, 1_000, 10_000]
 
