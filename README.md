@@ -50,35 +50,6 @@ For a React Native macOS app, run CocoaPods from the `macos` directory:
 cd macos && pod install
 ```
 
-## Run the macOS example
-
-From this repository's root, install dependencies and pods once, then launch the example in development mode:
-
-```bash
-bun install
-bun --cwd example bundle-install
-bun --cwd example pods:macos
-bun --cwd example macos
-```
-
-The macOS app shares the iOS example's screens: **Unit Tests** runs the SQLite, TypeORM, and sqlite-vec suites; **SQL Console** runs ad-hoc queries against sample data; and **Benchmarks** measures inserts and reads.
-
-To keep Metro in the current terminal, use:
-
-```bash
-# Terminal 1
-bun --cwd example/macos start
-
-# Terminal 2
-bun --cwd example macos --no-packager
-```
-
-Build and launch the embedded production bundle with:
-
-```bash
-bun --cwd example macos --mode Release --no-packager
-```
-
 ---
 
 # API overview
