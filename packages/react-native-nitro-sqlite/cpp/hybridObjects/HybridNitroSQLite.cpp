@@ -1,5 +1,4 @@
 #include "HybridNitroSQLite.hpp"
-#include "HybridNitroSQLiteQueryResult.hpp"
 #include "../NitroSQLiteException.hpp"
 #include "../databaseMigration.hpp"
 #include "../importSqlFile.hpp"
@@ -7,6 +6,7 @@
 #include "../macros.hpp"
 #include "../operations.hpp"
 #include "../sqliteExecuteBatch.hpp"
+#include "HybridNitroSQLiteQueryResult.hpp"
 #include <exception>
 #include <filesystem>
 #include <iostream>
