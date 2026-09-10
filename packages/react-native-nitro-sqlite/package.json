@@ -50,6 +50,7 @@
     "sqlite",
     "nitro-modules",
     "ios",
+    "macos",
     "android"
   ],
   "repository": {
