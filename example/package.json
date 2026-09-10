@@ -2,13 +2,17 @@
   "name": "react-native-nitro-sqlite-example",
   "version": "9.6.0",
   "private": true,
+  "nitroSQLite": {
+    "threadSafe": true,
+    "performanceMode": true
+  },
   "scripts": {
     "start": "react-native start",
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "bundle-install": "bundle install",
     "pods": "cd ios && bundle exec pod install",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --build",
     "lint": "eslint \"**/*.{js,ts,tsx}\" --fix",
     "codegen": "bun react-native codegen",
     "test:harness": "react-native-harness",
