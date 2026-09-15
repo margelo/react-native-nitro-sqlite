@@ -33,6 +33,11 @@ std::vector<BatchQuery> batchParamsToCommands(const std::vector<BatchQueryComman
 }
 
 SQLiteOperationResult sqliteExecuteBatch(const std::string& dbName, const std::vector<BatchQuery>& commands) {
+  return sqliteExecuteBatch(sqliteGetOpenDatabase(dbName), commands);
+}
+
+SQLiteOperationResult sqliteExecuteBatch(const SQLiteConnectionPtr& connection, const std::vector<BatchQuery>& commands) {
+  std::lock_guard lock(connection->mutex);
   size_t commandCount = commands.size();
   if (commandCount <= 0) {
     throw NitroSQLiteException(NitroSQLiteExceptionType::NoBatchCommandsProvided, "No SQL batch commands provided");
@@ -40,13 +45,13 @@ SQLiteOperationResult sqliteExecuteBatch(const std::string& dbName, const std::v
 
   try {
     int rowsAffected = 0;
-    sqliteExecuteCommand(dbName, "BEGIN EXCLUSIVE TRANSACTION");
+    sqliteExecuteCommand(connection, "BEGIN EXCLUSIVE TRANSACTION");
     for (const auto& command : commands) {
-      auto result = sqliteExecuteCommand(dbName, command.sql, command.params);
+      auto result = sqliteExecuteCommand(connection, command.sql, command.params);
       rowsAffected += result.rowsAffected;
     }
 
-    sqliteExecuteCommand(dbName, "COMMIT");
+    sqliteExecuteCommand(connection, "COMMIT");
     return {
         .rowsAffected = rowsAffected,
         .commands = (int)commandCount,
@@ -54,7 +59,7 @@ SQLiteOperationResult sqliteExecuteBatch(const std::string& dbName, const std::v
   } catch (NitroSQLiteException& e) {
     // Roll back exactly once; a failed ROLLBACK must not mask the original error.
     try {
-      sqliteExecuteCommand(dbName, "ROLLBACK");
+      sqliteExecuteCommand(connection, "ROLLBACK");
     } catch (...) {
       // ignore — surface the original error below
     }

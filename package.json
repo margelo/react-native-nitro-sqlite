@@ -19,11 +19,11 @@
   "homepage": "https://github.com/margelo/react-native-nitro-sqlite#readme",
   "scripts": {
     "postinstall": "patch-package",
-    "typecheck": "bun --filter=\"**\" typecheck",
+    "typecheck": "tsc --build",
     "lint": "bun sqlite lint && bun example lint",
     "lint-cpp": "./scripts/clang-format.sh",
     "prettier": "prettier --write .",
-    "clean": "rm -rf **/tsconfig.tsbuildinfo node_modules packages/react-native-nitro-sqlite/node_module packages/react-native-nitro-sqlite/lib",
+    "clean": "rm -rf **/.tsbuild **/tsconfig.tsbuildinfo node_modules packages/react-native-nitro-sqlite/node_module packages/react-native-nitro-sqlite/lib",
     "release": "./scripts/release.sh",
     "sqlite": "bun --cwd packages/react-native-nitro-sqlite",
     "example": "bun --cwd example"

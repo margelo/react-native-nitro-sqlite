@@ -89,4 +89,5 @@ android/.gradle
 yalc.lock
 
 # Typescript
+**/.tsbuild/
 **/tsconfig.tsbuildinfo
