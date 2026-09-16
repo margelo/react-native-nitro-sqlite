@@ -16,7 +16,7 @@ public:
   static std::string docPath;
   // Directory databases were stored in by previous app versions, when the platform layer has
   // relocated docPath (e.g. iOS with RNNitroSQLite_DatabaseLocation set to "ApplicationSupport").
-  // When non-empty, each database found there is moved to docPath as it is opened.
+  // When non-empty, databases found there are resolved as they are opened, attached, or dropped.
   static std::string migrationDocPath;
 
 public:
