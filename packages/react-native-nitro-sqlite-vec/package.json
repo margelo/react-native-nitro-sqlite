@@ -49,8 +49,17 @@
   },
   "jest": {
     "preset": "@react-native/jest-preset",
+    "watchman": false,
     "testMatch": ["<rootDir>/src/__tests__/**/*.test.ts"],
-    "collectCoverageFrom": ["src/index.ts"]
+    "collectCoverageFrom": ["src/index.ts"],
+    "coverageThreshold": {
+      "global": {
+        "branches": 100,
+        "functions": 100,
+        "lines": 100,
+        "statements": 100
+      }
+    }
   },
   "release-it": {
     "npm": {
