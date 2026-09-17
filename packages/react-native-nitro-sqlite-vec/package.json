@@ -8,12 +8,14 @@
   "types": "./src/index",
   "files": [
     "src",
+    "!**/__tests__",
     "cpp",
     "RNNitroSqliteVec.podspec",
     "react-native.config.js",
     "README.md"
   ],
   "scripts": {
+    "test": "jest",
     "typecheck": "tsc --build",
     "lint": "eslint \"**/*.{js,ts,tsx}\" --fix",
     "release": "release-it",
@@ -44,6 +46,11 @@
   "devDependencies": {
     "react-native-nitro-sqlite": "9.8.0",
     "typescript": "^5.8.3"
+  },
+  "jest": {
+    "preset": "@react-native/jest-preset",
+    "testMatch": ["<rootDir>/src/__tests__/**/*.test.ts"],
+    "collectCoverageFrom": ["src/index.ts"]
   },
   "release-it": {
     "npm": {

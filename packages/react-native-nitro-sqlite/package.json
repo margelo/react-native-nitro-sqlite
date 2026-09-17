@@ -87,6 +87,14 @@
   },
   "jest": {
     "preset": "@react-native/jest-preset",
+    "testMatch": ["<rootDir>/src/__tests__/**/*.test.ts"],
+    "collectCoverageFrom": [
+      "src/**/*.ts",
+      "!src/**/__tests__/**",
+      "!src/**/__mocks__/**",
+      "!src/specs/**",
+      "!src/types.ts"
+    ],
     "modulePathIgnorePatterns": [
       "<rootDir>/example/node_modules",
       "<rootDir>/lib/"
