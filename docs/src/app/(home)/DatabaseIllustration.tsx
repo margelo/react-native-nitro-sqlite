@@ -13,8 +13,6 @@ export function DatabaseIllustration() {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
     const mobile = window.matchMedia('(max-width: 950px), (hover: none)')
     let frame = 0
-    let bounds = scene.getBoundingClientRect()
-    let pointerActive = false
 
     const setPosition = (x: number, y: number, progress: number) => {
       if (reducedMotion.matches) return
@@ -28,36 +26,16 @@ export function DatabaseIllustration() {
 
     const onPointerMove = (event: PointerEvent) => {
       if (mobile.matches || reducedMotion.matches) return
-      const dx = event.clientX - bounds.left - bounds.width / 2
-      const dy = event.clientY - bounds.top - bounds.height / 2
-      const radiusX = Math.max(bounds.width * 1.7, 760)
-      const radiusY = Math.max(bounds.height * 1.6, 520)
-      const distance = Math.hypot(dx / radiusX, dy / radiusY)
-
-      if (distance >= 1) {
-        if (!pointerActive) return
-        pointerActive = false
-        setPosition(0, 0, 0.35)
-        return
-      }
-
-      pointerActive = true
-      const edge = Math.max(0, Math.min(1, (distance - 0.45) / 0.55))
-      const falloff = 1 - edge * edge * (3 - 2 * edge)
-      const x = Math.max(-1, Math.min(1, dx / (bounds.width * 0.6))) * falloff
-      const y = Math.max(-1, Math.min(1, dy / (bounds.height * 0.6))) * falloff
-      setPosition(x, y, 0.35 + y * 0.35)
+      const x = Math.max(-1, Math.min(1, event.clientX / window.innerWidth * 2 - 1))
+      const y = Math.max(-1, Math.min(1, event.clientY / window.innerHeight * 2 - 1))
+      setPosition(x, y, (y + 1) / 2)
     }
-    const onPointerLeave = () => {
-      if (!pointerActive) return
-      pointerActive = false
-      setPosition(0, 0, 0.35)
-    }
+    const onPointerLeave = () => { if (!mobile.matches) setPosition(0, 0, 0.35) }
     const onScroll = () => {
+      if (!mobile.matches || reducedMotion.matches) return
       cancelAnimationFrame(frame)
       frame = requestAnimationFrame(() => {
-        bounds = scene.getBoundingClientRect()
-        if (!mobile.matches || reducedMotion.matches) return
+        const bounds = scene.getBoundingClientRect()
         const progress = Math.max(0, Math.min(1, (window.innerHeight - bounds.top) / (window.innerHeight + bounds.height)))
         scene.style.setProperty('--scene-x', '0')
         scene.style.setProperty('--scene-y', ((progress - 0.5) * 1.3).toFixed(3))
@@ -81,15 +59,18 @@ export function DatabaseIllustration() {
   }, [])
 
   return (
-    <div ref={sceneRef} className={styles.scene} role="img" aria-label="A SQL query travels through a stack of SQLite data pages and returns a matching row">
+    <div ref={sceneRef} className={styles.scene} role="img" aria-label="A React Native app sends a parameterized task query through Nitro to SQLite and receives the matching task row">
       <div className={styles.halo} aria-hidden="true" />
       <div className={styles.visual} aria-hidden="true">
         <div className={styles.query}>
-          <span className={styles.queryLabel}>app.db / query</span>
-          <code><b>SELECT</b> * <b>FROM</b> notes <b>WHERE</b> id = <em>?</em></code>
+          <span className={styles.queryHeader}><span>React Native app / query</span><span>parameter [42]</span></span>
+          <code><b>SELECT</b> id, title <b>FROM</b> tasks <b>WHERE</b> id = <em>?</em>;</code>
         </div>
 
+        <div className={styles.binding}><span>Nitro binding</span><i /></div>
+
         <div className={styles.stack}>
+          <span className={styles.storageLabel}>SQLite / tasks</span>
           <div className={`${styles.page} ${styles.pageBack}`}>
             <span className={styles.pageIndex}>03</span>
             <span className={styles.rows}><i /><i /><i /><i /></span>
@@ -106,10 +87,9 @@ export function DatabaseIllustration() {
         </div>
 
         <div className={styles.result}>
-          <span className={styles.resultLabel}>result / row 01</span>
-          <span className={styles.resultValues}><code>42</code><code>Release notes</code></span>
+          <span className={styles.resultLabel}>↳ React Native app / returned row</span>
+          <span className={styles.resultValues}><code>42</code><code>Buy groceries</code></span>
         </div>
-        <div className={styles.axis}><span>JS</span><i /><span>SQLite</span></div>
       </div>
     </div>
   )
