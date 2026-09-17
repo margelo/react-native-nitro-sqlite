@@ -1,6 +1,7 @@
 {
   "title": "Guides",
   "pages": [
+    "sync-and-async",
     "parameters-and-results",
     "transactions",
     "batch-operations",

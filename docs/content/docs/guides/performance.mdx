@@ -37,4 +37,4 @@ await db.executeBatchAsync([
 
 Binding values avoids building a new SQL string from user data. The library prepares statements for execution, but the batch implementation executes each expanded command separately. Do not assume it keeps a prepared statement cached across the batch. Measure on your target devices and data sizes before choosing a batch size or index strategy.
 
-See [sync and async](/docs/getting-started/sync-and-async), [batch operations](/docs/guides/batch-operations), and [transactions](/docs/guides/transactions) for the exact ordering rules.
+See [sync and async](/docs/guides/sync-and-async), [batch operations](/docs/guides/batch-operations), and [transactions](/docs/guides/transactions) for the exact ordering rules.
