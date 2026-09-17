@@ -86,6 +86,35 @@
 .rows i:nth-child(4) { width: 64%; }
 .rows .match { border-color: color-mix(in srgb, var(--color-fd-primary) 58%, transparent); background: color-mix(in srgb, var(--color-fd-primary) 18%, var(--color-fd-background)); }
 
+@media (max-width: 950px), (hover: none) {
+  .pageBack { --page-delay: 0s; }
+  .pageMiddle { --page-delay: 1.4s; }
+  .pageFront { --page-delay: 2.8s; }
+  .rows i:nth-child(1) { --row-delay: 0s; }
+  .rows i:nth-child(2) { --row-delay: .3s; }
+  .rows i:nth-child(3) { --row-delay: .6s; }
+  .rows i:nth-child(4) { --row-delay: .9s; }
+
+  .rows i { position: relative; overflow: hidden; }
+  .rows i::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: color-mix(in srgb, var(--color-fd-primary) 28%, var(--color-fd-background));
+    transform: scaleX(0);
+    transform-origin: left;
+    opacity: 0;
+    animation: row-read 5.2s ease-in-out calc(var(--page-delay) + var(--row-delay)) infinite;
+  }
+}
+
+@keyframes row-read {
+  0%, 22%, 100% { transform: scaleX(0); opacity: 0; }
+  5% { transform: scaleX(1); opacity: .8; }
+  13% { transform: scaleX(1); opacity: .45; }
+}
+
 .scan {
   position: absolute;
   z-index: 4;
@@ -118,4 +147,5 @@
 @media (prefers-reduced-motion: reduce) {
   .visual, .stack, .page, .scan { transition: none; }
   .visual, .stack, .pageBack, .pageMiddle, .pageFront, .scan, .query, .result { --scene-x: 0; --scene-y: 0; --scene-progress: .35; }
+  .rows i::after { animation: none; }
 }
