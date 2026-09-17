@@ -1,0 +1,30 @@
+---
+title: Sync and async
+description: Pick the query form that fits your workload and understand connection ordering.
+---
+
+The connection offers synchronous `execute`, `executeBatch`, and `loadFile` methods, with matching `Async` methods. Synchronous calls return before JavaScript continues, so a slow query blocks that JavaScript call. Asynchronous calls run the database work off the JavaScript thread and return a promise.
+
+```ts
+import { open } from 'react-native-nitro-sqlite'
+
+const db = open({ name: 'app.sqlite' })
+
+const smallResult = db.execute('SELECT 1 AS value')
+const largerResult = await db.executeAsync('SELECT * FROM notes')
+
+console.log(smallResult.results, largerResult.results)
+```
+
+Use synchronous calls when immediate results are useful and the work is small. Prefer async calls for queries that may scan many rows, batches, or file imports. [Performance guidance](/docs/guides/performance) covers other ways to keep work bounded.
+
+The `open()` connection queues async operations for the same database name in submission order. A synchronous operation, `close()`, or `delete()` throws a busy error if that queue has pending or active work. Await async work before calling a synchronous method on the same connection:
+
+```ts
+await db.executeAsync('INSERT INTO notes (body) VALUES (?)', ['Queued write'])
+const count = db.execute<{ total: number }>('SELECT COUNT(*) AS total FROM notes')
+```
+
+`db.transaction()` also occupies the queue until its callback finishes. Inside that callback, use the provided `tx` methods. Awaiting `db.executeAsync()` or another queued operation for the same database inside it leaves both operations waiting for each other. See [transactions](/docs/guides/transactions).
+
+The [low-level native API](/docs/api/native) does not use this JavaScript queue. If you use it alongside an `open()` connection, coordinate access yourself.

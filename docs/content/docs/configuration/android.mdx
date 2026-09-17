@@ -1,0 +1,36 @@
+---
+title: Android configuration
+description: Database storage and supported SQLite compile options on Android.
+---
+
+Android builds Nitro SQLite's bundled SQLite source into the native library. Its compile options come from the app's root Gradle properties and require a native rebuild.
+
+## Database location
+
+The default database root is the app's internal `filesDir`. `open({ name: 'app.sqlite', location: 'databases' })` places the database in a `databases` directory below that root. The library creates the directory if needed. Use `location` as a relative directory by convention; the library does not validate path segments in the name or location. See [connections](/docs/api/connection) for the trust requirement. To open an existing file from elsewhere, copy it to the intended app directory first.
+
+## SQLite compile flags
+
+Set `nitroSqliteFlags` in the app's `android/gradle.properties` to pass definitions into the native CMake build. For example, to enable FTS5:
+
+```properties
+nitroSqliteFlags="-DSQLITE_ENABLE_FTS5=1"
+```
+
+These are SQLite compile definitions, so they affect the bundled source when the native library is rebuilt. Android does not use the iOS `nitroSQLite` package settings or the `NITRO_SQLITE_USE_PHONE_VERSION` pod switch.
+
+## Threading
+
+The native library opens each database with `SQLITE_OPEN_FULLMUTEX` and serializes calls on each handle. The JavaScript connection helper also queues async work by database name and rejects conflicting synchronous work. `nitroSqliteFlags` can change compile-time SQLite behavior, including `SQLITE_THREADSAFE`, but disabling SQLite mutexes requires serializing calls across separate database handles and native threads yourself. The per-database queue is not a process-wide SQLite lock.
+
+Android has no separate `performanceMode` Gradle property. Its native build always applies its CMake compiler options, including `-O2`. The iOS `performanceMode` package key does not configure Android.
+
+## Vector search
+
+Install `react-native-nitro-sqlite-vec` and enable it in the app's `android/gradle.properties`:
+
+```properties
+nitroSqliteVec=true
+```
+
+The core library then compiles sqlite-vec with the bundled SQLite source and registers it before opening a database. Rebuild the app after changing the property. See the [vector search guide](/docs/integrations/vector-search) for the helper API.

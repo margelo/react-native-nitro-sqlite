@@ -1,0 +1,41 @@
+---
+title: Transactions and batches
+description: Group SQL statements with transactions or run a batch of commands.
+---
+
+## Transaction callback
+
+`db.transaction(async (tx) => { ... })` starts a transaction and resolves with the callback's return value. The connection commits when the callback resolves, or rolls back if it throws. The callback receives `tx.execute`, `tx.executeAsync`, `tx.commit`, and `tx.rollback`.
+
+```ts
+const insertedId = await db.transaction(async (tx) => {
+  const insert = await tx.executeAsync(
+    'INSERT INTO notes (title) VALUES (?)',
+    ['Draft'],
+  )
+  tx.execute('INSERT INTO audit (note_id) VALUES (?)', [insert.insertId ?? null])
+  return insert.insertId
+})
+```
+
+Inside the callback, use `tx` for every statement on that database, including statements in helper functions. A queued `db.executeAsync()` call for the same database waits for the transaction, and awaiting it inside the callback would leave both waiting. A synchronous call through `db` while the transaction is active throws a busy error. You can call `tx.commit()` or `tx.rollback()` explicitly; further calls through that `tx` then throw a finalized-transaction error.
+
+The callback and transaction are async even when you only call `tx.execute()`. The native transaction starts with `BEGIN TRANSACTION`.
+
+## Batch commands
+
+`db.executeBatch(commands)` and `db.executeBatchAsync(commands)` run commands in one native transaction and return `BatchQueryResult`, which has an optional `rowsAffected` number. A `BatchQueryCommand` has a SQL `query` and optional `params`. Pass one parameter array for one execution, or an array of parameter arrays to repeat the query.
+
+```ts
+const commands = [
+  { query: 'CREATE TABLE IF NOT EXISTS tags (name TEXT)' },
+  {
+    query: 'INSERT INTO tags (name) VALUES (?)',
+    params: [['work'], ['personal']],
+  },
+]
+
+const { rowsAffected } = await db.executeBatchAsync(commands)
+```
+
+The synchronous batch blocks the JavaScript thread until it finishes. The async batch runs off the thread and joins the connection's operation queue. Both methods require an open connection. The batch result summarizes affected rows; use [`execute` or `executeAsync`](/docs/api/queries-and-results) when you need rows from a query.

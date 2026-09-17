@@ -1,0 +1,49 @@
+---
+title: Vector search with sqlite-vec
+description: Enable the optional sqlite-vec native build and use its typed helpers.
+---
+
+`react-native-nitro-sqlite-vec` is an optional companion package. Its native code is compiled into Nitro SQLite's library and registered with SQLite before a database opens. There is no runtime extension-loading step.
+
+Install the companion alongside `react-native-nitro-sqlite`. Then enable the build on each platform you ship:
+
+- iOS: set `NITRO_SQLITE_VEC=1` when installing Pods. The companion pod compiles sqlite-vec and the core pod enables its registration code.
+- Android: set `nitroSqliteVec=true` in `android/gradle.properties`. The core library compiles sqlite-vec's C sources and registration code.
+
+Rebuild the native app after changing either flag. The companion package must be installed for the flag to resolve its source files. See the [iOS](/docs/configuration/ios#vector-search) and [Android](/docs/configuration/android#vector-search) configuration pages for examples.
+
+## Create and search a vector table
+
+```ts
+import { open } from 'react-native-nitro-sqlite'
+import {
+  createVectorTable,
+  isVecAvailable,
+  knnSearch,
+  vecVersion,
+} from 'react-native-nitro-sqlite-vec'
+
+const db = open({ name: 'vectors.sqlite' })
+
+if (!isVecAvailable(db)) {
+  db.close()
+  throw new Error('Enable sqlite-vec in the native build')
+}
+
+console.log(vecVersion(db))
+createVectorTable(db, 'embeddings', { dimensions: 3 })
+db.execute('INSERT INTO embeddings (rowid, embedding) VALUES (?, ?)', [
+  1,
+  '[0.1, 0.2, 0.3]',
+])
+
+const matches = knnSearch(db, 'embeddings', [0.1, 0.2, 0.25], 10)
+// Each match has rowid and distance.
+db.close()
+```
+
+`vecVersion(db)` calls `vec_version()` and returns its version string. `isVecAvailable(db)` returns `false` if that call fails. `createVectorTable(db, table, options)` creates a `vec0` virtual table if it does not exist. `knnSearch(db, table, query, k, options?)` returns an array of `{ rowid, distance }` matches, ordered by distance; `query` can be a numeric array or a JSON vector string.
+
+`CreateVectorTableOptions` requires `dimensions`. Its optional `type` is `'float'`, `'int8'`, or `'bit'`, with `'float'` as the default. `distanceMetric` accepts `'L2'`, `'cosine'`, or `'L1'`; sqlite-vec's default is L2. `column` defaults to `'embedding'`. `KnnSearchOptions` also lets you set `column`. For int8 and bit tables, construct vectors with sqlite-vec's `vec_int8()` and `vec_bit()` SQL functions as appropriate.
+
+The helpers interpolate table and column identifiers into SQL. Only pass identifiers you control. They bind the query vector and `k` as parameters. The core [query API](/docs/api/queries-and-results) can also run sqlite-vec SQL directly for features these small helpers do not wrap.

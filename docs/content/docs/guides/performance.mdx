@@ -1,0 +1,39 @@
+---
+title: Performance
+description: Keep database work responsive and avoid unnecessary round trips.
+---
+
+Start with the query and the amount of data it reads. Add indexes for columns you filter or join on, inspect query plans with SQLite's `EXPLAIN QUERY PLAN`, and select only the columns and rows your screen needs. These are SQLite techniques; their effect depends on your schema and data.
+
+## Keep long work off the JavaScript thread
+
+`execute()` and the other synchronous methods block their JavaScript caller. Use `executeAsync()`, `executeBatchAsync()`, and `loadFileAsync()` for work that may take longer. The native async implementations run database work on a background thread, while the connection queue preserves submission order for one opened database.
+
+```ts
+const { results } = await db.executeAsync<{ id: number; title: string }>(
+  'SELECT id, title FROM articles ORDER BY id DESC LIMIT ?',
+  [50],
+)
+```
+
+An async call still consumes device CPU and database I/O. Paginate large result sets instead of bringing every row into JavaScript at once.
+
+## Group related writes
+
+One `executeBatchAsync()` call executes a fixed set of statements inside a native transaction. Use nested parameter arrays for repeated SQL. Use `db.transaction()` when application logic must inspect a result between writes. Both keep a transaction open while they work; keep the scope short and await each operation inside a transaction callback.
+
+```ts
+await db.executeBatchAsync([
+  {
+    query: 'INSERT INTO metrics (key, value) VALUES (?, ?)',
+    params: [
+      ['a', 1],
+      ['b', 2],
+    ],
+  },
+])
+```
+
+Binding values avoids building a new SQL string from user data. The library prepares statements for execution, but the batch implementation executes each expanded command separately. Do not assume it keeps a prepared statement cached across the batch. Measure on your target devices and data sizes before choosing a batch size or index strategy.
+
+See [sync and async](/docs/getting-started/sync-and-async), [batch operations](/docs/guides/batch-operations), and [transactions](/docs/guides/transactions) for the exact ordering rules.

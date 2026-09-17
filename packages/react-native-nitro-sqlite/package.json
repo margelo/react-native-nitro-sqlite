@@ -63,7 +63,7 @@
   "bugs": {
     "url": "https://github.com/margelo/react-native-nitro-sqlite/issues"
   },
-  "homepage": "https://github.com/margelo/react-native-nitro-sqlite#readme",
+  "homepage": "https://sqlite.margelo.com",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },

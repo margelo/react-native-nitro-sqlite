@@ -1,0 +1,13 @@
+{
+  "title": "Guides",
+  "pages": [
+    "parameters-and-results",
+    "transactions",
+    "batch-operations",
+    "database-lifecycle",
+    "attach-databases",
+    "load-sql-file",
+    "performance",
+    "migrate-from-quick-sqlite"
+  ]
+}
