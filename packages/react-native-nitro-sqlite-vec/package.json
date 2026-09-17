@@ -1,6 +1,6 @@
 {
   "name": "react-native-nitro-sqlite-vec",
-  "version": "9.8.0",
+  "version": "9.8.1",
   "description": "Vector search (sqlite-vec) for react-native-nitro-sqlite. Native sqlite-vec is statically linked into the core's single sqlite3 — no second SQLite, no runtime extension loading.",
   "source": "./src/index",
   "react-native": "./src/index",
@@ -44,14 +44,18 @@
     "react-native-nitro-sqlite": ">=9.0.0"
   },
   "devDependencies": {
-    "react-native-nitro-sqlite": "9.8.0",
+    "react-native-nitro-sqlite": "9.8.1",
     "typescript": "^5.8.3"
   },
   "jest": {
     "preset": "@react-native/jest-preset",
     "watchman": false,
-    "testMatch": ["<rootDir>/src/__tests__/**/*.test.ts"],
-    "collectCoverageFrom": ["src/index.ts"],
+    "testMatch": [
+      "<rootDir>/src/__tests__/**/*.test.ts"
+    ],
+    "collectCoverageFrom": [
+      "src/index.ts"
+    ],
     "coverageThreshold": {
       "global": {
         "branches": 100,

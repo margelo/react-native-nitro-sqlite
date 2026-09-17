@@ -58,8 +58,8 @@
         "react": "19.2.3",
         "react-native": "0.87.1",
         "react-native-nitro-modules": "*",
-        "react-native-nitro-sqlite": "9.7.0",
-        "react-native-nitro-sqlite-vec": "9.7.0",
+        "react-native-nitro-sqlite": "9.8.0",
+        "react-native-nitro-sqlite-vec": "9.8.0",
         "react-native-quick-base64": "^3.0.0",
         "react-native-quick-crypto": "^1.1.5",
         "react-native-safe-area-context": "^5.10.0",
@@ -99,7 +99,7 @@
     },
     "packages/react-native-nitro-sqlite": {
       "name": "react-native-nitro-sqlite",
-      "version": "9.8.0",
+      "version": "9.8.1",
       "dependencies": {
         "typeorm": "0.3.27",
       },
@@ -115,14 +115,14 @@
       "peerDependencies": {
         "react": ">=17.0.0",
         "react-native": ">=0.75.0",
-        "react-native-nitro-modules": ">=0.37.1",
+        "react-native-nitro-modules": ">=0.35.0",
       },
     },
     "packages/react-native-nitro-sqlite-vec": {
       "name": "react-native-nitro-sqlite-vec",
-      "version": "9.8.0",
+      "version": "9.8.1",
       "devDependencies": {
-        "react-native-nitro-sqlite": "9.7.0",
+        "react-native-nitro-sqlite": "9.8.0",
         "typescript": "^5.8.3",
       },
       "peerDependencies": {
