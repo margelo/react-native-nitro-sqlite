@@ -20,15 +20,15 @@ db.execute(`
 const body = 'Read the docs'
 db.execute('INSERT INTO notes (body) VALUES (?)', [body])
 
-const { results } = db.execute<{ id: number; body: string }>(
+const { rows } = db.execute<{ id: number; body: string }>(
   'SELECT id, body FROM notes WHERE body = ?',
   [body],
 )
 
-console.log(results)
+console.log(rows._array)
 db.close()
 ```
 
-The `?` placeholder binds `body` as a value. Use parameters for data supplied by a user or another untrusted source. The generic row type documents the expected shape for TypeScript; it does not validate values at runtime. You can also read rows through `rows._array`, `rows.length`, and `rows.item(index)`.
+The `?` placeholder binds `body` as a value. Use parameters for data supplied by a user or another untrusted source. The generic row type applies to `rows._array` and `rows.item(index)` in TypeScript; it does not validate values at runtime. `rows.length` gives the row count. The separate `results` array retains the general SQLite value type.
 
 For work that should not run on the JavaScript thread, use `await db.executeAsync(...)`. See [sync and async](/docs/getting-started/sync-and-async) before mixing the two forms, and [parameters and results](/docs/guides/parameters-and-results) for result details.

@@ -1,0 +1,82 @@
+---
+title: Types and errors
+description: Exported TypeScript types, result shapes, and NitroSQLiteError behavior.
+---
+
+The package root exports these TypeScript declarations with `export type * from './types'`. Import them with `import type`:
+
+```ts
+import type {
+  NitroSQLiteConnection,
+  QueryResult,
+  SQLiteQueryParams,
+} from 'react-native-nitro-sqlite'
+```
+
+## Connections and query values
+
+| Type | Shape |
+| --- | --- |
+| `NitroSQLiteConnectionOptions` | `{ name: string; location?: string }`. `open()` accepts this object. |
+| `NitroSQLiteConnection` | The object returned by `open()`. See its [methods](/docs/api/connection). |
+| `SQLiteValue` | `boolean \| number \| string \| ArrayBuffer \| null`. |
+| `SQLiteQueryParams` | `SQLiteValue[]`, in placeholder order. |
+| `QueryResultRow` | `Record<string, SQLiteValue>`. Row generics must satisfy this shape. |
+| `ExecuteQuery` | `<Row extends QueryResultRow>(query: string, params?: SQLiteValue[]) => QueryResult<Row>`. |
+| `ExecuteAsyncQuery` | The same arguments, returning `Promise<QueryResult<Row>>`. |
+
+`NitroSQLiteConnection.execute` and `Transaction.execute` use `ExecuteQuery`; their async counterparts use `ExecuteAsyncQuery`. Both aliases default `Row` to `QueryResultRow` if no type argument is supplied.
+
+## Query results
+
+`QueryResult<Row>` is the native result plus a JavaScript `rows` container. Its fields are:
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `results` | `Record<string, SQLiteValue>[]` | Raw result rows. The `Row` generic does not narrow this field. |
+| `rows` | `NitroSQLiteQueryResultRows<Row>` | Added by the JavaScript execute helpers. |
+| `rows._array` | `Row[]` | Typed row array. |
+| `rows.length` | `number` | Number of returned rows. |
+| `rows.item(index)` | `Row \| undefined` | Returns `undefined` when the index has no row. |
+| `rowsAffected` | `number` | SQLite's latest change count. A SELECT can retain an earlier write's count. |
+| `insertId` | `number \| undefined` | Last insert row ID on the connection, possibly from an earlier statement. |
+| `metadata` | Optional column metadata map | Keys are result column names; each value has `name`, `type`, and `index`. |
+
+`NitroSQLiteQueryResultRows<Row>` is also an exported type alias for the `rows` object. Use `rows.length` or `results.length` to count rows returned by a SELECT. See [queries and results](/docs/api/queries-and-results) for an example.
+
+Query results are Nitro hybrid objects and also inherit `name`, `toString()`, `equals(other)`, and `dispose()`. Disposing one makes that result object unusable; ordinary garbage collection handles cleanup. See the [native API](/docs/api/native#nitrosqlitenative) for the raw result and hybrid object notes.
+
+`ColumnType` is declared as an enum with numeric values `BOOLEAN = 0`, `NUMBER = 1`, `INT64 = 2`, `TEXT = 3`, `ARRAY_BUFFER = 4`, and `NULL_VALUE = 5`. The package root exports only its TypeScript type, not a runtime enum object. `metadata.index` is the zero-based result column position.
+
+The current native mapper can report the wrong `metadata.type` for a declared column. Do not use it to determine a column's declared SQLite type. Inspect your schema when the declared type matters.
+
+## Transactions, batches, and file loads
+
+| Type | Shape |
+| --- | --- |
+| `Transaction` | `execute`, `executeAsync`, `commit(): NitroSQLiteQueryResult`, and `rollback(): NitroSQLiteQueryResult`. The commit and rollback return type is an internal native result declaration. |
+| `BatchQueryCommand` | `{ query: string; params?: SQLiteQueryParams \| SQLiteQueryParams[] }`. Nested parameter arrays repeat the query. |
+| `BatchQueryResult` | `{ rowsAffected?: number }`. |
+| `FileLoadResult` | `BatchQueryResult & { commands?: number }`. |
+
+The package root does not export the internal `NitroSQLiteQueryResult` declaration directly. `commit()` and `rollback()` call the JavaScript query helper at runtime, but their declared return type exposes only the native result fields, not typed `rows`. Use these methods to finalize the transaction, not to retrieve rows. See [transactions and batches](/docs/api/transactions-and-batches) for the callback and batch behavior.
+
+## NitroSQLiteError
+
+`NitroSQLiteError` is a runtime class exported from the package root. It extends `Error`, sets `name` to `'NitroSQLiteError'`, and accepts `new NitroSQLiteError(message, options?)` with standard `ErrorOptions` such as `cause`.
+
+`NitroSQLiteError.fromError(error: unknown): NitroSQLiteError` returns an existing instance unchanged. It copies an `Error`'s message, cause, and stack into a new instance; turns a string into its message; and uses `'Unknown error occurred'` with the original value as `cause` for other inputs.
+
+```ts
+import { NitroSQLiteError } from 'react-native-nitro-sqlite'
+
+try {
+  await db.executeAsync('SELECT * FROM missing_table')
+} catch (error) {
+  if (error instanceof NitroSQLiteError) {
+    console.error(error.message)
+  }
+}
+```
+
+The JavaScript connection and global helpers normalize database errors to this class. Calls made directly through `NitroSQLite.native` bypass those wrappers. The class has no separate SQLite error-code field.

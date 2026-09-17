@@ -22,7 +22,10 @@ The `open()` connection queues async operations for the same database name in su
 
 ```ts
 await db.executeAsync('INSERT INTO notes (body) VALUES (?)', ['Queued write'])
-const count = db.execute<{ total: number }>('SELECT COUNT(*) AS total FROM notes')
+const total = db.execute<{ total: number }>(
+  'SELECT COUNT(*) AS total FROM notes',
+).rows.item(0)?.total
+console.log(total)
 ```
 
 `db.transaction()` also occupies the queue until its callback finishes. Inside that callback, use the provided `tx` methods. Awaiting `db.executeAsync()` or another queued operation for the same database inside it leaves both operations waiting for each other. See [transactions](/docs/guides/transactions).

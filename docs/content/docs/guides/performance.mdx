@@ -10,10 +10,11 @@ Start with the query and the amount of data it reads. Add indexes for columns yo
 `execute()` and the other synchronous methods block their JavaScript caller. Use `executeAsync()`, `executeBatchAsync()`, and `loadFileAsync()` for work that may take longer. The native async implementations run database work on a background thread, while the connection queue preserves submission order for one opened database.
 
 ```ts
-const { results } = await db.executeAsync<{ id: number; title: string }>(
+const { rows } = await db.executeAsync<{ id: number; title: string }>(
   'SELECT id, title FROM articles ORDER BY id DESC LIMIT ?',
   [50],
 )
+console.log(rows._array)
 ```
 
 An async call still consumes device CPU and database I/O. Paginate large result sets instead of bringing every row into JavaScript at once.

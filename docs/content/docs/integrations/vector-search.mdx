@@ -44,6 +44,19 @@ db.close()
 
 `vecVersion(db)` calls `vec_version()` and returns its version string. `isVecAvailable(db)` returns `false` if that call fails. `createVectorTable(db, table, options)` creates a `vec0` virtual table if it does not exist. `knnSearch(db, table, query, k, options?)` returns an array of `{ rowid, distance }` matches, ordered by distance; `query` can be a numeric array or a JSON vector string.
 
-`CreateVectorTableOptions` requires `dimensions`. Its optional `type` is `'float'`, `'int8'`, or `'bit'`, with `'float'` as the default. `distanceMetric` accepts `'L2'`, `'cosine'`, or `'L1'`; sqlite-vec's default is L2. `column` defaults to `'embedding'`. `KnnSearchOptions` also lets you set `column`. For int8 and bit tables, construct vectors with sqlite-vec's `vec_int8()` and `vec_bit()` SQL functions as appropriate.
+All four helpers are synchronous and take an open `NitroSQLiteConnection`:
+
+| Export | Signature |
+| --- | --- |
+| `vecVersion` | `(db: NitroSQLiteConnection) => string` |
+| `isVecAvailable` | `(db: NitroSQLiteConnection) => boolean` |
+| `createVectorTable` | `(db: NitroSQLiteConnection, table: string, options: CreateVectorTableOptions) => void` |
+| `knnSearch` | `(db: NitroSQLiteConnection, table: string, query: string \| number[], k: number, options?: KnnSearchOptions) => KnnMatch[]` |
+
+`isVecAvailable()` catches any error from `vecVersion()`, so `false` means its availability query failed, not necessarily that the build flag is absent. The other helpers let query errors propagate from `db.execute()`.
+
+`CreateVectorTableOptions` has `dimensions: number`, optional `type: VectorColumnType`, optional `distanceMetric: VectorDistanceMetric`, and optional `column: string`. `VectorColumnType` is `'float' | 'int8' | 'bit'`; `'float'` is the default. `VectorDistanceMetric` is `'L2' | 'cosine' | 'L1'`; sqlite-vec's default is L2. The column defaults to `'embedding'`. `KnnSearchOptions` has an optional `column: string` with the same default. For int8 and bit tables, construct vectors with sqlite-vec's `vec_int8()` and `vec_bit()` SQL functions as appropriate.
+
+The package's five named type exports are `VectorColumnType`, `VectorDistanceMetric`, `CreateVectorTableOptions`, `KnnSearchOptions`, and `KnnMatch`. `KnnMatch` has `rowid: number`, `distance: number`, and a `[column: string]: unknown` index signature. The current `knnSearch()` helper selects only `rowid` and `distance`; write SQL through the core connection when you need more columns.
 
 The helpers interpolate table and column identifiers into SQL. Only pass identifiers you control. They bind the query vector and `k` as parameters. The core [query API](/docs/api/queries-and-results) can also run sqlite-vec SQL directly for features these small helpers do not wrap.

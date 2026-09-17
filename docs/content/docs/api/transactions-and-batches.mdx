@@ -7,6 +7,8 @@ description: Group SQL statements with transactions or run a batch of commands.
 
 `db.transaction(async (tx) => { ... })` starts a transaction and resolves with the callback's return value. The connection commits when the callback resolves, or rolls back if it throws. The callback receives `tx.execute`, `tx.executeAsync`, `tx.commit`, and `tx.rollback`.
 
+`tx.execute<Row>(sql, params?)` returns `QueryResult<Row>` and `tx.executeAsync<Row>(sql, params?)` returns `Promise<QueryResult<Row>>`. `tx.commit()` and `tx.rollback()` are synchronous; their declared return type exposes the native query-result fields. The JavaScript helper also adds `rows` at runtime, but that field is not in their declared type. Use these methods to finalize the transaction, not to retrieve rows.
+
 ```ts
 const insertedId = await db.transaction(async (tx) => {
   const insert = await tx.executeAsync(
