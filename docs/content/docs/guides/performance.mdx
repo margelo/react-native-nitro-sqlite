@@ -3,7 +3,9 @@ title: Performance
 description: Keep database work responsive and avoid unnecessary round trips.
 ---
 
-Start with the query and the amount of data it reads. Add indexes for columns you filter or join on, inspect query plans with SQLite's `EXPLAIN QUERY PLAN`, and select only the columns and rows your screen needs. These are SQLite techniques; their effect depends on your schema and data.
+SQLite chooses a plan for finding the rows each query needs. Without a useful index, it may have to examine many rows. An index can make filters and joins faster, but it takes storage and adds work to writes. `EXPLAIN QUERY PLAN` shows how SQLite intends to run a query, so inspect it before adding indexes blindly.
+
+In NitroSQLite, start with the query and the amount of data it reads. Add indexes for columns you filter or join on, inspect query plans with SQLite's `EXPLAIN QUERY PLAN`, and select only the columns and rows your screen needs. Their effect depends on your schema and data.
 
 ## Keep long work off the JavaScript thread
 

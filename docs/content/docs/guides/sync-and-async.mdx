@@ -3,7 +3,9 @@ title: Sync and async
 description: Pick the query form that fits your workload and understand connection ordering.
 ---
 
-The connection offers synchronous `execute`, `executeBatch`, and `loadFile` methods, with matching `Async` methods. Synchronous calls return before JavaScript continues, so a slow query blocks that JavaScript call. Asynchronous calls run the database work off the JavaScript thread and return a promise.
+SQLite work can take time, especially when a query reads many rows or a transaction writes many of them. A synchronous JavaScript call waits for that work to finish before the app can continue on the same thread. An asynchronous call lets JavaScript continue while the database work runs elsewhere.
+
+NitroSQLite's connection offers synchronous `execute`, `executeBatch`, and `loadFile` methods, with matching `Async` methods. Synchronous calls return before JavaScript continues, so a slow query blocks that JavaScript call. Asynchronous calls run the database work off the JavaScript thread and return a promise.
 
 ```ts
 import { open } from 'react-native-nitro-sqlite'

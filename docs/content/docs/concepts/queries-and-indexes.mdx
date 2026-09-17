@@ -1,0 +1,31 @@
+---
+title: Queries and indexes
+description: Read and change rows with SQL, then inspect query plans.
+---
+
+SQL statements read or change the database. A `SELECT` can filter rows with `WHERE`, choose columns, and set an order with `ORDER BY`. Without an index that helps a query, SQLite may need to inspect many rows. An index is a separate data structure that SQLite's query planner can use to find matching rows or produce an order. It also takes storage and work to maintain when data changes. [SQLite's query planning guide](https://www.sqlite.org/queryplanner.html) explains how the planner chooses a path.
+
+Nitro SQLite sends your SQL through `execute()` or `executeAsync()`. Assuming the `notes` table from [tables and values](/docs/concepts/tables-and-values) exists, use the same methods to create an index and inspect a query plan:
+
+```ts
+import { open } from 'react-native-nitro-sqlite'
+
+const db = open({ name: 'notes.sqlite' })
+
+await db.executeAsync('CREATE INDEX IF NOT EXISTS notes_body_idx ON notes(body)')
+
+const { rows } = await db.executeAsync<{ id: number; body: string }>(
+  'SELECT id, body FROM notes WHERE body = ?',
+  ['Buy milk'],
+)
+console.log(rows._array)
+
+const plan = await db.executeAsync(
+  'EXPLAIN QUERY PLAN SELECT id, body FROM notes WHERE body = ?',
+  ['Buy milk'],
+)
+console.log(plan.rows._array)
+db.close()
+```
+
+Bind application values with `?`; placeholders cannot stand in for table or column names. Add an index for a query you actually run, then inspect its plan with representative data. The [query API](/docs/api/queries-and-results) describes returned rows, and the [performance guide](/docs/guides/performance) covers keeping large reads bounded.

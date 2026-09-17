@@ -58,6 +58,8 @@ Both keys require booleans. For one Pod installation, `NITRO_SQLITE_THREADSAFE` 
 
 ## Additional compile flags
 
+SQLite has optional features selected when its source is compiled. For example, FTS5 adds full-text search tables that can search words in stored text.
+
 To compile optional SQLite features into the bundled source, add the definition to the `RNNitroSQLite` pod target. For example, in an existing `post_install` block in `ios/Podfile`:
 
 ```ruby

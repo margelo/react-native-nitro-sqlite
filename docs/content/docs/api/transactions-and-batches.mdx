@@ -3,6 +3,8 @@ title: Transactions and batches
 description: Group SQL statements with transactions or run a batch of commands.
 ---
 
+A SQLite transaction groups statements into one unit of work. Committing keeps their changes; rolling back discards them if an operation fails. Use one when related writes must succeed or fail together.
+
 ## Transaction callback
 
 `db.transaction(async (tx) => { ... })` starts a transaction and resolves with the callback's return value. The connection commits when the callback resolves, or rolls back if it throws. The callback receives `tx.execute`, `tx.executeAsync`, `tx.commit`, and `tx.rollback`.
@@ -25,6 +27,8 @@ Inside the callback, use `tx` for every statement on that database, including st
 The callback and transaction are async even when you only call `tx.execute()`. The native transaction starts with `BEGIN TRANSACTION`.
 
 ## Batch commands
+
+A batch runs a list of statements together. Nitro SQLite wraps the list in a native transaction, so a failed command rolls back the batch instead of leaving earlier commands applied.
 
 `db.executeBatch(commands)` and `db.executeBatchAsync(commands)` run commands in one native transaction and return `BatchQueryResult`, which has an optional `rowsAffected` number. A `BatchQueryCommand` has a SQL `query` and optional `params`. Pass one parameter array for one execution, or an array of parameter arrays to repeat the query.
 

@@ -3,7 +3,9 @@ title: Attach databases
 description: Query another database file through a named SQLite schema.
 ---
 
-Attach a second database to an open connection when a query needs tables from both files. The alias becomes a SQLite schema name. Use the same platform root and relative `location` convention as `open()`.
+SQLite's `ATTACH DATABASE` makes another database file available through an existing connection. You give it a schema name, then use that name to distinguish tables in the attached file from tables in the main database. This is useful when one query needs data from both files.
+
+In NitroSQLite, call `attach()` on an open connection. The alias becomes the SQLite schema name. Use the same platform root and relative `location` convention as `open()`.
 
 ```ts
 import { open } from 'react-native-nitro-sqlite'

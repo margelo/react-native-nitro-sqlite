@@ -11,6 +11,8 @@ The default database root is the app's internal `filesDir`. `open({ name: 'app.s
 
 ## SQLite compile flags
 
+SQLite has optional features selected when its source is compiled. For example, FTS5 adds full-text search tables that can search words in stored text.
+
 Set `nitroSqliteFlags` in the app's `android/gradle.properties` to pass definitions into the native CMake build. For example, to enable FTS5:
 
 ```properties

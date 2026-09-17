@@ -3,7 +3,9 @@ title: Batch operations
 description: Execute a fixed list of statements in one native transaction.
 ---
 
-`executeBatch()` and `executeBatchAsync()` run a nonempty list of commands in one native exclusive transaction. If a command fails, the batch rolls back and the method throws or rejects. The result contains the sum of `rowsAffected`; it does not include SELECT rows.
+When you need to make several related changes, a SQLite transaction can commit all of them together or roll them all back if one fails. Grouping a fixed list of statements also avoids making a separate JavaScript call for each write.
+
+NitroSQLite's `executeBatch()` and `executeBatchAsync()` run a nonempty list of commands in one native exclusive transaction. If a command fails, the batch rolls back and the method throws or rejects. The result contains the sum of `rowsAffected`; it does not include SELECT rows.
 
 ```ts
 import type { BatchQueryCommand } from 'react-native-nitro-sqlite'

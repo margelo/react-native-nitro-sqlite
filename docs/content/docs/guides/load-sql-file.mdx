@@ -3,7 +3,9 @@ title: Load a SQL file
 description: Run one SQL statement per nonempty line from an app-accessible file.
 ---
 
-`loadFile(path)` and `loadFileAsync(path)` read an app-accessible SQL text file and execute its nonempty lines in a native exclusive transaction. The `path` is a file-system path to the SQL file, separate from the database `location` option. Copy bundled assets to an accessible file path first if your asset system does not expose one.
+A SQL file is a text file containing statements that set up or change a database. Apps often use one to create tables or insert initial data. Running those statements in a transaction keeps a failure from leaving only part of the file applied.
+
+NitroSQLite's `loadFile(path)` and `loadFileAsync(path)` read an app-accessible SQL text file and execute its nonempty lines in a native exclusive transaction. The `path` is a file-system path to the SQL file, separate from the database `location` option. Copy bundled assets to an accessible file path first if your asset system does not expose one.
 
 ```ts
 const result = await db.loadFileAsync('/absolute/path/to/seed.sql')

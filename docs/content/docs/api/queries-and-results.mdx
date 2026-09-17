@@ -3,6 +3,8 @@ title: Queries and results
 description: Execute SQL with bound values and read rows, counts, metadata, and errors.
 ---
 
+SQL statements read or change data in a database. A `SELECT` returns rows, while statements such as `INSERT`, `UPDATE`, and `DELETE` change rows. Placeholders such as `?` let SQLite bind values separately from the SQL text.
+
 ## Execute a statement
 
 `db.execute<Row>(sql, params?)` returns a `QueryResult<Row>` synchronously. `db.executeAsync<Row>(sql, params?)` returns `Promise<QueryResult<Row>>` and runs the native work off the JavaScript thread. Use the async method for work that may take long enough to interrupt interaction.
