@@ -14,6 +14,7 @@ export function DatabaseIllustration() {
     const mobile = window.matchMedia('(max-width: 950px), (hover: none)')
     let frame = 0
     let bounds = scene.getBoundingClientRect()
+    let pointerActive = false
 
     const setPosition = (x: number, y: number, progress: number) => {
       if (reducedMotion.matches) return
@@ -25,44 +26,57 @@ export function DatabaseIllustration() {
       })
     }
 
-    const onPointerEnter = () => { bounds = scene.getBoundingClientRect() }
     const onPointerMove = (event: PointerEvent) => {
-      if (mobile.matches) return
-      const x = Math.max(-1, Math.min(1, ((event.clientX - bounds.left) / bounds.width - 0.5) * 2))
-      const y = Math.max(-1, Math.min(1, ((event.clientY - bounds.top) / bounds.height - 0.5) * 2))
-      setPosition(x, y, (y + 1) / 2)
+      if (mobile.matches || reducedMotion.matches) return
+      const dx = event.clientX - bounds.left - bounds.width / 2
+      const dy = event.clientY - bounds.top - bounds.height / 2
+      const radiusX = Math.max(bounds.width * 1.7, 760)
+      const radiusY = Math.max(bounds.height * 1.6, 520)
+      const distance = Math.hypot(dx / radiusX, dy / radiusY)
+
+      if (distance >= 1) {
+        if (!pointerActive) return
+        pointerActive = false
+        setPosition(0, 0, 0.35)
+        return
+      }
+
+      pointerActive = true
+      const edge = Math.max(0, Math.min(1, (distance - 0.45) / 0.55))
+      const falloff = 1 - edge * edge * (3 - 2 * edge)
+      const x = Math.max(-1, Math.min(1, dx / (bounds.width * 0.6))) * falloff
+      const y = Math.max(-1, Math.min(1, dy / (bounds.height * 0.6))) * falloff
+      setPosition(x, y, 0.35 + y * 0.35)
     }
-    const onPointerLeave = () => { if (!mobile.matches) setPosition(0, 0, 0.35) }
+    const onPointerLeave = () => {
+      if (!pointerActive) return
+      pointerActive = false
+      setPosition(0, 0, 0.35)
+    }
     const onScroll = () => {
-      if (!mobile.matches || reducedMotion.matches) return
       cancelAnimationFrame(frame)
       frame = requestAnimationFrame(() => {
-        const rect = scene.getBoundingClientRect()
-        const progress = Math.max(0, Math.min(1, (window.innerHeight - rect.top) / (window.innerHeight + rect.height)))
+        bounds = scene.getBoundingClientRect()
+        if (!mobile.matches || reducedMotion.matches) return
+        const progress = Math.max(0, Math.min(1, (window.innerHeight - bounds.top) / (window.innerHeight + bounds.height)))
         scene.style.setProperty('--scene-x', '0')
         scene.style.setProperty('--scene-y', ((progress - 0.5) * 1.3).toFixed(3))
         scene.style.setProperty('--scene-progress', progress.toFixed(3))
       })
     }
-    const onResize = () => {
-      bounds = scene.getBoundingClientRect()
-      onScroll()
-    }
 
-    scene.addEventListener('pointerenter', onPointerEnter)
-    scene.addEventListener('pointermove', onPointerMove)
-    scene.addEventListener('pointerleave', onPointerLeave)
+    window.addEventListener('pointermove', onPointerMove, { passive: true })
+    window.addEventListener('blur', onPointerLeave)
     window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onResize, { passive: true })
+    window.addEventListener('resize', onScroll, { passive: true })
     onScroll()
 
     return () => {
       cancelAnimationFrame(frame)
-      scene.removeEventListener('pointerenter', onPointerEnter)
-      scene.removeEventListener('pointermove', onPointerMove)
-      scene.removeEventListener('pointerleave', onPointerLeave)
+      window.removeEventListener('pointermove', onPointerMove)
+      window.removeEventListener('blur', onPointerLeave)
       window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onResize)
+      window.removeEventListener('resize', onScroll)
     }
   }, [])
 
