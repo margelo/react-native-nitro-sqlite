@@ -6,7 +6,8 @@
   "workspaces": [
     "packages/*",
     "example",
-    "example/macos"
+    "example/macos",
+    "docs"
   ],
   "repository": {
     "type": "git",
@@ -30,7 +31,8 @@
     "test:release": "bun test scripts/sync-bun-lockfile.test.ts scripts/release.test.ts",
     "release": "./scripts/release.sh",
     "sqlite": "bun --cwd packages/react-native-nitro-sqlite",
-    "example": "bun --cwd example"
+    "example": "bun --cwd example",
+    "docs": "bun --cwd docs"
   },
   "engines": {
     "node": ">=22.13.0"

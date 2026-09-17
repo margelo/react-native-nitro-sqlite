@@ -1,10 +1,15 @@
 # Nitro SQLite documentation
 
-This directory is the standalone documentation site for Nitro SQLite. It uses Next.js and Fumadocs, with its own `package.json` and `bun.lock`. Install dependencies from this directory so documentation work does not change the repository's React Native workspace lockfile.
+This directory contains the Next.js and Fumadocs site for Nitro SQLite. It is part of the repository's Bun workspace, and a full checkout uses the root lockfile for dependency installation. The lockfile in this directory also supports deployments that install only the documentation directory.
 
 ## Local development
 
-Use the package manager version pinned in `docs/package.json` and Node.js 22.13 or newer. Install the dependencies in `docs/`, then use its scripts:
+Use the package manager version pinned by the repository and Node.js 22.13 or newer. Install the documentation workspace dependencies from the repository root. Then run its scripts from the repository root:
+
+```sh
+bun docs dev
+bun docs build
+```
 
 | Script | Purpose |
 | --- | --- |
