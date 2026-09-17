@@ -40,7 +40,7 @@
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>RNNitroSQLite_DatabaseLocation</key>
-	<string>Documents</string>
+	<string>ApplicationSupport</string>
 	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
