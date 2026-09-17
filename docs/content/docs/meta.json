@@ -1,0 +1,10 @@
+{
+  "pages": [
+    "index",
+    "concepts",
+    "guides",
+    "integrations",
+    "configuration",
+    "api"
+  ]
+}

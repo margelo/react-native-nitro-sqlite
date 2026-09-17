@@ -1,0 +1,32 @@
+---
+title: API reference
+description: Public exports and the connection methods in react-native-nitro-sqlite.
+---
+
+`open()` is the main entry point. It opens a named database and returns a connection whose methods no longer need the database name.
+
+```ts
+import { open } from 'react-native-nitro-sqlite'
+
+const db = open({ name: 'app.sqlite' })
+const { rows } = await db.executeAsync<{ id: number; title: string }>(
+  'SELECT id, title FROM notes WHERE id = ?',
+  [1],
+)
+
+console.log(rows.item(0))
+db.close()
+```
+
+| Task | Connection method | Reference |
+| --- | --- | --- |
+| Open, close, delete, attach, or detach a database | `open`, `close`, `delete`, `attach`, `detach` | [Connections](/docs/api/connection) |
+| Run SQL and read rows or column metadata | `execute`, `executeAsync` | [Queries and results](/docs/api/queries-and-results) |
+| Group statements | `transaction`, `executeBatch`, `executeBatchAsync` | [Transactions and batches](/docs/api/transactions-and-batches) |
+| Import a SQL file | `loadFile`, `loadFileAsync` | [Connections](/docs/api/connection#load-a-sql-file) |
+| Look up exported types and error behavior | `QueryResult`, `NitroSQLiteError`, and other types | [Types and errors](/docs/api/types-and-errors) |
+| Call the underlying database-name-based hybrid object | `NitroSQLite.native` | [Native API](/docs/api/native) |
+
+The package also exports `NitroSQLite`, `NitroSQLiteError`, `typeORMDriver`, and the connection, query, batch, and transaction types. `NitroSQLite.open(options)` and the named `open(options)` export are the same connection helper. The other top-level `NitroSQLite` methods are listed on the [global and native API page](/docs/api/native). The `typeORMDriver` export is for [TypeORM](/docs/integrations/typeorm); vector helpers come from the separate [sqlite-vec package](/docs/integrations/vector-search).
+
+Synchronous methods run on the JavaScript thread. Their async counterparts run the native work off that thread. Calls made through one opened connection are coordinated by a per-database JavaScript queue: async calls run in submission order, and a conflicting synchronous call throws a busy error.

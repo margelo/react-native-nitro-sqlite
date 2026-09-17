@@ -5,7 +5,8 @@
   "private": "true",
   "workspaces": [
     "packages/*",
-    "example"
+    "example",
+    "docs"
   ],
   "repository": {
     "type": "git",
@@ -16,7 +17,7 @@
   "bugs": {
     "url": "https://github.com/margelo/react-native-nitro-sqlite/issues"
   },
-  "homepage": "https://github.com/margelo/react-native-nitro-sqlite#readme",
+  "homepage": "https://sqlite.margelo.com",
   "scripts": {
     "postinstall": "patch-package",
     "typecheck": "tsc --build",
@@ -26,7 +27,8 @@
     "clean": "rm -rf **/.tsbuild **/tsconfig.tsbuildinfo node_modules packages/react-native-nitro-sqlite/node_module packages/react-native-nitro-sqlite/lib",
     "release": "./scripts/release.sh",
     "sqlite": "bun --cwd packages/react-native-nitro-sqlite",
-    "example": "bun --cwd example"
+    "example": "bun --cwd example",
+    "docs": "bun --cwd docs"
   },
   "engines": {
     "node": ">=22.13.0"

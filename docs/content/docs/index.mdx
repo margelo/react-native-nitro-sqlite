@@ -1,0 +1,80 @@
+---
+title: Getting Started
+description: Install Nitro SQLite, rebuild your React Native app, and run your first query.
+---
+
+Nitro SQLite gives React Native apps a local SQLite database on iOS and Android. Start by installing its native package and Nitro Modules, then open a database with `open()`.
+
+## 1. Install the packages
+
+Nitro SQLite requires React Native 0.75 or newer, React 17 or newer, and `react-native-nitro-modules` 0.37.1 or newer.
+
+```sh
+npm install react-native-nitro-sqlite react-native-nitro-modules
+```
+
+## 2. Set up the native project
+
+The default database location needs no custom SQLite settings. If your project has an `ios` directory, install the native pods after adding the packages:
+
+```sh
+npx pod-install
+```
+
+Android needs no additional Nitro SQLite configuration for the default setup. The [iOS](/docs/configuration/ios) and [Android](/docs/configuration/android) guides cover optional storage locations and build flags.
+
+## 3. Rebuild the app
+
+An already installed binary cannot load a native module added only to JavaScript. From a standard React Native CLI project, run the native build for your platform:
+
+```sh
+npm run ios
+# or
+npm run android
+```
+
+If your app uses different scripts, run its equivalent native build. See the [React Native build setup](https://reactnative.dev/docs/getting-started-without-a-framework) for platform prerequisites.
+
+For an Expo project, build a native app for your platform:
+
+```sh
+npx expo run:ios
+# or
+npx expo run:android
+```
+
+Expo Go does not include Nitro SQLite. Expo's run commands generate native directories when they do not exist. If your project keeps generated native directories, follow [Expo's prebuild guidance](https://docs.expo.dev/develop/development-builds/introduction/) to refresh them after adding a native dependency, then rebuild.
+
+## 4. Run your first query
+
+`open()` returns a connection bound to a database name. SQLite creates the file if it does not exist. This example creates a table, binds a value to `?`, and reads it back:
+
+```ts
+import { open } from 'react-native-nitro-sqlite'
+
+const db = open({ name: 'app.sqlite' })
+
+db.execute(`
+  CREATE TABLE IF NOT EXISTS notes (
+    id INTEGER PRIMARY KEY,
+    body TEXT NOT NULL
+  )
+`)
+
+const body = 'Read the docs'
+db.execute('INSERT INTO notes (body) VALUES (?)', [body])
+
+const { rows } = db.execute<{ id: number; body: string }>(
+  'SELECT id, body FROM notes WHERE body = ?',
+  [body],
+)
+
+console.log(rows._array)
+db.close()
+```
+
+Bind user supplied values as parameters rather than putting them into the SQL string. The row generic gives `rows._array` and `rows.item(index)` a TypeScript shape; it does not validate database values at runtime. For more result details, see [parameters and results](/docs/guides/parameters-and-results).
+
+## Keep going
+
+If SQLite is new to you, start with [databases and connections](/docs/concepts/databases-and-connections), [tables and values](/docs/concepts/tables-and-values), and [queries and indexes](/docs/concepts/queries-and-indexes). For work that may take longer, use `await db.executeAsync(...)` and read [sync and async](/docs/guides/sync-and-async) before mixing the two forms. Use [transactions](/docs/guides/transactions) or [batches](/docs/guides/batch-operations) for related writes. The [API reference](/docs/api) lists the complete public API.

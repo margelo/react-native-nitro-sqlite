@@ -1,0 +1,84 @@
+---
+title: iOS configuration
+description: Database storage, app groups, bundled SQLite options, and vector search on iOS.
+---
+
+Native build settings take effect after installing Pods and rebuilding the app. The database directory settings are read from the app's `Info.plist` when the native module loads.
+
+## Database location
+
+By default, the database root is the app's Documents directory. `open({ name: 'app.sqlite', location: 'databases' })` puts the file in a `databases` directory below that root. Use `location` as a relative directory by convention; the library does not validate path segments in the name or location. See [connections](/docs/api/connection) for the trust requirement.
+
+To use `Library/Application Support` as the root, add this to the app's `Info.plist`:
+
+```xml
+<key>RNNitroSQLite_DatabaseLocation</key>
+<string>ApplicationSupport</string>
+```
+
+The supported values are `Documents` and `ApplicationSupport`. Application Support keeps the database outside the Documents directory shown through Files app sharing. When you switch from Documents to Application Support, the library moves an existing database, including its SQLite sidecar files, when that database is next opened or attached. Switching the setting back does not move it to Documents. An app group setting takes precedence over this setting.
+
+## App groups
+
+Enable the App Groups capability for the app and any extension that shares the database. Set the same group identifier in the app's `Info.plist`:
+
+```xml
+<key>RNNitroSQLite_AppGroup</key>
+<string>group.example.shared</string>
+```
+
+The library uses the group's container as its database root and throws during initialization if the identifier has no valid container. An optional `location` passed to `open()` follows the same relative-directory convention under that root.
+
+## Bundled or system SQLite
+
+The pod compiles the bundled SQLite source by default. To link iOS's system SQLite instead, set `NITRO_SQLITE_USE_PHONE_VERSION=1` for Pod installation:
+
+```sh
+NITRO_SQLITE_USE_PHONE_VERSION=1 npx pod-install
+```
+
+The bundled source is where the pod's compile settings apply. Changing the pod's `SQLITE_THREADSAFE` or performance flags cannot change how the system library was built.
+
+## Thread safety and performance mode
+
+The bundled SQLite build defaults to `SQLITE_THREADSAFE=1` and enables the project's performance compile flags. Set either option in the app's `package.json`:
+
+```json
+{
+  "nitroSQLite": {
+    "threadSafe": true,
+    "performanceMode": true
+  }
+}
+```
+
+Both keys require booleans. For one Pod installation, `NITRO_SQLITE_THREADSAFE` and `NITRO_SQLITE_PERFORMANCE_MODE` override the package values. Each accepts `true`, `false`, `1`, or `0`.
+
+`threadSafe: false` compiles SQLite with `SQLITE_THREADSAFE=0`. This removes SQLite's mutex code. The connection helper serializes calls for one database, but separate databases can still run concurrently, so this setting requires the application to serialize SQLite calls across the process. `performanceMode: false` removes the pod's extra SQLite compile flags independently of thread safety. Those flags include `SQLITE_DQS=0`, `SQLITE_DEFAULT_MEMSTATUS=0`, `SQLITE_DEFAULT_WAL_SYNCHRONOUS=1`, and several `SQLITE_OMIT_*` options; this switch does not set a runtime SQLite pragma.
+
+## Additional compile flags
+
+SQLite has optional features selected when its source is compiled. For example, FTS5 adds full-text search tables that can search words in stored text.
+
+To compile optional SQLite features into the bundled source, add the definition to the `RNNitroSQLite` pod target. For example, in an existing `post_install` block in `ios/Podfile`:
+
+```ruby
+installer.pods_project.targets.each do |target|
+  next unless target.name == 'RNNitroSQLite'
+
+  target.build_configurations.each do |config|
+    definitions = Array(config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] || '$(inherited)')
+    config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = definitions + ['SQLITE_ENABLE_FTS5=1']
+  end
+end
+```
+
+## Vector search
+
+Install `react-native-nitro-sqlite-vec`, then set `NITRO_SQLITE_VEC=1` when installing Pods:
+
+```sh
+NITRO_SQLITE_VEC=1 npx pod-install
+```
+
+The flag is read by both the core and companion podspecs. Rebuild the app, then use `isVecAvailable(db)` to check the linked extension. See the [vector search guide](/docs/integrations/vector-search).

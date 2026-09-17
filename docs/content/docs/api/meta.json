@@ -1,0 +1,4 @@
+{
+  "title": "API reference",
+  "pages": ["index", "connection", "queries-and-results", "transactions-and-batches", "types-and-errors", "native"]
+}

@@ -1,0 +1,30 @@
+---
+title: Tables and values
+description: Define a SQLite schema and understand the values returned to JavaScript.
+---
+
+A table organizes records into rows and named columns. Its schema describes those columns and can add constraints such as `PRIMARY KEY` and `NOT NULL`. SQLite has five storage classes for values: `NULL`, `INTEGER`, `REAL`, `TEXT`, and `BLOB`. In ordinary tables, a column's declared type gives it a *type affinity*, which influences conversion but does not generally enforce one storage class. See [SQLite's datatype guide](https://www.sqlite.org/datatype3.html).
+
+Nitro SQLite does not define tables through a separate schema API. Send SQL to the connection:
+
+```ts
+import { open } from 'react-native-nitro-sqlite'
+
+const db = open({ name: 'notes.sqlite' })
+
+await db.executeAsync(`
+  CREATE TABLE IF NOT EXISTS notes (
+    id INTEGER PRIMARY KEY,
+    body TEXT NOT NULL
+  )
+`)
+await db.executeAsync('INSERT INTO notes (body) VALUES (?)', ['Buy milk'])
+
+const { rows } = await db.executeAsync<{ id: number; body: string }>(
+  'SELECT id, body FROM notes',
+)
+console.log(rows._array)
+db.close()
+```
+
+The `?` placeholder binds a value separately from the SQL text. The TypeScript row type describes what your code expects; it does not check the schema or convert returned values. SQLite integers and real numbers arrive as JavaScript numbers, blobs as `ArrayBuffer`, and nulls as `null`. SQLite has no separate Boolean storage class, so a bound boolean is stored as an integer and read back as a number. See [parameters and results](/docs/guides/parameters-and-results) for supported values and result shapes.

@@ -1,0 +1,42 @@
+---
+title: Batch operations
+description: Execute a fixed list of statements in one native transaction.
+---
+
+When you need to make several related changes, a SQLite transaction can commit all of them together or roll them all back if one fails. Grouping a fixed list of statements also avoids making a separate JavaScript call for each write.
+
+NitroSQLite's `executeBatch()` and `executeBatchAsync()` run a nonempty list of commands in one native exclusive transaction. If a command fails, the batch rolls back and the method throws or rejects. The result contains the sum of `rowsAffected`; it does not include SELECT rows.
+
+```ts
+import type { BatchQueryCommand } from 'react-native-nitro-sqlite'
+
+const commands: BatchQueryCommand[] = [
+  {
+    query: 'INSERT INTO events (name, score) VALUES (?, ?)',
+    params: ['start', 1],
+  },
+  {
+    query: 'INSERT INTO events (name, score) VALUES (?, ?)',
+    params: ['finish', 2],
+  },
+]
+
+const { rowsAffected } = await db.executeBatchAsync(commands)
+```
+
+When the same SQL runs with different values, give one command an array of parameter arrays. The native batch code expands it into separate executions before starting the transaction.
+
+```ts
+await db.executeBatchAsync([
+  {
+    query: 'INSERT INTO events (name, score) VALUES (?, ?)',
+    params: [
+      ['alpha', 10],
+      ['beta', 20],
+      ['gamma', 30],
+    ],
+  },
+])
+```
+
+Choose the async form for a large batch so database work runs off the JavaScript thread. The synchronous form blocks until the batch finishes. Both participate in the `open()` connection's operation ordering. An empty batch is an error. Do not call a batch method from inside a transaction callback on the same connection; use the callback's `tx` methods instead. For exact types, see the [batch API](/docs/api/transactions-and-batches).
