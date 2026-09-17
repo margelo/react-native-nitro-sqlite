@@ -115,8 +115,10 @@ private:
 void migratesDatabaseAndEveryJournalType();
 void removesStaleDestinationJournalsMissingFromSource();
 void fallsBackWithoutChangingSourceFilesWhenDestinationCleanupFails();
+void preservesSourceWhenCopyingAnAuxiliaryFileFails();
 void removesOrphanedSourceJournalsAfterAnInterruptedMigration();
 void removesEveryDatabaseGenerationFile();
+void reportsCleanupFailureForNonemptyDatabaseDirectory();
 void recoversCommittedWalAfterMigration();
 void rollsBackHotJournalAfterMigration();
 void runWithoutCleanShutdown(const std::function<void()>& action);
@@ -136,8 +138,10 @@ int main() {
       {"removes stale destination journals missing from source", removesStaleDestinationJournalsMissingFromSource},
       {"falls back without changing source files when destination cleanup fails",
        fallsBackWithoutChangingSourceFilesWhenDestinationCleanupFails},
+      {"preserves source when copying an auxiliary file fails", preservesSourceWhenCopyingAnAuxiliaryFileFails},
       {"removes orphaned source journals after an interrupted migration", removesOrphanedSourceJournalsAfterAnInterruptedMigration},
       {"removes every database generation file", removesEveryDatabaseGenerationFile},
+      {"reports cleanup failure for a nonempty database directory", reportsCleanupFailureForNonemptyDatabaseDirectory},
       {"recovers committed WAL content after migration", recoversCommittedWalAfterMigration},
       {"rolls back a hot journal after migration", rollsBackHotJournalAfterMigration},
   };
@@ -222,6 +226,26 @@ void fallsBackWithoutChangingSourceFilesWhenDestinationCleanupFails() {
   }
 }
 
+void preservesSourceWhenCopyingAnAuxiliaryFileFails() {
+  TemporaryDirectory temporaryDirectory;
+  const auto source = temporaryDirectory.path / "Documents";
+  const auto destination = temporaryDirectory.path / "Application Support";
+  const std::string dbName = "database.sqlite";
+
+  writeFile(source / dbName, "source database");
+  fs::create_directories(source / (dbName + "-wal"));
+
+  expect(migrateDatabase(dbName, source, destination) == source, "a failed auxiliary copy should keep the source active");
+  expect(readFile(source / dbName) == "source database", "a failed copy should preserve the source database");
+
+  fs::remove(source / (dbName + "-wal"));
+  writeFile(source / (dbName + "-wal"), "source WAL");
+
+  expect(migrateDatabase(dbName, source, destination) == destination, "a later attempt should complete the migration");
+  expect(readFile(destination / dbName) == "source database", "the retry should copy the source database");
+  expect(readFile(destination / (dbName + "-wal")) == "source WAL", "the retry should copy the source WAL");
+}
+
 void removesOrphanedSourceJournalsAfterAnInterruptedMigration() {
   TemporaryDirectory temporaryDirectory;
   const auto source = temporaryDirectory.path / "Documents";
@@ -255,6 +279,18 @@ void removesEveryDatabaseGenerationFile() {
   for (const auto* suffix : kDatabaseSuffixes) {
     expect(!fs::exists(directory / (dbName + suffix)), "database generation files should be removed");
   }
+}
+
+void reportsCleanupFailureForNonemptyDatabaseDirectory() {
+  TemporaryDirectory temporaryDirectory;
+  const auto directory = temporaryDirectory.path / "Database";
+  const std::string dbName = "database.sqlite";
+
+  writeFile(directory / dbName / "child", "prevents directory removal");
+  writeFile(directory / (dbName + "-wal"), "must remain untouched");
+
+  expect(!removeDatabaseFiles(dbName, directory), "cleanup should fail if a database path is a nonempty directory");
+  expect(readFile(directory / (dbName + "-wal")) == "must remain untouched", "cleanup should stop before deleting another generation file");
 }
 
 void recoversCommittedWalAfterMigration() {

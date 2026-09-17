@@ -59,6 +59,7 @@ example/vendor/bundle
 # node.js
 #
 node_modules/
+coverage/
 npm-debug.log
 
 # BUCK
