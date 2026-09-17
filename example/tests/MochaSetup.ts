@@ -1,11 +1,24 @@
-import Mocha from 'mocha'
+import 'mocha'
 import { createMochaTestApi } from './MochaRNAdapter'
 import { setTestApi } from './TestApi'
 
 export type MochaTestResult =
-  | { type: 'grouping'; key: string; description: string }
-  | { type: 'correct'; key: string; description: string }
-  | { type: 'incorrect'; key: string; description: string; errorMsg: string }
+  | { type: 'suite'; id: string; parentId: string | null; title: string }
+  | {
+      type: 'test'
+      id: string
+      parentId: string | null
+      title: string
+      status: 'passed'
+    }
+  | {
+      type: 'test'
+      id: string
+      parentId: string | null
+      title: string
+      status: 'failed'
+      errorMsg: string
+    }
 
 export async function runTests(
   onResult: (result: MochaTestResult) => void,
@@ -23,30 +36,38 @@ export async function runTests(
       EVENT_SUITE_BEGIN,
     } = Mocha.Runner.constants
     const runner = new Mocha.Runner(suite)
-    let nextKey = 0
+    const suiteIds = new Map<Mocha.Suite, string>()
+    let nextId = 0
 
     runner
       .on(EVENT_SUITE_BEGIN, (startedSuite) => {
         if (startedSuite.title !== '') {
+          const id = `suite-${nextId++}`
+          suiteIds.set(startedSuite, id)
           onResult({
-            type: 'grouping',
-            key: String(nextKey++),
-            description: startedSuite.fullTitle().trim(),
+            type: 'suite',
+            id,
+            parentId: getParentId(startedSuite.parent, suite, suiteIds),
+            title: startedSuite.title,
           })
         }
       })
       .on(EVENT_TEST_PASS, (test) => {
         onResult({
-          type: 'correct',
-          key: String(nextKey++),
-          description: test.fullTitle().trim(),
+          type: 'test',
+          id: `test-${nextId++}`,
+          parentId: getParentId(test.parent, suite, suiteIds),
+          title: test.title,
+          status: 'passed',
         })
       })
       .on(EVENT_TEST_FAIL, (test, error: Error) => {
         onResult({
-          type: 'incorrect',
-          key: String(nextKey++),
-          description: test.fullTitle().trim(),
+          type: 'test',
+          id: `test-${nextId++}`,
+          parentId: getParentId(test.parent, suite, suiteIds),
+          title: test.title,
+          status: 'failed',
           errorMsg: error.message,
         })
       })
@@ -54,4 +75,13 @@ export async function runTests(
 
     runner.run()
   })
+}
+
+function getParentId(
+  parent: Mocha.Suite | undefined,
+  root: Mocha.Suite,
+  suiteIds: Map<Mocha.Suite, string>,
+): string | null {
+  if (!parent || parent === root) return null
+  return suiteIds.get(parent) ?? null
 }

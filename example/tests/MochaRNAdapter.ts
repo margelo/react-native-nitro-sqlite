@@ -1,4 +1,4 @@
-import Mocha from 'mocha'
+import 'mocha'
 import { expect as chaiExpect } from 'chai'
 import type { TestApi, TestExpect } from './TestApi'
 

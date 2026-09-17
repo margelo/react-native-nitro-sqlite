@@ -1,6 +1,6 @@
 module.exports = {
   testEnvironment: 'node',
-  testMatch: ['**/tests/MochaSetup.test.ts'],
+  testMatch: ['**/tests/{MochaSetup,TestResultTree}.test.ts'],
   transformIgnorePatterns: ['/node_modules/(?!escape-string-regexp/)'],
   transform: {
     '^.+\\.[jt]sx?$': [

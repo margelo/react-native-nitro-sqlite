@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it, jest } from '@jest/globals'
 import { runTests } from './MochaSetup'
 import type { MochaTestResult } from './MochaSetup'
 import {
@@ -6,6 +6,12 @@ import {
   describe as registerSuite,
   it as registerTest,
 } from './TestApi'
+
+jest.mock('mocha', () => {
+  const Runtime: typeof Mocha = jest.requireActual('mocha')
+  Object.assign(globalThis, { Mocha: Runtime })
+  return { __esModule: true, default: {} }
+})
 
 describe('MochaSetup', () => {
   it('reports suites and test results as they finish', async () => {
@@ -24,12 +30,20 @@ describe('MochaSetup', () => {
     )
 
     expect(results).toEqual([
-      { type: 'grouping', key: '0', description: 'database' },
-      { type: 'correct', key: '1', description: 'database passes' },
+      { type: 'suite', id: 'suite-0', parentId: null, title: 'database' },
       {
-        type: 'incorrect',
-        key: '2',
-        description: 'database fails',
+        type: 'test',
+        id: 'test-1',
+        parentId: 'suite-0',
+        title: 'passes',
+        status: 'passed',
+      },
+      {
+        type: 'test',
+        id: 'test-2',
+        parentId: 'suite-0',
+        title: 'fails',
+        status: 'failed',
         errorMsg: 'expected failure',
       },
     ])
@@ -40,11 +54,15 @@ describe('MochaSetup', () => {
     const second: string[] = []
 
     await runTests(
-      (result) => first.push(result.description),
+      (result) => {
+        if (result.type === 'test') first.push(result.title)
+      },
       () => registerTest('first', () => {}),
     )
     await runTests(
-      (result) => second.push(result.description),
+      (result) => {
+        if (result.type === 'test') second.push(result.title)
+      },
       () => registerTest('second', () => {}),
     )
 
@@ -55,10 +73,14 @@ describe('MochaSetup', () => {
   it('keeps parent hooks when registering nested and sibling tests', async () => {
     const calls: string[] = []
     const names: string[] = []
+    const results: MochaTestResult[] = []
 
     await runTests(
       (result) => {
-        if (result.type === 'correct') names.push(result.description)
+        results.push(result)
+        if (result.type === 'test' && result.status === 'passed') {
+          names.push(result.title)
+        }
       },
       () => {
         registerSuite('outer', () => {
@@ -78,7 +100,13 @@ describe('MochaSetup', () => {
     )
 
     expect(calls).toEqual(['before', 'sibling', 'before', 'nested'])
-    expect(names).toEqual(['outer sibling', 'outer inner nested'])
+    expect(names).toEqual(['sibling', 'nested'])
+    expect(results.map(({ id, parentId }) => [id, parentId])).toEqual([
+      ['suite-0', null],
+      ['test-1', 'suite-0'],
+      ['suite-2', 'suite-0'],
+      ['test-3', 'suite-2'],
+    ])
   })
 
   it('rejects registration errors', async () => {
