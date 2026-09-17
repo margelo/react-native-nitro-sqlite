@@ -8,7 +8,7 @@
         "patch-package": "^8.0.0",
         "react": "19.2.3",
         "react-native": "0.85.0-rc.0",
-        "react-native-nitro-modules": "0.36.1",
+        "react-native-nitro-modules": "0.37.1",
       },
       "devDependencies": {
         "@babel/core": "^7.28.5",
@@ -35,7 +35,7 @@
         "eslint-config-prettier": "^10.1.8",
         "eslint-plugin-prettier": "^5.5.4",
         "jest": "^30.2.0",
-        "nitrogen": "0.36.1",
+        "nitrogen": "0.37.1",
         "prettier": "^3.6.2",
         "release-it": "^19.2.4",
         "typeorm": "0.3.27",
@@ -105,16 +105,16 @@
       },
       "devDependencies": {
         "jest": "^30.2.0",
-        "nitrogen": "0.36.1",
+        "nitrogen": "0.37.1",
         "react": "19.2.3",
         "react-native": "0.85.0-rc.0",
         "react-native-builder-bob": "^0.31.0",
-        "react-native-nitro-modules": "0.36.1",
+        "react-native-nitro-modules": "0.37.1",
       },
       "peerDependencies": {
         "react": ">=17.0.0",
         "react-native": ">=0.75.0",
-        "react-native-nitro-modules": ">=0.35.0",
+        "react-native-nitro-modules": ">=0.37.1",
       },
     },
     "packages/react-native-nitro-sqlite-vec": {
@@ -1870,7 +1870,7 @@
 
     "new-github-release-url": ["new-github-release-url@2.0.0", "", { "dependencies": { "type-fest": "^2.5.1" } }, "sha512-NHDDGYudnvRutt/VhKFlX26IotXe1w0cmkDm6JGquh5bz/bDTw0LufSmH/GxTjEdpHEO+bVKFTwdrcGa/9XlKQ=="],
 
-    "nitrogen": ["nitrogen@0.36.1", "", { "dependencies": { "chalk": "^5.3.0", "react-native-nitro-modules": "^0.36.1", "ts-morph": "^28.0.0", "yargs": "^18.0.0", "zod": "^4.4.3" }, "bin": { "nitrogen": "lib/index.js" } }, "sha512-0Q/YQLyE1/iNRNfSEl6vSqXUJEaQQv0GboWYan+Kiy5Vr6kE/F3CrKnvrnDcR6cgFeIYN++eON+Qn3djDVHYvQ=="],
+    "nitrogen": ["nitrogen@0.37.1", "", { "dependencies": { "chalk": "^5.3.0", "react-native-nitro-modules": "^0.37.1", "ts-morph": "^28.0.0", "yargs": "^18.0.0", "zod": "^4.4.3" }, "bin": { "nitrogen": "lib/index.js" } }, "sha512-RMK1n8xV7B38JorfLCFexgPEDp7/4CnM/AR0R3UfikufXo8qB8TecgtY+sW0xjOjZJYwW5bJJI/kyZjusYk4JA=="],
 
     "nocache": ["nocache@3.0.4", "", {}, "sha512-WDD0bdg9mbq6F4mRxEYcPWwfA1vxd0mrvKOyxI7Xj/atfRHVeutzuWByG//jfm4uPzp0y4Kj051EORCBSQMycw=="],
 
@@ -2058,7 +2058,7 @@
 
     "react-native-harness": ["react-native-harness@1.2.0", "", { "dependencies": { "@react-native-harness/babel-preset": "1.2.0", "@react-native-harness/cli": "1.2.0", "@react-native-harness/jest": "1.2.0", "@react-native-harness/metro": "1.2.0", "@react-native-harness/runtime": "1.2.0", "tslib": "^2.3.0" }, "bin": { "harness": "bin.js", "react-native-harness": "bin.js" } }, "sha512-6/oihn6j1MA4ufnObDA4+2ncolpJQg0qTz37XS0dblry6fgss6Z/eQzANG8pSxI1VZe9HEi5QT43gMFolpAnBA=="],
 
-    "react-native-nitro-modules": ["react-native-nitro-modules@0.36.1", "", { "peerDependencies": { "react": "*", "react-native": "*" } }, "sha512-kBv/VvKqAmkXAvP1DxJMC9b/fRhh7JdSO4EUnPP46hJjrIFeFR8AwKm8mYaKZEuF014M/TVdv2vomVUW0umsQQ=="],
+    "react-native-nitro-modules": ["react-native-nitro-modules@0.37.1", "", { "peerDependencies": { "react": "*", "react-native": "*" } }, "sha512-KpW6EQVQ/bfegpCGxN9Be+ndvsfj56t4IESEvCASu9gWpJa/NDfHpIeIwCOvZQ3eXmLEj6YD4wCLqcC1FJPr2w=="],
 
     "react-native-nitro-sqlite": ["react-native-nitro-sqlite@workspace:packages/react-native-nitro-sqlite"],
 
