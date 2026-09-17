@@ -1,6 +1,6 @@
 {
   "name": "react-native-nitro-sqlite",
-  "version": "9.8.0",
+  "version": "9.8.1",
   "description": "Fast SQLite library for React Native built using Nitro Modules",
   "main": "./lib/module/index",
   "module": "./lib/module/index",
@@ -88,7 +88,9 @@
   "jest": {
     "preset": "@react-native/jest-preset",
     "watchman": false,
-    "testMatch": ["<rootDir>/src/__tests__/**/*.test.ts"],
+    "testMatch": [
+      "<rootDir>/src/__tests__/**/*.test.ts"
+    ],
     "collectCoverageFrom": [
       "src/**/*.ts",
       "!src/**/__tests__/**",
