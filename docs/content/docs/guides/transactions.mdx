@@ -10,12 +10,12 @@ const transferId = await db.transaction(async (tx) => {
   tx.execute('UPDATE accounts SET balance = balance - ? WHERE id = ?', [25, 1])
   tx.execute('UPDATE accounts SET balance = balance + ? WHERE id = ?', [25, 2])
 
-  const { results } = await tx.executeAsync<{ id: number }>(
-    'INSERT INTO transfers (amount) VALUES (?) RETURNING id',
+  const { insertId } = await tx.executeAsync(
+    'INSERT INTO transfers (amount) VALUES (?)',
     [25],
   )
 
-  return results[0]?.id
+  return insertId
 })
 ```
 

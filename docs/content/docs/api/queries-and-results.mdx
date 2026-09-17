@@ -38,7 +38,7 @@ The connection helpers add `rows` to the native result:
 | `insertId` | Optional last insert row ID from the connection. It can refer to an earlier insert. |
 | `metadata` | Optional map of column metadata keyed by result column name. |
 
-Each metadata entry has `name`, `index`, and `type`. The `ColumnType` type declares `BOOLEAN`, `NUMBER`, `INT64`, `TEXT`, `ARRAY_BUFFER`, and `NULL_VALUE`. The package root exports this as a type, not as a runtime enum value. A column's reported type is metadata from the result, not a validation of every value in that column.
+Each metadata entry has `name`, `index`, and `type`. The `ColumnType` type declares numeric values `BOOLEAN = 0`, `NUMBER = 1`, `INT64 = 2`, `TEXT = 3`, `ARRAY_BUFFER = 4`, and `NULL_VALUE = 5`. The package root exports this as a type, not as a runtime enum value. The current native mapper can report the wrong `metadata.type`, so do not use it to determine a column's declared SQLite type.
 
 For a `SELECT`, use `rows.length` or `results.length` to count the rows returned. `rowsAffected` is not a result-row count.
 

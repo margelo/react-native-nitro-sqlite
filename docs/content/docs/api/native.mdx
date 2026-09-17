@@ -1,9 +1,42 @@
 ---
-title: Native API
-description: The lower-level Nitro hybrid object for integrations that manage database names themselves.
+title: Global and native API
+description: Database-name-based NitroSQLite helpers and the raw Nitro hybrid object.
 ---
 
-`NitroSQLite.native` is the underlying Nitro hybrid object. Its methods take a database name rather than a connection object. `NitroSQLite` also spreads these native methods onto the top-level object, but overrides `open`, `execute`, `executeAsync`, and the batch methods with JavaScript helpers. Use `NitroSQLite.native` when you explicitly need the low-level form.
+The `NitroSQLite` export provides JavaScript helpers and a `.native` property holding the Nitro hybrid object. [`open(options)`](/docs/api/connection) returns the preferred connection API. The global helpers below retain a database-name argument for code that manages names itself.
+
+## JavaScript helpers on NitroSQLite
+
+| Method | Signature and result |
+| --- | --- |
+| `NitroSQLite.open` | `(options: NitroSQLiteConnectionOptions) => NitroSQLiteConnection`. Same function as the named `open` export. |
+| `NitroSQLite.execute<Row>` | `(dbName: string, query: string, params?: SQLiteQueryParams) => QueryResult<Row>`. |
+| `NitroSQLite.executeAsync<Row>` | Same arguments, returning `Promise<QueryResult<Row>>`. |
+| `NitroSQLite.executeBatch` | `(dbName: string, commands: BatchQueryCommand[]) => BatchQueryResult`. |
+| `NitroSQLite.executeBatchAsync` | Same arguments, returning `Promise<BatchQueryResult>`. |
+| `NitroSQLite.transaction<Result>` | `(dbName: string, callback: (tx: Transaction) => Promise<Result>, isExclusive?: boolean) => Promise<Result>`. |
+
+The generic `Row` must extend `QueryResultRow`. The global execute helpers default it to `never`, so supply a type argument when you want typed `rows`. `isExclusive` defaults to `false`; pass `true` to begin with `BEGIN EXCLUSIVE TRANSACTION`. The connection's `db.transaction()` method has no `isExclusive` argument.
+
+```ts
+import { NitroSQLite } from 'react-native-nitro-sqlite'
+
+const db = NitroSQLite.open({ name: 'app.sqlite' })
+const result = await NitroSQLite.executeAsync<{ id: number }>(
+  'app.sqlite',
+  'SELECT id FROM notes',
+)
+console.log(result.rows.length)
+db.close()
+```
+
+The global execute helpers join the JavaScript queue when that name was opened through `open()`. If no JavaScript connection exists, they call the native method directly, which still requires an open native database handle. Global batch and transaction helpers require a connection opened through `open()` because they use its JavaScript queue. A synchronous call conflicts with active queued work and throws `NitroSQLiteError`; async calls join the queue. Inside a transaction callback, use the supplied `tx` instead of another global or connection method for the same database.
+
+Use `NitroSQLite.native` for raw native methods. The `NitroSQLite` object spreads the hybrid instance, but its methods are inherited from the instance's prototype and should not be assumed to appear on the top-level object.
+
+## NitroSQLite.native
+
+`NitroSQLite.native` is the underlying Nitro hybrid object. Every method takes the database name explicitly. It does not add the connection's JavaScript `rows` container or normalize errors to `NitroSQLiteError`.
 
 ```ts
 import { NitroSQLite } from 'react-native-nitro-sqlite'
@@ -17,17 +50,22 @@ try {
 }
 ```
 
-| Method | Signature | Purpose |
-| --- | --- | --- |
-| `open` | `(dbName, location?) => void` | Open or create a named database. |
-| `close` | `(dbName) => void` | Close the named database. |
-| `drop` | `(dbName, location?) => void` | Remove the database file. |
-| `attach` | `(mainDbName, dbNameToAttach, alias, location?) => void` | Attach another database. |
-| `detach` | `(mainDbName, alias) => void` | Detach an alias. |
-| `execute` / `executeAsync` | `(dbName, query, params?)` | Return a native query result, or a promise of one. |
-| `executeBatch` / `executeBatchAsync` | `(dbName, commands)` | Return a batch result, or a promise of one. |
-| `loadFile` / `loadFileAsync` | `(dbName, path)` | Run a SQL file, or return a promise of its result. |
+| Method | Signature and result |
+| --- | --- |
+| `open` | `(dbName: string, location?: string) => void`. |
+| `close` | `(dbName: string) => void`. |
+| `drop` | `(dbName: string, location?: string) => void`. Removes the database file. |
+| `attach` | `(mainDbName: string, dbNameToAttach: string, alias: string, location?: string) => void`. |
+| `detach` | `(mainDbName: string, alias: string) => void`. |
+| `execute` | `(dbName: string, query: string, params?: SQLiteQueryParams) => native query result`. |
+| `executeAsync` | Same arguments, returning a promise of a native query result. |
+| `executeBatch` | `(dbName: string, commands: BatchQueryCommand[]) => BatchQueryResult`. |
+| `executeBatchAsync` | Same arguments, returning `Promise<BatchQueryResult>`. |
+| `loadFile` | `(dbName: string, location: string) => FileLoadResult`. Here `location` is the SQL file path. |
+| `loadFileAsync` | Same arguments, returning `Promise<FileLoadResult>`. |
 
-The native query result has `results`, `rowsAffected`, optional `insertId`, and optional `metadata`. It does not have the JavaScript `rows` compatibility container. The native object also bypasses the connection helper's JavaScript queue and error normalization. Do not mix its calls with an active session transaction for the same database: a native statement may run within that transaction without being part of its callback's intended sequence.
+The native query result has `results: Record<string, SQLiteValue>[]`, `rowsAffected: number`, optional `insertId: number`, and optional `metadata` keyed by result column name. Each metadata value has `name: string`, `type: ColumnType`, and `index: number`. The native result and column metadata declarations live in the Nitro specs and are not named exports from the package root. The JavaScript `QueryResult<Row>` adds `rows` to this result; see [types and errors](/docs/api/types-and-errors).
 
-For ordinary app code, [open a connection](/docs/api/connection) and call its methods. This keeps the database name bound to one object and provides the transaction and result helpers.
+The raw object and query result inherit Nitro's `HybridObject` members: `name: string`, `toString(): string`, `equals(other): boolean`, and `dispose(): void`. `dispose()` makes that hybrid object unusable; it is not a database `close()` call. Normal garbage collection manages these objects, so do not dispose the shared `NitroSQLite.native` instance as part of ordinary database cleanup.
+
+Native calls bypass the JavaScript queue. Do not mix them with an active connection transaction for the same database: a native statement may run inside that transaction without being part of its callback's intended sequence. If you build SQLite with `SQLITE_THREADSAFE=0`, separate database handles also need process-wide serialization. See [iOS](/docs/configuration/ios#thread-safety-and-performance-mode) and [Android](/docs/configuration/android#threading) configuration.

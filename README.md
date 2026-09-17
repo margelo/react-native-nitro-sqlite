@@ -32,9 +32,10 @@ const db = open({ name: 'app.sqlite' })
 db.execute('CREATE TABLE IF NOT EXISTS notes (id INTEGER PRIMARY KEY, body TEXT)')
 db.execute('INSERT INTO notes (body) VALUES (?)', ['Hello'])
 
-const { results } = db.execute<{ id: number; body: string }>(
+const { rows } = db.execute<{ id: number; body: string }>(
   'SELECT id, body FROM notes',
 )
+console.log(rows._array)
 
 db.close()
 ```
