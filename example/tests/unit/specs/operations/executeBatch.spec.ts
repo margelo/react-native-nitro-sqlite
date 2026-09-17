@@ -1,5 +1,8 @@
 import { chance, expect } from '@tests/unit/common'
-import type { BatchQueryCommand } from 'react-native-nitro-sqlite'
+import {
+  NitroSQLiteError,
+  type BatchQueryCommand,
+} from 'react-native-nitro-sqlite'
 import { describe, it } from '@tests/TestApi'
 import { testDb } from '@tests/db'
 
@@ -92,6 +95,126 @@ export default function registerExecuteBatchUnitTests() {
           age: age2,
           networth: networth2,
         },
+      ])
+    })
+
+    it('expands nested parameters into separate statements', () => {
+      const result = testDb.executeBatch([
+        {
+          query:
+            'INSERT INTO User (id, name, age, networth) VALUES (?, ?, ?, ?)',
+          params: [
+            [1, 'first', 10, 100],
+            [2, 'second', 20, 200],
+          ],
+        },
+      ])
+
+      expect(result.rowsAffected).toBe(2)
+      expect(
+        testDb.execute('SELECT id, name FROM User ORDER BY id').results,
+      ).toEqual([
+        { id: 1, name: 'first' },
+        { id: 2, name: 'second' },
+      ])
+    })
+
+    it('expands nested parameters in asynchronous batches', async () => {
+      const result = await testDb.executeBatchAsync([
+        {
+          query:
+            'INSERT INTO User (id, name, age, networth) VALUES (?, ?, ?, ?)',
+          params: [
+            [1, 'first', 10, 100],
+            [2, 'second', 20, 200],
+          ],
+        },
+      ])
+
+      expect(result.rowsAffected).toBe(2)
+      expect(
+        testDb.execute('SELECT id, name FROM User ORDER BY id').results,
+      ).toEqual([
+        { id: 1, name: 'first' },
+        { id: 2, name: 'second' },
+      ])
+    })
+
+    it('rolls back every statement when a synchronous batch fails', () => {
+      let batchError: unknown
+      try {
+        testDb.executeBatch([
+          {
+            query:
+              'INSERT INTO User (id, name, age, networth) VALUES (?, ?, ?, ?)',
+            params: [1, 'first', 10, 100],
+          },
+          { query: 'INSERT INTO MissingTable (value) VALUES (1)' },
+        ])
+      } catch (error) {
+        batchError = error
+      }
+
+      expect(batchError).toBeInstanceOf(NitroSQLiteError)
+      expect(testDb.execute('SELECT id FROM User').results).toEqual([])
+      expect(
+        testDb.executeBatch([
+          {
+            query:
+              "INSERT INTO User (id, name, age, networth) VALUES (2, 'later', 20, 200)",
+          },
+        ]).rowsAffected,
+      ).toBe(1)
+    })
+
+    it('rolls back every statement when an asynchronous batch fails', async () => {
+      let batchError: unknown
+      try {
+        await testDb.executeBatchAsync([
+          {
+            query:
+              'INSERT INTO User (id, name, age, networth) VALUES (?, ?, ?, ?)',
+            params: [1, 'first', 10, 100],
+          },
+          { query: 'INSERT INTO MissingTable (value) VALUES (1)' },
+        ])
+      } catch (error) {
+        batchError = error
+      }
+
+      expect(batchError).toBeInstanceOf(NitroSQLiteError)
+      expect(testDb.execute('SELECT id FROM User').results).toEqual([])
+      expect(
+        (
+          await testDb.executeBatchAsync([
+            {
+              query:
+                "INSERT INTO User (id, name, age, networth) VALUES (2, 'later', 20, 200)",
+            },
+          ])
+        ).rowsAffected,
+      ).toBe(1)
+    })
+
+    it('rejects empty batches without leaving a transaction open', async () => {
+      let syncError: unknown
+      try {
+        testDb.executeBatch([])
+      } catch (error) {
+        syncError = error
+      }
+
+      let asyncError: unknown
+      try {
+        await testDb.executeBatchAsync([])
+      } catch (error) {
+        asyncError = error
+      }
+
+      expect(syncError).toBeInstanceOf(NitroSQLiteError)
+      expect(asyncError).toBeInstanceOf(NitroSQLiteError)
+      expect(testDb.execute('SELECT 1 AS value').results).toEqual([
+        { value: 1 },
       ])
     })
   })
