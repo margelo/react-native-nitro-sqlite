@@ -77,3 +77,7 @@ jobs:
       - name: Test sqlite-vec helpers
         working-directory: packages/react-native-nitro-sqlite-vec
         run: ../../node_modules/.bin/jest --coverage --runInBand
+
+      - name: Test the in-app Mocha runner
+        working-directory: example
+        run: ../node_modules/.bin/jest --config jest.mocha.config.js --runInBand --watchman=false
