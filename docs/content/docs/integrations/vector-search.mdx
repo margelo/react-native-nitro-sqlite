@@ -3,6 +3,8 @@ title: Vector search with sqlite-vec
 description: Enable the optional sqlite-vec native build and use its typed helpers.
 ---
 
+Vector search compares numeric arrays, often called embeddings, to find nearby matches. SQLite's virtual table mechanism lets an extension provide a table with its own storage and search behavior. `sqlite-vec` uses this mechanism for nearest-neighbor queries.
+
 `react-native-nitro-sqlite-vec` is an optional companion package. Its native code is compiled into Nitro SQLite's library and registered with SQLite before a database opens. There is no runtime extension-loading step.
 
 Install the companion alongside `react-native-nitro-sqlite`. Then enable the build on each platform you ship:

@@ -3,6 +3,8 @@ title: Connections
 description: Open and manage database connections, attached databases, and SQL files.
 ---
 
+A SQLite connection is an open handle to a database file. Queries on that connection share its transaction state and can refer to tables in the file. Nitro SQLite's `open()` gives you a connection to keep and close when you finish using it.
+
 ## Open a database
 
 ```ts
@@ -30,6 +32,8 @@ db.delete()
 Opening the same name again creates a new database file. On iOS, when a database is being moved from Documents to Application Support, deletion also cleans up copies and SQLite sidecar files from both locations.
 
 ## Attach and detach
+
+SQLite can attach another database file to a connection, making its tables available through an alias such as `archive.notes`. Detaching removes that file from the connection; it does not delete the file.
 
 `db.attach(dbNameToAttach, alias, location?): void` attaches another database file to the open connection. The optional location follows the same relative-directory convention as `open()`. `db.detach(alias): void` removes the attachment from that connection. The native implementation inserts the attached file path and alias into SQL, so use application-controlled database names, locations, and aliases.
 

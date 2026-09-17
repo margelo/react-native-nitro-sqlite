@@ -3,7 +3,9 @@ title: Parameters and results
 description: Bind SQLite values, inspect rows and metadata, and handle query failures.
 ---
 
-Pass positional values in an array for `?` placeholders. The public `SQLiteValue` type permits `boolean`, `number`, `string`, `ArrayBuffer`, and `null`. Keep table and column names in your own SQL; parameters bind values, not identifiers.
+SQLite parameters let you write SQL with placeholders and supply its values separately. SQLite binds each value to a placeholder when it runs the statement, which is useful for searches and writes that depend on user or app data. A query result contains the rows returned by a read, or information about the rows changed by a write.
+
+In NitroSQLite, pass positional values in an array for `?` placeholders. The public `SQLiteValue` type permits `boolean`, `number`, `string`, `ArrayBuffer`, and `null`. Keep table and column names in your own SQL; parameters bind values, not identifiers.
 
 ```ts
 const name = 'Ada'

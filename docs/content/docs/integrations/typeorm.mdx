@@ -3,6 +3,8 @@ title: TypeORM
 description: Use Nitro SQLite as the database driver for TypeORM's React Native DataSource.
 ---
 
+TypeORM maps application entities to database tables and builds SQL for operations on those entities. Its `DataSource` needs a driver to open SQLite and run the generated queries in a React Native app.
+
 Nitro SQLite exports `typeORMDriver` for TypeORM's `react-native` database type. TypeORM calls the driver, which opens a regular Nitro SQLite connection and uses its async query method. Use [`open()`](/docs/api/connection) directly when you do not need TypeORM.
 
 ## Configure module resolution

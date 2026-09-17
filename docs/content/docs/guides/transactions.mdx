@@ -3,7 +3,9 @@ title: Transactions
 description: Commit or roll back related statements and avoid queue deadlocks.
 ---
 
-Use `db.transaction()` when several statements must succeed or fail together. It starts a SQLite transaction and passes a transaction object to an async callback. The callback's return value becomes the value of the transaction promise.
+A SQLite transaction groups related statements into one unit of work. If the transaction commits, SQLite keeps the changes. If it rolls back, SQLite discards them. For example, a transfer between accounts should not leave only one balance updated.
+
+In NitroSQLite, use `db.transaction()` when several statements must succeed or fail together. It starts a SQLite transaction and passes a transaction object to an async callback. The callback's return value becomes the value of the transaction promise.
 
 ```ts
 const transferId = await db.transaction(async (tx) => {

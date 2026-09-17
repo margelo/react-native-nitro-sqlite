@@ -3,7 +3,9 @@ title: Database lifecycle
 description: Open, close, delete, and place database files in an app directory.
 ---
 
-`open({ name })` opens an existing SQLite file or creates a new one. A database name can have only one active `open()` connection in the JavaScript session. Close it before opening that name again.
+A SQLite database usually lives in a file. Your app opens a connection to read or change that file, then closes the connection when it is done. Closing a connection leaves the data on disk; deleting the file removes the database.
+
+In NitroSQLite, `open({ name })` opens an existing SQLite file or creates a new one. A database name can have only one active `open()` connection in the JavaScript session. Close it before opening that name again.
 
 ```ts
 import { open } from 'react-native-nitro-sqlite'
