@@ -1,0 +1,74 @@
+---
+title: TypeORM
+description: Use Nitro SQLite as the database driver for TypeORM's React Native DataSource.
+---
+
+Nitro SQLite exports `typeORMDriver` for TypeORM's `react-native` database type. TypeORM calls the driver, which opens a regular Nitro SQLite connection and uses its async query method. Use [`open()`](/docs/api/connection) directly when you do not need TypeORM.
+
+## Configure module resolution
+
+Install `typeorm`, `react-native-nitro-sqlite`, and `babel-plugin-module-resolver` in the app. The repository's working example uses TypeORM 0.3.27 and makes two resolution changes:
+
+1. Expose `./package.json` in TypeORM's `exports` map. The repository keeps this as a persistent package patch:
+
+   ```diff
+   "exports": {
+   + "./package.json": "./package.json",
+     ".": {
+   ```
+
+2. Alias the SQLite storage package name that TypeORM imports to Nitro SQLite in `babel.config.js`:
+
+   ```js
+   module.exports = {
+     presets: ['module:@react-native/babel-preset'],
+     plugins: [
+       [
+         'module-resolver',
+         {
+           alias: {
+             'react-native-sqlite-storage': 'react-native-nitro-sqlite',
+           },
+         },
+       ],
+     ],
+   }
+   ```
+
+Merge this plugin into your existing Babel configuration rather than replacing the rest of its plugins.
+
+## Create a DataSource
+
+```ts
+import { DataSource, EntitySchema } from 'typeorm'
+import { typeORMDriver } from 'react-native-nitro-sqlite'
+
+type Note = { id: number; title: string }
+
+const NoteEntity = new EntitySchema<Note>({
+  name: 'Note',
+  columns: {
+    id: { type: Number, primary: true, generated: true },
+    title: { type: String },
+  },
+})
+
+const dataSource = new DataSource({
+  type: 'react-native',
+  database: 'notes.sqlite',
+  location: '.',
+  driver: typeORMDriver,
+  entities: [NoteEntity],
+  synchronize: true,
+})
+
+await dataSource.initialize()
+const notes = dataSource.getRepository(NoteEntity)
+await notes.save({ title: 'First note' })
+const saved = await notes.find()
+await dataSource.destroy()
+```
+
+This small example uses `synchronize: true` to create the table. Choose your application's schema management before shipping. `database` becomes the connection's `name`; `location` is a directory relative to the [platform database root](/docs/api/connection#open-a-database).
+
+`typeORMDriver` is an adapter for TypeORM's callback interface, not a connection object for direct SQL calls. For the underlying SQL and transaction methods, see the [API reference](/docs/api).

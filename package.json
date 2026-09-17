@@ -16,7 +16,7 @@
   "bugs": {
     "url": "https://github.com/margelo/react-native-nitro-sqlite/issues"
   },
-  "homepage": "https://github.com/margelo/react-native-nitro-sqlite#readme",
+  "homepage": "https://sqlite.margelo.com",
   "scripts": {
     "postinstall": "patch-package",
     "typecheck": "tsc --build",

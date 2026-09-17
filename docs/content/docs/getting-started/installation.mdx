@@ -1,0 +1,20 @@
+---
+title: Installation
+description: Add Nitro SQLite and its Nitro Modules peer dependency to a React Native app.
+---
+
+Install both the SQLite package and Nitro Modules. Nitro SQLite 9.8.0 declares React Native 0.75 or newer, React 17 or newer, and `react-native-nitro-modules` 0.37.1 or newer as peer dependencies. Check that your app meets those requirements before building.
+
+```sh
+npm install react-native-nitro-sqlite react-native-nitro-modules
+```
+
+For iOS, install pods after adding the packages:
+
+```sh
+npx pod-install
+```
+
+Rebuild the native app. Adding this library to JavaScript alone cannot add its native code to an already installed binary. Expo projects need a development build or another native build; Expo Go cannot load a native module that it does not include. If you use Expo prebuild, run it as part of your normal native build workflow before rebuilding.
+
+Once the app launches, [open a database and run a query](/docs/getting-started/first-database). For native storage configuration, see [iOS](/docs/configuration/ios) and [Android](/docs/configuration/android).

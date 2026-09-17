@@ -1,0 +1,26 @@
+---
+title: Migrate from Quick SQLite
+description: Move from react-native-quick-sqlite 8.x to the Nitro SQLite 9.x package.
+---
+
+`react-native-quick-sqlite` was renamed for version 9. The replacement package is `react-native-nitro-sqlite`, which requires `react-native-nitro-modules`. Update both the native dependency and your imports, then rebuild the app.
+
+```sh
+npm uninstall react-native-quick-sqlite
+npm install react-native-nitro-sqlite react-native-nitro-modules
+npx pod-install
+```
+
+The recommended 9.x API is the connection returned by `open()`. It binds the database name once, so query calls on that connection no longer pass the name each time:
+
+```ts
+import { open } from 'react-native-nitro-sqlite'
+
+const db = open({ name: 'app.sqlite' })
+const { results } = await db.executeAsync('SELECT id, name FROM people')
+db.close()
+```
+
+Review every call site rather than applying a package-name substitution alone. In particular, check how you handle query results, queued async work, transactions, and close/delete timing. The [API reference](/docs/api) describes the current signatures, and [sync and async](/docs/getting-started/sync-and-async) explains connection ordering.
+
+If you have an existing on-device database, keep its filename and verify its actual storage path before upgrading. Nitro SQLite opens files under its platform database root and can create a new empty file when no file is present there. The package rename alone does not prove that every older installation stored files in the same directory. Plan and test a file copy if your previous app version used another location. See [database lifecycle](/docs/guides/database-lifecycle) and the platform pages for [iOS](/docs/configuration/ios) and [Android](/docs/configuration/android).

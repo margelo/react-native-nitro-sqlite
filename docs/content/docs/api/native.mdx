@@ -1,0 +1,33 @@
+---
+title: Native API
+description: The lower-level Nitro hybrid object for integrations that manage database names themselves.
+---
+
+`NitroSQLite.native` is the underlying Nitro hybrid object. Its methods take a database name rather than a connection object. `NitroSQLite` also spreads these native methods onto the top-level object, but overrides `open`, `execute`, `executeAsync`, and the batch methods with JavaScript helpers. Use `NitroSQLite.native` when you explicitly need the low-level form.
+
+```ts
+import { NitroSQLite } from 'react-native-nitro-sqlite'
+
+NitroSQLite.native.open('raw.sqlite')
+try {
+  const result = NitroSQLite.native.execute('raw.sqlite', 'SELECT 1 AS value')
+  console.log(result.results[0]?.value)
+} finally {
+  NitroSQLite.native.close('raw.sqlite')
+}
+```
+
+| Method | Signature | Purpose |
+| --- | --- | --- |
+| `open` | `(dbName, location?) => void` | Open or create a named database. |
+| `close` | `(dbName) => void` | Close the named database. |
+| `drop` | `(dbName, location?) => void` | Remove the database file. |
+| `attach` | `(mainDbName, dbNameToAttach, alias, location?) => void` | Attach another database. |
+| `detach` | `(mainDbName, alias) => void` | Detach an alias. |
+| `execute` / `executeAsync` | `(dbName, query, params?)` | Return a native query result, or a promise of one. |
+| `executeBatch` / `executeBatchAsync` | `(dbName, commands)` | Return a batch result, or a promise of one. |
+| `loadFile` / `loadFileAsync` | `(dbName, path)` | Run a SQL file, or return a promise of its result. |
+
+The native query result has `results`, `rowsAffected`, optional `insertId`, and optional `metadata`. It does not have the JavaScript `rows` compatibility container. The native object also bypasses the connection helper's JavaScript queue and error normalization. Do not mix its calls with an active session transaction for the same database: a native statement may run within that transaction without being part of its callback's intended sequence.
+
+For ordinary app code, [open a connection](/docs/api/connection) and call its methods. This keeps the database name bound to one object and provides the transaction and result helpers.
