@@ -21,6 +21,6 @@ const { results } = await db.executeAsync('SELECT id, name FROM people')
 db.close()
 ```
 
-Review every call site rather than applying a package-name substitution alone. In particular, check how you handle query results, queued async work, transactions, and close/delete timing. The [API reference](/docs/api) describes the current signatures, and [sync and async](/docs/getting-started/sync-and-async) explains connection ordering.
+Review every call site rather than applying a package-name substitution alone. In particular, check how you handle query results, queued async work, transactions, and close/delete timing. The [API reference](/docs/api) describes the current signatures, and [sync and async](/docs/guides/sync-and-async) explains connection ordering.
 
 If you have an existing on-device database, keep its filename and verify its actual storage path before upgrading. Nitro SQLite opens files under its platform database root and can create a new empty file when no file is present there. The package rename alone does not prove that every older installation stored files in the same directory. Plan and test a file copy if your previous app version used another location. See [database lifecycle](/docs/guides/database-lifecycle) and the platform pages for [iOS](/docs/configuration/ios) and [Android](/docs/configuration/android).

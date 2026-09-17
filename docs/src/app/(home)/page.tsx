@@ -23,7 +23,7 @@ export default function HomePage() {
         <QueryIllustration />
       </section>
       <section className="home-links" aria-label="Explore NitroSQLite">
-        <Link href="/docs/getting-started/first-database" className="home-link">
+        <Link href="/docs" className="home-link">
           <span className="home-link-number">01 / Open</span>
           <span className="home-link-title">Start with a database <ArrowIcon /></span>
           <span className="home-link-description">Create a connection to a local SQLite file.</span>

@@ -18,10 +18,9 @@ Requires React Native 0.75 or newer and `react-native-nitro-modules` 0.37.1 or n
 
 ```sh
 npm install react-native-nitro-sqlite react-native-nitro-modules
-npx pod-install
 ```
 
-Rebuild the native app after installing. Expo projects need a development build; Expo Go cannot load this native module. See the [installation guide](https://sqlite.margelo.com/docs/getting-started/installation) for details.
+Rebuild the native app after installing. Expo projects need a development build; Expo Go cannot load this native module. See [Getting Started](https://sqlite.margelo.com/docs) for details.
 
 ## Example
 
@@ -39,8 +38,6 @@ console.log(rows._array)
 
 db.close()
 ```
-
-See [your first database](https://sqlite.margelo.com/docs/getting-started/first-database) for a walkthrough.
 
 ## Migrating from Quick SQLite
 
