@@ -99,7 +99,7 @@
     },
     "packages/react-native-nitro-sqlite": {
       "name": "react-native-nitro-sqlite",
-      "version": "9.7.0",
+      "version": "9.8.0",
       "dependencies": {
         "typeorm": "0.3.27",
       },
@@ -120,7 +120,7 @@
     },
     "packages/react-native-nitro-sqlite-vec": {
       "name": "react-native-nitro-sqlite-vec",
-      "version": "9.7.0",
+      "version": "9.8.0",
       "devDependencies": {
         "react-native-nitro-sqlite": "9.7.0",
         "typescript": "^5.8.3",
