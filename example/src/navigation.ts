@@ -4,6 +4,7 @@ import { HomeScreen } from './screens/HomeScreen'
 import { UnitTestScreen } from './screens/UnitTestScreen'
 import { BenchmarkScreen } from './screens/BenchmarkScreen'
 import { SqlConsoleScreen } from './screens/SqlConsoleScreen'
+import { MigrationTestScreen } from './screens/MigrationTestScreen'
 
 export const RootStack = createNativeStackNavigator({
   screens: {
@@ -11,6 +12,7 @@ export const RootStack = createNativeStackNavigator({
     'Unit Tests': UnitTestScreen,
     'Benchmarks': BenchmarkScreen,
     'SQL Console': SqlConsoleScreen,
+    'Database Migration': MigrationTestScreen,
   },
 })
 
