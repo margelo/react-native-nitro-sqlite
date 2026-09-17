@@ -67,9 +67,10 @@ export function UnitTestScreen() {
                 ? 'Tests complete'
                 : 'Running tests…'}
           </Text>
-          <Text style={styles.counts}>
-            {passed} passed · {failed} failed
-          </Text>
+          <ResultCounts
+            passed={passed}
+            failed={failed}
+          />
         </View>
       }
       renderItem={({ item }) => {
@@ -98,19 +99,34 @@ export function UnitTestScreen() {
               <Text style={depth === 0 ? styles.fileTitle : styles.suiteTitle}>
                 {item.expanded ? '▾' : '▸'} {result.title}
               </Text>
-              <Text style={styles.counts}>
-                {item.passed} passed · {item.failed} failed
-              </Text>
+              <ResultCounts
+                passed={item.passed}
+                failed={item.failed}
+              />
             </Pressable>
           )
         }
 
         const { result } = item
         return (
-          <View style={[styles.test, { marginLeft: depth * 16 }]}>
-            <Text style={result.status === 'failed' && styles.error}>
-              {result.status === 'passed' ? '✓' : '✕'} {result.title}
-            </Text>
+          <View
+            accessible
+            accessibilityLabel={`${result.status}: ${result.title}${result.status === 'failed' ? `: ${result.errorMsg}` : ''}`}
+            style={[styles.test, { marginLeft: depth * 16 }]}
+          >
+            <View style={styles.testContent}>
+              <Text
+                style={[
+                  styles.testIndicator,
+                  result.status === 'passed'
+                    ? styles.passedIndicator
+                    : styles.failedIndicator,
+                ]}
+              >
+                {result.status === 'passed' ? '✓' : '✕'}
+              </Text>
+              <Text style={styles.testTitle}>{result.title}</Text>
+            </View>
             {result.status === 'failed' && (
               <Text style={styles.errorDetails}>{result.errorMsg}</Text>
             )}
@@ -121,12 +137,29 @@ export function UnitTestScreen() {
   )
 }
 
+function ResultCounts({ passed, failed }: { passed: number; failed: number }) {
+  return (
+    <View style={styles.countRow}>
+      <Text style={passed > 0 ? styles.passedCount : styles.mutedCount}>
+        {passed} passed
+      </Text>
+      <Text style={styles.mutedCount}> · </Text>
+      <Text style={failed > 0 ? styles.failedCount : styles.mutedCount}>
+        {failed} failed
+      </Text>
+    </View>
+  )
+}
+
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 16, paddingBottom: 48 },
   header: { marginBottom: 16 },
   status: { fontSize: 16, fontWeight: '600', marginBottom: 4 },
-  counts: { color: '#666', fontSize: 12 },
+  countRow: { flexDirection: 'row' },
+  mutedCount: { color: '#666', fontSize: 12 },
+  passedCount: { color: '#15803d', fontSize: 12, fontWeight: '600' },
+  failedCount: { color: '#b42318', fontSize: 12, fontWeight: '600' },
   suite: {
     borderBottomColor: '#ddd',
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -137,6 +170,27 @@ const styles = StyleSheet.create({
   fileTitle: { fontSize: 15, fontWeight: '700', marginBottom: 3 },
   suiteTitle: { fontSize: 14, fontWeight: '600', marginBottom: 3 },
   test: { paddingHorizontal: 12, paddingVertical: 7 },
+  testContent: { alignItems: 'center', flexDirection: 'row' },
+  testIndicator: {
+    borderRadius: 10,
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '700',
+    height: 20,
+    lineHeight: 20,
+    marginRight: 8,
+    overflow: 'hidden',
+    textAlign: 'center',
+    width: 20,
+  },
+  passedIndicator: { backgroundColor: '#15803d' },
+  failedIndicator: { backgroundColor: '#b42318' },
+  testTitle: { flex: 1 },
   error: { color: '#b42318' },
-  errorDetails: { color: '#b42318', fontSize: 12, marginTop: 3 },
+  errorDetails: {
+    color: '#b42318',
+    fontSize: 12,
+    marginLeft: 28,
+    marginTop: 3,
+  },
 })
