@@ -109,6 +109,56 @@ describe('MochaSetup', () => {
     ])
   })
 
+  it('runs root setup hooks for tests inside a file suite', async () => {
+    const calls: string[] = []
+
+    await runTests(
+      () => {},
+      () => {
+        registerBeforeEach(() => {
+          calls.push('setup')
+        })
+        registerSuite('example.spec.ts', () => {
+          registerTest('uses setup', () => {
+            calls.push('test')
+          })
+        })
+      },
+    )
+
+    expect(calls).toEqual(['setup', 'test'])
+  })
+
+  it('reports the original setup error when a root hook fails', async () => {
+    const results: MochaTestResult[] = []
+    let testRan = false
+
+    await runTests(
+      (result) => results.push(result),
+      () => {
+        registerBeforeEach(() => {
+          throw new Error('database open failed')
+        })
+        registerSuite('example.spec.ts', () => {
+          registerTest('uses the database', () => {
+            testRan = true
+          })
+        })
+      },
+    )
+
+    expect(testRan).toBe(false)
+    expect(results).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: 'test',
+          status: 'failed',
+          errorMsg: 'database open failed',
+        }),
+      ]),
+    )
+  })
+
   it('rejects registration errors', async () => {
     await expect(
       runTests(
