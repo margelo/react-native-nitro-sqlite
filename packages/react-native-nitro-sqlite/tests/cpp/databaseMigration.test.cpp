@@ -290,8 +290,7 @@ void reportsCleanupFailureForNonemptyDatabaseDirectory() {
   writeFile(directory / (dbName + "-wal"), "must remain untouched");
 
   expect(!removeDatabaseFiles(dbName, directory), "cleanup should fail if a database path is a nonempty directory");
-  expect(readFile(directory / (dbName + "-wal")) == "must remain untouched",
-         "cleanup should stop before deleting another generation file");
+  expect(readFile(directory / (dbName + "-wal")) == "must remain untouched", "cleanup should stop before deleting another generation file");
 }
 
 void recoversCommittedWalAfterMigration() {
