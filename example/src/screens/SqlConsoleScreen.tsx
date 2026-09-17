@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  type TextInputInstance,
   TouchableOpacity,
   View,
 } from 'react-native'
@@ -216,7 +217,7 @@ function ResultCard({ entry }: { entry: QueryHistoryEntry }) {
 
 export function SqlConsoleScreen() {
   const dbRef = useRef<NitroSQLiteConnection | null>(null)
-  const queryInputRef = useRef<TextInput>(null)
+  const queryInputRef = useRef<TextInputInstance>(null)
   const [query, setQuery] = useState('')
   const [history, setHistory] = useState<QueryHistoryEntry[]>([])
   const [isReady, setIsReady] = useState(false)
