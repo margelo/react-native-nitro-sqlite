@@ -11,20 +11,20 @@ import registerSqliteVecUnitTestsSpecs from './specs/sqlite-vec.spec'
 export function registerUnitTests() {
   beforeEach(setupTestDb)
 
-  describe('Operations', () => {
-    registerExecuteUnitTests()
-    registerTransactionUnitTests()
-    registerExecuteBatchUnitTests()
-    registerPreparedStatementUnitTests()
-  })
-
-  registerDatabaseQueueUnitTests()
+  describe('operations/execute.spec.ts', registerExecuteUnitTests)
+  describe('operations/transaction.spec.ts', registerTransactionUnitTests)
+  describe('operations/executeBatch.spec.ts', registerExecuteBatchUnitTests)
+  describe(
+    'operations/preparedStatement.spec.ts',
+    registerPreparedStatementUnitTests,
+  )
+  describe('DatabaseQueue.spec.ts', registerDatabaseQueueUnitTests)
 }
 
 export function registerTypeORMUnitTests() {
-  registerTypeORMUnitTestsSpecs()
+  describe('typeorm.spec.ts', registerTypeORMUnitTestsSpecs)
 }
 
 export function registerSqliteVecUnitTests() {
-  registerSqliteVecUnitTestsSpecs()
+  describe('sqlite-vec.spec.ts', registerSqliteVecUnitTestsSpecs)
 }

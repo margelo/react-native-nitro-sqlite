@@ -7,10 +7,13 @@ import type {
   SQLiteQueryParams,
 } from '../types'
 import { buildJSQueryResult } from './execute'
+import { queueOperationAsync, startOperationSync } from '../DatabaseQueue'
 
 export function prepare(dbName: string, query: string): PreparedStatement {
   try {
-    const nativeStatement = HybridNitroSQLite.prepare(dbName, query)
+    const nativeStatement = startOperationSync(dbName, () =>
+      HybridNitroSQLite.prepare(dbName, query),
+    )
 
     return {
       get isFinalized() {
@@ -20,7 +23,9 @@ export function prepare(dbName: string, query: string): PreparedStatement {
         params?: SQLiteQueryParams,
       ): QueryResult<Row> => {
         try {
-          return buildJSQueryResult(nativeStatement.execute(params))
+          return startOperationSync(dbName, () =>
+            buildJSQueryResult(nativeStatement.execute(params)),
+          )
         } catch (error) {
           throw NitroSQLiteError.fromError(error)
         }
@@ -29,14 +34,16 @@ export function prepare(dbName: string, query: string): PreparedStatement {
         params?: SQLiteQueryParams,
       ): Promise<QueryResult<Row>> => {
         try {
-          return buildJSQueryResult(await nativeStatement.executeAsync(params))
+          return await queueOperationAsync(dbName, async () =>
+            buildJSQueryResult(await nativeStatement.executeAsync(params)),
+          )
         } catch (error) {
           throw NitroSQLiteError.fromError(error)
         }
       },
       finalize: () => {
         try {
-          nativeStatement.finalize()
+          startOperationSync(dbName, () => nativeStatement.finalize())
         } catch (error) {
           throw NitroSQLiteError.fromError(error)
         }

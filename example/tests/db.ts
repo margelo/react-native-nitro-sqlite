@@ -7,7 +7,7 @@ import { open } from 'react-native-nitro-sqlite'
 import {
   getDatabaseQueue,
   type DatabaseQueue,
-} from '../../packages/react-native-nitro-sqlite/src/DatabaseQueue'
+} from '@nitro-sqlite/DatabaseQueue'
 
 const chance = new Chance()
 
@@ -16,24 +16,20 @@ export const TEST_DB_NAME = 'test'
 export let testDb: NitroSQLiteConnection
 export let testDbQueue: DatabaseQueue
 export function resetTestDb() {
-  try {
-    if (testDb != null) {
-      testDb.close()
-      testDb.delete()
-    }
-
-    testDb = open({
-      name: TEST_DB_NAME,
-    })
-    testDbQueue = getDatabaseQueue(TEST_DB_NAME)
-
-    testDb.execute('DROP TABLE IF EXISTS User;')
-    testDb.execute(
-      'CREATE TABLE User ( id REAL PRIMARY KEY, name TEXT NOT NULL, age REAL, networth REAL) STRICT;',
-    )
-  } catch (e) {
-    console.warn('Error resetting user database', e)
+  if (testDb != null) {
+    testDb.close()
+    testDb.delete()
   }
+
+  testDb = open({
+    name: TEST_DB_NAME,
+  })
+  testDbQueue = getDatabaseQueue(TEST_DB_NAME)
+
+  testDb.execute('DROP TABLE IF EXISTS User;')
+  testDb.execute(
+    'CREATE TABLE User ( id REAL PRIMARY KEY, name TEXT NOT NULL, age REAL, networth REAL) STRICT;',
+  )
 }
 
 export function createArrayBufferTestDb(name: string) {

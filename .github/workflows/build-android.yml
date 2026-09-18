@@ -11,6 +11,7 @@ on:
       - "**/nitrogen/generated/android/**"
       - "packages/react-native-nitro-sqlite/cpp/**"
       - "packages/react-native-nitro-sqlite/android/**"
+      - "scripts/android-sqlite-flags/**"
       - "**/bun.lock"
       - "**/react-native.config.js"
       - "**/nitro.json"
@@ -22,6 +23,7 @@ on:
       - "**/nitrogen/generated/android/**"
       - "packages/react-native-nitro-sqlite/cpp/**"
       - "packages/react-native-nitro-sqlite/android/**"
+      - "scripts/android-sqlite-flags/**"
       - "**/bun.lock"
       - "**/react-native.config.js"
       - "**/nitro.json"
@@ -68,6 +70,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-${{ matrix.min-sdk }}-${{ env.TARGET_ANDROID_ARCH }}-
             ${{ runner.os }}-gradle-
+      - name: Test Android SQLite build flags
+        run: example/android/gradlew --project-dir scripts/android-sqlite-flags testSqliteFlags --no-daemon
+
       - name: Run Gradle Build for example/android/
         working-directory: example/android
         run: ./gradlew :app:assembleDebug --no-daemon --build-cache -PreactNativeArchitectures=${{ env.TARGET_ANDROID_ARCH }}

@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+set -eo pipefail
 
 echo "Starting the release process..."
 echo "Provided options: $*"
+
+bun run check:lockfile
 
 release_it_args=("$@")
 forward_args=()

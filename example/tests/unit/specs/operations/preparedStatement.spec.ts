@@ -63,7 +63,26 @@ export default function registerPreparedStatementUnitTests() {
       ])
 
       expect(result.rowsAffected).toBe(1)
-      expect(testDb.execute('SELECT * FROM User WHERE id = ?', [id]).rows.length).toBe(1)
+      expect(
+        testDb.execute('SELECT * FROM User WHERE id = ?', [id]).rows.length,
+      ).toBe(1)
+      statement.finalize()
+    })
+
+    it('can run again after an execution error', () => {
+      const statement = testDb.prepare(
+        'INSERT INTO User (id, name, age, networth) VALUES (?, ?, ?, ?)',
+      )
+      statement.execute([42, 'Ada', 37, 1])
+
+      try {
+        statement.execute([42, 'Duplicate', 37, 1])
+        throw new Error('Expected duplicate key to fail')
+      } catch (error) {
+        expect(isNitroSQLiteError(error)).toBe(true)
+      }
+
+      expect(statement.execute([43, 'Grace', 38, 2]).rowsAffected).toBe(1)
       statement.finalize()
     })
 
@@ -77,7 +96,9 @@ export default function registerPreparedStatementUnitTests() {
       } catch (error) {
         expect(isNitroSQLiteError(error)).toBe(true)
         if (isNitroSQLiteError(error)) {
-          expect(error.message).toContain('Prepared statement has been finalized')
+          expect(error.message).toContain(
+            'Prepared statement has been finalized',
+          )
         }
       }
     })

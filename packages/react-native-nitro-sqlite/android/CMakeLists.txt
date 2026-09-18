@@ -5,6 +5,7 @@ set (CMAKE_VERBOSE_MAKEFILE ON)
 set (CMAKE_CXX_STANDARD 20)
 
 add_definitions(
+  ${SQLITE_DEFAULT_FLAGS}
   ${SQLITE_FLAGS}
 )
 

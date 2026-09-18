@@ -46,6 +46,11 @@ public:
     return this->_exceptionString.c_str();
   }
 
+  static NitroSQLiteException DatabaseAlreadyOpen(const std::string& dbName) {
+    return NitroSQLiteException(NitroSQLiteExceptionType::DatabaseCannotBeOpened,
+                                "Database " + dbName + " is already open. There is already a connection to the database.");
+  }
+
   static NitroSQLiteException DatabaseNotOpen(const std::string& dbName) {
     return NitroSQLiteException(NitroSQLiteExceptionType::UnableToAttachToDatabase, dbName + " is not open");
   }

@@ -1,6 +1,6 @@
 {
   "name": "react-native-nitro-sqlite",
-  "version": "9.6.0",
+  "version": "9.8.1",
   "description": "Fast SQLite library for React Native built using Nitro Modules",
   "main": "./lib/module/index",
   "module": "./lib/module/index",
@@ -69,12 +69,13 @@
     "typeorm": "0.3.27"
   },
   "devDependencies": {
+    "@react-native/jest-preset": "0.87.1",
     "jest": "^30.2.0",
-    "nitrogen": "0.36.1",
+    "nitrogen": "0.37.1",
     "react": "19.2.3",
-    "react-native": "0.85.0-rc.0",
+    "react-native": "0.87.1",
     "react-native-builder-bob": "^0.31.0",
-    "react-native-nitro-modules": "0.36.1"
+    "react-native-nitro-modules": "0.37.1"
   },
   "peerDependencies": {
     "react": ">=17.0.0",
@@ -85,7 +86,26 @@
     "@types/react": "^18.2.44"
   },
   "jest": {
-    "preset": "react-native",
+    "preset": "@react-native/jest-preset",
+    "watchman": false,
+    "testMatch": [
+      "<rootDir>/src/__tests__/**/*.test.ts"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.ts",
+      "!src/**/__tests__/**",
+      "!src/**/__mocks__/**",
+      "!src/specs/**",
+      "!src/types.ts"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 100,
+        "functions": 100,
+        "lines": 100,
+        "statements": 100
+      }
+    },
     "modulePathIgnorePatterns": [
       "<rootDir>/example/node_modules",
       "<rootDir>/lib/"

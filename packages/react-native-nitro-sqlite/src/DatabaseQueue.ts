@@ -28,8 +28,8 @@ export function closeDatabaseQueue(dbName: string) {
   const databaseQueue = getDatabaseQueue(dbName)
 
   if (databaseQueue.inProgress || databaseQueue.queue.length > 0) {
-    console.warn(
-      `Database queue for ${dbName} has operations in the queue. Closing anyway.`,
+    throw new NitroSQLiteError(
+      `Cannot close database ${dbName}. The database is busy with another operation.`,
     )
   }
 
@@ -54,14 +54,6 @@ export function getDatabaseQueue(dbName: string) {
   return queue
 }
 
-export function openDatabase(dbName: string) {
-  databaseQueues.set(dbName, { queue: [], inProgress: false })
-}
-
-export function closeDatabase(dbName: string) {
-  databaseQueues.delete(dbName)
-}
-
 export function queueOperationAsync<Result>(
   dbName: string,
   callback: () => Promise<Result>,
@@ -77,7 +69,7 @@ export function queueOperationAsync<Result>(
         reject(error)
       } finally {
         databaseQueue.inProgress = false
-        startOperationAsync(dbName)
+        startOperationAsync(databaseQueue)
       }
     }
 
@@ -86,13 +78,11 @@ export function queueOperationAsync<Result>(
     }
 
     databaseQueue.queue.push(operation)
-    startOperationAsync(dbName)
+    startOperationAsync(databaseQueue)
   })
 }
 
-function startOperationAsync(dbName: string) {
-  const queue = getDatabaseQueue(dbName)
-
+function startOperationAsync(queue: DatabaseQueue) {
   // Queue is empty or in progress. Bail out.
   if (queue.inProgress || queue.queue.length === 0) {
     return
@@ -106,10 +96,10 @@ function startOperationAsync(dbName: string) {
   })
 }
 
-export function startOperationSync<
-  OperationCallback extends () => Result,
-  Result = void,
->(dbName: string, callback: OperationCallback) {
+export function startOperationSync<Result>(
+  dbName: string,
+  callback: () => Result,
+): Result {
   const databaseQueue = getDatabaseQueue(dbName)
 
   // Database is busy - cannot execute synchronously

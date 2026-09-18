@@ -2,7 +2,11 @@
   "extends": "../../config/tsconfig.json",
   "include": ["src"],
   "compilerOptions": {
+    "types": ["node", "jest"],
     "rootDir": "src",
-    "outDir": "lib"
+    "outDir": ".tsbuild",
+    "emitDeclarationOnly": true,
+    "noEmit": false,
+    "tsBuildInfoFile": ".tsbuild/tsconfig.tsbuildinfo"
   }
 }

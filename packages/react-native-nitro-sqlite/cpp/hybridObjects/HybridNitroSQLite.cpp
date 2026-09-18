@@ -2,11 +2,14 @@
 #include "HybridNitroSQLitePreparedStatement.hpp"
 #include "HybridNitroSQLiteQueryResult.hpp"
 #include "NitroSQLiteException.hpp"
+#include "databaseMigration.hpp"
 #include "importSqlFile.hpp"
 #include "logs.hpp"
 #include "macros.hpp"
 #include "operations.hpp"
 #include "sqliteExecuteBatch.hpp"
+#include <exception>
+#include <filesystem>
 #include <iostream>
 #include <map>
 #include <optional>
@@ -66,8 +69,26 @@ const std::string getDocPath(const std::optional<std::string>& location) {
   return tempDocPath;
 }
 
+const std::string getOldDocPath(const std::optional<std::string>& location) {
+  std::string oldDocPath = HybridNitroSQLite::migrationDocPath;
+  if (location) {
+    oldDocPath = oldDocPath + "/" + *location;
+  }
+
+  return oldDocPath;
+}
+
+const std::string getMigratedDocPath(const std::string& dbName, const std::optional<std::string>& location) {
+  const auto currentDocPath = getDocPath(location);
+  if (HybridNitroSQLite::migrationDocPath.empty()) {
+    return currentDocPath;
+  }
+
+  return migrateDatabase(dbName, getOldDocPath(location), currentDocPath).string();
+}
+
 void HybridNitroSQLite::open(const std::string& dbName, const std::optional<std::string>& location) {
-  const auto docPath = getDocPath(location);
+  const auto docPath = getMigratedDocPath(dbName, location);
   sqliteOpenDb(dbName, docPath);
 }
 
@@ -76,18 +97,28 @@ void HybridNitroSQLite::close(const std::string& dbName) {
 };
 
 void HybridNitroSQLite::drop(const std::string& dbName, const std::optional<std::string>& location) {
-  const auto docPath = getDocPath(location);
-  sqliteRemoveDb(dbName, docPath);
+  const auto currentDocPath = getDocPath(location);
+  if (migrationDocPath.empty()) {
+    sqliteRemoveDb(dbName, currentDocPath);
+    return;
+  }
+
+  const auto oldDocPath = getOldDocPath(location);
+  std::error_code ec;
+  const bool oldDatabaseExists = std::filesystem::exists(std::filesystem::path(oldDocPath) / dbName, ec);
+  if (ec) {
+    LOGW("Failed to inspect database %s in its old location: %s", dbName.c_str(), ec.message().c_str());
+  }
+
+  sqliteRemoveDb(dbName, oldDatabaseExists || ec ? oldDocPath : currentDocPath);
+  removeDatabaseFiles(dbName, oldDocPath);
+  removeDatabaseFiles(dbName, currentDocPath);
 };
 
 void HybridNitroSQLite::attach(const std::string& mainDbName, const std::string& dbNameToAttach, const std::string& alias,
                                const std::optional<std::string>& location) {
-  std::string tempDocPath = std::string(docPath);
-  if (location) {
-    tempDocPath = tempDocPath + "/" + *location;
-  }
-
-  sqliteAttachDb(mainDbName, tempDocPath, dbNameToAttach, alias);
+  const auto attachedDocPath = getMigratedDocPath(dbNameToAttach, location);
+  sqliteAttachDb(mainDbName, attachedDocPath, dbNameToAttach, alias);
 };
 
 void HybridNitroSQLite::detach(const std::string& mainDbName, const std::string& alias) {
@@ -102,10 +133,16 @@ std::shared_ptr<HybridNitroSQLiteQueryResultSpec> HybridNitroSQLite::execute(con
 std::shared_ptr<Promise<std::shared_ptr<HybridNitroSQLiteQueryResultSpec>>>
 HybridNitroSQLite::executeAsync(const std::string& dbName, const std::string& query, const std::optional<SQLiteQueryParams>& params) {
   const auto copiedParams = copyArrayBufferParamsForBackground(params);
+  SQLiteConnectionPtr connection;
+  try {
+    connection = sqliteGetOpenDatabase(dbName);
+  } catch (...) {
+    return Promise<std::shared_ptr<HybridNitroSQLiteQueryResultSpec>>::rejected(std::current_exception());
+  }
 
   return Promise<std::shared_ptr<HybridNitroSQLiteQueryResultSpec>>::async(
-      [=, this]() -> std::shared_ptr<HybridNitroSQLiteQueryResultSpec> {
-        auto result = sqliteExecute(dbName, query, copiedParams);
+      [connection, query, copiedParams]() -> std::shared_ptr<HybridNitroSQLiteQueryResultSpec> {
+        auto result = sqliteExecute(connection, query, copiedParams);
         return result;
       });
 };
@@ -127,9 +164,15 @@ std::shared_ptr<Promise<BatchQueryResult>> HybridNitroSQLite::executeBatchAsync(
   // ArrayBuffers into native buffers before going off-thread.
   const auto commands = batchParamsToCommands(batchParams);
   const auto copiedCommands = copyArrayBufferParamsForBackground(commands);
+  SQLiteConnectionPtr connection;
+  try {
+    connection = sqliteGetOpenDatabase(dbName);
+  } catch (...) {
+    return Promise<BatchQueryResult>::rejected(std::current_exception());
+  }
 
-  return Promise<BatchQueryResult>::async([=, this]() -> BatchQueryResult {
-    auto result = sqliteExecuteBatch(dbName, copiedCommands);
+  return Promise<BatchQueryResult>::async([connection, copiedCommands]() -> BatchQueryResult {
+    auto result = sqliteExecuteBatch(connection, copiedCommands);
     return BatchQueryResult(result.rowsAffected);
   });
 };
@@ -140,9 +183,15 @@ FileLoadResult HybridNitroSQLite::loadFile(const std::string& dbName, const std:
 };
 
 std::shared_ptr<Promise<FileLoadResult>> HybridNitroSQLite::loadFileAsync(const std::string& dbName, const std::string& location) {
-  return Promise<FileLoadResult>::async([=, this]() -> FileLoadResult {
-    auto result = loadFile(dbName, location);
-    return result;
+  SQLiteConnectionPtr connection;
+  try {
+    connection = sqliteGetOpenDatabase(dbName);
+  } catch (...) {
+    return Promise<FileLoadResult>::rejected(std::current_exception());
+  }
+  return Promise<FileLoadResult>::async([connection, location]() -> FileLoadResult {
+    const auto result = importSqlFile(connection, location);
+    return FileLoadResult(result.commands, result.rowsAffected);
   });
 };
 

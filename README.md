@@ -75,6 +75,10 @@ const db = open({ name: 'myDb.sqlite' })
 - **Sync** (`execute`, `executeBatch`, `loadFile`): Run on the JS thread. Use for small, fast work; heavy work can block the UI.
 - **Async** (`executeAsync`, `executeBatchAsync`, `loadFileAsync`, `transaction`): Run off the JS thread. Prefer these for larger or many queries to keep the app responsive.
 
+Async operations submitted on the opened `db` connection outside a transaction callback run in call order. Async work waits for an active transaction to finish, while a conflicting sync operation or `close()` throws a busy error.
+
+`NitroSQLite.native` bypasses this JavaScript queue. Native calls keep each individual SQLite handle safe, but mixing them with a session transaction can still run statements inside that transaction. A build with `SQLITE_THREADSAFE=0` also remains unsafe when different database handles run concurrently unless the caller serializes every SQLite call globally.
+
 ---
 
 # Basic usage
@@ -105,6 +109,8 @@ const users = db.execute<{ id: number; name: string }>(
 ## Transactions (async only)
 
 Use `db.transaction()` for multiple statements in a single transaction. The callback receives a `tx` object with `execute`, `executeAsync`, `commit`, and `rollback`. If the callback throws, the transaction is rolled back. Otherwise it is committed when the callback resolves (or you can call `tx.commit()` / `tx.rollback()` explicitly).
+
+Inside the callback, all database work, including work in helper functions, must use the passed `tx` object. Do not await `db.executeAsync()`, `db.executeBatchAsync()`, or another queued session/global operation for the same database from inside the callback. Those operations wait for the transaction to finish, while the transaction would wait for them, creating a deadlock. Sync session/global calls for that database throw a busy error instead.
 
 ```typescript
 await db.transaction(async (tx) => {
@@ -312,6 +318,47 @@ You can use this package as a TypeORM driver. Because of Metro and Node resoluti
 
 # Configuration
 
+## Configure bundled SQLite thread safety
+
+The bundled SQLite library compiles with `SQLITE_THREADSAFE=1` by default on iOS and Android. This includes SQLite's mutex code and selects serialized mode, which lets SQLite serialize concurrent access to database connections and prepared statements. Configure it in your app's `package.json`:
+
+```json
+{
+  "nitroSQLite": {
+    "threadSafe": true
+  }
+}
+```
+
+`threadSafe` accepts `true` or `false` in `package.json` on both platforms. Platform-specific overrides are available when needed:
+
+| iOS | Android |
+| --- | --- |
+| Run `NITRO_SQLITE_THREADSAFE=false pod install` from `ios/`. The variable accepts `true`, `false`, `1`, or `0`. | Set `nitroSqliteFlags="-DSQLITE_THREADSAFE=0"` in `android/gradle.properties`. Use `1` to re-enable it. |
+
+With `SQLITE_THREADSAFE=0`, SQLite removes its mutex code and cannot be made thread-safe at runtime. Only use this setting if the application serializes every SQLite call across the entire process. Per-database JavaScript queues are not sufficient because separate connections and SQLite's global state can still be accessed concurrently by native threads.
+
+When `NITRO_SQLITE_USE_PHONE_VERSION=1`, the pod links the system SQLite library instead of compiling the bundled source. `NITRO_SQLITE_THREADSAFE` does not change how that system library was compiled.
+
+## Configure SQLite performance mode
+
+The bundled SQLite library enables NitroSQLite's performance compile flags by default on iOS and Android. Disable them independently from thread safety in your app's `package.json`:
+
+```json
+{
+  "nitroSQLite": {
+    "threadSafe": true,
+    "performanceMode": false
+  }
+}
+```
+
+`performanceMode` accepts `true` or `false` in `package.json` on both platforms. Disabling it omits NitroSQLite's SQLite optimization flags but does not change `SQLITE_THREADSAFE`. The flags include `SQLITE_DQS=0`, which rejects double-quoted string literals, and `SQLITE_DEFAULT_WAL_SYNCHRONOUS=1`, which changes the default durability setting in WAL mode.
+
+| iOS | Android |
+| --- | --- |
+| Set `NITRO_SQLITE_PERFORMANCE_MODE` for one Pod installation. It accepts `true`, `false`, `1`, or `0`. | Use `performanceMode` in `package.json` to toggle the full set. `nitroSqliteFlags` in `android/gradle.properties` can override individual definitions, but has no full-set toggle. |
+
 ## Use system SQLite on iOS
 
 To use the system SQLite instead of the bundled one:
@@ -344,6 +391,23 @@ nitroSqliteFlags="-DSQLITE_ENABLE_FTS5=1"
 ## App groups (iOS)
 
 To put the database in an app group (e.g. for extensions), set `RNNitroSQLite_AppGroup` in your `Info.plist` to the app group ID and add the App Groups capability in Xcode.
+
+## Database location (iOS)
+
+By default, databases are stored in the app's **Documents** directory. If your app enables file sharing (`UIFileSharingEnabled` + `LSSupportsOpeningDocumentsInPlace`), that directory — including your raw database and its `-wal`/`-shm` journal files — becomes visible to users in the Files app, where they can be shared, modified, or deleted from outside your app.
+
+To store databases in `Library/Application Support` instead (persistent, backed up, and never user-visible), set `RNNitroSQLite_DatabaseLocation` in your `Info.plist`:
+
+```xml
+<key>RNNitroSQLite_DatabaseLocation</key>
+<string>ApplicationSupport</string>
+```
+
+Supported values are `Documents` (the default) and `ApplicationSupport`.
+
+Databases created while the app was still using the Documents directory are automatically moved to `Library/Application Support` the first time they are opened or attached after enabling this option, so existing users keep their data. Deleting a database also removes any copy left in Documents by an interrupted migration. If you later remove the option, databases already moved to `Library/Application Support` are **not** moved back.
+
+This option has no effect when `RNNitroSQLite_AppGroup` is set, since app group databases live in the shared container.
 
 ---
 
