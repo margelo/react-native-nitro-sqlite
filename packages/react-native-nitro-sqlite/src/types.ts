@@ -3,6 +3,10 @@ import type { NitroSQLiteQueryResult } from './specs/NitroSQLiteQueryResult.nitr
 export interface NitroSQLiteConnectionOptions {
   name: string
   location?: string
+  /** Open the name-based default connection or a separate connection. Duplicate default opens throw. Defaults to 'default'. */
+  connection?: 'default' | 'independent'
+  /** Open an existing database without write access. A read-only connection cannot delete the database. */
+  readOnly?: boolean
 }
 
 export interface NitroSQLiteConnection {

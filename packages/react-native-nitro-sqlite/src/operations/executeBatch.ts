@@ -6,15 +6,17 @@ import {
 } from '../DatabaseQueue'
 import NitroSQLiteError from '../NitroSQLiteError'
 import type { BatchQueryCommand, BatchQueryResult } from '../types'
+import type { DatabaseQueueKey } from '../DatabaseQueue'
 
 export function executeBatch(
   dbName: string,
   commands: BatchQueryCommand[],
+  queueKey: DatabaseQueueKey = dbName,
 ): BatchQueryResult {
-  throwIfDatabaseIsNotOpen(dbName)
+  throwIfDatabaseIsNotOpen(queueKey)
 
   try {
-    return startOperationSync(dbName, () =>
+    return startOperationSync(queueKey, () =>
       HybridNitroSQLite.executeBatch(dbName, commands),
     )
   } catch (error) {
@@ -25,10 +27,11 @@ export function executeBatch(
 export async function executeBatchAsync(
   dbName: string,
   commands: BatchQueryCommand[],
+  queueKey: DatabaseQueueKey = dbName,
 ): Promise<BatchQueryResult> {
-  throwIfDatabaseIsNotOpen(dbName)
+  throwIfDatabaseIsNotOpen(queueKey)
 
-  return queueOperationAsync(dbName, async () => {
+  return queueOperationAsync(queueKey, async () => {
     try {
       return await HybridNitroSQLite.executeBatchAsync(dbName, commands)
     } catch (error) {

@@ -7,6 +7,7 @@ import {
   queueOperationAsync,
   startOperationSync,
 } from '../DatabaseQueue'
+import type { DatabaseQueueKey } from '../DatabaseQueue'
 
 export function execute<Row extends QueryResultRow = never>(
   dbName: string,
@@ -24,8 +25,11 @@ export function executeManaged<Row extends QueryResultRow = never>(
   dbName: string,
   query: string,
   params?: SQLiteQueryParams,
+  queueKey: DatabaseQueueKey = dbName,
 ): QueryResult<Row> {
-  return startOperationSync(dbName, () => executeNative(dbName, query, params))
+  return startOperationSync(queueKey, () =>
+    executeNative(dbName, query, params),
+  )
 }
 
 export function executeNative<Row extends QueryResultRow = never>(
@@ -57,8 +61,9 @@ export async function executeAsyncManaged<Row extends QueryResultRow = never>(
   dbName: string,
   query: string,
   params?: SQLiteQueryParams,
+  queueKey: DatabaseQueueKey = dbName,
 ): Promise<QueryResult<Row>> {
-  return queueOperationAsync(dbName, () =>
+  return queueOperationAsync(queueKey, () =>
     executeAsyncNative(dbName, query, params),
   )
 }

@@ -58,6 +58,8 @@ const db = open({ name: 'myDb.sqlite' })
 // open({ name: 'myDb.sqlite', location: 'databases' })
 ```
 
+To open another connection to the same file, use `open({ name: 'myDb.sqlite', connection: 'independent' })`. Add `readOnly: true` for a reader connection. Each connection has its own queue and transaction state. See [multiple connections](docs/multiple-connections.md) for WAL setup, app migration guidance, and concurrency limits.
+
 | Method | Sync | Async | Description |
 |--------|------|-------|-------------|
 | **Execute** | `db.execute(query, params?)` | `db.executeAsync(query, params?)` | Run a single SQL statement. |
@@ -186,7 +188,7 @@ const { rowsAffected, commands } = db.loadFile('/absolute/path/to/file.sql')
 
 Databases are created under the app documents directory (iOS) or files directory (Android). `location` is a directory path relative to that root, not an absolute file path. For example, `open({ name: 'myDb.sqlite', location: 'databases' })` opens `myDb.sqlite` under the `databases` directory. To use a database from another app-accessible location, copy or move it into this directory first. On iOS, files outside the app sandbox are inaccessible.
 
-Close a connection before deleting its database. A connection must not be used after `close()` or `delete()`.
+Close connections and detach the database from other connections before deleting it. Deletion fails while another connection still uses the file. A read-only connection cannot delete its database. A connection must not be used after `close()` or `delete()`.
 
 ```ts
 db.close()
@@ -416,6 +418,8 @@ import type {
 ```
 
 `open()` is the recommended API. `NitroSQLite` exposes the underlying database-name-based methods for advanced integrations; prefer the connection returned by `open()` because it binds the database name and adds the JavaScript transaction and result helpers.
+
+Name-based methods address the default connection only. Use the returned connection object for operations on an independent connection.
 
 ---
 

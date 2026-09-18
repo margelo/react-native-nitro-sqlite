@@ -12,9 +12,11 @@ export interface NitroSQLite
     ios: 'c++'
     android: 'c++'
   }> {
-  open(dbName: string, location?: string): void
+  open(dbName: string, location?: string, readOnly?: boolean): void
+  openConnection(dbName: string, location?: string, readOnly?: boolean): string
+  isConnectionOpen(connectionId: string): boolean
   close(dbName: string): void
-  drop(dbName: string, location?: string): void
+  drop(dbName: string, location?: string, connectionId?: string): void
   attach(
     mainDbName: string,
     dbNameToAttach: string,
