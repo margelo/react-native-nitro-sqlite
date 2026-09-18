@@ -35,6 +35,7 @@
         "eslint-config-prettier": "^10.1.8",
         "eslint-plugin-prettier": "^5.5.4",
         "jest": "^30.2.0",
+        "jsonc-parser": "^3.3.1",
         "nitrogen": "0.37.1",
         "prettier": "^3.6.2",
         "release-it": "^19.2.4",
@@ -58,8 +59,8 @@
         "react": "19.2.3",
         "react-native": "0.87.1",
         "react-native-nitro-modules": "*",
-        "react-native-nitro-sqlite": "9.8.1",
-        "react-native-nitro-sqlite-vec": "9.8.1",
+        "react-native-nitro-sqlite": "9.8.2",
+        "react-native-nitro-sqlite-vec": "9.8.2",
         "react-native-quick-base64": "^3.0.0",
         "react-native-quick-crypto": "^1.1.5",
         "react-native-safe-area-context": "^5.10.0",
@@ -122,7 +123,7 @@
       "name": "react-native-nitro-sqlite-vec",
       "version": "9.8.2",
       "devDependencies": {
-        "react-native-nitro-sqlite": "9.8.1",
+        "react-native-nitro-sqlite": "9.8.2",
         "typescript": "^5.8.3",
       },
       "peerDependencies": {
@@ -1742,6 +1743,8 @@
     "json-stringify-safe": ["json-stringify-safe@5.0.1", "", {}, "sha512-ZClg6AaYvamvYEE82d3Iyd3vSSIjQ+odgjaTzRuO3s7toCdFKczob2i0zCh7JE8kWn17yvAWhUVxvqGwUalsRA=="],
 
     "json5": ["json5@2.2.3", "", { "bin": { "json5": "lib/cli.js" } }, "sha512-XmOWe7eyHYH14cLdVPoyg+GOH3rYX++KpzrylJwSW98t3Nk+U8XOl8FWKOgwtzdb8lXGf6zYwDUzeHMWfxasyg=="],
+
+    "jsonc-parser": ["jsonc-parser@3.3.1", "", {}, "sha512-HUgH65KyejrUFPvHFPbqOY0rsFip3Bo5wb4ngvdi1EpCYWUQDC5V+Y7mZws+DLkr4M//zQJoanu1SP+87Dv1oQ=="],
 
     "jsonfile": ["jsonfile@4.0.0", "", { "optionalDependencies": { "graceful-fs": "^4.1.6" } }, "sha512-m6F1R3z8jjlf2imQHS2Qez5sjKWQzbuuhuJ/FKYFRZvPE3PuHcSMVZzfsLhGVOkfd20obL5SWEBew5ShlquNxg=="],
 
