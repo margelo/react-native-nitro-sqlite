@@ -13,13 +13,14 @@
 #include <map>
 #include <optional>
 #include <string>
+#include <utility>
 #include <variant>
 #include <vector>
 
 namespace margelo::nitro::rnnitrosqlite {
 
 // Copy any JS-backed ArrayBuffers on the JS thread so they can be safely
-// accessed from the background thread used by Promise::async.
+// accessed from the connection's background worker.
 static std::optional<SQLiteQueryParams> copyArrayBufferParamsForBackground(const std::optional<SQLiteQueryParams>& params) {
   if (!params) {
     return std::nullopt;
@@ -57,6 +58,23 @@ static std::vector<BatchQuery> copyArrayBufferParamsForBackground(const std::vec
   }
 
   return copiedCommands;
+}
+
+template <typename Result, typename Operation>
+static std::shared_ptr<Promise<Result>> enqueueConnectionOperation(const SQLiteConnectionPtr& connection, Operation&& operation) {
+  auto promise = Promise<Result>::create();
+  try {
+    connection->enqueueAsync([promise, operation = std::forward<Operation>(operation)]() mutable {
+      try {
+        promise->resolve(operation());
+      } catch (...) {
+        promise->reject(std::current_exception());
+      }
+    });
+  } catch (...) {
+    promise->reject(std::current_exception());
+  }
+  return promise;
 }
 
 const std::string getDocPath(const std::optional<std::string>& location) {
@@ -139,8 +157,8 @@ HybridNitroSQLite::executeAsync(const std::string& dbName, const std::string& qu
     return Promise<std::shared_ptr<HybridNitroSQLiteQueryResultSpec>>::rejected(std::current_exception());
   }
 
-  return Promise<std::shared_ptr<HybridNitroSQLiteQueryResultSpec>>::async(
-      [connection, query, copiedParams]() -> std::shared_ptr<HybridNitroSQLiteQueryResultSpec> {
+  return enqueueConnectionOperation<std::shared_ptr<HybridNitroSQLiteQueryResultSpec>>(
+      connection, [connection, query, copiedParams]() -> std::shared_ptr<HybridNitroSQLiteQueryResultSpec> {
         auto result = sqliteExecute(connection, query, copiedParams);
         return result;
       });
@@ -166,7 +184,7 @@ std::shared_ptr<Promise<BatchQueryResult>> HybridNitroSQLite::executeBatchAsync(
     return Promise<BatchQueryResult>::rejected(std::current_exception());
   }
 
-  return Promise<BatchQueryResult>::async([connection, copiedCommands]() -> BatchQueryResult {
+  return enqueueConnectionOperation<BatchQueryResult>(connection, [connection, copiedCommands]() -> BatchQueryResult {
     auto result = sqliteExecuteBatch(connection, copiedCommands);
     return BatchQueryResult(result.rowsAffected);
   });
@@ -184,7 +202,7 @@ std::shared_ptr<Promise<FileLoadResult>> HybridNitroSQLite::loadFileAsync(const 
   } catch (...) {
     return Promise<FileLoadResult>::rejected(std::current_exception());
   }
-  return Promise<FileLoadResult>::async([connection, location]() -> FileLoadResult {
+  return enqueueConnectionOperation<FileLoadResult>(connection, [connection, location]() -> FileLoadResult {
     const auto result = importSqlFile(connection, location);
     return FileLoadResult(result.commands, result.rowsAffected);
   });
