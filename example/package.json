@@ -1,6 +1,6 @@
 {
   "name": "react-native-nitro-sqlite-example",
-  "version": "9.8.1",
+  "version": "9.8.2",
   "private": true,
   "nitroSQLite": {
     "threadSafe": true,
@@ -31,8 +31,8 @@
     "react": "19.2.3",
     "react-native": "0.87.1",
     "react-native-nitro-modules": "*",
-    "react-native-nitro-sqlite": "9.8.1",
-    "react-native-nitro-sqlite-vec": "9.8.1",
+    "react-native-nitro-sqlite": "9.8.2",
+    "react-native-nitro-sqlite-vec": "9.8.2",
     "react-native-quick-base64": "^3.0.0",
     "react-native-quick-crypto": "^1.1.5",
     "react-native-safe-area-context": "^5.10.0",
