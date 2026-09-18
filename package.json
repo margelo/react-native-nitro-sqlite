@@ -24,6 +24,7 @@
     "lint-cpp": "./scripts/clang-format.sh",
     "prettier": "prettier --write .",
     "clean": "rm -rf **/.tsbuild **/tsconfig.tsbuildinfo node_modules packages/react-native-nitro-sqlite/node_module packages/react-native-nitro-sqlite/lib",
+    "check:lockfile": "bun scripts/check-bun-lockfile.ts",
     "release": "./scripts/release.sh",
     "sqlite": "bun --cwd packages/react-native-nitro-sqlite",
     "example": "bun --cwd example"
@@ -85,7 +86,7 @@
       }
     },
     "hooks": {
-      "before:release": "bun install --lockfile-only && bun example bundle-install && bun example pods && git add bun.lock example/ios/Podfile.lock"
+      "before:release": "bun install --lockfile-only && bun run check:lockfile && bun example bundle-install && bun example pods && git add bun.lock example/ios/Podfile.lock"
     },
     "plugins": {
       "@release-it/bumper": {
@@ -111,11 +112,8 @@
           },
           {
             "file": "example/package.json",
-            "path": "version"
-          },
-          {
-            "file": "example/package.json",
             "path": [
+              "version",
               "dependencies.react-native-nitro-sqlite",
               "dependencies.react-native-nitro-sqlite-vec"
             ]

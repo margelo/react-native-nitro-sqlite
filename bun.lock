@@ -45,7 +45,7 @@
     },
     "example": {
       "name": "react-native-nitro-sqlite-example",
-      "version": "9.6.0",
+      "version": "9.8.1",
       "dependencies": {
         "@craftzdog/react-native-buffer": "^6.1.2",
         "@react-native-clipboard/clipboard": "^1.16.3",
@@ -58,8 +58,8 @@
         "react": "19.2.3",
         "react-native": "0.87.1",
         "react-native-nitro-modules": "*",
-        "react-native-nitro-sqlite": "9.8.0",
-        "react-native-nitro-sqlite-vec": "9.8.0",
+        "react-native-nitro-sqlite": "9.8.1",
+        "react-native-nitro-sqlite-vec": "9.8.1",
         "react-native-quick-base64": "^3.0.0",
         "react-native-quick-crypto": "^1.1.5",
         "react-native-safe-area-context": "^5.10.0",
@@ -122,7 +122,7 @@
       "name": "react-native-nitro-sqlite-vec",
       "version": "9.8.1",
       "devDependencies": {
-        "react-native-nitro-sqlite": "9.8.0",
+        "react-native-nitro-sqlite": "9.8.1",
         "typescript": "^5.8.3",
       },
       "peerDependencies": {
