@@ -199,6 +199,22 @@ int main() {
     registry.close(leftId);
     registry.drop("logical-name.sqlite", concurrentPath, rightId);
     expect(!fs::exists(concurrentPath), "drop must remove the physical filename rather than the logical name");
+
+    const auto originalPath = root / "original" / "reopened.sqlite";
+    const auto replacementPath = root / "reopened.sqlite";
+    fs::create_directories(originalPath.parent_path());
+    registry.open("reopened.sqlite", originalPath, false);
+    registry.close("reopened.sqlite");
+    registry.open("reopened.sqlite", replacementPath, false);
+    expectThrows([&]() { registry.drop("reopened.sqlite", originalPath, std::nullopt); },
+                 "deleting the original file must not close a replacement in another location");
+    expect(registry.isOpen("reopened.sqlite") && fs::exists(originalPath) && fs::exists(replacementPath),
+           "rejected cleanup must preserve the replacement connection and both files");
+    registry.close("reopened.sqlite");
+    registry.drop("reopened.sqlite", originalPath, std::nullopt);
+    registry.drop("reopened.sqlite", replacementPath, std::nullopt);
+    expect(!fs::exists(originalPath) && !fs::exists(replacementPath), "closing the replacement must allow both files to be deleted");
+
     const auto missingReadOnlyPath = root / "missing-directory" / "missing.sqlite";
     expectThrows([&]() { registry.openIndependent(missingReadOnlyPath, true); }, "read-only open must reject a missing database");
     expect(!fs::exists(missingReadOnlyPath.parent_path()), "read-only open must not create a directory");
