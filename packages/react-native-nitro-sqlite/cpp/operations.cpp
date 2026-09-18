@@ -4,6 +4,7 @@
 #include "logs.hpp"
 #include "utils.hpp"
 #include <NitroModules/ArrayBuffer.hpp>
+#include <NitroModules/Promise.hpp>
 #include <cmath>
 #include <ctime>
 #include <iostream>
@@ -52,6 +53,32 @@ void SQLiteConnection::close() noexcept {
 
   sqlite3_close_v2(database);
   database = nullptr;
+}
+
+void SQLiteConnection::enqueueAsync(std::function<void()> operation) {
+  std::lock_guard lock(asyncQueueMutex);
+  if (!asyncWorkerRunning) {
+    // The worker holds this connection alive until it has drained every operation.
+    Promise<void>::async([connection = shared_from_this()] { connection->drainAsync(); });
+    asyncWorkerRunning = true;
+  }
+  asyncQueue.push(std::move(operation));
+}
+
+void SQLiteConnection::drainAsync() {
+  while (true) {
+    std::function<void()> operation;
+    {
+      std::lock_guard lock(asyncQueueMutex);
+      if (asyncQueue.empty()) {
+        asyncWorkerRunning = false;
+        return;
+      }
+      operation = std::move(asyncQueue.front());
+      asyncQueue.pop();
+    }
+    operation();
+  }
 }
 
 void sqliteOpenDb(const std::string& dbName, const std::string& docPath) {

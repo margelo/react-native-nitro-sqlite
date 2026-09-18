@@ -220,9 +220,11 @@ export default function registerDatabaseQueueUnitTests() {
       })
 
       await transactionStarted.promise
-      const externalWrite = testDb.executeAsync(
-        'INSERT INTO User (id, name, age, networth) VALUES (?, ?, ?, ?)',
-        [2, 'external', 2, 2],
+      const externalWrites = Array.from({ length: 24 }, (_, index) =>
+        testDb.executeAsync(
+          'INSERT INTO User (id, name, age, networth) VALUES (?, ?, ?, ?)',
+          [index + 2, `external-${index}`, 2, 2],
+        ),
       )
       finishTransaction.resolve()
 
@@ -231,11 +233,11 @@ export default function registerDatabaseQueueUnitTests() {
       } catch (error) {
         expect((error as Error).message).toContain('rollback transaction')
       }
-      await externalWrite
+      await Promise.all(externalWrites)
 
       expect(
         testDb.execute<{ id: number }>('SELECT id FROM User').results,
-      ).toEqual([{ id: 2 }])
+      ).toEqual(Array.from({ length: 24 }, (_, index) => ({ id: index + 2 })))
     })
 
     it('returns distinct insert IDs from parallel async inserts', async () => {
@@ -255,6 +257,68 @@ export default function registerDatabaseQueueUnitTests() {
       expect(results.map((result) => result.insertId)).toEqual(
         Array.from({ length: 24 }, (_, index) => index + 1),
       )
+    })
+
+    it('starts a transaction after an earlier burst of async writes finishes', async () => {
+      testDb.execute('CREATE TABLE TransactionBarrier (value INTEGER)')
+      const writes = Array.from({ length: 24 }, (_, index) =>
+        testDb.executeAsync(
+          'INSERT INTO TransactionBarrier (value) VALUES (?)',
+          [index],
+        ),
+      )
+      const transaction = testDb.transaction(
+        async (tx) =>
+          tx.execute<{ total: number }>(
+            'SELECT count(*) AS total FROM TransactionBarrier',
+          ).results[0]?.total,
+      )
+
+      await Promise.all(writes)
+      expect(await transaction).toBe(24)
+    })
+
+    it('runs native async statements in submission order', async () => {
+      const dbName = 'native-fifo-order'
+      dropDatabaseIfExists(dbName)
+      NitroSQLite.native.open(dbName)
+
+      try {
+        NitroSQLite.native.execute(
+          dbName,
+          'CREATE TABLE NativeQueueInsert (id INTEGER PRIMARY KEY AUTOINCREMENT, value INTEGER)',
+        )
+        const results = await Promise.all(
+          Array.from({ length: 64 }, (_, index) =>
+            NitroSQLite.native.executeAsync(
+              dbName,
+              'INSERT INTO NativeQueueInsert (value) VALUES (?)',
+              [index],
+            ),
+          ),
+        )
+
+        expect(results.map((result) => result.insertId)).toEqual(
+          Array.from({ length: 64 }, (_, index) => index + 1),
+        )
+
+        const batch = NitroSQLite.native.executeBatchAsync(dbName, [
+          {
+            query: 'INSERT INTO NativeQueueInsert (value) VALUES (?)',
+            params: [[64], [65]],
+          },
+        ])
+        const afterBatch = NitroSQLite.native.executeAsync(
+          dbName,
+          'INSERT INTO NativeQueueInsert (value) VALUES (?)',
+          [66],
+        )
+        await batch
+        expect((await afterBatch).insertId).toBe(67)
+      } finally {
+        NitroSQLite.native.close(dbName)
+        dropDatabaseIfExists(dbName)
+      }
     })
 
     it('rejects sync work and close while async work is pending', async () => {
