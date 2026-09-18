@@ -12,6 +12,8 @@ Nitro SQLite is a SQLite library for React Native on iOS, macOS, visionOS, and A
 
 **[Read the documentation](https://sqlite.margelo.com/docs)** for setup, guides, integrations, and the API reference.
 
+If you use a coding agent, give it the [NitroSQLite skill](https://github.com/margelo/react-native-skills/blob/nitro-sqlite/skills/react-native-nitro-sqlite/SKILL.md). It links to focused guidance for connections, queries, transactions, concurrency, and migration. See the [AI agent guide](https://sqlite.margelo.com/docs/guides/ai-agents) for what to check in generated code.
+
 ## Installation
 
 Requires React Native 0.75 or newer and `react-native-nitro-modules` 0.37.1 or newer.
