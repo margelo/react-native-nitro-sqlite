@@ -15,6 +15,7 @@ export interface NitroSQLiteConnection {
   ) => Promise<Result>
   execute: ExecuteQuery
   executeAsync: ExecuteAsyncQuery
+  prepare(query: string): PreparedStatement
   executeBatch(commands: BatchQueryCommand[]): BatchQueryResult
   executeBatchAsync(commands: BatchQueryCommand[]): Promise<BatchQueryResult>
   loadFile(location: string): FileLoadResult
@@ -65,6 +66,25 @@ export type ExecuteQuery = <Row extends QueryResultRow = QueryResultRow>(
 
 export type ExecuteAsyncQuery = <Row extends QueryResultRow = QueryResultRow>(
   query: string,
+  params?: SQLiteQueryParams,
+) => Promise<QueryResult<Row>>
+
+export interface PreparedStatement {
+  readonly isFinalized: boolean
+  execute: ExecutePreparedStatement
+  executeAsync: ExecutePreparedStatementAsync
+  finalize(): void
+}
+
+export type ExecutePreparedStatement = <
+  Row extends QueryResultRow = QueryResultRow,
+>(
+  params?: SQLiteQueryParams,
+) => QueryResult<Row>
+
+export type ExecutePreparedStatementAsync = <
+  Row extends QueryResultRow = QueryResultRow,
+>(
   params?: SQLiteQueryParams,
 ) => Promise<QueryResult<Row>>
 

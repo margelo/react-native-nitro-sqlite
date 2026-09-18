@@ -11,6 +11,7 @@ import type {
 } from '../types'
 import { executeAsyncManaged, executeManaged } from './execute'
 import { executeBatch, executeBatchAsync } from './executeBatch'
+import { prepare } from './prepare'
 import NitroSQLiteError from '../NitroSQLiteError'
 import {
   closeDatabaseQueue,
@@ -77,6 +78,7 @@ export function open(
       params?: SQLiteQueryParams,
     ): Promise<QueryResult<Row>> =>
       executeAsyncManaged(options.name, query, params),
+    prepare: (query: string) => prepare(options.name, query),
     executeBatch: (commands: BatchQueryCommand[]) =>
       executeBatch(options.name, commands),
     executeBatchAsync: (commands: BatchQueryCommand[]) =>
