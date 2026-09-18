@@ -355,6 +355,29 @@ describe('open', () => {
     current.close()
   })
 
+  it.each([false, true])(
+    'preserves promise rejection for closed async methods, reopened=%s',
+    async (reopen) => {
+      const stale = open(options)
+      stale.close()
+      const current = reopen ? open(options) : undefined
+      const callback = jest.fn(async () => {})
+
+      try {
+        await expect(stale.executeAsync('SELECT 1')).rejects.toThrow('not open')
+        await expect(
+          stale.executeBatchAsync([{ query: 'SELECT 1' }]),
+        ).rejects.toThrow('not open')
+        await expect(stale.transaction(callback)).rejects.toThrow('not open')
+        expect(callback).not.toHaveBeenCalled()
+        expect(HybridNitroSQLite.executeAsync).not.toHaveBeenCalled()
+        expect(HybridNitroSQLite.executeBatchAsync).not.toHaveBeenCalled()
+      } finally {
+        current?.close()
+      }
+    },
+  )
+
   it('isolates an independent queue when its native ID equals a default name', () => {
     jest.mocked(HybridNitroSQLite.openConnection).mockReturnValueOnce(dbName)
     const independent = open({ ...options, connection: 'independent' })

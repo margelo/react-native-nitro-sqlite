@@ -116,14 +116,15 @@ export function open(
       ),
     detach: (alias: string) =>
       runSyncOperation(() => HybridNitroSQLite.detach(connectionId, alias)),
-    transaction: <Result = void>(fn: (tx: Transaction) => Promise<Result>) =>
-      runOperation(() => transaction(connectionId, fn, false, queueKey)),
+    transaction: async <Result = void>(
+      fn: (tx: Transaction) => Promise<Result>,
+    ) => runOperation(() => transaction(connectionId, fn, false, queueKey)),
     execute: <Row extends QueryResultRow = never>(
       query: string,
       params?: SQLiteQueryParams,
     ): QueryResult<Row> =>
       runOperation(() => executeManaged(connectionId, query, params, queueKey)),
-    executeAsync: <Row extends QueryResultRow = never>(
+    executeAsync: async <Row extends QueryResultRow = never>(
       query: string,
       params?: SQLiteQueryParams,
     ): Promise<QueryResult<Row>> =>
@@ -132,7 +133,7 @@ export function open(
       ),
     executeBatch: (commands: BatchQueryCommand[]) =>
       runOperation(() => executeBatch(connectionId, commands, queueKey)),
-    executeBatchAsync: (commands: BatchQueryCommand[]) =>
+    executeBatchAsync: async (commands: BatchQueryCommand[]) =>
       runOperation(() => executeBatchAsync(connectionId, commands, queueKey)),
     loadFile: (location: string) =>
       runSyncOperation(() =>
