@@ -314,12 +314,11 @@ The bundled SQLite library compiles with `SQLITE_THREADSAFE=1` by default on iOS
 }
 ```
 
-`threadSafe` accepts `true` or `false`. On iOS, you can override it for one Pod installation with the `NITRO_SQLITE_THREADSAFE` environment variable. Environment variables accept `true`, `false`, `1`, or `0`:
+`threadSafe` accepts `true` or `false` in `package.json` on both platforms. Platform-specific overrides are available when needed:
 
-```bash
-cd ios
-NITRO_SQLITE_THREADSAFE=false pod install
-```
+| iOS | Android |
+| --- | --- |
+| Run `NITRO_SQLITE_THREADSAFE=false pod install` from `ios/`. The variable accepts `true`, `false`, `1`, or `0`. | Set `nitroSqliteFlags="-DSQLITE_THREADSAFE=0"` in `android/gradle.properties`. Use `1` to re-enable it. |
 
 With `SQLITE_THREADSAFE=0`, SQLite removes its mutex code and cannot be made thread-safe at runtime. Only use this setting if the application serializes every SQLite call across the entire process. Per-database JavaScript queues are not sufficient because separate connections and SQLite's global state can still be accessed concurrently by native threads.
 
@@ -338,7 +337,11 @@ The bundled SQLite library enables NitroSQLite's performance compile flags by de
 }
 ```
 
-`performanceMode` accepts `true` or `false`. On iOS, `NITRO_SQLITE_PERFORMANCE_MODE` overrides the package setting for one Pod installation and accepts `true`, `false`, `1`, or `0`. Disabling performance mode omits NitroSQLite's SQLite optimization flags but does not change `SQLITE_THREADSAFE`. The flags include `SQLITE_DQS=0`, which rejects double-quoted string literals, and `SQLITE_DEFAULT_WAL_SYNCHRONOUS=1`, which changes the default durability setting in WAL mode.
+`performanceMode` accepts `true` or `false` in `package.json` on both platforms. Disabling it omits NitroSQLite's SQLite optimization flags but does not change `SQLITE_THREADSAFE`. The flags include `SQLITE_DQS=0`, which rejects double-quoted string literals, and `SQLITE_DEFAULT_WAL_SYNCHRONOUS=1`, which changes the default durability setting in WAL mode.
+
+| iOS | Android |
+| --- | --- |
+| Set `NITRO_SQLITE_PERFORMANCE_MODE` for one Pod installation. It accepts `true`, `false`, `1`, or `0`. | Use `performanceMode` in `package.json` to toggle the full set. `nitroSqliteFlags` in `android/gradle.properties` can override individual definitions, but has no full-set toggle. |
 
 ## Use system SQLite on iOS
 
@@ -368,8 +371,6 @@ end
 ```properties
 nitroSqliteFlags="-DSQLITE_ENABLE_FTS5=1"
 ```
-
-Android's `nitroSqliteFlags` can override individual definitions supplied by `threadSafe` or `performanceMode`. Use the named `package.json` settings for those two options; keep `nitroSqliteFlags` for other compile-time options or deliberate per-flag overrides.
 
 ## App groups (iOS)
 
