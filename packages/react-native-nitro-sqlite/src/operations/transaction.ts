@@ -7,13 +7,15 @@ import type {
 } from '../types'
 import { executeAsyncNative, executeNative } from './execute'
 import NitroSQLiteError from '../NitroSQLiteError'
+import type { DatabaseQueueKey } from '../DatabaseQueue'
 
 export const transaction = async <Result = void>(
   dbName: string,
   transactionCallback: (tx: Transaction) => Promise<Result>,
   isExclusive = false,
+  queueKey: DatabaseQueueKey = dbName,
 ) => {
-  throwIfDatabaseIsNotOpen(dbName)
+  throwIfDatabaseIsNotOpen(queueKey)
 
   let isFinished = false
 
@@ -61,7 +63,7 @@ export const transaction = async <Result = void>(
     return executeNative(dbName, 'ROLLBACK')
   }
 
-  return await queueOperationAsync(dbName, async () => {
+  return await queueOperationAsync(queueKey, async () => {
     try {
       await executeAsyncNative(
         dbName,

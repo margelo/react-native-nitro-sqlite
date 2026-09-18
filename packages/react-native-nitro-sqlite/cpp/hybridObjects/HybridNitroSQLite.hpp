@@ -21,11 +21,15 @@ public:
 
 public:
   // Methods
-  void open(const std::string& dbName, const std::optional<std::string>& location) override;
+  void open(const std::string& dbName, const std::optional<std::string>& location, std::optional<bool> readOnly) override;
+
+  std::string openConnection(const std::string& dbName, const std::optional<std::string>& location, std::optional<bool> readOnly) override;
 
   void close(const std::string& dbName) override;
 
-  void drop(const std::string& dbName, const std::optional<std::string>& location) override;
+  bool isConnectionOpen(const std::string& connectionId) override;
+
+  void drop(const std::string& dbName, const std::optional<std::string>& location, const std::optional<std::string>& connectionId) override;
 
   void attach(const std::string& mainDbName, const std::string& dbNameToAttach, const std::string& alias,
               const std::optional<std::string>& location) override;

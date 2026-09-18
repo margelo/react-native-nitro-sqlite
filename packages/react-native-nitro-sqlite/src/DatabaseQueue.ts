@@ -12,42 +12,44 @@ export type DatabaseQueue = {
   inProgress: boolean
 }
 
-const databaseQueues = new Map<string, DatabaseQueue>()
+export type DatabaseQueueKey = string | symbol
 
-export function openDatabaseQueue(dbName: string) {
+const databaseQueues = new Map<DatabaseQueueKey, DatabaseQueue>()
+
+export function openDatabaseQueue(dbName: DatabaseQueueKey) {
   if (isDatabaseOpen(dbName)) {
     throw new NitroSQLiteError(
-      `Database ${dbName} is already open. There is already a connection to the database.`,
+      `Database ${String(dbName)} is already open. There is already a connection to the database.`,
     )
   }
 
   databaseQueues.set(dbName, { queue: [], inProgress: false })
 }
 
-export function closeDatabaseQueue(dbName: string) {
+export function closeDatabaseQueue(dbName: DatabaseQueueKey) {
   const databaseQueue = getDatabaseQueue(dbName)
 
   if (databaseQueue.inProgress || databaseQueue.queue.length > 0) {
     throw new NitroSQLiteError(
-      `Cannot close database ${dbName}. The database is busy with another operation.`,
+      `Cannot close database ${String(dbName)}. The database is busy with another operation.`,
     )
   }
 
   databaseQueues.delete(dbName)
 }
 
-export function isDatabaseOpen(dbName: string) {
+export function isDatabaseOpen(dbName: DatabaseQueueKey) {
   return databaseQueues.has(dbName)
 }
 
-export function throwIfDatabaseIsNotOpen(dbName: string) {
+export function throwIfDatabaseIsNotOpen(dbName: DatabaseQueueKey) {
   if (!isDatabaseOpen(dbName))
     throw new NitroSQLiteError(
-      `Database ${dbName} is not open. There is no connection to the database.`,
+      `Database ${String(dbName)} is not open. There is no connection to the database.`,
     )
 }
 
-export function getDatabaseQueue(dbName: string) {
+export function getDatabaseQueue(dbName: DatabaseQueueKey) {
   throwIfDatabaseIsNotOpen(dbName)
 
   const queue = databaseQueues.get(dbName)!
@@ -55,7 +57,7 @@ export function getDatabaseQueue(dbName: string) {
 }
 
 export function queueOperationAsync<Result>(
-  dbName: string,
+  dbName: DatabaseQueueKey,
   callback: () => Promise<Result>,
 ) {
   const databaseQueue = getDatabaseQueue(dbName)
@@ -97,7 +99,7 @@ function startOperationAsync(queue: DatabaseQueue) {
 }
 
 export function startOperationSync<Result>(
-  dbName: string,
+  dbName: DatabaseQueueKey,
   callback: () => Result,
 ): Result {
   const databaseQueue = getDatabaseQueue(dbName)
@@ -105,7 +107,7 @@ export function startOperationSync<Result>(
   // Database is busy - cannot execute synchronously
   if (databaseQueue.inProgress || databaseQueue.queue.length > 0) {
     throw new NitroSQLiteError(
-      `Cannot run synchronous operation on database. Database ${dbName} is busy with another operation.`,
+      `Cannot run synchronous operation on database. Database ${String(dbName)} is busy with another operation.`,
     )
   }
 

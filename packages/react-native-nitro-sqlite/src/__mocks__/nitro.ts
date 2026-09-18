@@ -1,5 +1,7 @@
 export const HybridNitroSQLite = {
   open: jest.fn(),
+  openConnection: jest.fn(),
+  isConnectionOpen: jest.fn(),
   close: jest.fn(),
   drop: jest.fn(),
   attach: jest.fn(),

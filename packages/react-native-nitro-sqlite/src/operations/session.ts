@@ -14,92 +14,171 @@ import { executeBatch, executeBatchAsync } from './executeBatch'
 import NitroSQLiteError from '../NitroSQLiteError'
 import {
   closeDatabaseQueue,
+  getDatabaseQueue,
   isDatabaseOpen,
   openDatabaseQueue,
   queueOperationAsync,
   startOperationSync,
 } from '../DatabaseQueue'
+import type { DatabaseQueueKey } from '../DatabaseQueue'
 
 export function open(
   options: NitroSQLiteConnectionOptions,
 ): NitroSQLiteConnection {
-  openDatabaseQueue(options.name)
+  const { name, location: databaseLocation, connection, readOnly } = options
+  const { connectionId, queueKey } = openNativeConnection(options)
+  const connectionQueue = getDatabaseQueue(queueKey)
 
-  try {
-    HybridNitroSQLite.open(options.name, options.location)
-  } catch (error) {
-    closeDatabaseQueue(options.name)
-    throw NitroSQLiteError.fromError(error)
+  const assertCurrentConnection = () => {
+    if (
+      !isDatabaseOpen(queueKey) ||
+      getDatabaseQueue(queueKey) !== connectionQueue
+    ) {
+      throw new NitroSQLiteError(
+        `Database ${name} is not open. There is no connection to the database.`,
+      )
+    }
+  }
+
+  const assertNoReplacement = () => {
+    if (
+      isDatabaseOpen(queueKey) &&
+      getDatabaseQueue(queueKey) !== connectionQueue
+    ) {
+      throw new NitroSQLiteError(
+        `Database ${name} has been reopened with another connection.`,
+      )
+    }
+  }
+
+  const runSyncOperation = <Result>(callback: () => Result): Result => {
+    try {
+      assertCurrentConnection()
+      return startOperationSync(queueKey, callback)
+    } catch (error) {
+      throw NitroSQLiteError.fromError(error)
+    }
+  }
+
+  const runOperation = <Result>(callback: () => Result): Result => {
+    assertCurrentConnection()
+    return callback()
   }
 
   return {
     close: () => {
-      try {
-        startOperationSync(options.name, () =>
-          HybridNitroSQLite.close(options.name),
-        )
-        closeDatabaseQueue(options.name)
-      } catch (error) {
-        throw NitroSQLiteError.fromError(error)
-      }
+      runSyncOperation(() => HybridNitroSQLite.close(connectionId))
+      closeDatabaseQueue(queueKey)
     },
     delete: () => {
+      if (readOnly) {
+        throw new NitroSQLiteError(`Cannot delete read-only database ${name}.`)
+      }
+
+      let dropFailed = false
       try {
-        if (!isDatabaseOpen(options.name)) {
-          HybridNitroSQLite.drop(options.name, options.location)
+        assertNoReplacement()
+        const drop = () => {
+          try {
+            if (connection === 'independent') {
+              HybridNitroSQLite.drop(name, databaseLocation, connectionId)
+            } else {
+              HybridNitroSQLite.drop(name, databaseLocation)
+            }
+          } catch (error) {
+            dropFailed = true
+            throw error
+          }
+        }
+
+        if (!isDatabaseOpen(queueKey)) {
+          drop()
           return
         }
 
-        startOperationSync(options.name, () =>
-          HybridNitroSQLite.drop(options.name, options.location),
-        )
-        closeDatabaseQueue(options.name)
+        startOperationSync(queueKey, drop)
+        closeDatabaseQueue(queueKey)
       } catch (error) {
+        if (
+          dropFailed &&
+          isDatabaseOpen(queueKey) &&
+          getDatabaseQueue(queueKey) === connectionQueue &&
+          !HybridNitroSQLite.isConnectionOpen(connectionId)
+        ) {
+          closeDatabaseQueue(queueKey)
+        }
         throw NitroSQLiteError.fromError(error)
       }
     },
     attach: (dbNameToAttach: string, alias: string, location?: string) =>
-      runSyncOperation(options.name, () =>
-        HybridNitroSQLite.attach(options.name, dbNameToAttach, alias, location),
+      runSyncOperation(() =>
+        HybridNitroSQLite.attach(connectionId, dbNameToAttach, alias, location),
       ),
     detach: (alias: string) =>
-      runSyncOperation(options.name, () =>
-        HybridNitroSQLite.detach(options.name, alias),
-      ),
+      runSyncOperation(() => HybridNitroSQLite.detach(connectionId, alias)),
     transaction: <Result = void>(fn: (tx: Transaction) => Promise<Result>) =>
-      transaction(options.name, fn),
+      runOperation(() => transaction(connectionId, fn, false, queueKey)),
     execute: <Row extends QueryResultRow = never>(
       query: string,
       params?: SQLiteQueryParams,
-    ): QueryResult<Row> => executeManaged(options.name, query, params),
+    ): QueryResult<Row> =>
+      runOperation(() => executeManaged(connectionId, query, params, queueKey)),
     executeAsync: <Row extends QueryResultRow = never>(
       query: string,
       params?: SQLiteQueryParams,
     ): Promise<QueryResult<Row>> =>
-      executeAsyncManaged(options.name, query, params),
+      runOperation(() =>
+        executeAsyncManaged(connectionId, query, params, queueKey),
+      ),
     executeBatch: (commands: BatchQueryCommand[]) =>
-      executeBatch(options.name, commands),
+      runOperation(() => executeBatch(connectionId, commands, queueKey)),
     executeBatchAsync: (commands: BatchQueryCommand[]) =>
-      executeBatchAsync(options.name, commands),
+      runOperation(() => executeBatchAsync(connectionId, commands, queueKey)),
     loadFile: (location: string) =>
-      runSyncOperation(options.name, () =>
-        HybridNitroSQLite.loadFile(options.name, location),
+      runSyncOperation(() =>
+        HybridNitroSQLite.loadFile(connectionId, location),
       ),
     loadFileAsync: (location: string) =>
-      queueOperationAsync(options.name, async () => {
-        try {
-          return await HybridNitroSQLite.loadFileAsync(options.name, location)
-        } catch (error) {
-          throw NitroSQLiteError.fromError(error)
-        }
-      }),
+      runOperation(() =>
+        queueOperationAsync(queueKey, async () => {
+          try {
+            return await HybridNitroSQLite.loadFileAsync(connectionId, location)
+          } catch (error) {
+            throw NitroSQLiteError.fromError(error)
+          }
+        }),
+      ),
   }
 }
 
-function runSyncOperation<Result>(dbName: string, callback: () => Result) {
+function openNativeConnection(options: NitroSQLiteConnectionOptions): {
+  connectionId: string
+  queueKey: DatabaseQueueKey
+} {
+  if (options.connection === 'independent') {
+    let connectionId: string
+    try {
+      connectionId = options.readOnly
+        ? HybridNitroSQLite.openConnection(options.name, options.location, true)
+        : HybridNitroSQLite.openConnection(options.name, options.location)
+      const queueKey = Symbol(options.name)
+      openDatabaseQueue(queueKey)
+      return { connectionId, queueKey }
+    } catch (error) {
+      throw NitroSQLiteError.fromError(error)
+    }
+  }
+
+  openDatabaseQueue(options.name)
   try {
-    return startOperationSync(dbName, callback)
+    if (options.readOnly) {
+      HybridNitroSQLite.open(options.name, options.location, true)
+    } else {
+      HybridNitroSQLite.open(options.name, options.location)
+    }
   } catch (error) {
+    closeDatabaseQueue(options.name)
     throw NitroSQLiteError.fromError(error)
   }
+  return { connectionId: options.name, queueKey: options.name }
 }
