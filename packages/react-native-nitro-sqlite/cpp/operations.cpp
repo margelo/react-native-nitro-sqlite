@@ -4,7 +4,7 @@
 #include "logs.hpp"
 #include "utils.hpp"
 #include <NitroModules/ArrayBuffer.hpp>
-#include <NitroModules/ThreadPool.hpp>
+#include <NitroModules/Promise.hpp>
 #include <cmath>
 #include <ctime>
 #include <iostream>
@@ -59,7 +59,7 @@ void SQLiteConnection::enqueueAsync(std::function<void()> operation) {
   std::lock_guard lock(asyncQueueMutex);
   if (!asyncWorkerRunning) {
     // The worker holds this connection alive until it has drained every operation.
-    ThreadPool::shared().run([connection = shared_from_this()] { connection->drainAsync(); });
+    Promise<void>::async([connection = shared_from_this()] { connection->drainAsync(); });
     asyncWorkerRunning = true;
   }
   asyncQueue.push(std::move(operation));
