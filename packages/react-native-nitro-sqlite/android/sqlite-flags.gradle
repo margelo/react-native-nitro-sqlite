@@ -1,0 +1,43 @@
+import groovy.json.JsonSlurper
+
+def appPackageFile = new File(rootProject.projectDir.parentFile, "package.json")
+def appPackage = appPackageFile.exists() ? new JsonSlurper().parse(appPackageFile) : [:]
+def appConfig = appPackage.get("nitroSQLite", [:])
+
+if (!(appConfig instanceof Map)) {
+  throw new GradleException("nitroSQLite in package.json must be an object")
+}
+
+def readBooleanFlag = { String name ->
+  def value = appConfig.get(name, true)
+  if (!(value instanceof Boolean)) {
+    throw new GradleException("nitroSQLite.${name} in package.json must be true or false")
+  }
+  value
+}
+
+def threadSafe = readBooleanFlag("threadSafe")
+def performanceMode = readBooleanFlag("performanceMode")
+def customFlags = (rootProject.findProperty("nitroSqliteFlags") ?: "").toString()
+def customFlagNames = (customFlags =~ /-D([A-Za-z_][A-Za-z0-9_]*)/).collect { it[1] }.toSet()
+
+def defaultFlags = ["-DSQLITE_THREADSAFE=${threadSafe ? 1 : 0}"]
+if (performanceMode) {
+  defaultFlags += [
+    "-DSQLITE_DQS=0",
+    "-DSQLITE_DEFAULT_MEMSTATUS=0",
+    "-DSQLITE_DEFAULT_WAL_SYNCHRONOUS=1",
+    "-DSQLITE_LIKE_DOESNT_MATCH_BLOBS=1",
+    "-DSQLITE_MAX_EXPR_DEPTH=0",
+    "-DSQLITE_OMIT_DEPRECATED=1",
+    "-DSQLITE_OMIT_PROGRESS_CALLBACK=1",
+    "-DSQLITE_OMIT_SHARED_CACHE=1",
+    "-DSQLITE_USE_ALLOCA=1",
+  ]
+}
+
+// Preserve nitroSqliteFlags as an override for individual compile definitions.
+project.ext.nitroSqliteDefaultFlags = defaultFlags.findAll { flag ->
+  def name = flag.substring(2).split("=")[0]
+  !customFlagNames.contains(name) && !(name == "SQLITE_THREADSAFE" && customFlagNames.contains("THREADSAFE"))
+}

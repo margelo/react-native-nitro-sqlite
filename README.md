@@ -302,9 +302,9 @@ You can use this package as a TypeORM driver. Because of Metro and Node resoluti
 
 # Configuration
 
-## Configure bundled SQLite thread safety on iOS
+## Configure bundled SQLite thread safety
 
-The bundled SQLite library compiles with `SQLITE_THREADSAFE=1` by default. This includes SQLite's mutex code and selects serialized mode, which lets SQLite serialize concurrent access to database connections and prepared statements. Configure it in your app's `package.json`:
+The bundled SQLite library compiles with `SQLITE_THREADSAFE=1` by default on iOS and Android. This includes SQLite's mutex code and selects serialized mode, which lets SQLite serialize concurrent access to database connections and prepared statements. Configure it in your app's `package.json`:
 
 ```json
 {
@@ -314,7 +314,7 @@ The bundled SQLite library compiles with `SQLITE_THREADSAFE=1` by default. This 
 }
 ```
 
-`threadSafe` accepts `true` or `false`. You can override it for one Pod installation with the `NITRO_SQLITE_THREADSAFE` environment variable. Environment variables accept `true`, `false`, `1`, or `0`:
+`threadSafe` accepts `true` or `false`. On iOS, you can override it for one Pod installation with the `NITRO_SQLITE_THREADSAFE` environment variable. Environment variables accept `true`, `false`, `1`, or `0`:
 
 ```bash
 cd ios
@@ -325,9 +325,9 @@ With `SQLITE_THREADSAFE=0`, SQLite removes its mutex code and cannot be made thr
 
 When `NITRO_SQLITE_USE_PHONE_VERSION=1`, the pod links the system SQLite library instead of compiling the bundled source. `NITRO_SQLITE_THREADSAFE` does not change how that system library was compiled.
 
-## Configure SQLite performance mode on iOS
+## Configure SQLite performance mode
 
-The bundled SQLite library enables NitroSQLite's performance compile flags by default. Disable them independently from thread safety in your app's `package.json`:
+The bundled SQLite library enables NitroSQLite's performance compile flags by default on iOS and Android. Disable them independently from thread safety in your app's `package.json`:
 
 ```json
 {
@@ -338,7 +338,7 @@ The bundled SQLite library enables NitroSQLite's performance compile flags by de
 }
 ```
 
-`performanceMode` accepts `true` or `false`. `NITRO_SQLITE_PERFORMANCE_MODE` overrides the package setting for one Pod installation and accepts `true`, `false`, `1`, or `0`. Disabling performance mode omits NitroSQLite's SQLite optimization flags but does not change `SQLITE_THREADSAFE`.
+`performanceMode` accepts `true` or `false`. On iOS, `NITRO_SQLITE_PERFORMANCE_MODE` overrides the package setting for one Pod installation and accepts `true`, `false`, `1`, or `0`. Disabling performance mode omits NitroSQLite's SQLite optimization flags but does not change `SQLITE_THREADSAFE`. The flags include `SQLITE_DQS=0`, which rejects double-quoted string literals, and `SQLITE_DEFAULT_WAL_SYNCHRONOUS=1`, which changes the default durability setting in WAL mode.
 
 ## Use system SQLite on iOS
 
@@ -368,6 +368,8 @@ end
 ```properties
 nitroSqliteFlags="-DSQLITE_ENABLE_FTS5=1"
 ```
+
+Android's `nitroSqliteFlags` can override individual definitions supplied by `threadSafe` or `performanceMode`. Use the named `package.json` settings for those two options; keep `nitroSqliteFlags` for other compile-time options or deliberate per-flag overrides.
 
 ## App groups (iOS)
 
