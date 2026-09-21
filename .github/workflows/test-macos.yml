@@ -54,7 +54,6 @@ jobs:
         run: |
           set -euo pipefail
           xcodebuild \
-            CC=clang CPLUSPLUS=clang++ LD=clang LDPLUSPLUS=clang++ \
             -derivedDataPath build -UseModernBuildSystem=YES \
             -workspace NitroSQLiteExample.xcworkspace \
             -scheme NitroSQLiteExample-macOS \
