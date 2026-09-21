@@ -2,9 +2,9 @@
  * SQL File Loader implementation
  */
 
-#include "importSqlFile.hpp"
+#include "NitroSQLiteImportSqlFile.hpp"
 #include "NitroSQLiteException.hpp"
-#include "operations.hpp"
+#include "NitroSQLiteOperations.hpp"
 #include <fstream>
 #include <iostream>
 

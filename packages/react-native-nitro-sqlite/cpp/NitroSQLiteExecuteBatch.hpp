@@ -4,7 +4,7 @@
 #pragma once
 
 #include "BatchQueryCommand.hpp"
-#include "types.hpp"
+#include "NitroSQLiteTypes.hpp"
 #include <memory>
 
 namespace margelo::nitro::rnnitrosqlite {

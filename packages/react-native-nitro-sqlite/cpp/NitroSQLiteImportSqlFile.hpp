@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "types.hpp"
+#include "NitroSQLiteTypes.hpp"
 #include <memory>
 
 namespace margelo::nitro::rnnitrosqlite {

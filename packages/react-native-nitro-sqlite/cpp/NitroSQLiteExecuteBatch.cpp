@@ -1,9 +1,9 @@
 /**
  * SQL Batch execution implementation using default sqliteBridge implementation
  */
-#include "sqliteExecuteBatch.hpp"
+#include "NitroSQLiteExecuteBatch.hpp"
 #include "NitroSQLiteException.hpp"
-#include "operations.hpp"
+#include "NitroSQLiteOperations.hpp"
 #include <utility>
 
 namespace margelo::nitro::rnnitrosqlite {
