@@ -2,6 +2,7 @@
   "extends": "../../config/tsconfig.json",
   "include": ["src"],
   "compilerOptions": {
+    "types": ["node", "jest"],
     "rootDir": "src",
     "outDir": ".tsbuild",
     "emitDeclarationOnly": true,

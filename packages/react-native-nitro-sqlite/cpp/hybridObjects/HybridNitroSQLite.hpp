@@ -14,6 +14,10 @@ public:
 
 public:
   static std::string docPath;
+  // Directory databases were stored in by previous app versions, when the platform layer has
+  // relocated docPath (e.g. iOS with RNNitroSQLite_DatabaseLocation set to "ApplicationSupport").
+  // When non-empty, databases found there are resolved as they are opened, attached, or dropped.
+  static std::string migrationDocPath;
 
 public:
   // Methods
@@ -43,5 +47,6 @@ public:
 };
 
 inline std::string HybridNitroSQLite::docPath = "";
+inline std::string HybridNitroSQLite::migrationDocPath = "";
 
 } // namespace margelo::nitro::rnnitrosqlite

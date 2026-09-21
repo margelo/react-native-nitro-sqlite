@@ -73,6 +73,7 @@ file("$reactNativeRootDir/ReactAndroid/gradle.properties").withInputStream { rea
 def REACT_NATIVE_VERSION = reactProperties.getProperty("VERSION_NAME")
 def REACT_NATIVE_MINOR_VERSION = REACT_NATIVE_VERSION.startsWith("0.0.0-") ? 1000 : REACT_NATIVE_VERSION.split("\\.")[1].toInteger()
 
+apply from: file('sqlite-flags.gradle')
 def SQLITE_FLAGS = rootProject.properties['nitroSqliteFlags']
 
 // Opt-in: resolve the companion's cpp dir so CMake compiles its sqlite-vec into this library.
@@ -122,6 +123,7 @@ android {
         arguments "-DANDROID_STL=c++_shared",
           "-DANDROID_TOOLCHAIN=clang",
           "-DREACT_NATIVE_MINOR_VERSION=${REACT_NATIVE_MINOR_VERSION}",
+          "-DSQLITE_DEFAULT_FLAGS=${nitroSqliteDefaultFlags.join(';')}",
           "-DSQLITE_FLAGS='${SQLITE_FLAGS ? SQLITE_FLAGS : ''}'",
           "-DNITRO_SQLITE_VEC=${NITRO_SQLITE_VEC_ENABLED ? 'ON' : 'OFF'}",
           "-DNITRO_SQLITE_VEC_CPP_DIR=${NITRO_SQLITE_VEC_CPP_DIR}",

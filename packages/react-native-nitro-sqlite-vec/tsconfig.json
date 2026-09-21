@@ -3,6 +3,7 @@
   "include": ["src"],
   "references": [{ "path": "../react-native-nitro-sqlite" }],
   "compilerOptions": {
+    "types": ["node", "jest"],
     "rootDir": "src",
     "paths": {
       "react-native-nitro-sqlite": ["../react-native-nitro-sqlite/src/index.ts"]
