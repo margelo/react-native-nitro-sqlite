@@ -228,10 +228,11 @@ Vector search is an opt-in companion package. It statically links sqlite-vec int
    npm install react-native-nitro-sqlite-vec
    ```
 2. Enable it for each native platform, then rebuild the app:
-   - **iOS:** run CocoaPods with `NITRO_SQLITE_VEC=1`, for example:
+   - **Apple platforms (iOS, macOS, visionOS):** run CocoaPods with `NITRO_SQLITE_VEC=1`, for example:
      ```bash
      NITRO_SQLITE_VEC=1 npx pod-install
      ```
+     For React Native macOS, run `NITRO_SQLITE_VEC=1 pod install` from `macos/`.
    - **Android:** add this to `android/gradle.properties`:
      ```properties
      nitroSqliteVec=true
