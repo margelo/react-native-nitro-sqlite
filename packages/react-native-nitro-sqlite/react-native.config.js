@@ -5,7 +5,7 @@ module.exports = {
     platforms: {
       /**
        * @type {import('@react-native-community/cli-types').IOSDependencyParams}
-      */
+       */
       ios: {},
       macos: {},
       /**
