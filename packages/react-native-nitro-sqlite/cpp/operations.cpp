@@ -22,10 +22,8 @@
 #endif
 
 using namespace facebook;
-using namespace margelo::nitro;
-using namespace margelo::nitro::rnnitrosqlite;
 
-namespace margelo::rnnitrosqlite {
+namespace margelo::nitro::rnnitrosqlite {
 
 static constexpr double kInt64MinAsDouble = static_cast<double>(std::numeric_limits<int64_t>::min());
 static constexpr double kInt64UpperBoundAsDouble = -kInt64MinAsDouble;
@@ -355,4 +353,4 @@ SQLiteOperationResult sqliteExecuteCommand(const SQLiteConnectionPtr& connection
   return {.rowsAffected = isReadOnly ? 0 : sqlite3_changes(db)};
 }
 
-} // namespace margelo::rnnitrosqlite
+} // namespace margelo::nitro::rnnitrosqlite

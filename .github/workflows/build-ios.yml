@@ -112,7 +112,7 @@ jobs:
             -scheme NitroSQLiteExample \
             -sdk iphonesimulator \
             -configuration Debug \
-            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+            -destination 'generic/platform=iOS Simulator' \
             -showBuildTimingSummary \
             ONLY_ACTIVE_ARCH=YES \
             build \
