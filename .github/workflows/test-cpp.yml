@@ -6,14 +6,14 @@ on:
       - main
     paths:
       - ".github/workflows/test-cpp.yml"
-      - "packages/react-native-nitro-sqlite/cpp/databaseMigration.*"
+      - "packages/react-native-nitro-sqlite/cpp/NitroSQLiteDatabaseMigration.*"
       - "packages/react-native-nitro-sqlite/cpp/hybridObjects/HybridNitroSQLite.cpp"
       - "packages/react-native-nitro-sqlite/cpp/sqlite/sqlite3.*"
       - "packages/react-native-nitro-sqlite/tests/cpp/**"
   pull_request:
     paths:
       - ".github/workflows/test-cpp.yml"
-      - "packages/react-native-nitro-sqlite/cpp/databaseMigration.*"
+      - "packages/react-native-nitro-sqlite/cpp/NitroSQLiteDatabaseMigration.*"
       - "packages/react-native-nitro-sqlite/cpp/hybridObjects/HybridNitroSQLite.cpp"
       - "packages/react-native-nitro-sqlite/cpp/sqlite/sqlite3.*"
       - "packages/react-native-nitro-sqlite/tests/cpp/**"
@@ -42,7 +42,7 @@ jobs:
             -Werror \
             -Ipackages/react-native-nitro-sqlite/cpp \
             -Ipackages/react-native-nitro-sqlite/cpp/sqlite \
-            packages/react-native-nitro-sqlite/cpp/databaseMigration.cpp \
+            packages/react-native-nitro-sqlite/cpp/NitroSQLiteDatabaseMigration.cpp \
             packages/react-native-nitro-sqlite/tests/cpp/databaseMigration.test.cpp \
             /tmp/sqlite3.o \
             -ldl \

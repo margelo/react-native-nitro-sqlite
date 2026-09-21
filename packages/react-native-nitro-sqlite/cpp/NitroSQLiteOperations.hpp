@@ -1,7 +1,7 @@
 #pragma once
 
+#include "NitroSQLiteTypes.hpp"
 #include "hybridObjects/HybridNitroSQLiteQueryResult.hpp"
-#include "types.hpp"
 #include <memory>
 #include <mutex>
 #include <sqlite3.h>

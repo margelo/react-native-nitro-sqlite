@@ -1,4 +1,4 @@
-#include "registerVectorExtensions.hpp"
+#include "NitroSQLiteVecRegisterVectorExtensions.hpp"
 
 #include <mutex>
 #include <sqlite3.h>

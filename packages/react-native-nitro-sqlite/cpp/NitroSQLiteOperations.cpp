@@ -1,8 +1,8 @@
-#include "operations.hpp"
+#include "NitroSQLiteOperations.hpp"
 #include "NitroSQLiteException.hpp"
+#include "NitroSQLiteLogs.hpp"
+#include "NitroSQLiteUtils.hpp"
 #include "hybridObjects/HybridNitroSQLiteQueryResult.hpp"
-#include "logs.hpp"
-#include "utils.hpp"
 #include <NitroModules/ArrayBuffer.hpp>
 #include <cmath>
 #include <ctime>
@@ -18,7 +18,7 @@
 
 #ifdef NITRO_SQLITE_VEC
 // Angle-bracket so it resolves via -I (CocoaPods intercepts quoted includes).
-#include <registerVectorExtensions.hpp>
+#include <NitroSQLiteVecRegisterVectorExtensions.hpp>
 #endif
 
 using namespace facebook;

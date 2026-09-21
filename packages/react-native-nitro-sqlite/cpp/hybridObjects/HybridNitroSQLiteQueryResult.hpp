@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../types.hpp"
+#include "../NitroSQLiteTypes.hpp"
 #include "HybridNitroSQLiteQueryResultSpec.hpp"
 #include <map>
 
