@@ -1,4 +1,9 @@
-import { chance, expect, isNitroSQLiteError } from '@tests/unit/common'
+import {
+  chance,
+  expect,
+  isNitroSQLiteError,
+  TEST_ERROR_CODES,
+} from '@tests/unit/common'
 import { describe, it } from '@tests/TestApi'
 import { testDb } from '@tests/db'
 
@@ -98,6 +103,20 @@ export default function registerPreparedStatementUnitTests() {
         if (isNitroSQLiteError(error)) {
           expect(error.message).toContain(
             'Prepared statement has been finalized',
+          )
+        }
+      }
+    })
+
+    it('rejects a query that contains no SQL', () => {
+      for (const query of ['', '-- just a comment']) {
+        try {
+          testDb.prepare(query)
+          throw new Error(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
+        } catch (error) {
+          if (!isNitroSQLiteError(error)) throw error
+          expect(error.message).toContain(
+            'Query does not contain any SQL statement',
           )
         }
       }

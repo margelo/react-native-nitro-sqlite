@@ -229,6 +229,12 @@ namespace {
       throw NitroSQLiteException::SqlExecution(sqlite3_errmsg(db));
     }
 
+    // sqlite3_prepare_v2 reports SQLITE_OK with a null statement when the query holds no SQL,
+    // such as an empty string or nothing but comments.
+    if (!statement) {
+      throw NitroSQLiteException::SqlExecution("Query does not contain any SQL statement");
+    }
+
     if (params) {
       bindStatement(statement.get(), *params);
     }
