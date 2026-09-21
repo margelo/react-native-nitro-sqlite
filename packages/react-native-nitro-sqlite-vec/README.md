@@ -10,10 +10,11 @@ Install both this package and `react-native-nitro-sqlite`, then enable the nativ
 npm install react-native-nitro-sqlite react-native-nitro-sqlite-vec
 ```
 
-- **iOS:**
+- **Apple platforms (iOS, macOS, visionOS):**
   ```bash
   NITRO_SQLITE_VEC=1 npx pod-install
   ```
+  For React Native macOS, run `NITRO_SQLITE_VEC=1 pod install` from `macos/`.
 - **Android:** add this to `android/gradle.properties` and rebuild:
   ```properties
   nitroSqliteVec=true

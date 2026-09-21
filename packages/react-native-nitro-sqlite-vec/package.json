@@ -29,6 +29,7 @@
     "vector-search",
     "nitro-modules",
     "ios",
+    "macos",
     "android"
   ],
   "repository": {
