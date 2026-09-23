@@ -274,17 +274,16 @@ export default function registerDatabaseQueueUnitTests() {
         { query: 'INSERT INTO BatchBarrier (value) VALUES (2)' },
         { query: 'INSERT INTO BatchBarrier (value) VALUES (1)' },
       ])
+      const batchErrorPromise = batch.then(
+        () => undefined,
+        (error: unknown) => error,
+      )
       const after = testDb.executeAsync(
         'INSERT INTO BatchBarrier (value) VALUES (3)',
       )
 
       await before
-      let batchError: unknown
-      try {
-        await batch
-      } catch (error) {
-        batchError = error
-      }
+      const batchError = await batchErrorPromise
       expect(batchError).toBeInstanceOf(NitroSQLiteError)
       await after
       expect(
