@@ -4,29 +4,28 @@ on:
   push:
     branches:
       - main
-    paths:
+    paths: &android_paths
       - ".github/workflows/build-android.yml"
       - "example/android/**"
-      - "**/nitrogen/generated/shared/**"
-      - "**/nitrogen/generated/android/**"
+      - "packages/react-native-nitro-sqlite/nitrogen/generated/shared/**"
+      - "packages/react-native-nitro-sqlite/nitrogen/generated/android/**"
+      - "packages/react-native-nitro-sqlite/src/specs/**"
       - "packages/react-native-nitro-sqlite/cpp/**"
       - "packages/react-native-nitro-sqlite/android/**"
+      - "packages/react-native-nitro-sqlite-vec/cpp/**"
       - "scripts/android-sqlite-flags/**"
-      - "**/bun.lock"
-      - "**/react-native.config.js"
-      - "**/nitro.json"
+      - "bun.lock"
+      - "package.json"
+      - "example/package.json"
+      - "packages/react-native-nitro-sqlite/package.json"
+      - "packages/react-native-nitro-sqlite-vec/package.json"
+      - "patches/react-native-nitro-modules*"
+      - "example/react-native.config.js"
+      - "packages/react-native-nitro-sqlite/react-native.config.js"
+      - "packages/react-native-nitro-sqlite-vec/react-native.config.js"
+      - "packages/react-native-nitro-sqlite/nitro.json"
   pull_request:
-    paths:
-      - ".github/workflows/build-android.yml"
-      - "example/android/**"
-      - "**/nitrogen/generated/shared/**"
-      - "**/nitrogen/generated/android/**"
-      - "packages/react-native-nitro-sqlite/cpp/**"
-      - "packages/react-native-nitro-sqlite/android/**"
-      - "scripts/android-sqlite-flags/**"
-      - "**/bun.lock"
-      - "**/react-native.config.js"
-      - "**/nitro.json"
+    paths: *android_paths
 
 env:
   # Build a single ABI in CI to reduce native compile time.

@@ -9,27 +9,39 @@ on:
   push:
     branches:
       - main
-    paths:
+    paths: &typescript_paths
       - ".github/workflows/lint-typescript.yml"
-      - "config"
-      - "**/*.ts"
-      - "**/*.tsx"
-      - "**/*.js"
-      - "**/*.jsx"
-      - "**/*.json"
-      - "**/bun.lock"
-      - "**/package.json"
+      - ".prettierrc.js"
+      - "config/**"
+      - "tsconfig.json"
+      - "package.json"
+      - "bun.lock"
+      - "patches/**"
+      - "example/**/*.ts"
+      - "example/**/*.tsx"
+      - "example/**/*.js"
+      - "example/**/*.jsx"
+      - "example/**/*.mjs"
+      - "example/tsconfig.json"
+      - "example/app.json"
+      - "example/package.json"
+      - "example/macos/package.json"
+      - "packages/react-native-nitro-sqlite/**/*.ts"
+      - "packages/react-native-nitro-sqlite/**/*.tsx"
+      - "packages/react-native-nitro-sqlite/**/*.js"
+      - "packages/react-native-nitro-sqlite/**/*.jsx"
+      - "packages/react-native-nitro-sqlite/tsconfig.json"
+      - "packages/react-native-nitro-sqlite/tsconfig.build.json"
+      - "packages/react-native-nitro-sqlite/package.json"
+      - "packages/react-native-nitro-sqlite/nitro.json"
+      - "packages/react-native-nitro-sqlite-vec/**/*.ts"
+      - "packages/react-native-nitro-sqlite-vec/**/*.tsx"
+      - "packages/react-native-nitro-sqlite-vec/**/*.js"
+      - "packages/react-native-nitro-sqlite-vec/**/*.jsx"
+      - "packages/react-native-nitro-sqlite-vec/tsconfig.json"
+      - "packages/react-native-nitro-sqlite-vec/package.json"
   pull_request:
-    paths:
-      - ".github/workflows/lint-typescript.yml"
-      - "config"
-      - "**/*.ts"
-      - "**/*.tsx"
-      - "**/*.js"
-      - "**/*.jsx"
-      - "**/*.json"
-      - "**/bun.lock"
-      - "**/package.json"
+    paths: *typescript_paths
 
 jobs:
   tsc:
