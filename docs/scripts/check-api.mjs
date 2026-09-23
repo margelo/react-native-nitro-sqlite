@@ -160,7 +160,7 @@ for (const page of pages) {
   )
 
   const route = page.endsWith('index.mdx')
-    ? `/api/${page.slice(0, -'index.mdx'.length)}`
+    ? `/api/${page.slice(0, -'/index.mdx'.length)}`.replace(/\/$/, '')
     : `/api/${page.slice(0, -4)}`
   for (const [, href] of content.matchAll(/\]\(([^)\s]+)\)/g)) {
     const link = new URL(href, `https://docs.example${route}`)

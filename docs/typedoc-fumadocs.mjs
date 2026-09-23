@@ -23,11 +23,25 @@ export function load(app) {
             '',
           )
 
-    page.contents = addPackageIntro(page.model.name, contents)
-      ?.replace(
-        /\]\(([^):\s]*\/)?index\.mdx(#[^)]*)?\)/g,
-        (_, directory, hash = '') => `](${directory ?? './'}${hash})`,
-      )
-      .replace(/\]\(([^):\s]+)\.mdx(#[^)]*)?\)/g, ']($1$2)')
+    page.contents = addPackageIntro(page.model.name, contents)?.replace(
+      /\]\(([^)]+)\)/g,
+      (link, href) => {
+        if (
+          href.startsWith('#') ||
+          href.startsWith('/') ||
+          /^[a-z][a-z\d+.-]*:/i.test(href)
+        ) {
+          return link
+        }
+
+        const url = new URL(href, `https://docs.example/api/${page.url}`)
+        const pathname = url.pathname
+          .replace(/\/index\.mdx$/, '')
+          .replace(/\.mdx$/, '')
+          .replace(/\/$/, '')
+
+        return `](${pathname || '/api'}${url.search}${url.hash})`
+      },
+    )
   })
 }
