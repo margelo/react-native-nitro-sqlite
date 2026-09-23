@@ -72,16 +72,22 @@ export function DatabaseIllustration() {
         <div className={styles.stack}>
           <span className={styles.storageLabel}>SQLite / app_data</span>
           <div className={`${styles.page} ${styles.pageBack}`}>
-            <span className={styles.pageIndex}>03</span>
-            <span className={styles.rows}><i /><i /><i /><i /></span>
+            <div className={styles.pageSurface}>
+              <span className={styles.pageIndex}>03</span>
+              <span className={styles.rows}><i /><i /><i /><i /></span>
+            </div>
           </div>
           <div className={`${styles.page} ${styles.pageMiddle}`}>
-            <span className={styles.pageIndex}>02</span>
-            <span className={styles.rows}><i /><i /><i /><i /></span>
+            <div className={styles.pageSurface}>
+              <span className={styles.pageIndex}>02</span>
+              <span className={styles.rows}><i /><i /><i /><i /></span>
+            </div>
           </div>
           <div className={`${styles.page} ${styles.pageFront}`}>
-            <span className={styles.pageIndex}>01</span>
-            <span className={styles.rows}><i /><i className={styles.match} /><i /><i /></span>
+            <div className={styles.pageSurface}>
+              <span className={styles.pageIndex}>01</span>
+              <span className={styles.rows}><i /><i className={styles.match} /><i /><i /></span>
+            </div>
           </div>
         </div>
 
@@ -89,7 +95,7 @@ export function DatabaseIllustration() {
 
         <div className={styles.result}>
           <span className={styles.resultLabel}>React Native app / returned row</span>
-          <span className={styles.resultValues}><code>42</code><code>Works on my simulator</code></span>
+          <span className={styles.resultValues}><code>42</code><code>&quot;Works on my machine&quot;</code></span>
         </div>
       </div>
     </div>
