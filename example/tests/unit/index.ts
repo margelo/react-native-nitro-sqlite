@@ -9,7 +9,6 @@ import registerSqliteVecUnitTestsSpecs from './specs/sqlite-vec.spec'
 import registerConnectionUnitTests from './specs/Connections.spec'
 import registerBenchmarkDatabaseUnitTests from './specs/benchmarkDatabase.spec'
 
-
 export function registerUnitTests() {
   beforeEach(setupTestDb)
 
@@ -19,7 +18,6 @@ export function registerUnitTests() {
   describe('DatabaseQueue.spec.ts', registerDatabaseQueueUnitTests)
   describe('Connections.spec.ts', registerConnectionUnitTests)
   describe('benchmarkDatabase.spec.ts', registerBenchmarkDatabaseUnitTests)
-
 }
 
 export function registerTypeORMUnitTests() {
