@@ -161,8 +161,13 @@ for (const page of pages) {
   if (!page.endsWith('index.mdx')) {
     assert.match(
       content,
-      /\*\*Declaration:\*\* (?:TypeScript|JavaScript|C\+\+|C|Kotlin|Swift) · \[View source on GitHub\]\(https:\/\/github\.com\/margelo\/react-native-nitro-sqlite\/blob\/[^)]+\)/,
-      `Missing source language or link: ${page}`,
+      /^<ApiSymbolHeader title=".+" languages="(?:TypeScript|JavaScript|C\+\+|C|Kotlin|Swift)(?:,(?:TypeScript|JavaScript|C\+\+|C|Kotlin|Swift))*" \/>$/m,
+      `Missing language badges in heading: ${page}`,
+    )
+    assert.match(
+      content,
+      /\*\*Source files:\*\* \[(?:TypeScript|JavaScript|C\+\+|C|Kotlin|Swift)\]\(https:\/\/github\.com\/margelo\/react-native-nitro-sqlite\/blob\/[^)]+\)/,
+      `Missing language-labeled source link: ${page}`,
     )
   }
 

@@ -155,18 +155,24 @@ function addSourceHeader(model, contents) {
   const language = languages[extension]
   if (!language) return contents
 
-  const sourceLink = source.url
-    ? ` · [View source on GitHub](${source.url})`
-    : ''
   const nativeLink = isHybridObject(model)
     ? getNativeImplementationLink(source)
     : undefined
-  const nativeNote = nativeLink ? ` · [C++ implementation](${nativeLink})` : ''
-  const header = `**Declaration:** ${language}${sourceLink}${nativeNote}`
+  const languagesInHeader = nativeLink ? `${language},C++` : language
+  const sourceLinks = [
+    source.url ? `[${language}](${source.url})` : undefined,
+    nativeLink ? `[C++](${nativeLink})` : undefined,
+  ].filter(Boolean)
+  const sourceLine = sourceLinks.length
+    ? `**Source files:** ${sourceLinks.join(' · ')}\n\n`
+    : ''
 
   return contents
     .replace(/^Defined in: [^\n]+\n\n/m, '')
-    .replace(/^(# .+\n\n)/m, `$1${header}\n\n`)
+    .replace(
+      /^# (.+?)(\n\n)/m,
+      `<ApiSymbolHeader title="$1" languages="${languagesInHeader}" />$2${sourceLine}`,
+    )
 }
 
 function getNativeImplementationLink(source) {
