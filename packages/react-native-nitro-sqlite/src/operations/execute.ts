@@ -8,6 +8,13 @@ import {
   startOperationSync,
 } from '../DatabaseQueue'
 
+/** Execute one SQL statement synchronously by database name.
+ * Uses the managed queue when the database has an open managed connection.
+ * @param dbName Name of an open native database.
+ * @param query SQL statement with optional positional placeholders.
+ * @param params Values bound to the placeholders.
+ * @returns The query result with typed rows.
+ */
 export function execute<Row extends QueryResultRow = never>(
   dbName: string,
   query: string,
@@ -41,6 +48,13 @@ export function executeNative<Row extends QueryResultRow = never>(
   }
 }
 
+/** Execute one SQL statement asynchronously by database name.
+ * Uses the managed queue when the database has an open managed connection.
+ * @param dbName Name of an open native database.
+ * @param query SQL statement with optional positional placeholders.
+ * @param params Values bound to the placeholders.
+ * @returns A promise of the query result with typed rows.
+ */
 export async function executeAsync<Row extends QueryResultRow = never>(
   dbName: string,
   query: string,

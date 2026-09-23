@@ -1,10 +1,8 @@
 const NITRO_SQLITE_ERROR_NAME = 'NitroSQLiteError' as const
 
-/**
- * Custom error class for NitroSQLite operations
- * Extends the native Error class with proper prototype chain and error handling
- */
+/** Error thrown by managed NitroSQLite operations. Native errors are wrapped with this class. */
 export default class NitroSQLiteError extends Error {
+  /** Create an error with a message and optional cause. */
   constructor(message: string, options?: ErrorOptions) {
     super(message, options)
     this.name = NITRO_SQLITE_ERROR_NAME
@@ -13,9 +11,10 @@ export default class NitroSQLiteError extends Error {
     Object.setPrototypeOf(this, NitroSQLiteError.prototype)
   }
 
-  /**
-   * Converts an unknown error to a NitroSQLiteError
-   * Preserves stack traces and error causes when available
+  /** Convert an unknown thrown value to `NitroSQLiteError`.
+   * Existing instances pass through; `Error` values keep their stack and cause.
+   * @param error Value to normalize.
+   * @returns A NitroSQLiteError instance.
    */
   static fromError(error: unknown): NitroSQLiteError {
     if (error instanceof NitroSQLiteError) {

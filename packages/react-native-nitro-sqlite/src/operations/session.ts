@@ -20,6 +20,12 @@ import {
   startOperationSync,
 } from '../DatabaseQueue'
 
+/** Open or create a database and return a managed connection.
+ * Async calls on that connection run in call order. A second managed connection
+ * with the same name throws until the first is closed or deleted.
+ * @param options Database name and optional directory relative to the platform database directory.
+ * @returns A connection bound to the named database.
+ */
 export function open(
   options: NitroSQLiteConnectionOptions,
 ): NitroSQLiteConnection {
