@@ -4,21 +4,14 @@ on:
   push:
     branches:
       - main
-    paths:
+    paths: &cpp_test_paths
       - ".github/workflows/test-cpp.yml"
       - "packages/react-native-nitro-sqlite/cpp/NitroSQLiteDatabaseMigration.*"
       - "packages/react-native-nitro-sqlite/cpp/NitroSQLiteDatabaseConnections.*"
-      - "packages/react-native-nitro-sqlite/cpp/hybridObjects/HybridNitroSQLite.cpp"
       - "packages/react-native-nitro-sqlite/cpp/sqlite/sqlite3.*"
       - "packages/react-native-nitro-sqlite/tests/cpp/**"
   pull_request:
-    paths:
-      - ".github/workflows/test-cpp.yml"
-      - "packages/react-native-nitro-sqlite/cpp/NitroSQLiteDatabaseMigration.*"
-      - "packages/react-native-nitro-sqlite/cpp/NitroSQLiteDatabaseConnections.*"
-      - "packages/react-native-nitro-sqlite/cpp/hybridObjects/HybridNitroSQLite.cpp"
-      - "packages/react-native-nitro-sqlite/cpp/sqlite/sqlite3.*"
-      - "packages/react-native-nitro-sqlite/tests/cpp/**"
+    paths: *cpp_test_paths
 
 jobs:
   test:
