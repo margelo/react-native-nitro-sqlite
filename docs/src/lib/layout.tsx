@@ -8,7 +8,7 @@ export function homeOptions(): HomeLayoutProps {
     nav: { title: <Brand /> },
     links: [
       { text: 'Docs', url: '/docs', active: 'nested-url' },
-      { text: 'API Reference', url: '/docs/api', active: 'nested-url' },
+      { text: 'API Reference', url: '/api', active: 'nested-url' },
       {
         type: 'icon',
         text: 'Margelo',

@@ -1,0 +1,38 @@
+{
+  "entryPoints": [
+    "../packages/react-native-nitro-sqlite",
+    "../packages/react-native-nitro-sqlite-vec"
+  ],
+  "entryPointStrategy": "packages",
+  "name": "API Reference",
+  "packageOptions": {
+    "entryPoints": ["src/index.ts"],
+    "tsconfig": "../../docs/tsconfig.typedoc.json",
+    "readme": "none",
+    "excludeExternals": true,
+    "excludeInternal": true,
+    "excludePrivate": true,
+    "excludeProtected": true,
+    "disableSources": true,
+    "sanitizeComments": true,
+    "intentionallyNotExported": [
+      "NitroSQLite",
+      "NitroSQLiteQueryResult",
+      "TypeOrmNitroSQLiteConnection"
+    ]
+  },
+  "outputs": [
+    { "name": "markdown", "path": "content/api" },
+    { "name": "json", "path": "content/api-reflection.json" }
+  ],
+  "plugin": [
+    "typedoc-plugin-markdown",
+    "typedoc-plugin-frontmatter",
+    "./typedoc-fumadocs.mjs"
+  ],
+  "readme": "none",
+  "entryFileName": "index",
+  "fileExtension": ".mdx",
+  "cleanOutputDir": true,
+  "useHTMLEncodedBrackets": true
+}

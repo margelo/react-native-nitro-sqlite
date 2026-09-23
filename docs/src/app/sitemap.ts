@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { absoluteUrl } from '@/lib/site'
-import { source } from '@/lib/source'
+import { apiSource, source } from '@/lib/source'
 
 export const dynamic = 'force-static'
 
@@ -10,6 +10,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...source.getPages().map((page) => ({
       url: absoluteUrl(page.url),
       priority: page.url === '/docs' ? 0.9 : 0.7,
+      changeFrequency: 'weekly' as const,
+    })),
+    ...apiSource.getPages().map((page) => ({
+      url: absoluteUrl(page.url),
+      priority: 0.7,
       changeFrequency: 'weekly' as const,
     })),
   ]
