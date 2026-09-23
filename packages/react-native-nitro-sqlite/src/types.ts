@@ -6,6 +6,10 @@ export interface NitroSQLiteConnectionOptions {
   name: string
   /** Directory relative to the platform's database directory. */
   location?: string
+  /** Open the name-based default connection or a separate connection. Duplicate default opens throw. Defaults to 'default'. */
+  connection?: 'default' | 'independent'
+  /** Open an existing database without write access. A read-only connection cannot delete the database. */
+  readOnly?: boolean
 }
 
 /** A managed connection bound to one database name. Do not use it after closing or deleting it. */

@@ -16,26 +16,23 @@ export interface NitroSQLite
     ios: 'c++'
     android: 'c++'
   }> {
-  /** Open or create a database synchronously.
-   * @param dbName Database file name.
-   * @param location Directory relative to the platform database directory.
-   */
-  open(dbName: string, location?: string): void
-  /** Close the named native database handle.
-   * @param dbName Name of the open database.
-   */
+  /** Open a named database synchronously. */
+  open(dbName: string, location?: string, readOnly?: boolean): void
+  /** Open a separate native handle and return its opaque connection ID. */
+  openConnection(dbName: string, location?: string, readOnly?: boolean): string
+  /** Check whether a native connection remains open. */
+  isConnectionOpen(connectionId: string): boolean
+  /** Close a named database or independent connection. */
   close(dbName: string): void
-  /** Remove the named database file and close its native handle if open.
-   * @param dbName Database file name.
-   * @param location Directory relative to the platform database directory.
-   */
-  drop(dbName: string, location?: string): void
+  /** Delete a database, optionally closing the indicated independent connection. */
+  drop(dbName: string, location?: string, connectionId?: string): void
   /** Attach a database file to an open main database under an SQL schema alias.
    * @param mainDbName Name of the open main database.
    * @param dbNameToAttach File name of the database to attach.
    * @param alias SQL schema name for the attached database.
    * @param location Directory relative to the platform database directory.
    */
+
   attach(
     mainDbName: string,
     dbNameToAttach: string,

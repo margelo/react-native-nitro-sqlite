@@ -12,7 +12,10 @@ on:
       - "example/jest.config.js"
       - "packages/react-native-nitro-sqlite/cpp/**"
       - "packages/react-native-nitro-sqlite/android/**"
+      - "packages/react-native-nitro-sqlite/src/**"
+      - "packages/react-native-nitro-sqlite/nitrogen/**"
       - "packages/react-native-nitro-sqlite-vec/cpp/**"
+
       - "**/bun.lock"
       - "**/react-native.config.js"
       - "**/nitro.json"

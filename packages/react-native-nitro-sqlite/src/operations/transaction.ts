@@ -7,6 +7,7 @@ import type {
 } from '../types'
 import { executeAsyncNative, executeNative } from './execute'
 import NitroSQLiteError from '../NitroSQLiteError'
+import type { DatabaseQueueKey } from '../DatabaseQueue'
 
 /** Queue a transaction for an open managed connection.
  * Use only the supplied `tx` for work on this database inside the callback.
@@ -21,8 +22,9 @@ export const transaction = async <Result = void>(
   dbName: string,
   transactionCallback: (tx: Transaction) => Promise<Result>,
   isExclusive = false,
+  queueKey: DatabaseQueueKey = dbName,
 ) => {
-  throwIfDatabaseIsNotOpen(dbName)
+  throwIfDatabaseIsNotOpen(queueKey)
 
   let isFinished = false
   const pendingAsyncStatements = new Set<Promise<unknown>>()
@@ -88,7 +90,7 @@ export const transaction = async <Result = void>(
     return executeNative(dbName, 'ROLLBACK')
   }
 
-  return await queueOperationAsync(dbName, async () => {
+  return await queueOperationAsync(queueKey, async () => {
     try {
       await executeAsyncNative(
         dbName,

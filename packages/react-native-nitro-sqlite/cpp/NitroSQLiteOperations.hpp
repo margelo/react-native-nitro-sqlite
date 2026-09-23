@@ -1,6 +1,6 @@
 #pragma once
 
-#include "NitroSQLiteTypes.hpp"
+#include "NitroSQLiteDatabaseConnections.hpp"
 #include "hybridObjects/HybridNitroSQLiteQueryResult.hpp"
 #include <functional>
 #include <memory>
@@ -11,38 +11,14 @@
 
 namespace margelo::nitro::rnnitrosqlite {
 
-// Calls against one connection are serialized by `mutex`. Separate connections
-// intentionally remain independent, so SQLITE_THREADSAFE=0 still requires the
-// caller to serialize SQLite calls globally.
-struct SQLiteConnection final : std::enable_shared_from_this<SQLiteConnection> {
-  SQLiteConnection(std::string name, sqlite3* database);
-  ~SQLiteConnection();
+void sqliteOpenDb(const std::string& dbName, const std::string& docPath, bool readOnly = false);
 
-  SQLiteConnection(const SQLiteConnection&) = delete;
-  SQLiteConnection& operator=(const SQLiteConnection&) = delete;
-
-  void close() noexcept;
-  void enqueueAsync(std::function<void()> operation);
-
-  const std::string name;
-  sqlite3* database;
-  std::recursive_mutex mutex;
-
-private:
-  void drainAsync();
-
-  std::mutex asyncQueueMutex;
-  std::queue<std::function<void()>> asyncQueue;
-  bool asyncWorkerRunning = false;
-};
-
-using SQLiteConnectionPtr = std::shared_ptr<SQLiteConnection>;
-
-void sqliteOpenDb(const std::string& dbName, const std::string& docPath);
+std::string sqliteOpenConnection(const std::string& dbName, const std::string& docPath, bool readOnly = false);
 
 void sqliteCloseDb(const std::string& dbName);
 
-void sqliteRemoveDb(const std::string& dbName, const std::string& docPath);
+void sqliteRemoveDb(const std::string& dbName, const std::string& docPath, const std::optional<std::string>& connectionId = std::nullopt,
+                    const std::optional<std::string>& otherDocPath = std::nullopt);
 
 void sqliteAttachDb(const std::string& mainDBName, const std::string& docPath, const std::string& databaseToAttach,
                     const std::string& alias);

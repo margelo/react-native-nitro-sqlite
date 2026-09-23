@@ -19,19 +19,17 @@ public:
   static std::string migrationDocPath;
 
 public:
-  /** Open or create a database on the calling thread.
-   * @param dbName Database file name.
-   * @param location Optional directory relative to the platform database root.
-   */
-  void open(const std::string& dbName, const std::optional<std::string>& location) override;
+  // Methods
+  void open(const std::string& dbName, const std::optional<std::string>& location, std::optional<bool> readOnly) override;
+
+  std::string openConnection(const std::string& dbName, const std::optional<std::string>& location, std::optional<bool> readOnly) override;
 
   /** Close the named native database handle. */
   void close(const std::string& dbName) override;
 
-  /** Remove a database file and close its native handle if open.
-   * @param location Optional directory relative to the platform database root.
-   */
-  void drop(const std::string& dbName, const std::optional<std::string>& location) override;
+  bool isConnectionOpen(const std::string& connectionId) override;
+
+  void drop(const std::string& dbName, const std::optional<std::string>& location, const std::optional<std::string>& connectionId) override;
 
   /** Attach a database file to an open database.
    * @param mainDbName Name of the open main database.

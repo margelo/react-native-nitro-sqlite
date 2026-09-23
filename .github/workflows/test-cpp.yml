@@ -7,6 +7,7 @@ on:
     paths:
       - ".github/workflows/test-cpp.yml"
       - "packages/react-native-nitro-sqlite/cpp/NitroSQLiteDatabaseMigration.*"
+      - "packages/react-native-nitro-sqlite/cpp/NitroSQLiteDatabaseConnections.*"
       - "packages/react-native-nitro-sqlite/cpp/hybridObjects/HybridNitroSQLite.cpp"
       - "packages/react-native-nitro-sqlite/cpp/sqlite/sqlite3.*"
       - "packages/react-native-nitro-sqlite/tests/cpp/**"
@@ -14,13 +15,14 @@ on:
     paths:
       - ".github/workflows/test-cpp.yml"
       - "packages/react-native-nitro-sqlite/cpp/NitroSQLiteDatabaseMigration.*"
+      - "packages/react-native-nitro-sqlite/cpp/NitroSQLiteDatabaseConnections.*"
       - "packages/react-native-nitro-sqlite/cpp/hybridObjects/HybridNitroSQLite.cpp"
       - "packages/react-native-nitro-sqlite/cpp/sqlite/sqlite3.*"
       - "packages/react-native-nitro-sqlite/tests/cpp/**"
 
 jobs:
   test:
-    name: Database migration tests
+    name: Database lifecycle tests
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
@@ -52,3 +54,48 @@ jobs:
 
       - name: Run migration tests
         run: /tmp/databaseMigrationTests
+
+      - name: Build connection tests
+        run: |
+          clang++ \
+            -std=c++20 \
+            -Wall \
+            -Wextra \
+            -Werror \
+            -Ipackages/react-native-nitro-sqlite/cpp \
+            -Ipackages/react-native-nitro-sqlite/cpp/sqlite \
+            packages/react-native-nitro-sqlite/cpp/NitroSQLiteDatabaseConnections.cpp \
+            packages/react-native-nitro-sqlite/cpp/NitroSQLiteDatabaseMigration.cpp \
+            packages/react-native-nitro-sqlite/tests/cpp/databaseConnections.test.cpp \
+            /tmp/sqlite3.o \
+            -ldl \
+            -lm \
+            -pthread \
+            -o /tmp/databaseConnectionsTests
+
+      - name: Run connection tests
+        run: /tmp/databaseConnectionsTests
+
+      - name: Build and run thread safety gate test
+        run: |
+          clang \
+            -std=c11 \
+            -DSQLITE_THREADSAFE=0 \
+            -c packages/react-native-nitro-sqlite/cpp/sqlite/sqlite3.c \
+            -o /tmp/sqlite3-threadsafe-0.o
+          clang++ \
+            -std=c++20 \
+            -Wall \
+            -Wextra \
+            -Werror \
+            -Ipackages/react-native-nitro-sqlite/cpp \
+            -Ipackages/react-native-nitro-sqlite/cpp/sqlite \
+            packages/react-native-nitro-sqlite/cpp/NitroSQLiteDatabaseConnections.cpp \
+            packages/react-native-nitro-sqlite/cpp/NitroSQLiteDatabaseMigration.cpp \
+            packages/react-native-nitro-sqlite/tests/cpp/databaseConnectionsThreadsafe.test.cpp \
+            /tmp/sqlite3-threadsafe-0.o \
+            -ldl \
+            -lm \
+            -pthread \
+            -o /tmp/databaseConnectionsThreadsafeTests
+          /tmp/databaseConnectionsThreadsafeTests

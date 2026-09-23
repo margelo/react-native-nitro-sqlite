@@ -660,6 +660,9 @@ export default function registerDatabaseQueueUnitTests() {
           ).results,
         ).toEqual([{ value: 'replacement' }])
       } finally {
+        if (NitroSQLite.native.isConnectionOpen(dbName)) {
+          NitroSQLite.native.close(dbName)
+        }
         dropDatabaseIfExists(dbName)
         dropDatabaseIfExists(dbName, '..')
       }
