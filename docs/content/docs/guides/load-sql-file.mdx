@@ -21,3 +21,5 @@ INSERT INTO tags (name) VALUES ('home');
 ```
 
 The loader counts executed lines in `commands` and adds their affected row counts in `rowsAffected`. It rolls back when a statement fails. Choose `loadFileAsync()` for a larger file to keep the database work off the JavaScript thread. Use [batch operations](/docs/guides/batch-operations) when statements need bound parameters or when you already have the commands in JavaScript.
+
+Both methods return a [`FileLoadResult`](/api/react-native-nitro-sqlite/interfaces/FileLoadResult) with optional `commands` and `rowsAffected` numbers.

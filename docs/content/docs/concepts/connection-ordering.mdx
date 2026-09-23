@@ -21,4 +21,4 @@ console.log(rows.item(0)?.count)
 db.close()
 ```
 
-A transaction occupies that queue until its callback finishes. Inside it, use `tx` methods. Awaiting another queued `db` call for the same name from the callback leaves both operations waiting. Direct calls through `NitroSQLite.native` bypass the JavaScript queue, so coordinate them yourself if you use them with a connection. Read [sync and async](/docs/guides/sync-and-async) for choosing a call form and the [native API](/docs/api/native) for that lower-level boundary.
+A transaction occupies that queue until its callback finishes. Inside it, use `tx` methods. Awaiting another queued `db` call for the same name from the callback leaves both operations waiting. Direct calls through `NitroSQLite.native` bypass the JavaScript queue, so coordinate them yourself if you use them with a connection. Read [sync and async](/docs/guides/sync-and-async) for choosing a call form and [native access](/docs/guides/sync-and-async#global-helpers-and-native-access) for that lower-level boundary.

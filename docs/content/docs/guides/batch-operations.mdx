@@ -39,4 +39,4 @@ await db.executeBatchAsync([
 ])
 ```
 
-Choose the async form for a large batch so database work runs off the JavaScript thread. The synchronous form blocks until the batch finishes. Both participate in the `open()` connection's operation ordering. An empty batch is an error. Do not call a batch method from inside a transaction callback on the same connection; use the callback's `tx` methods instead. For exact types, see the [batch API](/docs/api/transactions-and-batches).
+Choose the async form for a large batch so database work runs off the JavaScript thread. The synchronous form blocks until the batch finishes. Both participate in the `open()` connection's operation ordering. An empty batch is an error. Do not call a batch method from inside a transaction callback on the same connection; use the callback's `tx` methods instead. For exact types, see [`BatchQueryCommand`](/api/react-native-nitro-sqlite/interfaces/BatchQueryCommand) and [`BatchQueryResult`](/api/react-native-nitro-sqlite/interfaces/BatchQueryResult).

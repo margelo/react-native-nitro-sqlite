@@ -27,11 +27,15 @@ The connection queue is occupied for the whole callback. Use `tx.execute` or `tx
 
 ```ts
 await db.transaction(async (tx) => {
-  await tx.executeAsync('INSERT INTO audit_log (message) VALUES (?)', ['started'])
+  await tx.executeAsync('INSERT INTO audit_log (message) VALUES (?)', [
+    'started',
+  ])
   // Use tx in helpers too: await writeMoreAuditEntries(tx)
 })
 ```
 
 Await every `tx.executeAsync()` before the callback returns or before manually finalizing. The wrapper does not track unawaited transaction promises. A thrown error after an explicit commit or rollback cannot undo that completed transaction.
 
-For a fixed list of statements and parameter sets, [batch operations](/docs/guides/batch-operations) need less callback code. See the [transaction API](/docs/api/transactions-and-batches) for signatures.
+`tx.commit()` and `tx.rollback()` are synchronous. Their declared return type exposes the native query result fields. The JavaScript helper also adds `rows` at runtime, but that field is not in their declared type. Use them to finalize the transaction, not to retrieve rows. The transaction starts with `BEGIN TRANSACTION`; the global [`NitroSQLite.transaction`](/api/react-native-nitro-sqlite/variables/NitroSQLite) helper also accepts `isExclusive` to use `BEGIN EXCLUSIVE TRANSACTION`.
+
+For a fixed list of statements and parameter sets, [batch operations](/docs/guides/batch-operations) need less callback code. See the generated [`Transaction` reference](/api/react-native-nitro-sqlite/interfaces/Transaction) for exact method types.

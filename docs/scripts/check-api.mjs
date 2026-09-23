@@ -158,6 +158,13 @@ for (const page of pages) {
     /\]\([^)]*\.mdx(?:#[^)]*)?\)/,
     `Broken MDX link: ${page}`,
   )
+  if (!page.endsWith('index.mdx')) {
+    assert.match(
+      content,
+      /\*\*Declaration:\*\* (?:TypeScript|JavaScript|C\+\+|C|Kotlin|Swift) · \[View source on GitHub\]\(https:\/\/github\.com\/margelo\/react-native-nitro-sqlite\/blob\/[^)]+\)/,
+      `Missing source language or link: ${page}`,
+    )
+  }
 
   const route = page.endsWith('index.mdx')
     ? `/api/${page.slice(0, -'/index.mdx'.length)}`.replace(/\/$/, '')
@@ -198,6 +205,22 @@ for (const page of pages) {
       )
     }
   }
+}
+
+const corePackageHome = readFileSync(
+  new URL('react-native-nitro-sqlite/index.mdx', output),
+  'utf8',
+)
+assert.ok(
+  corePackageHome.indexOf('## Hybrid Objects') <
+    corePackageHome.indexOf('## Classes'),
+  'Hybrid Objects must appear before other API groups',
+)
+for (const name of ['NitroSQLiteNative', 'NitroSQLiteQueryResult']) {
+  assert.ok(
+    pagePaths.has(`react-native-nitro-sqlite/hybrid-objects/${name}.mdx`),
+    `Missing Hybrid Object page: ${name}`,
+  )
 }
 
 console.log(

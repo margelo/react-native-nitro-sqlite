@@ -48,12 +48,12 @@ db.close()
 
 All four helpers are synchronous and take an open `NitroSQLiteConnection`:
 
-| Export | Signature |
-| --- | --- |
-| `vecVersion` | `(db: NitroSQLiteConnection) => string` |
-| `isVecAvailable` | `(db: NitroSQLiteConnection) => boolean` |
-| `createVectorTable` | `(db: NitroSQLiteConnection, table: string, options: CreateVectorTableOptions) => void` |
-| `knnSearch` | `(db: NitroSQLiteConnection, table: string, query: string \| number[], k: number, options?: KnnSearchOptions) => KnnMatch[]` |
+| Export              | Signature                                                                                                                    |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `vecVersion`        | `(db: NitroSQLiteConnection) => string`                                                                                      |
+| `isVecAvailable`    | `(db: NitroSQLiteConnection) => boolean`                                                                                     |
+| `createVectorTable` | `(db: NitroSQLiteConnection, table: string, options: CreateVectorTableOptions) => void`                                      |
+| `knnSearch`         | `(db: NitroSQLiteConnection, table: string, query: string \| number[], k: number, options?: KnnSearchOptions) => KnnMatch[]` |
 
 `isVecAvailable()` catches any error from `vecVersion()`, so `false` means its availability query failed, not necessarily that the build flag is absent. The other helpers let query errors propagate from `db.execute()`.
 
@@ -61,4 +61,4 @@ All four helpers are synchronous and take an open `NitroSQLiteConnection`:
 
 The package's five named type exports are `VectorColumnType`, `VectorDistanceMetric`, `CreateVectorTableOptions`, `KnnSearchOptions`, and `KnnMatch`. `KnnMatch` has `rowid: number`, `distance: number`, and a `[column: string]: unknown` index signature. The current `knnSearch()` helper selects only `rowid` and `distance`; write SQL through the core connection when you need more columns.
 
-The helpers interpolate table and column identifiers into SQL. Only pass identifiers you control. They bind the query vector and `k` as parameters. The core [query API](/docs/api/queries-and-results) can also run sqlite-vec SQL directly for features these small helpers do not wrap.
+The helpers interpolate table and column identifiers into SQL. Only pass identifiers you control. They bind the query vector and `k` as parameters. The core [connection query methods](/api/react-native-nitro-sqlite/interfaces/NitroSQLiteConnection) can also run sqlite-vec SQL directly for features these small helpers do not wrap.

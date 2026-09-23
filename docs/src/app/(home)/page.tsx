@@ -14,7 +14,7 @@ export default function HomePage() {
           </p>
           <div className="hero-actions">
             <Link className="button button-primary" href="/docs">Get started <ArrowIcon /></Link>
-            <Link className="button button-secondary" href="/docs/api">API reference <ArrowIcon /></Link>
+            <Link className="button button-secondary" href="/api">API reference <ArrowIcon /></Link>
           </div>
         </div>
         <DatabaseIllustration />
@@ -30,7 +30,7 @@ export default function HomePage() {
           <span className="home-link-title">Keep queries responsive <ArrowIcon /></span>
           <span className="home-link-description">Choose sync or async work, batch writes, and tune SQL.</span>
         </Link>
-        <Link href="/docs/api" className="home-link">
+        <Link href="/api" className="home-link">
           <span className="home-link-number">API reference</span>
           <span className="home-link-title">Explore the full API <ArrowIcon /></span>
           <span className="home-link-description">Find connection methods, transactions, options, and types.</span>

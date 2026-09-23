@@ -7,7 +7,7 @@ Android builds Nitro SQLite's bundled SQLite source into the native library. Its
 
 ## Database location
 
-The default database root is the app's internal `filesDir`. `open({ name: 'app.sqlite', location: 'databases' })` places the database in a `databases` directory below that root. The library creates the directory if needed. Use `location` as a relative directory by convention; the library does not validate path segments in the name or location. See [connections](/docs/api/connection) for the trust requirement. To open an existing file from elsewhere, copy it to the intended app directory first.
+The default database root is the app's internal `filesDir`. `open({ name: 'app.sqlite', location: 'databases' })` places the database in a `databases` directory below that root. The library creates the directory if needed. Use `location` as a relative directory by convention; the library does not validate path segments in the name or location. See [database lifecycle](/docs/guides/database-lifecycle) for the trust requirement. To open an existing file from elsewhere, copy it to the intended app directory first.
 
 ## SQLite compile flags
 

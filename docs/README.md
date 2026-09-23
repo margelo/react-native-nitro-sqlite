@@ -24,7 +24,7 @@ Documentation pages are in `content/docs/`. Each `.mdx` page has `title` and `de
 
 The site generates the `/api` reference from the public `src/index.ts` entry points of `react-native-nitro-sqlite` and `react-native-nitro-sqlite-vec`. The generated MDX pages in `content/api/` are ignored by Git. Development, type checking, and production builds regenerate them and check public exports, key members, and internal links.
 
-Some types behind public values are not package exports. The [native API guide](content/docs/api/native.mdx) describes the Nitro interface and native query results. The [TypeORM guide](content/docs/integrations/typeorm.mdx) describes the connection returned by `typeORMDriver.openDatabase`.
+The [native access guide](content/docs/guides/sync-and-async.mdx) explains the raw Nitro interface and results. The [TypeORM guide](content/docs/integrations/typeorm.mdx) describes the connection returned by `typeORMDriver.openDatabase`. Both guides link to generated reference pages for the relevant exported types.
 
 ## Deployment
 

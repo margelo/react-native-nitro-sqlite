@@ -5,7 +5,7 @@ description: Use Nitro SQLite as the database driver for TypeORM's React Native 
 
 TypeORM maps application entities to database tables and builds SQL for operations on those entities. Its `DataSource` needs a driver to open SQLite and run the generated queries in a React Native app.
 
-Nitro SQLite exports `typeORMDriver` for TypeORM's `react-native` database type. TypeORM calls the driver, which opens a regular Nitro SQLite connection and uses its async query method. Use [`open()`](/docs/api/connection) directly when you do not need TypeORM.
+Nitro SQLite exports `typeORMDriver` for TypeORM's `react-native` database type. TypeORM calls the driver, which opens a regular Nitro SQLite connection and uses its async query method. Use [`open()`](/api/react-native-nitro-sqlite/functions/open) directly when you do not need TypeORM.
 
 ## Configure module resolution
 
@@ -71,7 +71,7 @@ const saved = await notes.find()
 await dataSource.destroy()
 ```
 
-This small example uses `synchronize: true` to create the table. Choose your application's schema management before shipping. `database` becomes the connection's `name`; `location` is a directory relative to the [platform database root](/docs/api/connection#open-a-database).
+This small example uses `synchronize: true` to create the table. Choose your application's schema management before shipping. `database` becomes the connection's `name`; `location` is a directory relative to the [platform database root](/docs/guides/database-lifecycle#file-location-and-prepopulated-databases).
 
 ## Driver export
 
@@ -91,4 +91,4 @@ type TypeORMDriver = {
 
 `openDatabase()` returns the adapter connection after calling `ok`, or `null` after invoking `fail` when opening fails. `executeSql()` runs `db.executeAsync()` and then invokes one result callback. `close()`, `attach()`, and `detach()` are synchronous; their success callbacks run after the operation succeeds. TypeORM normally handles this contract for you.
 
-The failure callbacks for `openDatabase` and `executeSql` are typed to receive a string, but the adapter casts caught errors to that type without converting them at runtime. Handle an `Error` value as well if you call these callbacks directly. This adapter is for TypeORM's callback interface, not a connection object for direct SQL calls. For those, see the [API reference](/docs/api).
+The failure callbacks for `openDatabase` and `executeSql` are typed to receive a string, but the adapter casts caught errors to that type without converting them at runtime. Handle an `Error` value as well if you call these callbacks directly. This adapter is for TypeORM's callback interface, not a connection object for direct SQL calls. For those, see the [generated API reference](/api).

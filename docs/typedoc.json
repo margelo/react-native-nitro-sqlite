@@ -13,7 +13,8 @@
     "excludeInternal": true,
     "excludePrivate": true,
     "excludeProtected": true,
-    "disableSources": true,
+    "disableSources": false,
+    "sourceLinkTemplate": "https://github.com/margelo/react-native-nitro-sqlite/blob/{gitRevision}/{path}#L{line}",
     "sanitizeComments": true
   },
   "outputs": [
@@ -27,6 +28,7 @@
   ],
   "readme": "none",
   "entryFileName": "index",
+  "router": "nitro-member",
   "fileExtension": ".mdx",
   "cleanOutputDir": true,
   "useHTMLEncodedBrackets": true

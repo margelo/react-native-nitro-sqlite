@@ -7,7 +7,7 @@ Native build settings take effect after installing Pods and rebuilding the app. 
 
 ## Database location
 
-By default, the database root is the app's Documents directory. `open({ name: 'app.sqlite', location: 'databases' })` puts the file in a `databases` directory below that root. Use `location` as a relative directory by convention; the library does not validate path segments in the name or location. See [connections](/docs/api/connection) for the trust requirement.
+By default, the database root is the app's Documents directory. `open({ name: 'app.sqlite', location: 'databases' })` puts the file in a `databases` directory below that root. Use `location` as a relative directory by convention; the library does not validate path segments in the name or location. See [database lifecycle](/docs/guides/database-lifecycle) for the trust requirement.
 
 To use `Library/Application Support` as the root, add this to the app's `Info.plist`:
 
