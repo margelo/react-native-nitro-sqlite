@@ -1,12 +1,12 @@
 /**
  * SQL Batch execution implementation using default sqliteBridge implementation
  */
-#include "sqliteExecuteBatch.hpp"
+#include "NitroSQLiteExecuteBatch.hpp"
 #include "NitroSQLiteException.hpp"
-#include "operations.hpp"
+#include "NitroSQLiteOperations.hpp"
 #include <utility>
 
-namespace margelo::rnnitrosqlite {
+namespace margelo::nitro::rnnitrosqlite {
 
 std::vector<BatchQuery> batchParamsToCommands(const std::vector<BatchQueryCommand>& batchParams) {
   auto commands = std::vector<BatchQuery>();
@@ -67,4 +67,4 @@ SQLiteOperationResult sqliteExecuteBatch(const SQLiteConnectionPtr& connection, 
   }
 }
 
-} // namespace margelo::rnnitrosqlite
+} // namespace margelo::nitro::rnnitrosqlite

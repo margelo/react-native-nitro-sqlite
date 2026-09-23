@@ -1,5 +1,5 @@
-#include "databaseMigration.hpp"
-#include "logs.hpp"
+#include "NitroSQLiteDatabaseMigration.hpp"
+#include "NitroSQLiteLogs.hpp"
 #include <array>
 #include <system_error>
 

@@ -1,8 +1,8 @@
-#include "operations.hpp"
+#include "NitroSQLiteOperations.hpp"
 #include "NitroSQLiteException.hpp"
+#include "NitroSQLiteLogs.hpp"
+#include "NitroSQLiteUtils.hpp"
 #include "hybridObjects/HybridNitroSQLiteQueryResult.hpp"
-#include "logs.hpp"
-#include "utils.hpp"
 #include <NitroModules/ArrayBuffer.hpp>
 #include <NitroModules/Promise.hpp>
 #include <cmath>
@@ -19,14 +19,12 @@
 
 #ifdef NITRO_SQLITE_VEC
 // Angle-bracket so it resolves via -I (CocoaPods intercepts quoted includes).
-#include <registerVectorExtensions.hpp>
+#include <NitroSQLiteVecRegisterVectorExtensions.hpp>
 #endif
 
 using namespace facebook;
-using namespace margelo::nitro;
-using namespace margelo::nitro::rnnitrosqlite;
 
-namespace margelo::rnnitrosqlite {
+namespace margelo::nitro::rnnitrosqlite {
 
 static constexpr double kInt64MinAsDouble = static_cast<double>(std::numeric_limits<int64_t>::min());
 static constexpr double kInt64UpperBoundAsDouble = -kInt64MinAsDouble;
@@ -382,4 +380,4 @@ SQLiteOperationResult sqliteExecuteCommand(const SQLiteConnectionPtr& connection
   return {.rowsAffected = isReadOnly ? 0 : sqlite3_changes(db)};
 }
 
-} // namespace margelo::rnnitrosqlite
+} // namespace margelo::nitro::rnnitrosqlite
