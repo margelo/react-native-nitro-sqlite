@@ -75,4 +75,15 @@ describe('NitroSQLiteError', () => {
       '[NativeNitroSQLiteException][FutureError] failed',
     )
   })
+
+  it('ignores an incomplete native exception category', () => {
+    const error = NitroSQLiteError.fromError(
+      '[NativeNitroSQLiteException][SqlExecutionError',
+    )
+
+    expect(error.type).toBeUndefined()
+    expect(error.message).toBe(
+      '[NativeNitroSQLiteException][SqlExecutionError',
+    )
+  })
 })
