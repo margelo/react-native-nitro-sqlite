@@ -5,12 +5,22 @@ on:
     branches: [main]
     paths:
       - "docs/**"
+      - "packages/react-native-nitro-sqlite/src/**"
+      - "packages/react-native-nitro-sqlite/package.json"
+      - "packages/react-native-nitro-sqlite-vec/src/**"
+      - "packages/react-native-nitro-sqlite-vec/package.json"
+      - "config/tsconfig.json"
       - "package.json"
       - "bun.lock"
       - ".github/workflows/docs.yml"
   pull_request:
     paths:
       - "docs/**"
+      - "packages/react-native-nitro-sqlite/src/**"
+      - "packages/react-native-nitro-sqlite/package.json"
+      - "packages/react-native-nitro-sqlite-vec/src/**"
+      - "packages/react-native-nitro-sqlite-vec/package.json"
+      - "config/tsconfig.json"
       - "package.json"
       - "bun.lock"
       - ".github/workflows/docs.yml"
