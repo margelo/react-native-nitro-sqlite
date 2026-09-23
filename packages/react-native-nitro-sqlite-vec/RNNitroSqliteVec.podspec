@@ -2,7 +2,7 @@ require "json"
 
 package = JSON.parse(File.read(File.join(__dir__, "package.json")))
 
-# iOS opt-in (NITRO_SQLITE_VEC=1); compile sqlite-vec and static-link into the core's sqlite3.
+# Apple-platform opt-in (NITRO_SQLITE_VEC=1); compile sqlite-vec and static-link into the core's sqlite3.
 nitro_sqlite_vec = ENV['NITRO_SQLITE_VEC'] == '1'
 
 # The core's bundled sqlite3.h (compiled with SQLITE_CORE to link it directly).
@@ -15,7 +15,11 @@ Pod::Spec.new do |s|
   s.homepage     = "https://github.com/margelo/react-native-nitro-sqlite"
   s.license      = "MIT"
   s.authors      = "Margelo"
-  s.platforms    = { :ios => min_ios_version_supported, :visionos => "1.0" }
+  s.platforms    = {
+    :ios => min_ios_version_supported,
+    :visionos => "1.0",
+    :osx => "10.13",
+  }
   s.source       = { :git => "https://github.com/margelo/react-native-nitro-sqlite.git", :tag => "#{s.version}" }
 
   if nitro_sqlite_vec

@@ -1,11 +1,13 @@
-#include "operations.hpp"
+#include "NitroSQLiteOperations.hpp"
 #include "NitroSQLiteException.hpp"
+#include "NitroSQLiteLogs.hpp"
+#include "NitroSQLiteUtils.hpp"
 #include "hybridObjects/HybridNitroSQLiteQueryResult.hpp"
-#include "logs.hpp"
-#include "utils.hpp"
 #include <NitroModules/ArrayBuffer.hpp>
+#include <NitroModules/Promise.hpp>
 #include <cmath>
 #include <ctime>
+#include <exception>
 #include <iostream>
 #include <limits>
 #include <memory>
@@ -17,17 +19,46 @@
 
 #ifdef NITRO_SQLITE_VEC
 // Angle-bracket so it resolves via -I (CocoaPods intercepts quoted includes).
-#include <registerVectorExtensions.hpp>
+#include <NitroSQLiteVecRegisterVectorExtensions.hpp>
 #endif
 
 using namespace facebook;
-using namespace margelo::nitro;
-using namespace margelo::nitro::rnnitrosqlite;
 
-namespace margelo::rnnitrosqlite {
+namespace margelo::nitro::rnnitrosqlite {
 
 static constexpr double kInt64MinAsDouble = static_cast<double>(std::numeric_limits<int64_t>::min());
 static constexpr double kInt64UpperBoundAsDouble = -kInt64MinAsDouble;
+
+void SQLiteConnection::enqueueAsync(std::function<void()> operation) {
+  std::lock_guard lock(asyncQueueMutex);
+  if (!asyncWorkerRunning) {
+    Promise<void>::async([connection = shared_from_this()] { connection->drainAsync(); });
+    asyncWorkerRunning = true;
+  }
+  asyncQueue.push(std::move(operation));
+}
+
+void SQLiteConnection::drainAsync() {
+  while (true) {
+    std::function<void()> operation;
+    {
+      std::lock_guard lock(asyncQueueMutex);
+      if (asyncQueue.empty()) {
+        asyncWorkerRunning = false;
+        return;
+      }
+      operation = std::move(asyncQueue.front());
+      asyncQueue.pop();
+    }
+    try {
+      operation();
+    } catch (const std::exception& error) {
+      LOGE("Async operation on database %s failed while settling its promise: %s", name.c_str(), error.what());
+    } catch (...) {
+      LOGE("Async operation on database %s failed while settling its promise", name.c_str());
+    }
+  }
+}
 
 void sqliteOpenDb(const std::string& dbName, const std::string& docPath, bool readOnly) {
 #ifdef NITRO_SQLITE_VEC
@@ -270,4 +301,4 @@ SQLiteOperationResult sqliteExecuteCommand(const SQLiteConnectionPtr& connection
   return {.rowsAffected = isReadOnly ? 0 : sqlite3_changes(db)};
 }
 
-} // namespace margelo::rnnitrosqlite
+} // namespace margelo::nitro::rnnitrosqlite

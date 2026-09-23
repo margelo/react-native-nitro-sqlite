@@ -4,6 +4,8 @@ import { HybridNitroSQLite } from '../nitro'
 import { closeDatabaseQueue, openDatabaseQueue } from '../DatabaseQueue'
 import NitroSQLiteError from '../NitroSQLiteError'
 import { executeBatch, executeBatchAsync } from '../operations/executeBatch'
+import { executeAsync } from '../operations/execute'
+import { deferred, nativeResult } from './testUtils'
 
 const dbName = 'batch-test'
 const commands = [{ query: 'INSERT INTO item VALUES (?)', params: [1] }]
@@ -54,6 +56,28 @@ describe('executeBatch', () => {
       dbName,
       commands,
     )
+  })
+
+  it('submits a batch between async statements without waiting for JavaScript settlement', async () => {
+    openDatabaseQueue(dbName)
+    const firstResult = deferred<ReturnType<typeof nativeResult>>()
+    jest
+      .mocked(HybridNitroSQLite.executeAsync)
+      .mockReturnValueOnce(firstResult.promise)
+      .mockResolvedValue(nativeResult())
+    jest
+      .mocked(HybridNitroSQLite.executeBatchAsync)
+      .mockResolvedValue({ rowsAffected: 1 })
+
+    const first = executeAsync(dbName, 'SELECT first')
+    const batch = executeBatchAsync(dbName, commands)
+    const last = executeAsync(dbName, 'SELECT last')
+
+    expect(HybridNitroSQLite.executeBatchAsync).toHaveBeenCalledTimes(1)
+    expect(HybridNitroSQLite.executeAsync).toHaveBeenCalledTimes(2)
+
+    firstResult.resolve(nativeResult())
+    await Promise.all([first, batch, last])
   })
 
   it('converts synchronous and asynchronous errors and releases the queue', async () => {

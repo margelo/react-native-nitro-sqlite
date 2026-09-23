@@ -1,6 +1,6 @@
 {
   "name": "react-native-nitro-sqlite",
-  "version": "9.8.1",
+  "version": "9.8.2",
   "description": "Fast SQLite library for React Native built using Nitro Modules",
   "main": "./lib/module/index",
   "module": "./lib/module/index",
@@ -9,6 +9,7 @@
   "react-native": "./src/index",
   "exports": {
     ".": {
+      "react-native": "./src/index.ts",
       "import": {
         "types": "./lib/typescript/module/index.d.ts",
         "default": "./lib/module/index.js"
@@ -50,6 +51,7 @@
     "sqlite",
     "nitro-modules",
     "ios",
+    "macos",
     "android"
   ],
   "repository": {

@@ -6,12 +6,13 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <queue>
 #include <sqlite3.h>
 #include <string>
 
-namespace margelo::rnnitrosqlite {
+namespace margelo::nitro::rnnitrosqlite {
 
-struct SQLiteConnection final {
+struct SQLiteConnection final : std::enable_shared_from_this<SQLiteConnection> {
   SQLiteConnection(std::string name, std::filesystem::path physicalPath, bool readOnly, sqlite3* database);
   ~SQLiteConnection();
 
@@ -19,12 +20,20 @@ struct SQLiteConnection final {
   SQLiteConnection& operator=(const SQLiteConnection&) = delete;
 
   void close() noexcept;
+  void enqueueAsync(std::function<void()> operation);
 
   const std::string name;
   const std::filesystem::path physicalPath;
   const bool readOnly;
   sqlite3* database;
   std::recursive_mutex mutex;
+
+private:
+  void drainAsync();
+
+  std::mutex asyncQueueMutex;
+  std::queue<std::function<void()>> asyncQueue;
+  bool asyncWorkerRunning = false;
 };
 
 using SQLiteConnectionPtr = std::shared_ptr<SQLiteConnection>;
@@ -59,4 +68,4 @@ DatabaseConnections& databaseConnections();
 std::filesystem::path canonicalDatabasePath(const std::filesystem::path& path);
 void validateDatabaseName(const std::string& dbName);
 
-} // namespace margelo::rnnitrosqlite
+} // namespace margelo::nitro::rnnitrosqlite

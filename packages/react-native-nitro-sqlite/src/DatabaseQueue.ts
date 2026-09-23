@@ -1,6 +1,7 @@
 import NitroSQLiteError from './NitroSQLiteError'
 
 export interface QueuedOperation {
+  kind: 'statement' | 'exclusive'
   /**
    * Starts the operation
    */
@@ -10,6 +11,8 @@ export interface QueuedOperation {
 export type DatabaseQueue = {
   queue: QueuedOperation[]
   inProgress: boolean
+  activeStatements: number
+  draining: boolean
 }
 
 export type DatabaseQueueKey = string | symbol
@@ -23,7 +26,12 @@ export function openDatabaseQueue(dbName: DatabaseQueueKey) {
     )
   }
 
-  databaseQueues.set(dbName, { queue: [], inProgress: false })
+  databaseQueues.set(dbName, {
+    queue: [],
+    inProgress: false,
+    activeStatements: 0,
+    draining: false,
+  })
 }
 
 export function closeDatabaseQueue(dbName: DatabaseQueueKey) {
@@ -59,7 +67,22 @@ export function getDatabaseQueue(dbName: DatabaseQueueKey) {
 export function queueOperationAsync<Result>(
   dbName: DatabaseQueueKey,
   callback: () => Promise<Result>,
-) {
+): Promise<Result> {
+  return enqueueOperation(dbName, 'exclusive', callback)
+}
+
+export function queueStatementAsync<Result>(
+  dbName: DatabaseQueueKey,
+  callback: () => Promise<Result>,
+): Promise<Result> {
+  return enqueueOperation(dbName, 'statement', callback)
+}
+
+function enqueueOperation<Result>(
+  dbName: DatabaseQueueKey,
+  kind: QueuedOperation['kind'],
+  callback: () => Promise<Result>,
+): Promise<Result> {
   const databaseQueue = getDatabaseQueue(dbName)
 
   return new Promise<Result>((resolve, reject) => {
@@ -70,32 +93,59 @@ export function queueOperationAsync<Result>(
       } catch (error) {
         reject(error)
       } finally {
-        databaseQueue.inProgress = false
-        startOperationAsync(databaseQueue)
+        if (kind === 'statement') {
+          databaseQueue.activeStatements--
+          if (databaseQueue.activeStatements === 0) {
+            databaseQueue.inProgress = false
+          }
+        } else {
+          databaseQueue.inProgress = false
+        }
+        startNextOperations(databaseQueue)
       }
     }
 
     const operation: QueuedOperation = {
+      kind,
       start,
     }
 
     databaseQueue.queue.push(operation)
-    startOperationAsync(databaseQueue)
+    startNextOperations(databaseQueue)
   })
 }
 
-function startOperationAsync(queue: DatabaseQueue) {
-  // Queue is empty or in progress. Bail out.
-  if (queue.inProgress || queue.queue.length === 0) {
+function startNextOperations(queue: DatabaseQueue) {
+  if (queue.draining || (queue.inProgress && queue.activeStatements === 0)) {
     return
   }
 
-  queue.inProgress = true
+  queue.draining = true
+  try {
+    while (queue.queue.length > 0) {
+      const exclusiveIndex = queue.queue.findIndex(
+        (operation) => operation.kind === 'exclusive',
+      )
+      const statementCount =
+        exclusiveIndex === -1 ? queue.queue.length : exclusiveIndex
 
-  const operation = queue.queue.shift()!
-  setImmediate(() => {
-    operation.start()
-  })
+      if (statementCount > 0) {
+        const statements = queue.queue.splice(0, statementCount)
+        queue.inProgress = true
+        queue.activeStatements += statements.length
+        for (const statement of statements) statement.start()
+        continue
+      }
+
+      if (queue.activeStatements > 0) return
+
+      queue.inProgress = true
+      queue.queue.shift()!.start()
+      return
+    }
+  } finally {
+    queue.draining = false
+  }
 }
 
 export function startOperationSync<Result>(
@@ -117,5 +167,6 @@ export function startOperationSync<Result>(
     return callback()
   } finally {
     databaseQueue.inProgress = false
+    startNextOperations(databaseQueue)
   }
 }

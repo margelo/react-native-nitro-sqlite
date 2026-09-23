@@ -5,6 +5,8 @@ set -eo pipefail
 echo "Starting the release process..."
 echo "Provided options: $*"
 
+bun run check:lockfile
+
 release_it_args=("$@")
 forward_args=()
 package_args=()
@@ -58,6 +60,9 @@ if [[ ! "$release_version" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+([-+][0-9A-Za-z.-]+)?$ ]]
 fi
 
 echo "Resolved release version: $release_version"
+
+echo "Preparing and validating release versions before publishing"
+bun run release-it "$release_version" "${forward_args[@]}" --ci --no-git --no-github
 
 echo "Publishing react-native-nitro-sqlite@$release_version to NPM"
 cd packages/react-native-nitro-sqlite

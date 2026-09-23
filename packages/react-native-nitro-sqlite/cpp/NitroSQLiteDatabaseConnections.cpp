@@ -1,13 +1,13 @@
-#include "databaseConnections.hpp"
+#include "NitroSQLiteDatabaseConnections.hpp"
+#include "NitroSQLiteDatabaseMigration.hpp"
 #include "NitroSQLiteException.hpp"
-#include "databaseMigration.hpp"
 #include <filesystem>
 #include <memory>
 #include <stdexcept>
 #include <unordered_map>
 #include <vector>
 
-namespace margelo::rnnitrosqlite {
+namespace margelo::nitro::rnnitrosqlite {
 
 namespace fs = std::filesystem;
 
@@ -259,11 +259,11 @@ void DatabaseConnections::drop(const std::string& dbName, const fs::path& path, 
     if (connectionToClose) {
       close(key);
     }
-    if (!nitro::rnnitrosqlite::removeDatabaseFiles(target.filename().string(), target.parent_path())) {
+    if (!removeDatabaseFiles(target.filename().string(), target.parent_path())) {
       throw NitroSQLiteException(NitroSQLiteExceptionType::SqlExecutionError, "Could not remove database files");
     }
     if (otherPath) {
-      nitro::rnnitrosqlite::removeDatabaseFiles(otherPath->filename().string(), otherPath->parent_path());
+      removeDatabaseFiles(otherPath->filename().string(), otherPath->parent_path());
     }
   });
 }
@@ -303,4 +303,4 @@ fs::path canonicalDatabasePath(const fs::path& path) {
   return fs::absolute(path).lexically_normal();
 }
 
-} // namespace margelo::rnnitrosqlite
+} // namespace margelo::nitro::rnnitrosqlite

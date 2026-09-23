@@ -4,6 +4,7 @@ import { HybridNitroSQLite } from '../nitro'
 import { closeDatabaseQueue, isDatabaseOpen } from '../DatabaseQueue'
 import { open } from '../operations/session'
 import { execute } from '../operations/execute'
+
 import { deferred, nativeResult } from './testUtils'
 
 const dbName = 'session-test'
@@ -72,6 +73,28 @@ describe('open', () => {
       'COMMIT',
       undefined,
     )
+  })
+
+  it('submits a file import without waiting for an earlier async query to settle', async () => {
+    const db = open(options)
+    const firstResult = deferred<ReturnType<typeof nativeResult>>()
+    jest
+      .mocked(HybridNitroSQLite.executeAsync)
+      .mockReturnValueOnce(firstResult.promise)
+      .mockResolvedValue(nativeResult())
+    jest
+      .mocked(HybridNitroSQLite.loadFileAsync)
+      .mockResolvedValue({ commands: 1 })
+
+    const first = db.executeAsync('SELECT first')
+    const imported = db.loadFileAsync('/tmp/statements.sql')
+    const last = db.executeAsync('SELECT last')
+
+    expect(HybridNitroSQLite.loadFileAsync).toHaveBeenCalledTimes(1)
+    expect(HybridNitroSQLite.executeAsync).toHaveBeenCalledTimes(2)
+
+    firstResult.resolve(nativeResult())
+    await Promise.all([first, imported, last])
   })
 
   it('rejects duplicate opens without replacing the original connection', () => {

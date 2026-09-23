@@ -1,6 +1,7 @@
 name: Test Harness iOS
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - ".github/workflows/test-harness-ios.yml"
@@ -13,6 +14,8 @@ on:
       - "packages/react-native-nitro-sqlite/ios/**"
       - "packages/react-native-nitro-sqlite/src/**"
       - "packages/react-native-nitro-sqlite/nitrogen/**"
+      - "packages/react-native-nitro-sqlite-vec/cpp/**"
+
       - "**/Podfile.lock"
       - "**/*.podspec"
       - "**/react-native.config.js"

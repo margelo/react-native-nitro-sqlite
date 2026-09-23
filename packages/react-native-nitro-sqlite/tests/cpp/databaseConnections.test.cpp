@@ -1,4 +1,4 @@
-#include "databaseConnections.hpp"
+#include "NitroSQLiteDatabaseConnections.hpp"
 #include <chrono>
 #include <condition_variable>
 #include <filesystem>
@@ -11,7 +11,7 @@
 #include <vector>
 
 namespace fs = std::filesystem;
-using margelo::rnnitrosqlite::DatabaseConnections;
+using margelo::nitro::rnnitrosqlite::DatabaseConnections;
 
 namespace {
 
@@ -37,7 +37,7 @@ void expect(bool condition, const std::string& message) {
   }
 }
 
-void execute(const margelo::rnnitrosqlite::SQLiteConnectionPtr& connection, const std::string& sql) {
+void execute(const margelo::nitro::rnnitrosqlite::SQLiteConnectionPtr& connection, const std::string& sql) {
   std::lock_guard lock(connection->mutex);
   char* error = nullptr;
   const int result = sqlite3_exec(connection->database, sql.c_str(), nullptr, nullptr, &error);
@@ -49,7 +49,7 @@ void execute(const margelo::rnnitrosqlite::SQLiteConnectionPtr& connection, cons
   throw std::runtime_error(message);
 }
 
-int scalar(const margelo::rnnitrosqlite::SQLiteConnectionPtr& connection, const std::string& sql) {
+int scalar(const margelo::nitro::rnnitrosqlite::SQLiteConnectionPtr& connection, const std::string& sql) {
   std::lock_guard lock(connection->mutex);
   sqlite3_stmt* statement = nullptr;
   if (sqlite3_prepare_v2(connection->database, sql.c_str(), -1, &statement, nullptr) != SQLITE_OK) {

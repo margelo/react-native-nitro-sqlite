@@ -1,11 +1,12 @@
 {
   "name": "react-native-nitro-sqlite-workspace",
-  "version": "9.8.1",
+  "version": "9.8.2",
   "packageManager": "bun@1.3.1",
   "private": "true",
   "workspaces": [
     "packages/*",
-    "example"
+    "example",
+    "example/macos"
   ],
   "repository": {
     "type": "git",
@@ -24,6 +25,9 @@
     "lint-cpp": "./scripts/clang-format.sh",
     "prettier": "prettier --write .",
     "clean": "rm -rf **/.tsbuild **/tsconfig.tsbuildinfo node_modules packages/react-native-nitro-sqlite/node_module packages/react-native-nitro-sqlite/lib",
+    "check:lockfile": "bun scripts/check-bun-lockfile.ts",
+    "sync:lockfile": "bun scripts/sync-bun-lockfile.ts",
+    "test:release": "bun test scripts/sync-bun-lockfile.test.ts scripts/release.test.ts",
     "release": "./scripts/release.sh",
     "sqlite": "bun --cwd packages/react-native-nitro-sqlite",
     "example": "bun --cwd example"
@@ -62,6 +66,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "jest": "^30.2.0",
+    "jsonc-parser": "^3.3.1",
     "nitrogen": "0.37.1",
     "prettier": "^3.6.2",
     "release-it": "^19.2.4",
@@ -85,7 +90,7 @@
       }
     },
     "hooks": {
-      "before:release": "bun install --lockfile-only && bun example bundle-install && bun example pods && git add bun.lock example/ios/Podfile.lock"
+      "before:release": "bun install --lockfile-only && bun run sync:lockfile && bun run check:lockfile && bun example bundle-install && bun example pods && bun example pods:macos && git add bun.lock example/ios/Podfile.lock example/macos/Podfile.lock"
     },
     "plugins": {
       "@release-it/bumper": {
@@ -111,11 +116,8 @@
           },
           {
             "file": "example/package.json",
-            "path": "version"
-          },
-          {
-            "file": "example/package.json",
             "path": [
+              "version",
               "dependencies.react-native-nitro-sqlite",
               "dependencies.react-native-nitro-sqlite-vec"
             ]

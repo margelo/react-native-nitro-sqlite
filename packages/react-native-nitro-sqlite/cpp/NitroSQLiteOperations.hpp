@@ -1,14 +1,15 @@
 #pragma once
 
-#include "databaseConnections.hpp"
+#include "NitroSQLiteDatabaseConnections.hpp"
 #include "hybridObjects/HybridNitroSQLiteQueryResult.hpp"
-#include "types.hpp"
+#include <functional>
 #include <memory>
 #include <mutex>
+#include <queue>
 #include <sqlite3.h>
 #include <string>
 
-namespace margelo::rnnitrosqlite {
+namespace margelo::nitro::rnnitrosqlite {
 
 void sqliteOpenDb(const std::string& dbName, const std::string& docPath, bool readOnly = false);
 
@@ -38,4 +39,4 @@ SQLiteOperationResult sqliteExecuteCommand(const SQLiteConnectionPtr& connection
 
 void sqliteCloseAll();
 
-} // namespace margelo::rnnitrosqlite
+} // namespace margelo::nitro::rnnitrosqlite

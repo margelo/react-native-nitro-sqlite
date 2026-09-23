@@ -1,4 +1,4 @@
-#include "databaseConnections.hpp"
+#include "NitroSQLiteDatabaseConnections.hpp"
 #include <filesystem>
 #include <iostream>
 #include <stdexcept>
@@ -8,7 +8,7 @@ int main() {
     std::cerr << "[FAIL] test SQLite build is thread-safe\n";
     return 1;
   }
-  margelo::rnnitrosqlite::DatabaseConnections registry;
+  margelo::nitro::rnnitrosqlite::DatabaseConnections registry;
   const auto path = std::filesystem::temp_directory_path() / "nitro-sqlite-threadsafe-gate.sqlite";
   try {
     registry.openIndependent(path, false);
