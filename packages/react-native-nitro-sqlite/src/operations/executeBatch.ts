@@ -1,6 +1,6 @@
 import { HybridNitroSQLite } from '../nitro'
 import {
-  queueOperationAsync,
+  queueStatementAsync,
   startOperationSync,
   throwIfDatabaseIsNotOpen,
 } from '../DatabaseQueue'
@@ -28,7 +28,7 @@ export async function executeBatchAsync(
 ): Promise<BatchQueryResult> {
   throwIfDatabaseIsNotOpen(dbName)
 
-  return queueOperationAsync(dbName, async () => {
+  return queueStatementAsync(dbName, async () => {
     try {
       return await HybridNitroSQLite.executeBatchAsync(dbName, commands)
     } catch (error) {

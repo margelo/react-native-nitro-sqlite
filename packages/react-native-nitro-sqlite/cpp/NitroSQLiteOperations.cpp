@@ -7,6 +7,7 @@
 #include <NitroModules/Promise.hpp>
 #include <cmath>
 #include <ctime>
+#include <exception>
 #include <iostream>
 #include <limits>
 #include <map>
@@ -75,7 +76,13 @@ void SQLiteConnection::drainAsync() {
       operation = std::move(asyncQueue.front());
       asyncQueue.pop();
     }
-    operation();
+    try {
+      operation();
+    } catch (const std::exception& error) {
+      LOGE("Async operation on database %s failed while settling its promise: %s", name.c_str(), error.what());
+    } catch (...) {
+      LOGE("Async operation on database %s failed while settling its promise", name.c_str());
+    }
   }
 }
 

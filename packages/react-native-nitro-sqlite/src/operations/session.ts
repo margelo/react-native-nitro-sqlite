@@ -16,7 +16,7 @@ import {
   closeDatabaseQueue,
   isDatabaseOpen,
   openDatabaseQueue,
-  queueOperationAsync,
+  queueStatementAsync,
   startOperationSync,
 } from '../DatabaseQueue'
 
@@ -86,7 +86,7 @@ export function open(
         HybridNitroSQLite.loadFile(options.name, location),
       ),
     loadFileAsync: (location: string) =>
-      queueOperationAsync(options.name, async () => {
+      queueStatementAsync(options.name, async () => {
         try {
           return await HybridNitroSQLite.loadFileAsync(options.name, location)
         } catch (error) {

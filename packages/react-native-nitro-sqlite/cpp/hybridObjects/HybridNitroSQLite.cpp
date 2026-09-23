@@ -65,10 +65,23 @@ static std::shared_ptr<Promise<Result>> enqueueConnectionOperation(const SQLiteC
   auto promise = Promise<Result>::create();
   try {
     connection->enqueueAsync([promise, operation = std::forward<Operation>(operation)]() mutable {
+      std::optional<Result> result;
       try {
-        promise->resolve(operation());
+        result.emplace(operation());
       } catch (...) {
         promise->reject(std::current_exception());
+        return;
+      }
+      // Resolving may dispatch to JavaScript and throw after the native promise
+      // has settled. Do not try to reject that same promise again.
+      try {
+        promise->resolve(std::move(*result));
+      } catch (...) {
+        if (promise->isPending()) {
+          promise->reject(std::current_exception());
+          return;
+        }
+        throw;
       }
     });
   } catch (...) {

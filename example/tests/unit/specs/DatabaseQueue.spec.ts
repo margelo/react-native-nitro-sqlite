@@ -87,33 +87,20 @@ export default function registerDatabaseQueueUnitTests() {
       expect(testDbQueue.inProgress).toBe(false)
     })
 
-    it('multiple executeBatchAsync operations are queued', async () => {
+    it('submits multiple executeBatchAsync operations together', async () => {
       const executeBatch1Promise = testDb.executeBatchAsync(TEST_BATCH_COMMANDS)
-
-      expect(testDbQueue.queue.length).toBe(0)
-      expect(testDbQueue.inProgress).toBe(true)
-
       const executeBatch2Promise = testDb.executeBatchAsync(TEST_BATCH_COMMANDS)
-
-      expect(testDbQueue.queue.length).toBe(1)
-      expect(testDbQueue.inProgress).toBe(true)
-
       const executeBatch3Promise = testDb.executeBatchAsync(TEST_BATCH_COMMANDS)
 
-      expect(testDbQueue.queue.length).toBe(2)
-      expect(testDbQueue.inProgress).toBe(true)
-
-      await executeBatch1Promise
-
-      expect(testDbQueue.queue.length).toBe(1)
-      expect(testDbQueue.inProgress).toBe(true)
-
-      await executeBatch2Promise
-
       expect(testDbQueue.queue.length).toBe(0)
       expect(testDbQueue.inProgress).toBe(true)
+      expect(testDbQueue.activeStatements).toBe(3)
 
-      await executeBatch3Promise
+      await Promise.all([
+        executeBatch1Promise,
+        executeBatch2Promise,
+        executeBatch3Promise,
+      ])
 
       expect(testDbQueue.queue.length).toBe(0)
       expect(testDbQueue.inProgress).toBe(false)
@@ -278,6 +265,53 @@ export default function registerDatabaseQueueUnitTests() {
       expect(await transaction).toBe(24)
     })
 
+    it('keeps a batch atomic between async statements', async () => {
+      testDb.execute('CREATE TABLE BatchBarrier (value INTEGER PRIMARY KEY)')
+      const before = testDb.executeAsync(
+        'INSERT INTO BatchBarrier (value) VALUES (1)',
+      )
+      const batch = testDb.executeBatchAsync([
+        { query: 'INSERT INTO BatchBarrier (value) VALUES (2)' },
+        { query: 'INSERT INTO BatchBarrier (value) VALUES (1)' },
+      ])
+      const after = testDb.executeAsync(
+        'INSERT INTO BatchBarrier (value) VALUES (3)',
+      )
+
+      await before
+      let batchError: unknown
+      try {
+        await batch
+      } catch (error) {
+        batchError = error
+      }
+      expect(batchError).toBeInstanceOf(NitroSQLiteError)
+      await after
+      expect(
+        testDb.execute<{ value: number }>(
+          'SELECT value FROM BatchBarrier ORDER BY value',
+        ).results,
+      ).toEqual([{ value: 1 }, { value: 3 }])
+    })
+
+    it('rejects synchronous transaction work while an async query is pending', async () => {
+      await testDb.transaction(async (tx) => {
+        const pending = tx.executeAsync('SELECT 1')
+        let syncError: unknown
+        try {
+          tx.execute('SELECT 2')
+        } catch (error) {
+          syncError = error
+        }
+        expect(syncError).toBeInstanceOf(NitroSQLiteError)
+        expect((syncError as Error).message).toContain(
+          'Await all tx.executeAsync',
+        )
+        await pending
+        expect(tx.execute('SELECT 2').results).toEqual([{ '2': 2 }])
+      })
+    })
+
     it('runs native async statements in submission order', async () => {
       const dbName = 'native-fifo-order'
       dropDatabaseIfExists(dbName)
@@ -315,6 +349,35 @@ export default function registerDatabaseQueueUnitTests() {
         )
         await batch
         expect((await afterBatch).insertId).toBe(67)
+      } finally {
+        NitroSQLite.native.close(dbName)
+        dropDatabaseIfExists(dbName)
+      }
+    })
+
+    it('continues the native FIFO after a query fails', async () => {
+      const dbName = 'native-fifo-recovery'
+      dropDatabaseIfExists(dbName)
+      NitroSQLite.native.open(dbName)
+
+      try {
+        const failed = NitroSQLite.native.executeAsync(
+          dbName,
+          'SELECT * FROM MissingTable',
+        )
+        const next = NitroSQLite.native.executeAsync(
+          dbName,
+          'SELECT 42 AS value',
+        )
+
+        let queryError: unknown
+        try {
+          await failed
+        } catch (error) {
+          queryError = error
+        }
+        expect(queryError).toBeInstanceOf(Error)
+        expect((await next).results).toEqual([{ value: 42 }])
       } finally {
         NitroSQLite.native.close(dbName)
         dropDatabaseIfExists(dbName)

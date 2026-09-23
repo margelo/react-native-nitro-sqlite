@@ -16,6 +16,15 @@ export const transaction = async <Result = void>(
   throwIfDatabaseIsNotOpen(dbName)
 
   let isFinished = false
+  const pendingAsyncStatements = new Set<Promise<unknown>>()
+
+  const throwIfAsyncPending = () => {
+    if (pendingAsyncStatements.size > 0) {
+      throw new NitroSQLiteError(
+        `Cannot run synchronous operation on transaction ${dbName} while async queries are pending. Await all tx.executeAsync calls first.`,
+      )
+    }
+  }
 
   const executeOnTransaction = <Row extends QueryResultRow = never>(
     query: string,
@@ -26,6 +35,7 @@ export const transaction = async <Result = void>(
         `Cannot execute query on finalized transaction: ${dbName}`,
       )
     }
+    throwIfAsyncPending()
     return executeNative(dbName, query, params)
   }
 
@@ -38,7 +48,13 @@ export const transaction = async <Result = void>(
         `Cannot execute query on finalized transaction: ${dbName}`,
       )
     }
-    return executeAsyncNative(dbName, query, params)
+    const pending = executeAsyncNative<Row>(dbName, query, params)
+    pendingAsyncStatements.add(pending)
+    pending.then(
+      () => pendingAsyncStatements.delete(pending),
+      () => pendingAsyncStatements.delete(pending),
+    )
+    return pending
   }
 
   const commit = () => {
@@ -47,6 +63,7 @@ export const transaction = async <Result = void>(
         `Cannot execute commit on finalized transaction: ${dbName}`,
       )
     }
+    throwIfAsyncPending()
     isFinished = true
     return executeNative(dbName, 'COMMIT')
   }
@@ -57,6 +74,7 @@ export const transaction = async <Result = void>(
         `Cannot execute rollback on finalized transaction: ${dbName}`,
       )
     }
+    throwIfAsyncPending()
     isFinished = true
     return executeNative(dbName, 'ROLLBACK')
   }
@@ -80,8 +98,12 @@ export const transaction = async <Result = void>(
       return result
     } catch (executionError) {
       if (!isFinished) {
+        isFinished = true
+        // All queued native calls must finish before ROLLBACK can run
+        // synchronously on this connection.
+        await Promise.allSettled(pendingAsyncStatements)
         try {
-          rollback()
+          executeNative(dbName, 'ROLLBACK')
         } catch (rollbackError) {
           throw NitroSQLiteError.fromError(rollbackError)
         }
