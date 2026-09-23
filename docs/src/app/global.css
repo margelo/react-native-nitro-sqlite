@@ -118,16 +118,32 @@ article .prose :not(pre) > code {
   inset: 0;
   z-index: -1;
   pointer-events: none;
+}
+
+.home-grid::before,
+.home-grid::after {
+  position: absolute;
+  inset: 0;
+  content: '';
   background-image: linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
     linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
   background-size: 64px 64px;
-  mask-image: linear-gradient(to bottom, transparent 4%, black 35%, transparent 95%);
-  opacity: 0.76;
-  animation: home-grid-pulse 9s ease-in-out infinite;
 }
 
-@keyframes home-grid-pulse {
-  50% { opacity: 0.58; }
+.home-grid::before {
+  opacity: 0.88;
+}
+
+.home-grid::after {
+  opacity: 0.82;
+  mask-image: linear-gradient(135deg, transparent 40%, black 49%, black 53%, transparent 62%);
+  mask-size: 300% 300%;
+  animation: home-grid-sweep 8s ease-in-out infinite;
+}
+
+@keyframes home-grid-sweep {
+  0%, 10% { mask-position: 100% 100%; }
+  85%, 100% { mask-position: 0% 0%; }
 }
 
 :root { --grid-line: rgba(7, 56, 43, 0.09); }
@@ -229,7 +245,7 @@ article .prose :not(pre) > code {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .home-grid { animation: none; }
+  .home-grid::after { animation: none; opacity: 0; }
   .button, .home-link, .home-link-title svg { transition: none; }
   .button:hover, .home-link:hover .home-link-title svg { transform: none; }
 }
