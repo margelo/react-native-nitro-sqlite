@@ -7,13 +7,13 @@ The `NitroSQLite` export provides JavaScript helpers and a `.native` property ho
 
 ## JavaScript helpers on NitroSQLite
 
-| Method | Signature and result |
-| --- | --- |
-| `NitroSQLite.open` | `(options: NitroSQLiteConnectionOptions) => NitroSQLiteConnection`. Same function as the named `open` export. |
-| `NitroSQLite.execute<Row>` | `(dbName: string, query: string, params?: SQLiteQueryParams) => QueryResult<Row>`. |
-| `NitroSQLite.executeAsync<Row>` | Same arguments, returning `Promise<QueryResult<Row>>`. |
-| `NitroSQLite.executeBatch` | `(dbName: string, commands: BatchQueryCommand[]) => BatchQueryResult`. |
-| `NitroSQLite.executeBatchAsync` | Same arguments, returning `Promise<BatchQueryResult>`. |
+| Method                            | Signature and result                                                                                          |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `NitroSQLite.open`                | `(options: NitroSQLiteConnectionOptions) => NitroSQLiteConnection`. Same function as the named `open` export. |
+| `NitroSQLite.execute<Row>`        | `(dbName: string, query: string, params?: SQLiteQueryParams) => QueryResult<Row>`.                            |
+| `NitroSQLite.executeAsync<Row>`   | Same arguments, returning `Promise<QueryResult<Row>>`.                                                        |
+| `NitroSQLite.executeBatch`        | `(dbName: string, commands: BatchQueryCommand[]) => BatchQueryResult`.                                        |
+| `NitroSQLite.executeBatchAsync`   | Same arguments, returning `Promise<BatchQueryResult>`.                                                        |
 | `NitroSQLite.transaction<Result>` | `(dbName: string, callback: (tx: Transaction) => Promise<Result>, isExclusive?: boolean) => Promise<Result>`. |
 
 The generic `Row` must extend `QueryResultRow`. The global execute helpers default it to `never`, so supply a type argument when you want typed `rows`. `isExclusive` defaults to `false`; pass `true` to begin with `BEGIN EXCLUSIVE TRANSACTION`. The connection's `db.transaction()` method has no `isExclusive` argument.
@@ -36,7 +36,7 @@ Use `NitroSQLite.native` for raw native methods. The `NitroSQLite` object spread
 
 ## NitroSQLite.native
 
-`NitroSQLite.native` is the underlying Nitro hybrid object. Every method takes the database name explicitly. It does not add the connection's JavaScript `rows` container or normalize errors to `NitroSQLiteError`.
+`NitroSQLite.native` is the underlying Nitro hybrid object, described by the exported [`NitroSQLiteNative`](/api/react-native-nitro-sqlite/interfaces/NitroSQLiteNative) type. Every method takes the database name explicitly. It does not add the connection's JavaScript `rows` container or normalize errors to `NitroSQLiteError`.
 
 ```ts
 import { NitroSQLite } from 'react-native-nitro-sqlite'
@@ -50,21 +50,21 @@ try {
 }
 ```
 
-| Method | Signature and result |
-| --- | --- |
-| `open` | `(dbName: string, location?: string) => void`. |
-| `close` | `(dbName: string) => void`. |
-| `drop` | `(dbName: string, location?: string) => void`. Removes the database file. |
-| `attach` | `(mainDbName: string, dbNameToAttach: string, alias: string, location?: string) => void`. |
-| `detach` | `(mainDbName: string, alias: string) => void`. |
-| `execute` | `(dbName: string, query: string, params?: SQLiteQueryParams) => native query result`. |
-| `executeAsync` | Same arguments, returning a promise of a native query result. |
-| `executeBatch` | `(dbName: string, commands: BatchQueryCommand[]) => BatchQueryResult`. |
-| `executeBatchAsync` | Same arguments, returning `Promise<BatchQueryResult>`. |
-| `loadFile` | `(dbName: string, location: string) => FileLoadResult`. Here `location` is the SQL file path. |
-| `loadFileAsync` | Same arguments, returning `Promise<FileLoadResult>`. |
+| Method              | Signature and result                                                                          |
+| ------------------- | --------------------------------------------------------------------------------------------- |
+| `open`              | `(dbName: string, location?: string) => void`.                                                |
+| `close`             | `(dbName: string) => void`.                                                                   |
+| `drop`              | `(dbName: string, location?: string) => void`. Removes the database file.                     |
+| `attach`            | `(mainDbName: string, dbNameToAttach: string, alias: string, location?: string) => void`.     |
+| `detach`            | `(mainDbName: string, alias: string) => void`.                                                |
+| `execute`           | `(dbName: string, query: string, params?: SQLiteQueryParams) => native query result`.         |
+| `executeAsync`      | Same arguments, returning a promise of a native query result.                                 |
+| `executeBatch`      | `(dbName: string, commands: BatchQueryCommand[]) => BatchQueryResult`.                        |
+| `executeBatchAsync` | Same arguments, returning `Promise<BatchQueryResult>`.                                        |
+| `loadFile`          | `(dbName: string, location: string) => FileLoadResult`. Here `location` is the SQL file path. |
+| `loadFileAsync`     | Same arguments, returning `Promise<FileLoadResult>`.                                          |
 
-The native query result has `results: Record<string, SQLiteValue>[]`, `rowsAffected: number`, optional `insertId: number`, and optional `metadata` keyed by result column name. Each metadata value has `name: string`, `type: ColumnType`, and `index: number`. The native result and column metadata declarations live in the Nitro specs and are not named exports from the package root. The JavaScript `QueryResult<Row>` adds `rows` to this result; see [types and errors](/docs/api/types-and-errors).
+The [`NitroSQLiteQueryResult`](/api/react-native-nitro-sqlite/interfaces/NitroSQLiteQueryResult) type has `results: Record<string, SQLiteValue>[]`, `rowsAffected: number`, optional `insertId: number`, and optional `metadata` keyed by result column name. Each [`NitroSQLiteQueryColumnMetadata`](/api/react-native-nitro-sqlite/type-aliases/NitroSQLiteQueryColumnMetadata) value has `name: string`, `type: ColumnType`, and `index: number`. Both types are exported from the package root. The JavaScript `QueryResult<Row>` adds `rows` to the native result; see [types and errors](/docs/api/types-and-errors).
 
 The raw object and query result inherit Nitro's `HybridObject` members: `name: string`, `toString(): string`, `equals(other): boolean`, and `dispose(): void`. `dispose()` makes that hybrid object unusable; it is not a database `close()` call. Normal garbage collection manages these objects, so do not dispose the shared `NitroSQLite.native` instance as part of ordinary database cleanup.
 

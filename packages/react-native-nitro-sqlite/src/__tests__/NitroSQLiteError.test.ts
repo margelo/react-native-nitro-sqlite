@@ -9,6 +9,7 @@ describe('NitroSQLiteError', () => {
     expect(error).toBeInstanceOf(NitroSQLiteError)
     expect(error.name).toBe('NitroSQLiteError')
     expect(error.cause).toBe(cause)
+    expect(error.type).toBeUndefined()
   })
 
   it('returns an existing NitroSQLiteError unchanged', () => {
@@ -41,5 +42,37 @@ describe('NitroSQLiteError', () => {
     const converted = NitroSQLiteError.fromError(value)
     expect(converted.message).toBe('Unknown error occurred')
     expect(converted.cause).toBe(value)
+  })
+
+  it.each([
+    'UnknownError',
+    'DatabaseCannotBeOpened',
+    'DatabaseNotOpen',
+    'UnableToAttachToDatabase',
+    'SqlExecutionError',
+    'CouldNotLoadFile',
+    'NoBatchCommandsProvided',
+  ])('exposes the %s native exception category', (type) => {
+    const original = new Error(
+      `Exception in HostFunction: [NativeNitroSQLiteException][${type}] failed`,
+    )
+    original.stack = 'native stack'
+
+    const converted = NitroSQLiteError.fromError(original)
+
+    expect(converted.type).toBe(type)
+    expect(converted.message).toBe(original.message)
+    expect(converted.stack).toBe(original.stack)
+  })
+
+  it('does not assign a native category for unrecognized exception types', () => {
+    const error = NitroSQLiteError.fromError(
+      '[NativeNitroSQLiteException][FutureError] failed',
+    )
+
+    expect(error.type).toBeUndefined()
+    expect(error.message).toBe(
+      '[NativeNitroSQLiteException][FutureError] failed',
+    )
   })
 })

@@ -75,40 +75,17 @@ This small example uses `synchronize: true` to create the table. Choose your app
 
 ## Driver export
 
-`typeORMDriver` has one public method, `openDatabase(options, ok, fail)`. The following reference types describe its inferred shape. `TypeORMAdapterConnection` and `TypeORMDriver` below are names used only in this page; the package does not export them.
+`typeORMDriver` has one public method, `openDatabase(options, ok, fail)`. The connection passed to `ok` and returned on success has the exported [`TypeOrmNitroSQLiteConnection`](/api/react-native-nitro-sqlite/interfaces/TypeOrmNitroSQLiteConnection) type. The `TypeORMDriver` alias below is used only on this page.
 
 ```ts
-import type {
-  QueryResult,
-  QueryResultRow,
-  SQLiteQueryParams,
-  Transaction,
-} from 'react-native-nitro-sqlite'
-
-type TypeORMAdapterConnection = {
-  executeSql<Row extends QueryResultRow = never>(
-    sql: string,
-    params: SQLiteQueryParams | undefined,
-    okExecute: (result: QueryResult<Row>) => void,
-    failExecute: (message: string) => void,
-  ): Promise<void>
-  transaction(fn: (tx: Transaction) => Promise<void>): Promise<void>
-  close(okClose: () => void, failClose: (error: unknown) => void): void
-  attach(
-    dbNameToAttach: string,
-    alias: string,
-    location: string | undefined,
-    callback: () => void,
-  ): void
-  detach(alias: string, callback: () => void): void
-}
+import type { TypeOrmNitroSQLiteConnection } from 'react-native-nitro-sqlite'
 
 type TypeORMDriver = {
   openDatabase(
     options: { name: string; location?: string },
-    ok: (connection: TypeORMAdapterConnection) => void,
+    ok: (connection: TypeOrmNitroSQLiteConnection) => void,
     fail: (message: string) => void,
-  ): TypeORMAdapterConnection | null
+  ): TypeOrmNitroSQLiteConnection | null
 }
 ```
 

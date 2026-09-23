@@ -12,10 +12,7 @@ SQL statements read or change data in a database. A `SELECT` returns rows, while
 ```ts
 type Note = { id: number; title: string }
 
-await db.executeAsync(
-  'INSERT INTO notes (title) VALUES (?)',
-  ['First note'],
-)
+await db.executeAsync('INSERT INTO notes (title) VALUES (?)', ['First note'])
 
 const result = await db.executeAsync<Note>(
   'SELECT id, title FROM notes WHERE id = ?',
@@ -30,15 +27,15 @@ The generic `Row` describes the row shape you expect; it does not validate SQL o
 
 The connection helpers add `rows` to the native result:
 
-| Field | Meaning |
-| --- | --- |
-| `results` | Array of row objects keyed by column name. |
-| `rows._array` | The same result rows in the compatibility row container. |
-| `rows.length` | Number of result rows. |
-| `rows.item(index)` | Row at the zero-based index, or `undefined`. |
-| `rowsAffected` | SQLite's `sqlite3_changes()` count. Use it for `INSERT`, `UPDATE`, or `DELETE`; a `SELECT` can retain the count from an earlier write on the same connection. |
-| `insertId` | Optional last insert row ID from the connection. It can refer to an earlier insert. |
-| `metadata` | Optional map of column metadata keyed by result column name. |
+| Field              | Meaning                                                                                                                                                       |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `results`          | Array of row objects keyed by column name.                                                                                                                    |
+| `rows._array`      | The same result rows in the compatibility row container.                                                                                                      |
+| `rows.length`      | Number of result rows.                                                                                                                                        |
+| `rows.item(index)` | Row at the zero-based index, or `undefined`.                                                                                                                  |
+| `rowsAffected`     | SQLite's `sqlite3_changes()` count. Use it for `INSERT`, `UPDATE`, or `DELETE`; a `SELECT` can retain the count from an earlier write on the same connection. |
+| `insertId`         | Optional last insert row ID from the connection. It can refer to an earlier insert.                                                                           |
+| `metadata`         | Optional map of column metadata keyed by result column name.                                                                                                  |
 
 Each metadata entry has `name`, `index`, and `type`. The `ColumnType` type declares numeric values `BOOLEAN = 0`, `NUMBER = 1`, `INT64 = 2`, `TEXT = 3`, `ARRAY_BUFFER = 4`, and `NULL_VALUE = 5`. The package root exports this as a type, not as a runtime enum value. The current native mapper can report the wrong `metadata.type`, so do not use it to determine a column's declared SQLite type.
 
@@ -53,7 +50,7 @@ for (const [column, info] of Object.entries(result.metadata ?? {})) {
 
 ## Errors
 
-The connection helpers wrap database failures in `NitroSQLiteError`. This includes failed queries and queue errors such as trying to run a synchronous operation while an async operation owns the connection. The error has the ordinary `Error` `message` and `stack` fields; it has no separate SQLite error-code property.
+The connection helpers wrap database failures in `NitroSQLiteError`. This includes failed queries and queue errors such as trying to run a synchronous operation while an async operation owns the connection. Its `type` field identifies a recognized native exception category, such as `SqlExecutionError`, and is `undefined` for queue errors. It is not a numeric SQLite error code. See [types and errors](/docs/api/types-and-errors#nitrosqliteerror).
 
 ```ts
 import { NitroSQLiteError } from 'react-native-nitro-sqlite'

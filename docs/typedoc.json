@@ -14,12 +14,7 @@
     "excludePrivate": true,
     "excludeProtected": true,
     "disableSources": true,
-    "sanitizeComments": true,
-    "intentionallyNotExported": [
-      "NitroSQLite",
-      "NitroSQLiteQueryResult",
-      "TypeOrmNitroSQLiteConnection"
-    ]
+    "sanitizeComments": true
   },
   "outputs": [
     { "name": "markdown", "path": "content/api" },

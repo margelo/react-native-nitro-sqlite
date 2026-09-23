@@ -15,15 +15,15 @@ import type {
 
 ## Connections and query values
 
-| Type | Shape |
-| --- | --- |
-| `NitroSQLiteConnectionOptions` | `{ name: string; location?: string }`. `open()` accepts this object. |
-| `NitroSQLiteConnection` | The object returned by `open()`. See its [methods](/docs/api/connection). |
-| `SQLiteValue` | `boolean \| number \| string \| ArrayBuffer \| null`. |
-| `SQLiteQueryParams` | `SQLiteValue[]`, in placeholder order. |
-| `QueryResultRow` | `Record<string, SQLiteValue>`. Row generics must satisfy this shape. |
-| `ExecuteQuery` | `<Row extends QueryResultRow>(query: string, params?: SQLiteValue[]) => QueryResult<Row>`. |
-| `ExecuteAsyncQuery` | The same arguments, returning `Promise<QueryResult<Row>>`. |
+| Type                           | Shape                                                                                      |
+| ------------------------------ | ------------------------------------------------------------------------------------------ |
+| `NitroSQLiteConnectionOptions` | `{ name: string; location?: string }`. `open()` accepts this object.                       |
+| `NitroSQLiteConnection`        | The object returned by `open()`. See its [methods](/docs/api/connection).                  |
+| `SQLiteValue`                  | `boolean \| number \| string \| ArrayBuffer \| null`.                                      |
+| `SQLiteQueryParams`            | `SQLiteValue[]`, in placeholder order.                                                     |
+| `QueryResultRow`               | `Record<string, SQLiteValue>`. Row generics must satisfy this shape.                       |
+| `ExecuteQuery`                 | `<Row extends QueryResultRow>(query: string, params?: SQLiteValue[]) => QueryResult<Row>`. |
+| `ExecuteAsyncQuery`            | The same arguments, returning `Promise<QueryResult<Row>>`.                                 |
 
 `NitroSQLiteConnection.execute` and `Transaction.execute` use `ExecuteQuery`; their async counterparts use `ExecuteAsyncQuery`. Both aliases default `Row` to `QueryResultRow` if no type argument is supplied.
 
@@ -31,16 +31,16 @@ import type {
 
 `QueryResult<Row>` is the native result plus a JavaScript `rows` container. Its fields are:
 
-| Field | Type | Notes |
-| --- | --- | --- |
-| `results` | `Record<string, SQLiteValue>[]` | Raw result rows. The `Row` generic does not narrow this field. |
-| `rows` | `NitroSQLiteQueryResultRows<Row>` | Added by the JavaScript execute helpers. |
-| `rows._array` | `Row[]` | Typed row array. |
-| `rows.length` | `number` | Number of returned rows. |
-| `rows.item(index)` | `Row \| undefined` | Returns `undefined` when the index has no row. |
-| `rowsAffected` | `number` | SQLite's latest change count. A SELECT can retain an earlier write's count. |
-| `insertId` | `number \| undefined` | Last insert row ID on the connection, possibly from an earlier statement. |
-| `metadata` | Optional column metadata map | Keys are result column names; each value has `name`, `type`, and `index`. |
+| Field              | Type                              | Notes                                                                       |
+| ------------------ | --------------------------------- | --------------------------------------------------------------------------- |
+| `results`          | `Record<string, SQLiteValue>[]`   | Raw result rows. The `Row` generic does not narrow this field.              |
+| `rows`             | `NitroSQLiteQueryResultRows<Row>` | Added by the JavaScript execute helpers.                                    |
+| `rows._array`      | `Row[]`                           | Typed row array.                                                            |
+| `rows.length`      | `number`                          | Number of returned rows.                                                    |
+| `rows.item(index)` | `Row \| undefined`                | Returns `undefined` when the index has no row.                              |
+| `rowsAffected`     | `number`                          | SQLite's latest change count. A SELECT can retain an earlier write's count. |
+| `insertId`         | `number \| undefined`             | Last insert row ID on the connection, possibly from an earlier statement.   |
+| `metadata`         | Optional column metadata map      | Keys are result column names; each value has `name`, `type`, and `index`.   |
 
 `NitroSQLiteQueryResultRows<Row>` is also an exported type alias for the `rows` object. Use `rows.length` or `results.length` to count rows returned by a SELECT. See [queries and results](/docs/api/queries-and-results) for an example.
 
@@ -52,20 +52,22 @@ The current native mapper can report the wrong `metadata.type` for a declared co
 
 ## Transactions, batches, and file loads
 
-| Type | Shape |
-| --- | --- |
-| `Transaction` | `execute`, `executeAsync`, `commit(): NitroSQLiteQueryResult`, and `rollback(): NitroSQLiteQueryResult`. The commit and rollback return type is an internal native result declaration. |
+| Type                | Shape                                                                                                             |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `Transaction`       | `execute`, `executeAsync`, `commit(): NitroSQLiteQueryResult`, and `rollback(): NitroSQLiteQueryResult`.          |
 | `BatchQueryCommand` | `{ query: string; params?: SQLiteQueryParams \| SQLiteQueryParams[] }`. Nested parameter arrays repeat the query. |
-| `BatchQueryResult` | `{ rowsAffected?: number }`. |
-| `FileLoadResult` | `BatchQueryResult & { commands?: number }`. |
+| `BatchQueryResult`  | `{ rowsAffected?: number }`.                                                                                      |
+| `FileLoadResult`    | `BatchQueryResult & { commands?: number }`.                                                                       |
 
-The package root does not export the internal `NitroSQLiteQueryResult` declaration directly. `commit()` and `rollback()` call the JavaScript query helper at runtime, but their declared return type exposes only the native result fields, not typed `rows`. Use these methods to finalize the transaction, not to retrieve rows. See [transactions and batches](/docs/api/transactions-and-batches) for the callback and batch behavior.
+[`NitroSQLiteQueryResult`](/api/react-native-nitro-sqlite/interfaces/NitroSQLiteQueryResult) and its [`NitroSQLiteQueryColumnMetadata`](/api/react-native-nitro-sqlite/type-aliases/NitroSQLiteQueryColumnMetadata) values are exported as types because callers encounter them through query results and `Transaction.commit()` or `rollback()`. Those transaction methods call the JavaScript query helper at runtime, but their declared return type exposes only the native result fields, not typed `rows`. Use these methods to finalize the transaction, not to retrieve rows. See [transactions and batches](/docs/api/transactions-and-batches) for the callback and batch behavior.
 
 ## NitroSQLiteError
 
 `NitroSQLiteError` is a runtime class exported from the package root. It extends `Error`, sets `name` to `'NitroSQLiteError'`, and accepts `new NitroSQLiteError(message, options?)` with standard `ErrorOptions` such as `cause`.
 
 `NitroSQLiteError.fromError(error: unknown): NitroSQLiteError` returns an existing instance unchanged. It copies an `Error`'s message, cause, and stack into a new instance; turns a string into its message; and uses `'Unknown error occurred'` with the original value as `cause` for other inputs.
+
+When a native `NitroSQLiteException` reaches a managed helper, [`NitroSQLiteError.type`](/api/react-native-nitro-sqlite/classes/NitroSQLiteError#type) holds its [`NitroSQLiteExceptionType`](/api/react-native-nitro-sqlite/type-aliases/NitroSQLiteExceptionType) category. It is `undefined` for JavaScript errors and unrecognized native categories. The original native message remains in `message`.
 
 ```ts
 import { NitroSQLiteError } from 'react-native-nitro-sqlite'
@@ -74,9 +76,13 @@ try {
   await db.executeAsync('SELECT * FROM missing_table')
 } catch (error) {
   if (error instanceof NitroSQLiteError) {
-    console.error(error.message)
+    if (error.type === 'SqlExecutionError') {
+      console.error('SQL failed:', error.message)
+    }
   }
 }
 ```
 
-The JavaScript connection and global helpers normalize database errors to this class. Calls made directly through `NitroSQLite.native` bypass those wrappers. The class has no separate SQLite error-code field.
+The native categories are `UnknownError`, `DatabaseCannotBeOpened`, `DatabaseNotOpen`, `UnableToAttachToDatabase`, `SqlExecutionError`, `CouldNotLoadFile`, and `NoBatchCommandsProvided`. These categories come from NitroSQLite's native exception, not SQLite's numeric error codes. The current native `DatabaseNotOpen` helper emits `UnableToAttachToDatabase`, and a missing database file emits `SqlExecutionError`.
+
+The JavaScript connection and global helpers normalize database errors to this class. Calls made directly through `NitroSQLite.native` bypass those wrappers and throw raw native errors.
