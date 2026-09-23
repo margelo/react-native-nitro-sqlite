@@ -59,18 +59,18 @@ export function DatabaseIllustration() {
   }, [])
 
   return (
-    <div ref={sceneRef} className={styles.scene} role="img" aria-label="A React Native app sends a parameterized task query through Nitro to SQLite and receives the matching task row">
+    <div ref={sceneRef} className={styles.scene} role="img" aria-label="A React Native app queries SQLite through Nitro and receives the matching app data row">
       <div className={styles.halo} aria-hidden="true" />
       <div className={styles.visual} aria-hidden="true">
         <div className={styles.query}>
           <span className={styles.queryHeader}><span>React Native app / query</span><span>parameter [42]</span></span>
-          <code><b>SELECT</b> id, title <b>FROM</b> tasks <b>WHERE</b> id = <em>?</em>;</code>
+          <code><b>SELECT</b> id, message <b>FROM</b> app_data <b>WHERE</b> id = <em>?</em>;</code>
         </div>
 
         <div className={styles.binding}><span>Nitro binding</span><i /></div>
 
         <div className={styles.stack}>
-          <span className={styles.storageLabel}>SQLite / tasks</span>
+          <span className={styles.storageLabel}>SQLite / app_data</span>
           <div className={`${styles.page} ${styles.pageBack}`}>
             <span className={styles.pageIndex}>03</span>
             <span className={styles.rows}><i /><i /><i /><i /></span>
@@ -83,12 +83,13 @@ export function DatabaseIllustration() {
             <span className={styles.pageIndex}>01</span>
             <span className={styles.rows}><i /><i className={styles.match} /><i /><i /></span>
           </div>
-          <div className={styles.scan}><span className={styles.scanHead} /></div>
         </div>
 
+        <div className={styles.returnPath}><i /></div>
+
         <div className={styles.result}>
-          <span className={styles.resultLabel}>↳ React Native app / returned row</span>
-          <span className={styles.resultValues}><code>42</code><code>Buy groceries</code></span>
+          <span className={styles.resultLabel}>React Native app / returned row</span>
+          <span className={styles.resultValues}><code>42</code><code>Works on my simulator</code></span>
         </div>
       </div>
     </div>

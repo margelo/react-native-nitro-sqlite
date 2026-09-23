@@ -105,6 +105,9 @@ article .prose :not(pre) > code {
 .home-main {
   position: relative;
   flex: 1;
+  display: flex;
+  min-height: calc(100dvh - 3.5rem);
+  flex-direction: column;
   overflow: hidden;
   isolation: isolate;
   background: var(--color-fd-background);
@@ -120,12 +123,18 @@ article .prose :not(pre) > code {
   background-size: 64px 64px;
   mask-image: linear-gradient(to bottom, transparent 4%, black 35%, transparent 95%);
   opacity: 0.55;
+  animation: home-grid-pulse 9s ease-in-out infinite;
+}
+
+@keyframes home-grid-pulse {
+  50% { opacity: 0.38; }
 }
 
 :root { --grid-line: rgba(7, 56, 43, 0.055); }
 .dark { --grid-line: rgba(224, 255, 244, 0.055); }
 
 .hero {
+  flex: 1;
   width: min(100% - 80px, 1280px);
   min-height: min(720px, calc(100dvh - 186px));
   margin-inline: auto;
@@ -220,6 +229,7 @@ article .prose :not(pre) > code {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .home-grid { animation: none; }
   .button, .home-link, .home-link-title svg { transition: none; }
   .button:hover, .home-link:hover .home-link-title svg { transform: none; }
 }
