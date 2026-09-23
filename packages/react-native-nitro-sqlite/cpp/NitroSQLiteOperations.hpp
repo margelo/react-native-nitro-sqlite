@@ -2,8 +2,10 @@
 
 #include "NitroSQLiteTypes.hpp"
 #include "hybridObjects/HybridNitroSQLiteQueryResult.hpp"
+#include <functional>
 #include <memory>
 #include <mutex>
+#include <queue>
 #include <sqlite3.h>
 #include <string>
 
@@ -12,7 +14,7 @@ namespace margelo::nitro::rnnitrosqlite {
 // Calls against one connection are serialized by `mutex`. Separate connections
 // intentionally remain independent, so SQLITE_THREADSAFE=0 still requires the
 // caller to serialize SQLite calls globally.
-struct SQLiteConnection final {
+struct SQLiteConnection final : std::enable_shared_from_this<SQLiteConnection> {
   SQLiteConnection(std::string name, sqlite3* database);
   ~SQLiteConnection();
 
@@ -20,10 +22,18 @@ struct SQLiteConnection final {
   SQLiteConnection& operator=(const SQLiteConnection&) = delete;
 
   void close() noexcept;
+  void enqueueAsync(std::function<void()> operation);
 
   const std::string name;
   sqlite3* database;
   std::recursive_mutex mutex;
+
+private:
+  void drainAsync();
+
+  std::mutex asyncQueueMutex;
+  std::queue<std::function<void()>> asyncQueue;
+  bool asyncWorkerRunning = false;
 };
 
 using SQLiteConnectionPtr = std::shared_ptr<SQLiteConnection>;

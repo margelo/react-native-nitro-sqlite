@@ -4,8 +4,10 @@
 #include "NitroSQLiteUtils.hpp"
 #include "hybridObjects/HybridNitroSQLiteQueryResult.hpp"
 #include <NitroModules/ArrayBuffer.hpp>
+#include <NitroModules/Promise.hpp>
 #include <cmath>
 #include <ctime>
+#include <exception>
 #include <iostream>
 #include <limits>
 #include <map>
@@ -50,6 +52,38 @@ void SQLiteConnection::close() noexcept {
 
   sqlite3_close_v2(database);
   database = nullptr;
+}
+
+void SQLiteConnection::enqueueAsync(std::function<void()> operation) {
+  std::lock_guard lock(asyncQueueMutex);
+  if (!asyncWorkerRunning) {
+    // The worker holds this connection alive until it has drained every operation.
+    Promise<void>::async([connection = shared_from_this()] { connection->drainAsync(); });
+    asyncWorkerRunning = true;
+  }
+  asyncQueue.push(std::move(operation));
+}
+
+void SQLiteConnection::drainAsync() {
+  while (true) {
+    std::function<void()> operation;
+    {
+      std::lock_guard lock(asyncQueueMutex);
+      if (asyncQueue.empty()) {
+        asyncWorkerRunning = false;
+        return;
+      }
+      operation = std::move(asyncQueue.front());
+      asyncQueue.pop();
+    }
+    try {
+      operation();
+    } catch (const std::exception& error) {
+      LOGE("Async operation on database %s failed while settling its promise: %s", name.c_str(), error.what());
+    } catch (...) {
+      LOGE("Async operation on database %s failed while settling its promise", name.c_str());
+    }
+  }
 }
 
 void sqliteOpenDb(const std::string& dbName, const std::string& docPath) {

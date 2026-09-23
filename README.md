@@ -90,6 +90,8 @@ const db = open({ name: 'myDb.sqlite' })
 
 Async operations submitted on the opened `db` connection outside a transaction callback run in call order. Async work waits for an active transaction to finish, while a conflicting sync operation or `close()` throws a busy error.
 
+You can submit several `executeAsync` calls together with `Promise.all`. NitroSQLite sends them to a native FIFO on that connection, so the next query can start without waiting for JavaScript to process the previous result. A single connection still executes one SQL operation at a time. Transactions wait for earlier queries to finish and hold the connection until the callback completes.
+
 `NitroSQLite.native` bypasses this JavaScript queue. Native calls keep each individual SQLite handle safe, but mixing them with a session transaction can still run statements inside that transaction. A build with `SQLITE_THREADSAFE=0` also remains unsafe when different database handles run concurrently unless the caller serializes every SQLite call globally.
 
 ---

@@ -4,7 +4,7 @@ import NitroSQLiteError from '../NitroSQLiteError'
 import type { NitroSQLiteQueryResult } from '../specs/NitroSQLiteQueryResult.nitro'
 import {
   isDatabaseOpen,
-  queueOperationAsync,
+  queueStatementAsync,
   startOperationSync,
 } from '../DatabaseQueue'
 
@@ -72,7 +72,7 @@ export async function executeAsyncManaged<Row extends QueryResultRow = never>(
   query: string,
   params?: SQLiteQueryParams,
 ): Promise<QueryResult<Row>> {
-  return queueOperationAsync(dbName, () =>
+  return queueStatementAsync(dbName, () =>
     executeAsyncNative(dbName, query, params),
   )
 }
