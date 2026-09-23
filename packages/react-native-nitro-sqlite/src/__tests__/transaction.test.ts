@@ -58,6 +58,87 @@ describe('transaction', () => {
     )
   })
 
+  it('rejects synchronous transaction work until earlier async queries settle', async () => {
+    const pendingQuery = deferred<ReturnType<typeof nativeResult>>()
+    jest
+      .mocked(HybridNitroSQLite.executeAsync)
+      .mockImplementation((_name, query) =>
+        query === 'SELECT pending'
+          ? pendingQuery.promise
+          : Promise.resolve(nativeResult()),
+      )
+
+    await transaction(dbName, async (tx) => {
+      const pending = tx.executeAsync('SELECT pending')
+      expect(() => tx.execute('SELECT sync')).toThrow(
+        'Await all tx.executeAsync',
+      )
+      expect(() => tx.commit()).toThrow('Await all tx.executeAsync')
+      expect(() => tx.rollback()).toThrow('Await all tx.executeAsync')
+
+      pendingQuery.resolve(nativeResult())
+      await pending
+      expect(tx.execute('SELECT sync').rows.length).toBe(0)
+    })
+
+    expect(HybridNitroSQLite.execute).toHaveBeenLastCalledWith(
+      dbName,
+      'COMMIT',
+      undefined,
+    )
+  })
+
+  it('waits for unawaited async queries before rolling back', async () => {
+    const pendingQuery = deferred<ReturnType<typeof nativeResult>>()
+    const queryStarted = deferred<void>()
+    jest
+      .mocked(HybridNitroSQLite.executeAsync)
+      .mockImplementation((_name, query) =>
+        query === 'SELECT pending'
+          ? pendingQuery.promise
+          : Promise.resolve(nativeResult()),
+      )
+
+    const pendingTransaction = transaction(dbName, async (tx) => {
+      tx.executeAsync('SELECT pending')
+      queryStarted.resolve()
+    })
+    await queryStarted.promise
+    expect(HybridNitroSQLite.execute).not.toHaveBeenCalled()
+
+    pendingQuery.resolve(nativeResult())
+    await expect(pendingTransaction).rejects.toThrow(
+      'Await all tx.executeAsync',
+    )
+    expect(HybridNitroSQLite.execute).toHaveBeenCalledTimes(1)
+    expect(HybridNitroSQLite.execute).toHaveBeenCalledWith(
+      dbName,
+      'ROLLBACK',
+      undefined,
+    )
+  })
+
+  it('rolls back after an async query rejects', async () => {
+    jest
+      .mocked(HybridNitroSQLite.executeAsync)
+      .mockImplementation((_name, query) =>
+        query === 'SELECT failed'
+          ? Promise.reject(new Error('query failed'))
+          : Promise.resolve(nativeResult()),
+      )
+
+    await expect(
+      transaction(dbName, async (tx) => {
+        await tx.executeAsync('SELECT failed')
+      }),
+    ).rejects.toThrow('query failed')
+    expect(HybridNitroSQLite.execute).toHaveBeenCalledWith(
+      dbName,
+      'ROLLBACK',
+      undefined,
+    )
+  })
+
   it('starts an exclusive transaction and does not commit after an explicit commit', async () => {
     await transaction(
       dbName,

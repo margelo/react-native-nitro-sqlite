@@ -72,6 +72,8 @@ const db = open({ name: 'myDb.sqlite' })
 // open({ name: 'myDb.sqlite', location: 'databases' })
 ```
 
+To open another connection to the same file, use `open({ name: 'myDb.sqlite', connection: 'independent' })`. Add `readOnly: true` for a reader connection. Each connection has its own queue and transaction state. See [multiple connections](docs/multiple-connections.md) for WAL setup, app migration guidance, and concurrency limits.
+
 | Method | Sync | Async | Description |
 |--------|------|-------|-------------|
 | **Execute** | `db.execute(query, params?)` | `db.executeAsync(query, params?)` | Run a single SQL statement. |
@@ -89,6 +91,8 @@ const db = open({ name: 'myDb.sqlite' })
 - **Async** (`executeAsync`, `executeBatchAsync`, `loadFileAsync`, `transaction`): Run off the JS thread. Prefer these for larger or many queries to keep the app responsive.
 
 Async operations submitted on the opened `db` connection outside a transaction callback run in call order. Async work waits for an active transaction to finish, while a conflicting sync operation or `close()` throws a busy error.
+
+You can submit several `executeAsync` calls together with `Promise.all`. NitroSQLite sends them to a native FIFO on that connection, so the next query can start without waiting for JavaScript to process the previous result. A single connection still executes one SQL operation at a time. Transactions wait for earlier queries to finish and hold the connection until the callback completes.
 
 `NitroSQLite.native` bypasses this JavaScript queue. Native calls keep each individual SQLite handle safe, but mixing them with a session transaction can still run statements inside that transaction. A build with `SQLITE_THREADSAFE=0` also remains unsafe when different database handles run concurrently unless the caller serializes every SQLite call globally.
 
@@ -200,7 +204,7 @@ const { rowsAffected, commands } = db.loadFile('/absolute/path/to/file.sql')
 
 By default, databases are created under the app's Documents directory on iOS and visionOS, an app-specific Application Support directory on macOS, or the files directory on Android. iOS apps can select Application Support instead, as described under [Database location](#database-location-ios). `location` is a directory path relative to that root, not an absolute file path. For example, `open({ name: 'myDb.sqlite', location: 'databases' })` opens `myDb.sqlite` under the `databases` directory. To use a database from another app-accessible location, copy or move it into this directory first. In sandboxed Apple apps, files outside the app sandbox are inaccessible.
 
-Close a connection before deleting its database. A connection must not be used after `close()` or `delete()`.
+Close connections and detach the database from other connections before deleting it. Deletion fails while another connection still uses the file. A read-only connection cannot delete its database. A connection must not be used after `close()` or `delete()`.
 
 ```ts
 db.close()
@@ -433,6 +437,8 @@ import type {
 ```
 
 `open()` is the recommended API. `NitroSQLite` exposes the underlying database-name-based methods for advanced integrations; prefer the connection returned by `open()` because it binds the database name and adds the JavaScript transaction and result helpers.
+
+Name-based methods address the default connection only. Use the returned connection object for operations on an independent connection.
 
 ---
 

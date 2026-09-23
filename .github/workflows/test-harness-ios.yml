@@ -12,9 +12,9 @@ on:
       - "example/jest.config.js"
       - "packages/react-native-nitro-sqlite/cpp/**"
       - "packages/react-native-nitro-sqlite/ios/**"
+      - "packages/react-native-nitro-sqlite/src/**"
       - "packages/react-native-nitro-sqlite/nitrogen/generated/shared/**"
       - "packages/react-native-nitro-sqlite/nitrogen/generated/ios/**"
-      - "packages/react-native-nitro-sqlite/src/specs/**"
       - "packages/react-native-nitro-sqlite-vec/cpp/**"
       - "packages/react-native-nitro-sqlite/RNNitroSQLite.podspec"
       - "packages/react-native-nitro-sqlite-vec/RNNitroSqliteVec.podspec"
@@ -29,6 +29,7 @@ on:
       - "packages/react-native-nitro-sqlite/react-native.config.js"
       - "packages/react-native-nitro-sqlite-vec/react-native.config.js"
       - "packages/react-native-nitro-sqlite/nitro.json"
+      - "!packages/react-native-nitro-sqlite/src/__tests__/**"
 
 jobs:
   test:

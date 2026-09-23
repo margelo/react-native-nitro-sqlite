@@ -1,11 +1,12 @@
 import { HybridNitroSQLite } from '../nitro'
 import {
-  queueOperationAsync,
+  queueStatementAsync,
   startOperationSync,
   throwIfDatabaseIsNotOpen,
 } from '../DatabaseQueue'
 import NitroSQLiteError from '../NitroSQLiteError'
 import type { BatchQueryCommand, BatchQueryResult } from '../types'
+import type { DatabaseQueueKey } from '../DatabaseQueue'
 
 /** Execute a batch synchronously in one exclusive transaction.
  * Requires an open managed connection; throws if it is busy or the batch is empty.
@@ -16,11 +17,12 @@ import type { BatchQueryCommand, BatchQueryResult } from '../types'
 export function executeBatch(
   dbName: string,
   commands: BatchQueryCommand[],
+  queueKey: DatabaseQueueKey = dbName,
 ): BatchQueryResult {
-  throwIfDatabaseIsNotOpen(dbName)
+  throwIfDatabaseIsNotOpen(queueKey)
 
   try {
-    return startOperationSync(dbName, () =>
+    return startOperationSync(queueKey, () =>
       HybridNitroSQLite.executeBatch(dbName, commands),
     )
   } catch (error) {
@@ -37,10 +39,11 @@ export function executeBatch(
 export async function executeBatchAsync(
   dbName: string,
   commands: BatchQueryCommand[],
+  queueKey: DatabaseQueueKey = dbName,
 ): Promise<BatchQueryResult> {
-  throwIfDatabaseIsNotOpen(dbName)
+  throwIfDatabaseIsNotOpen(queueKey)
 
-  return queueOperationAsync(dbName, async () => {
+  return queueStatementAsync(queueKey, async () => {
     try {
       return await HybridNitroSQLite.executeBatchAsync(dbName, commands)
     } catch (error) {

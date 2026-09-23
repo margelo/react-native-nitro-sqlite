@@ -3,7 +3,9 @@ jest.mock('../nitro')
 import { HybridNitroSQLite } from '../nitro'
 import { closeDatabaseQueue, isDatabaseOpen } from '../DatabaseQueue'
 import { open } from '../operations/session'
-import { nativeResult } from './testUtils'
+import { execute } from '../operations/execute'
+
+import { deferred, nativeResult } from './testUtils'
 
 const dbName = 'session-test'
 const options = { name: dbName, location: 'data' }
@@ -12,6 +14,7 @@ beforeEach(() => {
   jest.clearAllMocks()
   jest.mocked(HybridNitroSQLite.execute).mockReturnValue(nativeResult())
   jest.mocked(HybridNitroSQLite.executeAsync).mockResolvedValue(nativeResult())
+  jest.mocked(HybridNitroSQLite.isConnectionOpen).mockReturnValue(true)
 })
 
 afterEach(() => {
@@ -72,6 +75,28 @@ describe('open', () => {
     )
   })
 
+  it('submits a file import without waiting for an earlier async query to settle', async () => {
+    const db = open(options)
+    const firstResult = deferred<ReturnType<typeof nativeResult>>()
+    jest
+      .mocked(HybridNitroSQLite.executeAsync)
+      .mockReturnValueOnce(firstResult.promise)
+      .mockResolvedValue(nativeResult())
+    jest
+      .mocked(HybridNitroSQLite.loadFileAsync)
+      .mockResolvedValue({ commands: 1 })
+
+    const first = db.executeAsync('SELECT first')
+    const imported = db.loadFileAsync('/tmp/statements.sql')
+    const last = db.executeAsync('SELECT last')
+
+    expect(HybridNitroSQLite.loadFileAsync).toHaveBeenCalledTimes(1)
+    expect(HybridNitroSQLite.executeAsync).toHaveBeenCalledTimes(2)
+
+    firstResult.resolve(nativeResult())
+    await Promise.all([first, imported, last])
+  })
+
   it('rejects duplicate opens without replacing the original connection', () => {
     const db = open(options)
 
@@ -122,8 +147,43 @@ describe('open', () => {
 
     expect(() => db.delete()).toThrow('cannot delete')
     expect(isDatabaseOpen(dbName)).toBe(true)
+    expect(HybridNitroSQLite.isConnectionOpen).toHaveBeenCalledWith(dbName)
     db.delete()
     expect(isDatabaseOpen(dbName)).toBe(false)
+  })
+
+  it('releases the queue when deletion closes native before unlink fails', () => {
+    const stale = open(options)
+    jest.mocked(HybridNitroSQLite.drop).mockImplementationOnce(() => {
+      throw new Error('unlink failed')
+    })
+    jest.mocked(HybridNitroSQLite.isConnectionOpen).mockReturnValueOnce(false)
+
+    expect(() => stale.delete()).toThrow('unlink failed')
+    expect(HybridNitroSQLite.isConnectionOpen).toHaveBeenCalledWith(dbName)
+    expect(isDatabaseOpen(dbName)).toBe(false)
+
+    const current = open(options)
+    expect(() => stale.delete()).toThrow('reopened')
+    current.close()
+  })
+
+  it('does not delete or inspect a connection while its queue is busy', async () => {
+    const db = open(options)
+    const gate = deferred<ReturnType<typeof nativeResult>>()
+    jest
+      .mocked(HybridNitroSQLite.executeAsync)
+      .mockReturnValueOnce(gate.promise)
+    const pending = db.executeAsync('SELECT waiting')
+
+    expect(() => db.delete()).toThrow('busy')
+    expect(HybridNitroSQLite.drop).not.toHaveBeenCalled()
+    expect(HybridNitroSQLite.isConnectionOpen).not.toHaveBeenCalled()
+    expect(isDatabaseOpen(dbName)).toBe(true)
+
+    gate.resolve(nativeResult())
+    await pending
+    db.close()
   })
 
   it('passes attach, detach, and file loading through the native connection', async () => {
@@ -174,5 +234,219 @@ describe('open', () => {
     await expect(db.loadFileAsync('/tmp/valid.sql')).resolves.toEqual({
       commands: 1,
     })
+  })
+
+  it('opens independent sessions for the same file with separate native IDs', () => {
+    jest
+      .mocked(HybridNitroSQLite.openConnection)
+      .mockReturnValueOnce('connection-1')
+      .mockReturnValueOnce('connection-2')
+    const first = open({ ...options, connection: 'independent' })
+    const second = open({ ...options, connection: 'independent' })
+
+    expect(HybridNitroSQLite.openConnection).toHaveBeenNthCalledWith(
+      1,
+      dbName,
+      'data',
+    )
+    expect(HybridNitroSQLite.openConnection).toHaveBeenNthCalledWith(
+      2,
+      dbName,
+      'data',
+    )
+    first.execute('SELECT 1')
+    second.execute('SELECT 2')
+    expect(HybridNitroSQLite.execute).toHaveBeenNthCalledWith(
+      1,
+      'connection-1',
+      'SELECT 1',
+      undefined,
+    )
+    expect(HybridNitroSQLite.execute).toHaveBeenNthCalledWith(
+      2,
+      'connection-2',
+      'SELECT 2',
+      undefined,
+    )
+
+    first.close()
+    expect(HybridNitroSQLite.close).toHaveBeenCalledWith('connection-1')
+    second.execute('SELECT 3')
+    second.close()
+  })
+
+  it('keeps independent queues separate during an entire transaction callback', async () => {
+    jest
+      .mocked(HybridNitroSQLite.openConnection)
+      .mockReturnValueOnce('transaction-1')
+      .mockReturnValueOnce('transaction-2')
+    const first = open({ ...options, connection: 'independent' })
+    const second = open({ ...options, connection: 'independent' })
+    const gate = deferred<void>()
+    const entered = deferred<void>()
+    const transactionPromise = first.transaction(async (tx) => {
+      entered.resolve()
+      await gate.promise
+      tx.execute('SELECT 1')
+    })
+
+    await entered.promise
+    const pendingOnFirst = first.executeAsync('SELECT 2')
+    await expect(second.executeAsync('SELECT 3')).resolves.toBeDefined()
+    expect(HybridNitroSQLite.executeAsync).toHaveBeenCalledWith(
+      'transaction-2',
+      'SELECT 3',
+      undefined,
+    )
+    expect(HybridNitroSQLite.executeAsync).not.toHaveBeenCalledWith(
+      'transaction-1',
+      'SELECT 2',
+      undefined,
+    )
+
+    gate.resolve()
+    await transactionPromise
+    await pendingOnFirst
+    first.close()
+    second.close()
+  })
+
+  it('cleans up failed independent opens and forwards readOnly', () => {
+    jest
+      .mocked(HybridNitroSQLite.openConnection)
+      .mockImplementationOnce(() => {
+        throw new Error('independent open failed')
+      })
+      .mockReturnValueOnce('readonly-1')
+
+    expect(() => open({ ...options, connection: 'independent' })).toThrow(
+      'independent open failed',
+    )
+    const readOnly = open({
+      ...options,
+      connection: 'independent',
+      readOnly: true,
+    })
+    expect(HybridNitroSQLite.openConnection).toHaveBeenLastCalledWith(
+      dbName,
+      'data',
+      true,
+    )
+    expect(() => readOnly.delete()).toThrow('read-only')
+    expect(HybridNitroSQLite.drop).not.toHaveBeenCalled()
+    readOnly.close()
+
+    const defaultReadOnly = open({ ...options, readOnly: true })
+    expect(HybridNitroSQLite.open).toHaveBeenCalledWith(dbName, 'data', true)
+    expect(() => defaultReadOnly.delete()).toThrow('read-only')
+    defaultReadOnly.close()
+  })
+
+  it('passes an independent ID to delete, including after close', () => {
+    jest
+      .mocked(HybridNitroSQLite.openConnection)
+      .mockReturnValueOnce('delete-1')
+      .mockReturnValueOnce('delete-2')
+    const first = open({ ...options, connection: 'independent' })
+    const second = open({ ...options, connection: 'independent' })
+    first.close()
+    first.delete()
+    expect(HybridNitroSQLite.drop).toHaveBeenCalledWith(
+      dbName,
+      'data',
+      'delete-1',
+    )
+    expect(second.execute('SELECT 1')).toBeDefined()
+    second.delete()
+    expect(HybridNitroSQLite.drop).toHaveBeenCalledWith(
+      dbName,
+      'data',
+      'delete-2',
+    )
+  })
+
+  it('rejects stale default wrappers after the database is reopened', () => {
+    const stale = open(options)
+    stale.close()
+    const current = open(options)
+
+    expect(() => stale.execute('SELECT 1')).toThrow('not open')
+    expect(() => stale.close()).toThrow('not open')
+    expect(() => stale.delete()).toThrow('reopened')
+    expect(HybridNitroSQLite.drop).not.toHaveBeenCalled()
+    current.execute('SELECT 2')
+    current.close()
+  })
+
+  it.each([false, true])(
+    'preserves promise rejection for closed async methods, reopened=%s',
+    async (reopen) => {
+      const stale = open(options)
+      stale.close()
+      const current = reopen ? open(options) : undefined
+      const callback = jest.fn(async () => {})
+
+      try {
+        await expect(stale.executeAsync('SELECT 1')).rejects.toThrow('not open')
+        await expect(
+          stale.executeBatchAsync([{ query: 'SELECT 1' }]),
+        ).rejects.toThrow('not open')
+        await expect(stale.transaction(callback)).rejects.toThrow('not open')
+        expect(callback).not.toHaveBeenCalled()
+        expect(HybridNitroSQLite.executeAsync).not.toHaveBeenCalled()
+        expect(HybridNitroSQLite.executeBatchAsync).not.toHaveBeenCalled()
+      } finally {
+        current?.close()
+      }
+    },
+  )
+
+  it('isolates an independent queue when its native ID equals a default name', () => {
+    jest.mocked(HybridNitroSQLite.openConnection).mockReturnValueOnce(dbName)
+    const independent = open({ ...options, connection: 'independent' })
+    const defaultConnection = open(options)
+
+    independent.execute('SELECT independent')
+    defaultConnection.execute('SELECT default')
+    expect(HybridNitroSQLite.execute).toHaveBeenCalledTimes(2)
+
+    independent.close()
+    defaultConnection.execute('SELECT still open')
+    defaultConnection.close()
+  })
+
+  it('keeps name-based calls on the default connection', () => {
+    jest
+      .mocked(HybridNitroSQLite.openConnection)
+      .mockReturnValueOnce('other-id')
+    const independent = open({ ...options, connection: 'independent' })
+    const defaultConnection = open(options)
+
+    execute(dbName, 'SELECT global')
+    independent.execute('SELECT independent')
+    expect(HybridNitroSQLite.execute).toHaveBeenNthCalledWith(
+      1,
+      dbName,
+      'SELECT global',
+      undefined,
+    )
+    expect(HybridNitroSQLite.execute).toHaveBeenNthCalledWith(
+      2,
+      'other-id',
+      'SELECT independent',
+      undefined,
+    )
+
+    defaultConnection.close()
+    independent.close()
+  })
+
+  it('keeps readOnly protection if the options object changes later', () => {
+    const readOnlyOptions = { ...options, readOnly: true }
+    const db = open(readOnlyOptions)
+    readOnlyOptions.readOnly = false
+
+    expect(() => db.delete()).toThrow('read-only')
+    db.close()
   })
 })
