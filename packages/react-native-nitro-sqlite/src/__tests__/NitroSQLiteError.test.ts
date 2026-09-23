@@ -82,8 +82,6 @@ describe('NitroSQLiteError', () => {
     )
 
     expect(error.type).toBeUndefined()
-    expect(error.message).toBe(
-      '[NativeNitroSQLiteException][SqlExecutionError',
-    )
+    expect(error.message).toBe('[NativeNitroSQLiteException][SqlExecutionError')
   })
 })
