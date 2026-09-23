@@ -122,16 +122,16 @@ article .prose :not(pre) > code {
     linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
   background-size: 64px 64px;
   mask-image: linear-gradient(to bottom, transparent 4%, black 35%, transparent 95%);
-  opacity: 0.55;
+  opacity: 0.76;
   animation: home-grid-pulse 9s ease-in-out infinite;
 }
 
 @keyframes home-grid-pulse {
-  50% { opacity: 0.38; }
+  50% { opacity: 0.58; }
 }
 
-:root { --grid-line: rgba(7, 56, 43, 0.055); }
-.dark { --grid-line: rgba(224, 255, 244, 0.055); }
+:root { --grid-line: rgba(7, 56, 43, 0.09); }
+.dark { --grid-line: rgba(224, 255, 244, 0.09); }
 
 .hero {
   flex: 1;

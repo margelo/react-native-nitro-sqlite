@@ -8,6 +8,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       tree={source.pageTree}
       {...sidebarOptions()}
       sidebar={{ collapsible: false }}
+      themeSwitch={{ enabled: false }}
       searchToggle={{ components: { lg: false } }}
     >
       {children}

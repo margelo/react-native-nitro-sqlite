@@ -1,5 +1,6 @@
 import type { HomeLayoutProps } from 'fumadocs-ui/layouts/home'
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared'
+import { ThemeSwitch } from 'fumadocs-ui/layouts/shared/slots/theme-switch'
 import Image from 'next/image'
 import { site } from '@/lib/site'
 
@@ -24,7 +25,10 @@ export function homeOptions(): HomeLayoutProps {
 
 export function sidebarOptions(): BaseLayoutProps {
   return {
-    nav: { title: <Brand className="md:hidden" /> },
+    nav: {
+      title: <Brand className="md:hidden" />,
+      children: <div className="flex justify-end pe-2 md:hidden"><ThemeSwitch /></div>,
+    },
   }
 }
 

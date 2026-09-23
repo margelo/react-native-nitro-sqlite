@@ -56,7 +56,7 @@
   position: absolute;
   z-index: 4;
   top: 20%;
-  left: 49%;
+  left: 43%;
   height: 14%;
   color: var(--color-fd-primary);
   font-size: 10px;
@@ -67,6 +67,7 @@
 
 .stack {
   position: absolute;
+  z-index: 1;
   inset: 28% 3% 20%;
   transform-style: preserve-3d;
   transform: translateY(calc(var(--scene-progress) * 9px)) rotateX(10deg) rotateZ(-5deg);
@@ -150,10 +151,10 @@
 
 .returnPath {
   position: absolute;
-  z-index: 4;
-  top: 77%;
-  left: 91%;
-  height: 9%;
+  z-index: 0;
+  top: 60%;
+  left: 82%;
+  height: 22%;
   color: var(--color-fd-primary);
 }
 .returnPath i { display: block; width: 2px; height: 100%; background: linear-gradient(color-mix(in srgb, var(--color-fd-primary) 35%, transparent), var(--color-fd-primary)); }
@@ -174,7 +175,7 @@
   .page { width: 87%; left: 4%; }
   .pageMiddle { top: 25%; }
   .pageFront { top: 50%; }
-  .returnPath { top: 76%; height: 10%; }
+  .returnPath { top: 59%; height: 23%; }
   .result { bottom: 1%; width: 79%; }
 }
 
