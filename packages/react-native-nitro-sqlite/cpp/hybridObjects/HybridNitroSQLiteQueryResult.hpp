@@ -6,6 +6,7 @@
 
 namespace margelo::nitro::rnnitrosqlite {
 
+/** Native result object returned by a single SQL execution. */
 class HybridNitroSQLiteQueryResult : public HybridNitroSQLiteQueryResultSpec {
 public:
   HybridNitroSQLiteQueryResult() : HybridObject(TAG) {}
@@ -20,10 +21,13 @@ private:
   std::optional<SQLiteQueryTableMetadata> _metadata;
 
 public:
-  // Properties
+  /** Return the connection's last insert row ID, which may be from an earlier statement. */
   std::optional<double> getInsertId() override;
+  /** Return SQLite's latest row change count, which may be stale for a read-only query. */
   double getRowsAffected() override;
+  /** Return result rows keyed by column name. */
   SQLiteQueryResults getResults() override;
+  /** Return column metadata when available. */
   std::optional<SQLiteQueryTableMetadata> getMetadata() override;
 
   /**

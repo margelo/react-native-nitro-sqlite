@@ -1,28 +1,21 @@
 import type { HybridObject } from 'react-native-nitro-modules'
 import type { ColumnType, SQLiteValue } from '../types'
 
-/**
- * Object returned by SQL Query executions {
- *  insertId: Represent the auto-generated row id if applicable
- *  rowsAffected: Number of affected rows if result of a update query
- *  message: if status === 1, here you will find error description
- *  rows: if status is undefined or 0 this object will contain the query results
- * }
- *
- * @interface QueryResult
- */
+/** Native result of one SQL statement. The managed API also adds a `rows` adapter. */
 export interface NitroSQLiteQueryResult
   extends HybridObject<{
     ios: 'c++'
     android: 'c++'
   }> {
+  /** SQLite's latest row change count. For a read-only query it may reflect an earlier write. */
   readonly rowsAffected: number
+  /** Last insert row ID for this connection. It may refer to an earlier statement. */
   readonly insertId?: number
 
-  /** Query results */
+  /** Rows keyed by result column names. */
   readonly results: Record<string, SQLiteValue>[]
 
-  /** Table metadata */
+  /** Column metadata keyed by result column name, when available. */
   readonly metadata?: Record<string, NitroSQLiteQueryColumnMetadata>
 }
 
@@ -33,13 +26,14 @@ export interface NitroSQLiteQueryResult
 
 // type NitroQueryResultRow = Record<string, SQLiteValue>
 
+/** Name, declared type, and position of a result column. */
 export type NitroSQLiteQueryColumnMetadata = {
-  /** The name used for this column for this result set */
+  /** Name used for this column in the result set. */
   name: string
 
-  /** The declared column type for this column, when fetched directly from a table or a View resulting from a table column. "UNKNOWN" for dynamic values, like function returned ones. */
+  /** Native type category derived from the column declaration. */
   type: ColumnType
 
-  /** The index for this column for this result set */
+  /** Zero-based position in the result set. */
   index: number
 }

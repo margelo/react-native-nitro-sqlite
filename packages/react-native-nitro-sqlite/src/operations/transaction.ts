@@ -8,6 +8,15 @@ import type {
 import { executeAsyncNative, executeNative } from './execute'
 import NitroSQLiteError from '../NitroSQLiteError'
 
+/** Queue a transaction for an open managed connection.
+ * Use only the supplied `tx` for work on this database inside the callback.
+ * A successful callback commits unless it explicitly committed or rolled back;
+ * a thrown error rolls back unless the transaction was already finalized.
+ * @param dbName Name of the open database.
+ * @param transactionCallback Async callback receiving the transaction handle.
+ * @param isExclusive Begin an exclusive transaction when true.
+ * @returns The callback's result after the transaction finishes.
+ */
 export const transaction = async <Result = void>(
   dbName: string,
   transactionCallback: (tx: Transaction) => Promise<Result>,
