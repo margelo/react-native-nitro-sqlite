@@ -1,4 +1,9 @@
-import { DocsBody, DocsDescription, DocsPage, DocsTitle } from 'fumadocs-ui/layouts/docs/page'
+import {
+  DocsBody,
+  DocsDescription,
+  DocsPage,
+  DocsTitle,
+} from 'fumadocs-ui/layouts/docs/page'
 import { createRelativeLink } from 'fumadocs-ui/mdx'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
@@ -14,13 +19,21 @@ export default async function Page({ params }: Props) {
   if (!page) notFound()
 
   const MDX = page.data.body
+  const isOverview = !slug?.length
 
   return (
-    <DocsPage toc={page.data.toc} full={page.data.full}>
-      <DocsTitle>{page.data.title}</DocsTitle>
-      <DocsDescription>{page.data.description}</DocsDescription>
+    <DocsPage
+      toc={page.data.toc}
+      full={page.data.full}
+    >
+      {isOverview && <DocsTitle>{page.data.title}</DocsTitle>}
+      {isOverview && <DocsDescription>{page.data.description}</DocsDescription>}
       <DocsBody className="prose-lg prose-h3:text-2xl">
-        <MDX components={getMDXComponents({ a: createRelativeLink(apiSource, page) })} />
+        <MDX
+          components={getMDXComponents({
+            a: createRelativeLink(apiSource, page),
+          })}
+        />
       </DocsBody>
     </DocsPage>
   )

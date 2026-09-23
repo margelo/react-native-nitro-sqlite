@@ -122,7 +122,7 @@ for (const page of pages) {
   const content = readFileSync(new URL(page, output), 'utf8')
   assert.match(
     content,
-    /^---\ntitle: .+\n---\n/,
+    /^---\ntitle: .+\n(?:description: .+\n)?---\n/,
     `Missing title frontmatter: ${page}`,
   )
   assert.doesNotMatch(
