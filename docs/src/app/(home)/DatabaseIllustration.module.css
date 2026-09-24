@@ -157,7 +157,7 @@
   height: 28%;
   color: var(--color-fd-primary);
 }
-.returnPath span { position: absolute; left: 13px; bottom: 10%; white-space: nowrap; font-size: 10px; }
+.returnPath span { position: absolute; left: 13px; bottom: 20%; white-space: nowrap; font-size: 10px; }
 .returnPath i { display: block; width: 2px; height: 100%; background: linear-gradient(color-mix(in srgb, var(--color-fd-primary) 35%, transparent), var(--color-fd-primary)); }
 .returnPath i::after { content: ''; position: absolute; bottom: 0; left: -3px; width: 8px; height: 8px; border-right: 2px solid var(--color-fd-primary); border-bottom: 2px solid var(--color-fd-primary); transform: rotate(45deg); }
 
@@ -181,6 +181,7 @@
   .pageMiddle { top: 25%; }
   .pageFront { top: 50%; }
   .returnPath { top: 56%; left: 55%; height: 29%; }
+  .returnPath span { bottom: 10%; }
   .result { bottom: 0; width: 79%; }
 }
 
