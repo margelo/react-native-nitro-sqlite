@@ -15,6 +15,9 @@ export type DatabaseQueue = {
   draining: boolean
 }
 
+/** Identity of a managed connection's operation queue. Application code should
+ * omit the optional queue key on package helpers; connections choose it for you.
+ */
 export type DatabaseQueueKey = string | symbol
 
 const databaseQueues = new Map<DatabaseQueueKey, DatabaseQueue>()
