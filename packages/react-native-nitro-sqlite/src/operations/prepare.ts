@@ -10,6 +10,15 @@ import { buildJSQueryResult } from './execute'
 import { queueOperationAsync, startOperationSync } from '../DatabaseQueue'
 import type { DatabaseQueueKey } from '../DatabaseQueue'
 
+/**
+ * Prepare one SQL statement on an open managed connection for repeated execution.
+ * Synchronous preparation throws if the connection is busy. Finalize the returned
+ * statement before closing the connection.
+ * @param dbName Database name or independent connection ID.
+ * @param query SQL statement with optional positional placeholders.
+ * @param queueKey Internal managed queue key; omit when using the public API.
+ * @returns A statement whose executions use the same connection queue.
+ */
 export function prepare(
   dbName: string,
   query: string,

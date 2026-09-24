@@ -17,15 +17,32 @@ export interface NitroSQLite
     ios: 'c++'
     android: 'c++'
   }> {
-  /** Open a named database synchronously. */
+  /** Open a name-based default connection, creating the database unless `readOnly` is true.
+   * @param dbName Database file name and default connection key.
+   * @param location Directory relative to the platform database directory.
+   * @param readOnly Open an existing database without write access.
+   */
   open(dbName: string, location?: string, readOnly?: boolean): void
-  /** Open a separate native handle and return its opaque connection ID. */
+  /** Open a separate native handle, even when the database file is already open.
+   * Independent connections require a thread-safe SQLite build.
+   * @param dbName Database file name.
+   * @param location Directory relative to the platform database directory.
+   * @param readOnly Open an existing database without write access.
+   * @returns An opaque ID to pass to native connection operations.
+   */
   openConnection(dbName: string, location?: string, readOnly?: boolean): string
-  /** Check whether a native connection remains open. */
+  /** Check whether a native connection ID is still open.
+   * @param connectionId ID returned by `openConnection`.
+   */
   isConnectionOpen(connectionId: string): boolean
-  /** Close a named database or independent connection. */
+  /** Close a default connection by name or an independent connection by ID. */
   close(dbName: string): void
-  /** Delete a database, optionally closing the indicated independent connection. */
+  /** Delete a database and close the indicated connection if open.
+   * Deletion fails while another connection or attachment uses the database file.
+   * @param dbName Database file name.
+   * @param location Directory relative to the platform database directory.
+   * @param connectionId Optional ID of the independent connection to close.
+   */
   drop(dbName: string, location?: string, connectionId?: string): void
   /** Attach a database file to an open main database under an SQL schema alias.
    * @param mainDbName Name of the open main database.
@@ -67,9 +84,11 @@ export interface NitroSQLite
     query: string,
     params?: SQLiteQueryParams,
   ): Promise<NitroSQLiteQueryResult>
-  /** Prepare one SQL statement for repeated execution.
+  /** Prepare one SQL statement on an open native connection for repeated execution.
+   * Finalize the returned statement before closing its connection.
    * @param dbName Name or ID of an open database connection.
    * @param query SQL statement with optional positional placeholders.
+   * @returns A native statement with synchronous and asynchronous execution methods.
    */
   prepare(dbName: string, query: string): NitroSQLitePreparedStatement
   /** Execute commands in one exclusive transaction on the calling thread.

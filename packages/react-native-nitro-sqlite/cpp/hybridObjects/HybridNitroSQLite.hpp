@@ -21,15 +21,19 @@ public:
 
 public:
   // Methods
+  /** Open the default connection, requiring an existing file in read-only mode. */
   void open(const std::string& dbName, const std::optional<std::string>& location, std::optional<bool> readOnly) override;
 
+  /** Open a separate native handle and return an opaque ID for later calls. */
   std::string openConnection(const std::string& dbName, const std::optional<std::string>& location, std::optional<bool> readOnly) override;
 
   /** Close the named native database handle. */
   void close(const std::string& dbName) override;
 
+  /** Check whether a connection name or ID still identifies an open handle. */
   bool isConnectionOpen(const std::string& connectionId) override;
 
+  /** Delete a database, closing the specified connection when it is open. */
   void drop(const std::string& dbName, const std::optional<std::string>& location, const std::optional<std::string>& connectionId) override;
 
   /** Attach a database file to an open database.
@@ -59,6 +63,7 @@ public:
   std::shared_ptr<Promise<std::shared_ptr<HybridNitroSQLiteQueryResultSpec>>>
   executeAsync(const std::string& dbName, const std::string& query, const std::optional<SQLiteQueryParams>& params) override;
 
+  /** Prepare one SQL statement for repeated execution on an open connection. */
   std::shared_ptr<HybridNitroSQLitePreparedStatementSpec> prepare(const std::string& dbName, const std::string& query) override;
 
   /** Run a nonempty batch in one exclusive transaction on the calling thread.
