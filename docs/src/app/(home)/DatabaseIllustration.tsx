@@ -91,7 +91,7 @@ export function DatabaseIllustration() {
           </div>
         </div>
 
-        <div className={styles.returnPath}><i /></div>
+        <div className={styles.returnPath}><span>Fast results, low overhead</span><i /></div>
 
         <div className={styles.result}>
           <span className={styles.resultLabel}>React Native app / returned row</span>

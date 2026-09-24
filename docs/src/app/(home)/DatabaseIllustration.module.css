@@ -61,7 +61,7 @@
   color: var(--color-fd-primary);
   font-size: 10px;
 }
-.binding span { position: absolute; top: 4px; left: 13px; white-space: nowrap; }
+.binding span { position: absolute; top: 50%; left: 13px; transform: translateY(-50%); white-space: nowrap; }
 .binding i { display: block; width: 2px; height: 100%; background: linear-gradient(var(--color-fd-primary), color-mix(in srgb, var(--color-fd-primary) 38%, transparent)); }
 .binding i::after { content: ''; position: absolute; bottom: 0; left: -3px; width: 8px; height: 8px; border-right: 2px solid var(--color-fd-primary); border-bottom: 2px solid var(--color-fd-primary); transform: rotate(45deg); }
 
@@ -73,7 +73,7 @@
   transform: translateY(calc(var(--scene-progress) * 9px)) rotateX(10deg) rotateZ(-5deg);
   transition: transform 280ms ease-out;
 }
-.storageLabel { position: absolute; z-index: 4; top: 37%; left: 8%; color: var(--color-fd-primary); font-size: 10px; white-space: nowrap; }
+.storageLabel { position: absolute; z-index: 4; top: 37%; left: 0; color: var(--color-fd-primary); font-size: 10px; white-space: nowrap; }
 
 .page {
   position: absolute;
@@ -153,10 +153,11 @@
   position: absolute;
   z-index: 0;
   top: 60%;
-  left: 82%;
+  left: 65%;
   height: 22%;
   color: var(--color-fd-primary);
 }
+.returnPath span { position: absolute; left: 13px; bottom: 8%; white-space: nowrap; font-size: 10px; }
 .returnPath i { display: block; width: 2px; height: 100%; background: linear-gradient(color-mix(in srgb, var(--color-fd-primary) 35%, transparent), var(--color-fd-primary)); }
 .returnPath i::after { content: ''; position: absolute; bottom: 0; left: -3px; width: 8px; height: 8px; border-right: 2px solid var(--color-fd-primary); border-bottom: 2px solid var(--color-fd-primary); transform: rotate(45deg); }
 
@@ -175,11 +176,11 @@
   .query, .result { padding: 15px 14px; }
   .binding { top: 13.5%; height: 15.5%; }
   .stack { inset: 28% 0 19%; }
-  .storageLabel { top: -8%; left: 4%; }
+  .storageLabel { top: -8%; }
   .page { width: 87%; left: 4%; }
   .pageMiddle { top: 25%; }
   .pageFront { top: 50%; }
-  .returnPath { top: 59%; height: 23%; }
+  .returnPath { top: 59%; left: 55%; height: 23%; }
   .result { bottom: 1%; width: 79%; }
 }
 
