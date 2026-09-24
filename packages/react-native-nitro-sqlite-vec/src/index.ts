@@ -1,30 +1,36 @@
 import type { NitroSQLiteConnection } from 'react-native-nitro-sqlite'
 
-/** Optional typed helpers over react-native-nitro-sqlite's execute() for sqlite-vec. */
-
+/** Vector storage types accepted by a `vec0` column. */
 export type VectorColumnType = 'float' | 'int8' | 'bit'
+
+/** Distance metrics accepted by a `vec0` column. */
 export type VectorDistanceMetric = 'L2' | 'cosine' | 'L1'
 
-/** A KNN result row: always `rowid` + `distance`, plus any selected columns. */
+/** One nearest-neighbor match returned by {@link knnSearch}. */
 export interface KnnMatch {
+  /** SQLite row ID of the matching vector. */
   rowid: number
+  /** Distance from the query vector, ordered from smallest to largest. */
   distance: number
+  /** Allows additional columns when using this row shape with custom queries. */
   [column: string]: unknown
 }
 
+/** Settings for a `vec0` virtual table created by {@link createVectorTable}. */
 export interface CreateVectorTableOptions {
-  /** Number of dimensions of the vector column. */
+  /** Number of dimensions passed to `vec0` for the vector column. */
   dimensions: number
   /** Vector storage type. Defaults to `'float'` (float32). */
   type?: VectorColumnType
-  /** Distance metric. Defaults to sqlite-vec's default (L2). */
+  /** Distance metric. Omit to use sqlite-vec's default (L2). */
   distanceMetric?: VectorDistanceMetric
-  /** Vector column name. Defaults to `'embedding'`. */
+  /** Trusted SQL column identifier. Defaults to `'embedding'`. */
   column?: string
 }
 
+/** Settings for {@link knnSearch}. */
 export interface KnnSearchOptions {
-  /** Vector column name. Defaults to `'embedding'`. */
+  /** Trusted SQL column identifier. Defaults to `'embedding'`. */
   column?: string
 }
 
@@ -33,12 +39,19 @@ function firstValue<T>(db: NitroSQLiteConnection, sql: string): T {
   return row?.value as T
 }
 
-/** Returns the linked sqlite-vec version string, e.g. `"v0.1.9"`. */
+/** Query the sqlite-vec version on an open connection.
+ * @param db Open NitroSQLite connection. The query runs synchronously.
+ * @returns The linked version string, for example `"v0.1.9"`.
+ * @throws If `vec_version()` is unavailable or the query fails.
+ */
 export function vecVersion(db: NitroSQLiteConnection): string {
   return firstValue<string>(db, 'SELECT vec_version() AS value')
 }
 
-/** True if sqlite-vec is linked into the active build (vector flag enabled). */
+/** Check whether the version query succeeds on this connection.
+ * @param db Open NitroSQLite connection. The check runs synchronously.
+ * @returns `false` if the version query throws for any reason, including a closed connection.
+ */
 export function isVecAvailable(db: NitroSQLiteConnection): boolean {
   try {
     vecVersion(db)
@@ -48,7 +61,13 @@ export function isVecAvailable(db: NitroSQLiteConnection): boolean {
   }
 }
 
-/** Creates a `vec0` virtual table for the given vector column. */
+/** Create a `vec0` virtual table if it does not already exist.
+ * Executes synchronously. An existing table is left as it is, even if its
+ * definition differs from `options`.
+ * @param db Open NitroSQLite connection with sqlite-vec enabled.
+ * @param table Trusted SQL table identifier, interpolated into the statement.
+ * @param options Vector dimensions, storage type, metric, and trusted column identifier.
+ */
 export function createVectorTable(
   db: NitroSQLiteConnection,
   table: string,
@@ -63,7 +82,15 @@ export function createVectorTable(
   )
 }
 
-/** Runs a KNN search; `query` is a JSON string `'[0.1,0.2]'` or a numeric array. */
+/** Search a `vec0` table for the nearest vectors.
+ * Executes synchronously and returns matches ordered by increasing distance.
+ * @param db Open NitroSQLite connection with sqlite-vec enabled.
+ * @param table Trusted SQL table identifier, interpolated into the statement.
+ * @param query JSON vector string passed through unchanged, or a numeric array serialized as JSON.
+ * @param k Maximum number of matches requested.
+ * @param options Optional trusted vector column identifier.
+ * @returns Matching row IDs and distances, or an empty array when no rows are returned.
+ */
 export function knnSearch(
   db: NitroSQLiteConnection,
   table: string,

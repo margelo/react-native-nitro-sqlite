@@ -8,10 +8,15 @@ import type {
 } from '../types'
 import { buildJSQueryResult } from './execute'
 import { queueOperationAsync, startOperationSync } from '../DatabaseQueue'
+import type { DatabaseQueueKey } from '../DatabaseQueue'
 
-export function prepare(dbName: string, query: string): PreparedStatement {
+export function prepare(
+  dbName: string,
+  query: string,
+  queueKey: DatabaseQueueKey = dbName,
+): PreparedStatement {
   try {
-    const nativeStatement = startOperationSync(dbName, () =>
+    const nativeStatement = startOperationSync(queueKey, () =>
       HybridNitroSQLite.prepare(dbName, query),
     )
 
@@ -23,7 +28,7 @@ export function prepare(dbName: string, query: string): PreparedStatement {
         params?: SQLiteQueryParams,
       ): QueryResult<Row> => {
         try {
-          return startOperationSync(dbName, () =>
+          return startOperationSync(queueKey, () =>
             buildJSQueryResult(nativeStatement.execute(params)),
           )
         } catch (error) {
@@ -34,7 +39,7 @@ export function prepare(dbName: string, query: string): PreparedStatement {
         params?: SQLiteQueryParams,
       ): Promise<QueryResult<Row>> => {
         try {
-          return await queueOperationAsync(dbName, async () =>
+          return await queueOperationAsync(queueKey, async () =>
             buildJSQueryResult(await nativeStatement.executeAsync(params)),
           )
         } catch (error) {
@@ -43,7 +48,7 @@ export function prepare(dbName: string, query: string): PreparedStatement {
       },
       finalize: () => {
         try {
-          startOperationSync(dbName, () => nativeStatement.finalize())
+          startOperationSync(queueKey, () => nativeStatement.finalize())
         } catch (error) {
           throw NitroSQLiteError.fromError(error)
         }

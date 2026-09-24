@@ -2,13 +2,13 @@
  * SQL File Loader implementation
  */
 
-#include "importSqlFile.hpp"
+#include "NitroSQLiteImportSqlFile.hpp"
 #include "NitroSQLiteException.hpp"
-#include "operations.hpp"
+#include "NitroSQLiteOperations.hpp"
 #include <fstream>
 #include <iostream>
 
-namespace margelo::rnnitrosqlite {
+namespace margelo::nitro::rnnitrosqlite {
 
 SQLiteOperationResult importSqlFile(const std::string& dbName, const std::string& fileLocation) {
   return importSqlFile(sqliteGetOpenDatabase(dbName), fileLocation);
@@ -50,4 +50,4 @@ SQLiteOperationResult importSqlFile(const SQLiteConnectionPtr& connection, const
   }
 }
 
-} // namespace margelo::rnnitrosqlite
+} // namespace margelo::nitro::rnnitrosqlite

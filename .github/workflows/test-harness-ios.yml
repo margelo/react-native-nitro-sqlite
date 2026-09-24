@@ -1,6 +1,7 @@
 name: Test Harness iOS
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - ".github/workflows/test-harness-ios.yml"
@@ -9,13 +10,26 @@ on:
       - "example/tests/**"
       - "example/rn-harness.config.mjs"
       - "example/jest.config.js"
-      - "package/cpp/**"
-      - "package/ios/**"
-      - "**/Podfile.lock"
-      - "**/*.podspec"
-      - "**/react-native.config.js"
-      - "**/nitro.json"
-      - "**/bun.lock"
+      - "packages/react-native-nitro-sqlite/cpp/**"
+      - "packages/react-native-nitro-sqlite/ios/**"
+      - "packages/react-native-nitro-sqlite/src/**"
+      - "packages/react-native-nitro-sqlite/nitrogen/generated/shared/**"
+      - "packages/react-native-nitro-sqlite/nitrogen/generated/ios/**"
+      - "packages/react-native-nitro-sqlite-vec/cpp/**"
+      - "packages/react-native-nitro-sqlite/RNNitroSQLite.podspec"
+      - "packages/react-native-nitro-sqlite-vec/RNNitroSqliteVec.podspec"
+      - "example/Gemfile.lock"
+      - "bun.lock"
+      - "package.json"
+      - "example/package.json"
+      - "packages/react-native-nitro-sqlite/package.json"
+      - "packages/react-native-nitro-sqlite-vec/package.json"
+      - "patches/react-native-nitro-modules*"
+      - "example/react-native.config.js"
+      - "packages/react-native-nitro-sqlite/react-native.config.js"
+      - "packages/react-native-nitro-sqlite-vec/react-native.config.js"
+      - "packages/react-native-nitro-sqlite/nitro.json"
+      - "!packages/react-native-nitro-sqlite/src/__tests__/**"
 
 jobs:
   test:

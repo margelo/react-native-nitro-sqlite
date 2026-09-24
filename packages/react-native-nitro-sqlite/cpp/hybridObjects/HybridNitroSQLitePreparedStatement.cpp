@@ -1,6 +1,5 @@
 #include "HybridNitroSQLitePreparedStatement.hpp"
 #include "HybridNitroSQLiteQueryResult.hpp"
-#include "operations.hpp"
 #include <NitroModules/ArrayBuffer.hpp>
 
 namespace margelo::nitro::rnnitrosqlite {
@@ -28,8 +27,7 @@ namespace {
 
 } // namespace
 
-HybridNitroSQLitePreparedStatement::HybridNitroSQLitePreparedStatement(
-    std::shared_ptr<::margelo::rnnitrosqlite::SQLitePreparedStatement> statement)
+HybridNitroSQLitePreparedStatement::HybridNitroSQLitePreparedStatement(std::shared_ptr<SQLitePreparedStatement> statement)
     : HybridObject(TAG), _statement(std::move(statement)) {}
 
 std::shared_ptr<HybridNitroSQLiteQueryResultSpec>

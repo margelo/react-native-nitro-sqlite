@@ -63,6 +63,24 @@ it('reuses a statement, returns rows, and exposes finalization', async () => {
   db.close()
 })
 
+it('prepares against an independent connection ID', () => {
+  jest
+    .mocked(HybridNitroSQLite.openConnection)
+    .mockReturnValue('prepared-connection')
+  const native = mockStatement()
+  jest.mocked(HybridNitroSQLite.prepare).mockReturnValue(native)
+  const db = open({ name: dbName, connection: 'independent' })
+
+  const statement = db.prepare(query)
+
+  expect(HybridNitroSQLite.prepare).toHaveBeenCalledWith(
+    'prepared-connection',
+    query,
+  )
+  statement.finalize()
+  db.close()
+})
+
 it('keeps synchronous calls from overtaking an asynchronous execution', async () => {
   const native = mockStatement()
   jest.mocked(HybridNitroSQLite.prepare).mockReturnValue(native)

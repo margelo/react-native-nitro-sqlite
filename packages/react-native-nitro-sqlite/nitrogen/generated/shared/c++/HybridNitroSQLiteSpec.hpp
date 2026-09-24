@@ -69,9 +69,11 @@ namespace margelo::nitro::rnnitrosqlite {
 
     public:
       // Methods
-      virtual void open(const std::string& dbName, const std::optional<std::string>& location) = 0;
+      virtual void open(const std::string& dbName, const std::optional<std::string>& location, std::optional<bool> readOnly) = 0;
+      virtual std::string openConnection(const std::string& dbName, const std::optional<std::string>& location, std::optional<bool> readOnly) = 0;
+      virtual bool isConnectionOpen(const std::string& connectionId) = 0;
       virtual void close(const std::string& dbName) = 0;
-      virtual void drop(const std::string& dbName, const std::optional<std::string>& location) = 0;
+      virtual void drop(const std::string& dbName, const std::optional<std::string>& location, const std::optional<std::string>& connectionId) = 0;
       virtual void attach(const std::string& mainDbName, const std::string& dbNameToAttach, const std::string& alias, const std::optional<std::string>& location) = 0;
       virtual void detach(const std::string& mainDbName, const std::string& alias) = 0;
       virtual std::shared_ptr<HybridNitroSQLiteQueryResultSpec> execute(const std::string& dbName, const std::string& query, const std::optional<std::vector<std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>>& params) = 0;

@@ -1,32 +1,19 @@
 #pragma once
 
+#include "NitroSQLiteDatabaseConnections.hpp"
 #include "hybridObjects/HybridNitroSQLiteQueryResult.hpp"
-#include "types.hpp"
+#include <functional>
 #include <memory>
 #include <mutex>
+#include <queue>
 #include <sqlite3.h>
 #include <string>
 
-namespace margelo::rnnitrosqlite {
+namespace margelo::nitro::rnnitrosqlite {
 
-// Calls against one connection are serialized by `mutex`. Separate connections
-// intentionally remain independent, so SQLITE_THREADSAFE=0 still requires the
-// caller to serialize SQLite calls globally.
-struct SQLiteConnection final {
-  SQLiteConnection(std::string name, sqlite3* database);
-  ~SQLiteConnection();
+void sqliteOpenDb(const std::string& dbName, const std::string& docPath, bool readOnly = false);
 
-  SQLiteConnection(const SQLiteConnection&) = delete;
-  SQLiteConnection& operator=(const SQLiteConnection&) = delete;
-
-  void close() noexcept;
-
-  const std::string name;
-  sqlite3* database;
-  std::recursive_mutex mutex;
-};
-
-using SQLiteConnectionPtr = std::shared_ptr<SQLiteConnection>;
+std::string sqliteOpenConnection(const std::string& dbName, const std::string& docPath, bool readOnly = false);
 
 class SQLitePreparedStatement {
 public:
@@ -47,11 +34,10 @@ private:
   friend std::shared_ptr<SQLitePreparedStatement> sqlitePrepare(const std::string& dbName, const std::string& query);
 };
 
-void sqliteOpenDb(const std::string& dbName, const std::string& docPath);
-
 void sqliteCloseDb(const std::string& dbName);
 
-void sqliteRemoveDb(const std::string& dbName, const std::string& docPath);
+void sqliteRemoveDb(const std::string& dbName, const std::string& docPath, const std::optional<std::string>& connectionId = std::nullopt,
+                    const std::optional<std::string>& otherDocPath = std::nullopt);
 
 void sqliteAttachDb(const std::string& mainDBName, const std::string& docPath, const std::string& databaseToAttach,
                     const std::string& alias);
@@ -74,4 +60,4 @@ std::shared_ptr<SQLitePreparedStatement> sqlitePrepare(const std::string& dbName
 
 void sqliteCloseAll();
 
-} // namespace margelo::rnnitrosqlite
+} // namespace margelo::nitro::rnnitrosqlite

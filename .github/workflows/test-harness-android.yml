@@ -1,6 +1,7 @@
 name: Test Harness Android
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - ".github/workflows/test-harness-android.yml"
@@ -9,11 +10,23 @@ on:
       - "example/tests/**"
       - "example/rn-harness.config.mjs"
       - "example/jest.config.js"
-      - "package/cpp/**"
-      - "package/android/**"
-      - "**/bun.lock"
-      - "**/react-native.config.js"
-      - "**/nitro.json"
+      - "packages/react-native-nitro-sqlite/cpp/**"
+      - "packages/react-native-nitro-sqlite/android/**"
+      - "packages/react-native-nitro-sqlite/src/**"
+      - "packages/react-native-nitro-sqlite/nitrogen/generated/shared/**"
+      - "packages/react-native-nitro-sqlite/nitrogen/generated/android/**"
+      - "packages/react-native-nitro-sqlite-vec/cpp/**"
+      - "bun.lock"
+      - "package.json"
+      - "example/package.json"
+      - "packages/react-native-nitro-sqlite/package.json"
+      - "packages/react-native-nitro-sqlite-vec/package.json"
+      - "patches/react-native-nitro-modules*"
+      - "example/react-native.config.js"
+      - "packages/react-native-nitro-sqlite/react-native.config.js"
+      - "packages/react-native-nitro-sqlite-vec/react-native.config.js"
+      - "packages/react-native-nitro-sqlite/nitro.json"
+      - "!packages/react-native-nitro-sqlite/src/__tests__/**"
 
 env:
   TARGET_ANDROID_ARCH: x86_64
