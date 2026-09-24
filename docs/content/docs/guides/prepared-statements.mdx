@@ -1,0 +1,61 @@
+---
+title: Prepared statements
+description: Reuse a compiled SQL statement with different bound values.
+---
+
+A prepared statement compiles one SQL command once, then runs it with different values. Use one when the same query runs repeatedly on a connection. For a query that runs only once, `db.execute()` or `db.executeAsync()` is simpler.
+
+Call `db.prepare(query)` on an open connection. It returns a statement with `execute(params)`, `executeAsync(params)`, `isFinalized`, and `finalize()`. Preparation is synchronous, so it throws if the connection already has work pending or running.
+
+```ts
+import { open } from 'react-native-nitro-sqlite'
+
+const db = open({ name: 'app.sqlite' })
+db.execute(
+  'CREATE TABLE IF NOT EXISTS notes (id INTEGER PRIMARY KEY, body TEXT)',
+)
+const insert = db.prepare('INSERT INTO notes (body) VALUES (?)')
+
+try {
+  insert.execute(['Buy milk'])
+  insert.execute(['Call Ada'])
+} finally {
+  insert.finalize()
+}
+
+db.close()
+```
+
+The SQL text stays fixed. Pass a positional array for its `?` placeholders on each execution. The accepted values are `boolean`, `number`, `string`, `ArrayBuffer`, and `null`. Parameters bind values, not table or column names. Each run resets the statement and clears its previous bindings, so omitted values do not carry over. Pass every value your query needs each time.
+
+## Read rows and run asynchronously
+
+Both execution methods return the same [query result](/docs/guides/parameters-and-results) as the connection's `execute` methods. Give a row type when you want typed access to `rows._array` or `rows.item()`; the type does not validate SQLite values at runtime.
+
+```ts
+const findNote = db.prepare('SELECT id, body FROM notes WHERE id = ?')
+
+try {
+  const { rows } = await findNote.executeAsync<{
+    id: number
+    body: string
+  }>([42])
+  console.log(rows.item(0)?.body)
+} finally {
+  findNote.finalize()
+}
+```
+
+`execute()` blocks its JavaScript caller until SQLite finishes. `executeAsync()` runs native database work on a background thread and resolves with the result. Await each execution when a later one depends on its write. The statement can be reused after an execution error, provided the error has not made the database unusable.
+
+## Connection ordering and cleanup
+
+On a managed connection, `executeAsync()` reserves that connection's queue until it completes. It waits for earlier work and prevents later work from starting. While async work is pending, synchronous `prepare()`, `execute()`, `finalize()`, and `close()` on that connection throw a busy error. Await the last execution before finalizing, then finalize before closing the connection. `isFinalized` reports whether the statement has been finalized; executing it afterward throws.
+
+Do not await a prepared statement's `executeAsync()` from inside `db.transaction()` on the same connection. It waits behind the transaction, while the transaction waits for your callback. Use the callback's `tx.execute()` or `tx.executeAsync()` instead. See [transactions](/docs/guides/transactions) and [connection ordering](/docs/concepts/connection-ordering).
+
+## Choose the right query form
+
+`execute()` and `executeAsync()` prepare and run a query for one call. A prepared statement keeps its compiled SQL for repeated calls on the same connection, but it does not start a transaction. Use [batch operations](/docs/guides/batch-operations) for a fixed group of writes that must commit or roll back together. Use `db.transaction()` when later writes depend on earlier results. A batch with nested parameter arrays runs each expanded command separately; it does not reuse one prepared statement. Measure the workload on your target devices before choosing an approach for speed.
+
+The [`NitroSQLite` export](/api/react-native-nitro-sqlite/variables/NitroSQLite) also has `prepare(dbName, query)`. It requires a default managed connection opened with `open()` and uses that connection's queue. For an independent connection, call `prepare()` on the connection object so the statement uses that connection's own handle and queue. `NitroSQLite.native.prepare(dbName, query)` returns a raw native statement. Native calls bypass the JavaScript queue, return raw results without the managed `rows` adapter, and leave error conversion and coordination to you. See [native access](/docs/guides/sync-and-async#global-helpers-and-native-access) if you use that lower-level API.

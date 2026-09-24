@@ -3,9 +3,11 @@
   "pages": [
     "sync-and-async",
     "parameters-and-results",
+    "prepared-statements",
     "transactions",
     "batch-operations",
     "database-lifecycle",
+    "multiple-connections",
     "attach-databases",
     "load-sql-file",
     "performance",

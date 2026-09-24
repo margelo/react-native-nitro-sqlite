@@ -3,7 +3,7 @@ title: Getting Started
 description: Install Nitro SQLite, rebuild your React Native app, and run your first query.
 ---
 
-Nitro SQLite gives React Native apps a local SQLite database on iOS and Android. Start by installing its native package and Nitro Modules, then open a database with `open()`.
+Nitro SQLite gives React Native apps a local SQLite database on iOS, macOS, visionOS, and Android. Start by installing its native package and Nitro Modules, then open a database with `open()`.
 
 ## 1. Install the packages
 
@@ -21,7 +21,7 @@ The default database location needs no custom SQLite settings. If your project h
 npx pod-install
 ```
 
-Android needs no additional Nitro SQLite configuration for the default setup. The [iOS](/docs/configuration/ios) and [Android](/docs/configuration/android) guides cover optional storage locations and build flags.
+Android needs no additional Nitro SQLite configuration for the default setup. For a React Native macOS project, install CocoaPods from its `macos` directory. The [iOS](/docs/configuration/ios), [Android](/docs/configuration/android), and [macOS](/docs/configuration/macos) guides cover platform setup, storage locations, and build flags.
 
 ## 3. Rebuild the app
 
@@ -77,4 +77,4 @@ Bind user supplied values as parameters rather than putting them into the SQL st
 
 ## Keep going
 
-If SQLite is new to you, start with [databases and connections](/docs/concepts/databases-and-connections), [tables and values](/docs/concepts/tables-and-values), and [queries and indexes](/docs/concepts/queries-and-indexes). For work that may take longer, use `await db.executeAsync(...)` and read [sync and async](/docs/guides/sync-and-async) before mixing the two forms. Use [transactions](/docs/guides/transactions) or [batches](/docs/guides/batch-operations) for related writes. The [generated API reference](/api) lists the public exports and method signatures.
+If SQLite is new to you, start with [databases and connections](/docs/concepts/databases-and-connections), [tables and values](/docs/concepts/tables-and-values), and [queries and indexes](/docs/concepts/queries-and-indexes). For work that may take longer, use `await db.executeAsync(...)` and read [sync and async](/docs/guides/sync-and-async) before mixing the two forms. Use [prepared statements](/docs/guides/prepared-statements) for repeated SQL, or [transactions](/docs/guides/transactions) and [batches](/docs/guides/batch-operations) for related writes. The [generated API reference](/api) lists the public exports and method signatures.

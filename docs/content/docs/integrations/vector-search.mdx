@@ -10,9 +10,10 @@ Vector search compares numeric arrays, often called embeddings, to find nearby m
 Install the companion alongside `react-native-nitro-sqlite`. Then enable the build on each platform you ship:
 
 - iOS: set `NITRO_SQLITE_VEC=1` when installing Pods. The companion pod compiles sqlite-vec and the core pod enables its registration code.
+- macOS: set `NITRO_SQLITE_VEC=1` when installing Pods from the app's `macos` directory. It uses the same Apple build flag as iOS.
 - Android: set `nitroSqliteVec=true` in `android/gradle.properties`. The core library compiles sqlite-vec's C sources and registration code.
 
-Rebuild the native app after changing either flag. The companion package must be installed for the flag to resolve its source files. See the [iOS](/docs/configuration/ios#vector-search) and [Android](/docs/configuration/android#vector-search) configuration pages for examples.
+Rebuild the native app after changing a flag. The companion package must be installed for the flag to resolve its source files. See the [iOS](/docs/configuration/ios#vector-search), [macOS](/docs/configuration/macos), and [Android](/docs/configuration/android#vector-search) configuration pages for details.
 
 ## Create and search a vector table
 

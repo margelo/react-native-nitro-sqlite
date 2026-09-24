@@ -54,7 +54,7 @@ The bundled SQLite build defaults to `SQLITE_THREADSAFE=1` and enables the proje
 
 Both keys require booleans. For one Pod installation, `NITRO_SQLITE_THREADSAFE` and `NITRO_SQLITE_PERFORMANCE_MODE` override the package values. Each accepts `true`, `false`, `1`, or `0`.
 
-`threadSafe: false` compiles SQLite with `SQLITE_THREADSAFE=0`. This removes SQLite's mutex code. The connection helper serializes calls for one database, but separate databases can still run concurrently, so this setting requires the application to serialize SQLite calls across the process. `performanceMode: false` removes the pod's extra SQLite compile flags independently of thread safety. Those flags include `SQLITE_DQS=0`, `SQLITE_DEFAULT_MEMSTATUS=0`, `SQLITE_DEFAULT_WAL_SYNCHRONOUS=1`, and several `SQLITE_OMIT_*` options; this switch does not set a runtime SQLite pragma.
+`threadSafe: false` compiles SQLite with `SQLITE_THREADSAFE=0` and removes its mutex code. Nitro SQLite rejects [independent connections](/docs/guides/multiple-connections) in that build. Separate database handles can still run concurrently, so an app using this setting must serialize SQLite calls across the process. `performanceMode: false` removes the pod's extra SQLite compile flags independently of thread safety. Those flags include `SQLITE_DQS=0`, `SQLITE_DEFAULT_MEMSTATUS=0`, `SQLITE_DEFAULT_WAL_SYNCHRONOUS=1`, and several `SQLITE_OMIT_*` options; this switch does not set a runtime SQLite pragma.
 
 ## Additional compile flags
 

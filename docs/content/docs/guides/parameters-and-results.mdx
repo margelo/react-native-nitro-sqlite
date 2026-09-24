@@ -7,6 +7,8 @@ SQLite parameters let you write SQL with placeholders and supply its values sepa
 
 In NitroSQLite, pass positional values in an array for `?` placeholders. The public `SQLiteValue` type permits `boolean`, `number`, `string`, `ArrayBuffer`, and `null`. Keep table and column names in your own SQL; parameters bind values, not identifiers.
 
+For repeated executions of the same SQL, [prepare the statement once](/docs/guides/prepared-statements) and pass a new parameter array on each run.
+
 ```ts
 const name = 'Ada'
 const age = 37
@@ -44,7 +46,7 @@ Be especially careful with nullable columns and expressions when specifying a ro
 
 ## Errors
 
-The connection's JavaScript helpers normalize database failures to `NitroSQLiteError`. Async methods reject; sync methods throw. Catch the error around the operation you can recover from:
+The connection's JavaScript helpers normalize database failures to `NitroSQLiteError`. Async methods reject; sync methods throw. An empty SQL string or one containing only comments also fails with the native category `SqlExecutionError`, because SQLite produces no statement to execute. Catch the error around the operation you can recover from:
 
 ```ts
 import { NitroSQLiteError } from 'react-native-nitro-sqlite'

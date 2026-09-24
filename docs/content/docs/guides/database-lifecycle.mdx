@@ -5,7 +5,7 @@ description: Open, close, delete, and place database files in an app directory.
 
 A SQLite database usually lives in a file. Your app opens a connection to read or change that file, then closes the connection when it is done. Closing a connection leaves the data on disk; deleting the file removes the database.
 
-In NitroSQLite, `open({ name })` opens an existing SQLite file or creates a new one. A database name can have only one active `open()` connection in the JavaScript session. Close it before opening that name again.
+In NitroSQLite, `open({ name })` opens an existing SQLite file or creates a new one. A database name can have only one active default connection. Close it before opening another default connection with that name, or use `connection: 'independent'` for a separate handle to the same file. See [multiple connections](/docs/guides/multiple-connections).
 
 ```ts
 import { open } from 'react-native-nitro-sqlite'
@@ -19,7 +19,7 @@ await db.executeAsync(
 db.close()
 ```
 
-`close()` releases the connection and its queue. It keeps the file. `delete()` removes the database file and closes an open connection for that name. You can call `delete()` on the connection after `close()`, using its remembered name and location. Do not use a closed or deleted connection for more queries.
+`close()` releases the connection and its queue. It keeps the file. `delete()` removes the database file and closes that connection if it is open. Deletion fails while another connection still has the file open. You can call `delete()` on the connection after `close()`, using its remembered name and location. Do not use a closed or deleted connection for more queries.
 
 ```ts
 const temporary = open({ name: 'temporary.sqlite' })
@@ -27,13 +27,13 @@ temporary.close()
 temporary.delete()
 ```
 
-Both methods are synchronous. They fail if an operation on that connection is queued or running. Await outstanding promises first. `delete()` also fails if the named file does not exist.
+Both methods are synchronous. They fail if an operation on that connection is queued or running. Await outstanding promises first, and [finalize prepared statements](/docs/guides/prepared-statements#connection-ordering-and-cleanup) before closing. `delete()` also fails if the named file does not exist.
 
 On iOS, when a database is being moved from Documents to Application Support, deletion also cleans up copies and SQLite sidecar files from both locations.
 
 ## File location and prepopulated databases
 
-By default, the root is the app Documents directory on iOS and the app files directory on Android. Use the optional `location` as a relative subdirectory under that root, not as an absolute file path:
+By default, the root is the app Documents directory on iOS, the app files directory on Android, and an app-specific Application Support directory on macOS. Use the optional `location` as a relative subdirectory under that root, not as an absolute file path:
 
 ```ts
 const db = open({ name: 'catalog.sqlite', location: 'databases' })
@@ -43,4 +43,4 @@ The native code joins the root, `location`, and `name` without checking for `..`
 
 To open a prepopulated database, copy the SQLite file into the intended app directory before calling `open()`. Use the same `name` and `location` when you open it. A missing file creates a new, empty database, so verify the copy if your schema must already exist. If you use WAL mode, account for the database's companion files when moving or backing up it.
 
-iOS can use Application Support or an app group instead of Documents; see [iOS configuration](/docs/configuration/ios). Android uses its app files directory; see [Android configuration](/docs/configuration/android). The generated [`NitroSQLiteConnection` reference](/api/react-native-nitro-sqlite/interfaces/NitroSQLiteConnection) lists the lifecycle methods.
+iOS can use Application Support or an app group instead of Documents; see [iOS configuration](/docs/configuration/ios). Android uses its app files directory; see [Android configuration](/docs/configuration/android). See [macOS configuration](/docs/configuration/macos) for its Application Support location. The generated [`NitroSQLiteConnection` reference](/api/react-native-nitro-sqlite/interfaces/NitroSQLiteConnection) lists the lifecycle methods.

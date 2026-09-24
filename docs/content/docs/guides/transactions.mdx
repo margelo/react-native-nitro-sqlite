@@ -34,7 +34,7 @@ await db.transaction(async (tx) => {
 })
 ```
 
-Await every `tx.executeAsync()` before the callback returns or before manually finalizing. The wrapper does not track unawaited transaction promises. A thrown error after an explicit commit or rollback cannot undo that completed transaction.
+Await every `tx.executeAsync()` before the callback returns or before manually finalizing. While an async statement is pending, `tx.execute()`, `tx.commit()`, and `tx.rollback()` throw instead of running out of order. If the callback throws, the wrapper waits for pending async statements before rolling back. A thrown error after an explicit commit or rollback cannot undo that completed transaction.
 
 `tx.commit()` and `tx.rollback()` are synchronous. Their declared return type exposes the native query result fields. The JavaScript helper also adds `rows` at runtime, but that field is not in their declared type. Use them to finalize the transaction, not to retrieve rows. The transaction starts with `BEGIN TRANSACTION`; the global [`NitroSQLite.transaction`](/api/react-native-nitro-sqlite/variables/NitroSQLite) helper also accepts `isExclusive` to use `BEGIN EXCLUSIVE TRANSACTION`.
 

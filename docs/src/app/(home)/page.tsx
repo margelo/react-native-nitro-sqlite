@@ -10,7 +10,7 @@ export default function HomePage() {
           <p className="eyebrow">NitroSQLite by Margelo</p>
           <h1 id="hero-title">Fast SQLite for<br /><span>React Native.</span></h1>
           <p className="hero-description">
-            Nitro Modules provides low-overhead native bindings to SQLite on iOS and Android. Run synchronous queries for immediate results or asynchronous queries to keep longer work off the JavaScript thread. Built and maintained by Margelo.
+            Nitro Modules provide low-overhead native bindings to SQLite on iOS, macOS, visionOS, and Android. Run synchronous queries for immediate results or asynchronous queries to keep longer work off the JavaScript thread. Built and maintained by Margelo.
           </p>
           <div className="hero-actions">
             <Link className="button button-primary" href="/docs">Get started <ArrowIcon /></Link>

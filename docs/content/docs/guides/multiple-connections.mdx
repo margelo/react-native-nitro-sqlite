@@ -1,0 +1,73 @@
+---
+title: Multiple connections
+description: Open independent SQLite handles for reads and writes against one database file.
+---
+
+`open({ name })` creates the default connection for a database name. Opening a second default connection with that name throws until the first closes. Use `connection: 'independent'` to open another native SQLite handle to the same file. Each returned connection has its own operation queue and transactions; closing one leaves the others open.
+
+## One writer and one reader
+
+Create the database and finish migrations before opening a read-only connection. Enable [WAL mode](https://www.sqlite.org/wal.html) on the writer if reads should proceed while it writes:
+
+```ts
+import { open } from 'react-native-nitro-sqlite'
+
+const writer = open({ name: 'app.sqlite' })
+await writer.executeAsync('PRAGMA journal_mode = WAL')
+await writer.executeAsync('PRAGMA busy_timeout = 1000')
+await writer.executeAsync(
+  'CREATE TABLE IF NOT EXISTS items (id INTEGER PRIMARY KEY, value TEXT)',
+)
+
+const reader = open({
+  name: 'app.sqlite',
+  connection: 'independent',
+  readOnly: true,
+})
+await reader.executeAsync('PRAGMA busy_timeout = 1000')
+
+const [_, items] = await Promise.all([
+  writer.executeAsync('INSERT INTO items (value) VALUES (?)', ['new item']),
+  reader.executeAsync('SELECT * FROM items'),
+])
+```
+
+The read may finish before the insert commits. Await the write first if the read must include it. WAL mode persists in the file, while settings such as `busy_timeout` and `foreign_keys` belong to each connection. Nitro SQLite does not enable WAL or change SQLite's default busy timeout for you. A read-only connection requires an existing file and cannot write, delete the database, or attach another database.
+
+Keep a small number of connections and reuse them. Route writes, migrations, and imports through the writer; route independent reads through the reader. Nitro SQLite does not inspect SQL or choose a connection for each statement. Name-based `NitroSQLite` helpers address the default connection, so keep the object returned by `open()` for an independent connection. The TypeORM driver also uses the default connection.
+
+## Ordering and transactions
+
+Separate connections can run native work concurrently. SQLite still allows only one writer at a time for a database file, and lock contention can produce busy or locked errors. A bounded `busy_timeout` can help with temporary contention. Keep read transactions short, especially in WAL mode, where a long-lived reader can delay checkpoints.
+
+Each connection has its own queue. Native operations on one connection run in submission order, one at a time. Batches, transactions, and prepared statement executions wait for earlier work and reserve that connection until they finish. Use the callback's `tx` for every operation in a transaction, including reads that must see its uncommitted writes:
+
+```ts
+await writer.transaction(async (tx) => {
+  await tx.executeAsync('UPDATE items SET value = ? WHERE id = ?', [
+    'edited',
+    1,
+  ])
+  const updated = await tx.executeAsync('SELECT * FROM items WHERE id = ?', [1])
+  // updated sees this transaction's uncommitted change.
+})
+
+const committed = await reader.executeAsync(
+  'SELECT * FROM items WHERE id = ?',
+  [1],
+)
+```
+
+Do not await a queued operation on `writer` inside its transaction callback; it waits for the callback to finish. Work on `reader` has a separate transaction and cannot see the writer's uncommitted changes. See [connection ordering](/docs/concepts/connection-ordering) for the queue rules.
+
+## Close and delete
+
+Await pending work before closing each connection. `close()` throws while its connection is busy. Deletion fails while another connection still has the file open, including through an attachment; close or detach those handles first.
+
+```ts
+reader.close()
+writer.close()
+writer.delete()
+```
+
+Open a new connection instead of reusing a closed object. Independent connections require SQLite mutex support and are rejected when SQLite was built with `SQLITE_THREADSAFE=0`. Keep iOS `nitroSQLite.threadSafe` enabled and do not disable SQLite thread safety through Android compile flags. Rebuild the native app after updating Nitro SQLite so it includes the new connection methods.

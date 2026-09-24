@@ -9,7 +9,7 @@ In NitroSQLite, start with the query and the amount of data it reads. Add indexe
 
 ## Keep long work off the JavaScript thread
 
-`execute()` and the other synchronous methods block their JavaScript caller. Use `executeAsync()`, `executeBatchAsync()`, and `loadFileAsync()` for work that may take longer. The native async implementations run database work on a background thread, while the connection queue preserves submission order for one opened database.
+`execute()` and the other synchronous methods block their JavaScript caller. Use `executeAsync()`, `executeBatchAsync()`, and `loadFileAsync()` for work that may take longer. The native async implementations run database work on background threads. A connection runs native operations one at a time in submission order. See [multiple connections](/docs/guides/multiple-connections) when reads need a separate handle.
 
 ```ts
 const { rows } = await db.executeAsync<{ id: number; title: string }>(
@@ -37,6 +37,6 @@ await db.executeBatchAsync([
 ])
 ```
 
-Binding values avoids building a new SQL string from user data. The library prepares statements for execution, but the batch implementation executes each expanded command separately. Do not assume it keeps a prepared statement cached across the batch. Measure on your target devices and data sizes before choosing a batch size or index strategy.
+Binding values avoids building a new SQL string from user data. The batch implementation executes each expanded command separately. For repeated calls on one connection, [prepared statements](/docs/guides/prepared-statements) keep one SQL command compiled between executions. Measure on your target devices and data sizes before choosing a batch size, prepared statement, or index strategy.
 
 See [sync and async](/docs/guides/sync-and-async), [batch operations](/docs/guides/batch-operations), and [transactions](/docs/guides/transactions) for the exact ordering rules.

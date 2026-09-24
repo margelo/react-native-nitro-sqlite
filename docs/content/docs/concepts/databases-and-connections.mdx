@@ -19,6 +19,6 @@ console.log(rows._array)
 db.close()
 ```
 
-The optional `location` is a directory relative to the platform's database root. One database name can have only one active `open()` connection in a JavaScript session. Open a different name for a separate connection, and close a connection before reopening its name. Finish pending async work before calling `close()`; it is synchronous and fails while the connection queue is busy.
+The optional `location` is a directory relative to the platform's database root. Only one default connection can be open for a database name at a time. Pass `connection: 'independent'` to `open()` for another handle to the same file. Finish pending async work before calling `close()`; it is synchronous and fails while that connection is busy. See [multiple connections](/docs/guides/multiple-connections) for a reader and writer example.
 
 Use `delete()` to remove the file when you no longer need its data. `close()` only releases the handle. For file locations, prepopulated databases, and cleanup, read the [database lifecycle guide](/docs/guides/database-lifecycle). The generated [`NitroSQLiteConnection` reference](/api/react-native-nitro-sqlite/interfaces/NitroSQLiteConnection) lists its methods.

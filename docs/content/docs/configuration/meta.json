@@ -1,4 +1,4 @@
 {
   "title": "Native configuration",
-  "pages": ["ios", "android"]
+  "pages": ["ios", "android", "macos"]
 }

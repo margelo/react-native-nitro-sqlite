@@ -9,11 +9,13 @@ Requires React Native 0.75 or newer, React 17 or newer, and \`react-native-nitro
 npm install react-native-nitro-sqlite react-native-nitro-modules
 \`\`\`
 
-Install iOS pods if your project has an \`ios\` directory, then rebuild the native app. Android needs no additional setup for the default database location. Expo projects need a development build; Expo Go cannot load the native module.
+Install CocoaPods for Apple platforms, then rebuild the native app. Android needs no additional setup for the default database location. Expo projects need a development build; Expo Go cannot load the native module.
 
 \`\`\`sh
 npx pod-install
 \`\`\`
+
+For a React Native macOS app, run \`pod install\` from its \`macos\` directory. See the [macOS configuration guide](/docs/configuration/macos) for the desktop example and database location.
 
 ## Open a database
 
@@ -40,11 +42,13 @@ Install Nitro SQLite, Nitro Modules, and the vector companion. The core requires
 npm install react-native-nitro-sqlite react-native-nitro-modules react-native-nitro-sqlite-vec
 \`\`\`
 
-On iOS, install Pods with the build flag:
+On iOS and visionOS, install Pods with the build flag:
 
 \`\`\`sh
 NITRO_SQLITE_VEC=1 npx pod-install
 \`\`\`
+
+For macOS, run \`NITRO_SQLITE_VEC=1 pod install\` from the app's \`macos\` directory.
 
 On Android, add this to \`android/gradle.properties\`:
 
@@ -52,7 +56,7 @@ On Android, add this to \`android/gradle.properties\`:
 nitroSqliteVec=true
 \`\`\`
 
-Rebuild the native app after enabling the flag. See the [vector search guide](/docs/integrations/vector-search) for other Apple platforms and more setup details.
+Rebuild the native app after enabling the flag. See the [vector search guide](/docs/integrations/vector-search) for platform setup and usage.
 
 ## Create and search a vector table
 

@@ -1,0 +1,20 @@
+---
+title: macOS configuration
+description: Install Nitro SQLite in a React Native macOS app and run the repository example.
+---
+
+Nitro SQLite supports React Native macOS. Install `react-native-nitro-sqlite` and `react-native-nitro-modules` in your app, then install CocoaPods from its `macos` directory and rebuild the native app:
+
+```sh
+cd macos && pod install
+```
+
+By default, macOS databases live in an app-specific Application Support directory. `open({ name: 'app.sqlite', location: 'databases' })` puts the file in a `databases` directory beneath that root. A sandboxed app cannot open files outside its accessible containers.
+
+## Run the example
+
+The repository's macOS example targets macOS 14 or later with React Native macOS 0.81. Install the workspace and example's Ruby dependencies, then run the example's `pods:macos` and `macos` scripts. It includes the SQLite, TypeORM, sqlite-vec, SQL console, and benchmark screens used by the mobile example.
+
+To keep Metro in a separate terminal, run the `start` script in `example/macos` and launch the `macos` script with `--no-packager`. Pass `--mode Release --no-packager` to build and launch the production bundle.
+
+The [iOS configuration guide](/docs/configuration/ios) describes the shared Apple build flags for bundled SQLite, thread safety, performance mode, and vector search. Run CocoaPods from `macos` when applying those settings to a macOS app.
