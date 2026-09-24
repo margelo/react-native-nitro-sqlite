@@ -73,7 +73,7 @@
   transform: translateY(calc(var(--scene-progress) * 9px)) rotateX(10deg) rotateZ(-5deg);
   transition: transform 280ms ease-out;
 }
-.storageLabel { position: absolute; z-index: 4; top: 40%; left: -5%; color: var(--color-fd-primary); font-size: 10px; white-space: nowrap; }
+.storageLabel { position: absolute; z-index: 4; top: 40%; left: -9%; color: var(--color-fd-primary); font-size: 10px; white-space: nowrap; }
 
 .page {
   position: absolute;
@@ -176,7 +176,7 @@
   .query, .result { padding: 15px 14px; }
   .binding { top: 13.5%; height: 15.5%; }
   .stack { inset: 27% 0 19%; }
-  .storageLabel { top: -4%; left: -1.5%; }
+  .storageLabel { top: -4%; left: -2%; }
   .page { width: 87%; left: 4%; }
   .pageMiddle { top: 25%; }
   .pageFront { top: 50%; }
