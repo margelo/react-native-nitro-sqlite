@@ -233,7 +233,7 @@ article .prose :not(pre) > code {
 .home-link-description { color: var(--color-fd-muted-foreground); font-size: 12px; line-height: 1.5; }
 
 @media (max-width: 950px) {
-  .hero { width: min(100% - 48px, 720px); grid-template-columns: 1fr; padding-top: 96px; gap: 56px; }
+  .hero { width: min(100% - 48px, 720px); grid-template-columns: minmax(0, 1fr); padding-top: 96px; gap: 56px; }
   .hero-copy { max-width: 650px; }
 }
 

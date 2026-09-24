@@ -164,6 +164,10 @@
 .resultValues { display: grid; grid-template-columns: 55px 1fr; gap: 12px; color: var(--color-fd-primary); font-size: 11px; }
 .resultValues code + code { padding-left: 12px; border-left: 1px solid var(--color-fd-border); color: var(--color-fd-foreground); }
 
+@media (max-width: 950px) {
+  .result { right: 2%; }
+}
+
 @media (max-width: 650px) {
   .scene { height: 560px; }
   .query { top: 3%; }
