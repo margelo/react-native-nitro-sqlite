@@ -6,9 +6,18 @@ export interface NitroSQLiteConnectionOptions {
   name: string
   /** Directory relative to the platform's database directory. */
   location?: string
-  /** Open the name-based default connection or a separate connection. Duplicate default opens throw. Defaults to 'default'. */
+  /**
+   * Choose a connection to the database file. The default connection is addressed
+   * by `name`, so opening it twice throws. Each `independent` connection has its
+   * own native handle and operation queue and can share a file with other connections.
+   * Defaults to `'default'`.
+   */
   connection?: 'default' | 'independent'
-  /** Open an existing database without write access. A read-only connection cannot delete the database. */
+  /**
+   * Open an existing database without write access. Opening fails if the file does
+   * not exist. A read-only connection cannot write, attach, or delete a database.
+   * Defaults to `false`.
+   */
   readOnly?: boolean
 }
 
@@ -44,7 +53,11 @@ export interface NitroSQLiteConnection {
   execute: ExecuteQuery
   /** Queue one SQL statement and resolve with its result. */
   executeAsync: ExecuteAsyncQuery
-  /** Prepare one SQL statement for repeated execution. */
+  /**
+   * Prepare one SQL statement on this connection for repeated execution.
+   * Finalize the returned statement before closing the connection.
+   * @param query SQL statement with optional positional placeholders.
+   */
   prepare(query: string): PreparedStatement
   /** Execute commands in one exclusive transaction. Throws while the connection is busy.
    * @param commands SQL commands and optional parameter sets.
@@ -134,20 +147,38 @@ export type ExecuteAsyncQuery = <Row extends QueryResultRow = QueryResultRow>(
   params?: SQLiteQueryParams,
 ) => Promise<QueryResult<Row>>
 
-/** A reusable SQL statement. Finalize it before closing its connection. */
+/**
+ * A reusable SQL statement bound to the connection that prepared it. Each
+ * execution resets the statement and its bindings before applying new values.
+ * Finalize it before closing the connection.
+ */
 export interface PreparedStatement {
+  /** Whether `finalize()` has released the native statement. */
   readonly isFinalized: boolean
+  /** Execute on the calling thread. Throws if the statement is finalized, its connection is closed, or the managed connection is busy. */
   execute: ExecutePreparedStatement
+  /** Queue execution on a background thread and resolve with the query result. */
   executeAsync: ExecutePreparedStatementAsync
+  /** Release the native statement. Calling this more than once is safe. */
   finalize(): void
 }
 
+/**
+ * Execute a prepared statement with optional positional values and return typed rows.
+ * Each call replaces the previous parameter bindings.
+ * @param params Values bound to the statement's positional placeholders.
+ */
 export type ExecutePreparedStatement = <
   Row extends QueryResultRow = QueryResultRow,
 >(
   params?: SQLiteQueryParams,
 ) => QueryResult<Row>
 
+/**
+ * Queue a prepared statement execution and resolve with typed rows. Calls on the
+ * same managed connection run in queue order.
+ * @param params Values bound to the statement's positional placeholders.
+ */
 export type ExecutePreparedStatementAsync = <
   Row extends QueryResultRow = QueryResultRow,
 >(

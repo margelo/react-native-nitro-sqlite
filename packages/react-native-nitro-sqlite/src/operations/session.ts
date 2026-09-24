@@ -23,11 +23,13 @@ import {
 } from '../DatabaseQueue'
 import type { DatabaseQueueKey } from '../DatabaseQueue'
 
-/** Open or create a database and return a managed connection.
- * Async calls on that connection run in call order. A second managed connection
- * with the same name throws until the first is closed or deleted.
- * @param options Database name and optional directory relative to the platform database directory.
- * @returns A connection bound to the named database.
+/**
+ * Open a database and return a managed connection. The default connection is
+ * addressed by its name, and opening it twice throws. Set `connection` to
+ * `'independent'` to open another native handle to the same file. Async calls
+ * on each connection run in call order.
+ * @param options Database name, optional directory, connection mode, and read-only setting.
+ * @returns A connection bound to the opened native handle.
  */
 export function open(
   options: NitroSQLiteConnectionOptions,
