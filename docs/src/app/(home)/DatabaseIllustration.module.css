@@ -55,9 +55,9 @@
 .binding {
   position: absolute;
   z-index: 4;
-  top: 20%;
-  left: 43%;
-  height: 14%;
+  top: 15%;
+  left: 35%;
+  height: 13%;
   color: var(--color-fd-primary);
   font-size: 10px;
 }
@@ -173,7 +173,7 @@
   .query { top: 3%; }
   .queryHeader { font-size: 9px; }
   .query, .result { padding: 15px 14px; }
-  .binding { top: 21%; }
+  .binding { top: 13.5%; height: 15.5%; }
   .stack { inset: 28% 0 19%; }
   .storageLabel { top: -8%; left: 4%; }
   .page { width: 87%; left: 4%; }
