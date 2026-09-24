@@ -6,6 +6,7 @@ import type {
   SQLiteQueryParams,
 } from '../types'
 import type { NitroSQLiteQueryResult } from './NitroSQLiteQueryResult.nitro'
+import type { NitroSQLitePreparedStatement } from './NitroSQLitePreparedStatement.nitro'
 
 /** Native database operations exposed through `NitroSQLite.native`.
  * These calls bypass the managed connection queue. Coordinate them with any
@@ -66,6 +67,11 @@ export interface NitroSQLite
     query: string,
     params?: SQLiteQueryParams,
   ): Promise<NitroSQLiteQueryResult>
+  /** Prepare one SQL statement for repeated execution.
+   * @param dbName Name or ID of an open database connection.
+   * @param query SQL statement with optional positional placeholders.
+   */
+  prepare(dbName: string, query: string): NitroSQLitePreparedStatement
   /** Execute commands in one exclusive transaction on the calling thread.
    * An empty batch throws; a failed command rolls back the batch.
    * @param dbName Name of an open database.

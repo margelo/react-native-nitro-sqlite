@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../NitroSQLiteTypes.hpp"
+#include "HybridNitroSQLitePreparedStatementSpec.hpp"
 #include "HybridNitroSQLiteQueryResultSpec.hpp"
 #include "HybridNitroSQLiteSpec.hpp"
 
@@ -57,6 +58,8 @@ public:
    */
   std::shared_ptr<Promise<std::shared_ptr<HybridNitroSQLiteQueryResultSpec>>>
   executeAsync(const std::string& dbName, const std::string& query, const std::optional<SQLiteQueryParams>& params) override;
+
+  std::shared_ptr<HybridNitroSQLitePreparedStatementSpec> prepare(const std::string& dbName, const std::string& query) override;
 
   /** Run a nonempty batch in one exclusive transaction on the calling thread.
    * A failed command rolls back the batch.

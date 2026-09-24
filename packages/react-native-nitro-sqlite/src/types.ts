@@ -44,6 +44,8 @@ export interface NitroSQLiteConnection {
   execute: ExecuteQuery
   /** Queue one SQL statement and resolve with its result. */
   executeAsync: ExecuteAsyncQuery
+  /** Prepare one SQL statement for repeated execution. */
+  prepare(query: string): PreparedStatement
   /** Execute commands in one exclusive transaction. Throws while the connection is busy.
    * @param commands SQL commands and optional parameter sets.
    * @returns Total affected row count.
@@ -129,6 +131,26 @@ export type ExecuteQuery = <Row extends QueryResultRow = QueryResultRow>(
  */
 export type ExecuteAsyncQuery = <Row extends QueryResultRow = QueryResultRow>(
   query: string,
+  params?: SQLiteQueryParams,
+) => Promise<QueryResult<Row>>
+
+/** A reusable SQL statement. Finalize it before closing its connection. */
+export interface PreparedStatement {
+  readonly isFinalized: boolean
+  execute: ExecutePreparedStatement
+  executeAsync: ExecutePreparedStatementAsync
+  finalize(): void
+}
+
+export type ExecutePreparedStatement = <
+  Row extends QueryResultRow = QueryResultRow,
+>(
+  params?: SQLiteQueryParams,
+) => QueryResult<Row>
+
+export type ExecutePreparedStatementAsync = <
+  Row extends QueryResultRow = QueryResultRow,
+>(
   params?: SQLiteQueryParams,
 ) => Promise<QueryResult<Row>>
 
