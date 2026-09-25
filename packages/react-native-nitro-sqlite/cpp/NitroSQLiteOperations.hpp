@@ -64,6 +64,10 @@ SQLiteOperationResult sqliteExecuteCommand(const std::string& dbName, const std:
 SQLiteOperationResult sqliteExecuteCommand(const SQLiteConnectionPtr& connection, const std::string& query,
                                            const std::optional<SQLiteQueryParams>& params = std::nullopt);
 
+/** Execute one SQL statement for each parameter set, preparing it once. */
+SQLiteOperationResult sqliteExecuteCommandGroup(const SQLiteConnectionPtr& connection, const std::string& query,
+                                                const std::vector<SQLiteQueryParams>& parameterSets);
+
 /** Prepare one SQL statement on an open default or independent connection. */
 std::shared_ptr<SQLitePreparedStatement> sqlitePrepare(const std::string& dbName, const std::string& query);
 

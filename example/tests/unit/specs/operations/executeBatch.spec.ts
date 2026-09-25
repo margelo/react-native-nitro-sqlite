@@ -140,6 +140,106 @@ export default function registerExecuteBatchUnitTests() {
       ])
     })
 
+    it('clears bindings between grouped executions', () => {
+      testDb.execute(
+        'CREATE TABLE batch_values (id INTEGER, value TEXT, data BLOB)',
+      )
+      const bytes = new Uint8Array([0, 7, 255]).buffer
+
+      const result = testDb.executeBatch([
+        {
+          query: 'INSERT INTO batch_values VALUES (?, ?, ?)',
+          params: [[1, 'first', bytes], [2, null], [3]],
+        },
+      ])
+
+      expect(result.rowsAffected).toBe(3)
+      const rows = testDb.execute(
+        'SELECT * FROM batch_values ORDER BY id',
+      ).results
+      expect(
+        rows.map(({ id, value, data }) => [id, value, data == null]),
+      ).toEqual([
+        [1, 'first', false],
+        [2, null, true],
+        [3, null, true],
+      ])
+      expect(Array.from(new Uint8Array(rows[0]?.data as ArrayBuffer))).toEqual([
+        0, 7, 255,
+      ])
+    })
+
+    it('keeps empty groups and schema commands in batch order', async () => {
+      const result = await testDb.executeBatchAsync([
+        { query: 'INSERT INTO missing_table VALUES (?)', params: [] },
+        { query: 'CREATE TABLE batch_schema (value TEXT)' },
+        {
+          query: 'INSERT INTO batch_schema VALUES (?)',
+          params: [['first'], ['second']],
+        },
+        { query: 'SELECT value FROM batch_schema', params: [] },
+      ])
+
+      expect(result.rowsAffected).toBe(2)
+      expect(testDb.execute('SELECT value FROM batch_schema').results).toEqual([
+        { value: 'first' },
+        { value: 'second' },
+      ])
+    })
+
+    it('rolls back a grouped batch after a middle execution fails', async () => {
+      let batchError: unknown
+      try {
+        await testDb.executeBatchAsync([
+          {
+            query: 'INSERT INTO User (id, name) VALUES (?, ?)',
+            params: [
+              [1, 'first'],
+              [1, 'duplicate'],
+              [2, 'last'],
+            ],
+          },
+        ])
+      } catch (error) {
+        batchError = error
+      }
+
+      expect(batchError).toBeInstanceOf(NitroSQLiteError)
+      expect(testDb.execute('SELECT id FROM User').results).toEqual([])
+      expect(
+        testDb.executeBatch([
+          {
+            query: 'INSERT INTO User (id, name) VALUES (?, ?)',
+            params: [
+              [3, 'after error'],
+              [4, 'still reusable'],
+            ],
+          },
+        ]).rowsAffected,
+      ).toBe(2)
+    })
+
+    it('rolls back when repeated schema SQL fails on its second execution', () => {
+      let batchError: unknown
+      try {
+        testDb.executeBatch([
+          {
+            query: 'CREATE TABLE repeated_schema (value INTEGER)',
+            params: [[], []],
+          },
+        ])
+      } catch (error) {
+        batchError = error
+      }
+
+      expect(batchError).toBeInstanceOf(NitroSQLiteError)
+      expect(
+        testDb.execute(
+          "SELECT name FROM sqlite_master WHERE name = 'repeated_schema'",
+        ).results,
+      ).toEqual([])
+    })
+
     it('rolls back every statement when a synchronous batch fails', () => {
       let batchError: unknown
       try {

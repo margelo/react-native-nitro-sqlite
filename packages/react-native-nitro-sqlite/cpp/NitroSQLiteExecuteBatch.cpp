@@ -10,23 +10,23 @@ namespace margelo::nitro::rnnitrosqlite {
 
 std::vector<BatchQuery> batchParamsToCommands(const std::vector<BatchQueryCommand>& batchParams) {
   auto commands = std::vector<BatchQuery>();
+  commands.reserve(batchParams.size());
 
-  for (auto& command : batchParams) {
+  for (const auto& command : batchParams) {
+    BatchQuery groupedCommand{command.query, {}};
     if (command.params) {
       using ParamsVec = SQLiteQueryParams;
       using NestedParamsVec = std::vector<ParamsVec>;
 
       if (std::holds_alternative<NestedParamsVec>(*command.params)) {
-        // This arguments is an array of arrays, like a batch update of a single sql command.
-        for (const auto& params : std::get<NestedParamsVec>(*command.params)) {
-          commands.push_back(BatchQuery{command.query, ParamsVec(params)});
-        }
+        groupedCommand.parameterSets = std::get<NestedParamsVec>(*command.params);
       } else {
-        commands.push_back(BatchQuery{command.query, std::move(std::get<ParamsVec>(*command.params))});
+        groupedCommand.parameterSets.push_back(std::get<ParamsVec>(*command.params));
       }
     } else {
-      commands.push_back(BatchQuery{command.query, std::nullopt});
+      groupedCommand.parameterSets.emplace_back();
     }
+    commands.push_back(std::move(groupedCommand));
   }
 
   return commands;
@@ -38,32 +38,33 @@ SQLiteOperationResult sqliteExecuteBatch(const std::string& dbName, const std::v
 
 SQLiteOperationResult sqliteExecuteBatch(const SQLiteConnectionPtr& connection, const std::vector<BatchQuery>& commands) {
   std::lock_guard lock(connection->mutex);
-  size_t commandCount = commands.size();
-  if (commandCount <= 0) {
+  if (commands.empty()) {
     throw NitroSQLiteException(NitroSQLiteExceptionType::NoBatchCommandsProvided, "No SQL batch commands provided");
   }
 
   try {
     int rowsAffected = 0;
+    int commandCount = 0;
     sqliteExecuteCommand(connection, "BEGIN EXCLUSIVE TRANSACTION");
     for (const auto& command : commands) {
-      auto result = sqliteExecuteCommand(connection, command.sql, command.params);
+      auto result = sqliteExecuteCommandGroup(connection, command.sql, command.parameterSets);
       rowsAffected += result.rowsAffected;
+      commandCount += result.commands;
     }
 
     sqliteExecuteCommand(connection, "COMMIT");
     return {
         .rowsAffected = rowsAffected,
-        .commands = (int)commandCount,
+        .commands = commandCount,
     };
-  } catch (NitroSQLiteException& e) {
+  } catch (...) {
     // Roll back exactly once; a failed ROLLBACK must not mask the original error.
     try {
       sqliteExecuteCommand(connection, "ROLLBACK");
     } catch (...) {
       // ignore — surface the original error below
     }
-    throw e;
+    throw;
   }
 }
 

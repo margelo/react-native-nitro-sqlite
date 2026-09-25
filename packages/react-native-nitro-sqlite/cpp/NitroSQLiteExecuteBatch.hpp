@@ -13,7 +13,7 @@ struct SQLiteConnection;
 
 struct BatchQuery {
   std::string sql;
-  std::optional<SQLiteQueryParams> params;
+  std::vector<SQLiteQueryParams> parameterSets;
 };
 
 /**
