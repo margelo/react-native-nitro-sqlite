@@ -8,8 +8,8 @@
 
 namespace margelo::nitro::rnnitrosqlite {
 
-using SQLiteValue = std::variant<NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>;
-using SQLiteQueryParams = std::vector<std::optional<SQLiteValue>>;
+using SQLiteValue = std::optional<std::variant<NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>;
+using SQLiteQueryParams = std::vector<SQLiteValue>;
 using SQLiteQueryResultRow = std::unordered_map<std::string, SQLiteValue>;
 using SQLiteQueryResults = std::vector<SQLiteQueryResultRow>;
 using SQLiteQueryTableMetadata = std::unordered_map<std::string, NitroSQLiteQueryColumnMetadata>;

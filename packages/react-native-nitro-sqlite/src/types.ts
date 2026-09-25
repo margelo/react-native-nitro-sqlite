@@ -97,11 +97,17 @@ export enum ColumnType {
   NULL_VALUE,
 }
 
-/** Values returned in result rows and accepted by bound SQL parameters. */
-export type SQLiteValue = boolean | number | string | ArrayBuffer | null
+/** SQL value. `undefined` binds as SQL NULL; result rows return `null`. */
+export type SQLiteValue =
+  | boolean
+  | number
+  | string
+  | ArrayBuffer
+  | null
+  | undefined
 
-/** Positional values for SQL placeholders. `undefined` binds as SQL NULL. */
-export type SQLiteQueryParams = (SQLiteValue | undefined)[]
+/** Positional values for SQL placeholders. */
+export type SQLiteQueryParams = SQLiteValue[]
 
 /** A row keyed by result column names. */
 export type QueryResultRow = Record<string, SQLiteValue>
