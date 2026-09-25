@@ -21,8 +21,8 @@
     <img src="https://img.shields.io/github/followers/margelo?label=Follow%20%40margelo&style=social" />
   </a>
   <br />
-  <a align="center" href="https://twitter.com/margelo_io">
-    <img src="https://img.shields.io/twitter/follow/margelo_io?label=Follow%20%40margelo_io&style=social" />
+  <a align="center" href="https://twitter.com/margelo_com">
+    <img src="https://img.shields.io/twitter/follow/margelo_com?label=Follow%20%40margelo_com&style=social" />
   </a>
   <a align="center" href="https://bsky.app/profile/margelo.com">
     <img src="https://img.shields.io/twitter/follow/margelo_com?label=Follow%20%40margelo_com&style=social&logo=bluesky&url=https%3A%2F%2Fbsky.app%2Fprofile%2Fmargelo.com" style="pointer-events: 'none'" />
