@@ -170,11 +170,19 @@ export default function registerExecuteBatchUnitTests() {
     })
 
     it('rejects a batch containing only empty parameter groups', () => {
-      expect(() =>
+      let batchError: unknown
+      try {
         testDb.executeBatch([
           { query: 'INSERT INTO missing_table VALUES (?)', params: [] },
-        ]),
-      ).toThrow()
+        ])
+      } catch (error) {
+        batchError = error
+      }
+
+      expect(batchError).toBeInstanceOf(NitroSQLiteError)
+      expect((batchError as Error).message).toContain(
+        'No SQL batch commands provided',
+      )
     })
 
     it('keeps empty groups and schema commands in batch order', async () => {
