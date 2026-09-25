@@ -35,6 +35,36 @@ export default function registerPreparedStatementUnitTests() {
       }
     })
 
+    it('uses columns from a statement reprepared after a schema change', () => {
+      testDb.execute('DROP TABLE IF EXISTS RepreparedResults')
+      testDb.execute('CREATE TABLE RepreparedResults (id INTEGER PRIMARY KEY)')
+      testDb.execute('INSERT INTO RepreparedResults (id) VALUES (1)')
+      const rowStatement = testDb.prepare(
+        'SELECT * FROM RepreparedResults WHERE id = 1',
+      )
+      const emptyStatement = testDb.prepare(
+        'SELECT * FROM RepreparedResults WHERE id = 0',
+      )
+
+      try {
+        testDb.execute(
+          "ALTER TABLE RepreparedResults ADD COLUMN label TEXT DEFAULT 'added'",
+        )
+
+        const rowResult = rowStatement.execute()
+        expect(rowResult.rows.item(0)).toEqual({ id: 1, label: 'added' })
+        expect(rowResult.metadata?.label?.index).toBe(1)
+
+        const emptyResult = emptyStatement.execute()
+        expect(emptyResult.rows._array).toEqual([])
+        expect(emptyResult.metadata?.label?.index).toBe(1)
+      } finally {
+        rowStatement.finalize()
+        emptyStatement.finalize()
+        testDb.execute('DROP TABLE RepreparedResults')
+      }
+    })
+
     it('reuses one statement with different parameter values', () => {
       const insert = testDb.prepare(
         'INSERT INTO User (id, name, age, networth) VALUES (?, ?, ?, ?)',

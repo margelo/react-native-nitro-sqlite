@@ -1,10 +1,4 @@
 #include "HybridNitroSQLiteQueryResult.hpp"
-#include <NitroModules/ArrayBuffer.hpp>
-#include <NitroModules/Null.hpp>
-#include <NitroModules/Promise.hpp>
-#include <unordered_map>
-#include <variant>
-#include <vector>
 
 namespace margelo::nitro::rnnitrosqlite {
 
@@ -12,32 +6,21 @@ namespace {
 
   constexpr size_t nodePadding = 24;
 
-  /**
-   * Compute the approximate external memory size of a single result row.
-   * This includes:
-   * - Column name string capacities,
-   * - Heap usage for the actual SQLiteValue contents.
-   */
-  size_t getRowExternalMemorySize(const SQLiteQueryResultRow& row) {
-    size_t bucketMemory = row.bucket_count() * sizeof(void*);
-    size_t nodesMemory = row.size() * (sizeof(std::pair<std::string, SQLiteValue>) + nodePadding);
-    return bucketMemory + nodesMemory;
-  }
-
-  /**
-   * Compute the approximate external memory size of the full result set.
-   * We add:
-   * - The vector's backing storage,
-   * - All rows (column names + values).
-   */
   size_t getResultsExternalMemorySize(const SQLiteQueryResults& results) {
-    size_t size = sizeof(SQLiteQueryResults);
-
-    const auto resultCapacity = results.capacity();
-    size += resultCapacity * sizeof(SQLiteQueryResultRow);
-
-    for (const auto& row : results) {
-      size += getRowExternalMemorySize(row);
+    const auto& data = *results.data;
+    size_t size = sizeof(SQLiteQueryResultData) + sizeof(void*) * 2;
+    size += data.columnNames.capacity() * sizeof(std::string);
+    for (const auto& name : data.columnNames) {
+      size += name.capacity();
+    }
+    size += data.rows.capacity() * sizeof(SQLiteQueryResultRow);
+    for (const auto& row : data.rows) {
+      size += row.capacity() * sizeof(SQLiteValue);
+      for (const auto& value : row) {
+        if (const auto* text = std::get_if<std::string>(&value)) {
+          size += text->capacity();
+        }
+      }
     }
 
     return size;
