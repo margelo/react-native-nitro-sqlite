@@ -7,7 +7,7 @@
 #include <mutex>
 #include <optional>
 #include <queue>
-#include <sqlite3.h>
+#include "sqlite/sqlite3.h"
 #include <string>
 
 namespace margelo::nitro::rnnitrosqlite {

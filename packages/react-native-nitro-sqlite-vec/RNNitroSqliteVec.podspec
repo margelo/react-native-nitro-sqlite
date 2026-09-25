@@ -25,7 +25,7 @@ Pod::Spec.new do |s|
   if nitro_sqlite_vec
     s.source_files = "cpp/**/*.{c,cpp,h,hpp}"
     s.pod_target_xcconfig = {
-      "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) SQLITE_CORE=1 SQLITE_VEC_STATIC=1",
+      "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) SQLITE_CORE=1 SQLITE_VEC_STATIC=1" + (ENV['NITRO_SQLITE_USE_PHONE_VERSION'] == '1' ? " NITRO_SQLITE_USE_PHONE_VERSION=1" : ""),
       "USER_HEADER_SEARCH_PATHS" => "\"#{core_sqlite_headers}\"",
       "HEADER_SEARCH_PATHS" => "\"#{core_sqlite_headers}\"",
       "WARNING_CFLAGS" => "-Wno-shorten-64-to-32 -Wno-comma -Wno-unreachable-code -Wno-conditional-uninitialized",
