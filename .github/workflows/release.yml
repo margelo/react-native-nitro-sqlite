@@ -21,7 +21,7 @@ concurrency:
 jobs:
   release:
     name: Publish packages and GitHub release
-    runs-on: macos-26
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
         with:
@@ -36,16 +36,6 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.1
-
-      - name: Setup Ruby (bundle)
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: 3.3.0
-          bundler-cache: true
-          working-directory: example
-
-      - name: Select Xcode 26.5
-        run: sudo xcode-select -s "/Applications/Xcode_26.5.app/Contents/Developer"
 
       - name: Install npm dependencies (bun)
         run: bun install
