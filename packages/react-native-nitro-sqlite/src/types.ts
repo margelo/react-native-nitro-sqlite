@@ -97,8 +97,14 @@ export enum ColumnType {
   NULL_VALUE,
 }
 
-/** Values accepted by bound SQL parameters and returned in result rows. */
-export type SQLiteValue = boolean | number | string | ArrayBuffer | null
+/** SQL value. `undefined` binds as SQL NULL; result rows return `null`. */
+export type SQLiteValue =
+  | boolean
+  | number
+  | string
+  | ArrayBuffer
+  | null
+  | undefined
 
 /** Positional values for SQL placeholders. */
 export type SQLiteQueryParams = SQLiteValue[]
@@ -135,7 +141,7 @@ export type NitroSQLiteQueryResultRows<
  */
 export type ExecuteQuery = <Row extends QueryResultRow = QueryResultRow>(
   query: string,
-  params?: SQLiteValue[],
+  params?: SQLiteQueryParams,
 ) => QueryResult<Row>
 
 /** Queue one SQL statement and resolve with its typed rows.

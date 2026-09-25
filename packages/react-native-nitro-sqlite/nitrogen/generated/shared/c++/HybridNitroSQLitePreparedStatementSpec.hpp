@@ -22,8 +22,8 @@ namespace margelo::nitro::rnnitrosqlite { class HybridNitroSQLiteQueryResultSpec
 #include <NitroModules/ArrayBuffer.hpp>
 #include <string>
 #include <variant>
-#include <vector>
 #include <optional>
+#include <vector>
 #include <NitroModules/Promise.hpp>
 
 namespace margelo::nitro::rnnitrosqlite {
@@ -57,8 +57,8 @@ namespace margelo::nitro::rnnitrosqlite {
 
     public:
       // Methods
-      virtual std::shared_ptr<HybridNitroSQLiteQueryResultSpec> execute(const std::optional<std::vector<std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>>& params) = 0;
-      virtual std::shared_ptr<Promise<std::shared_ptr<HybridNitroSQLiteQueryResultSpec>>> executeAsync(const std::optional<std::vector<std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>>& params) = 0;
+      virtual std::shared_ptr<HybridNitroSQLiteQueryResultSpec> execute(const std::optional<std::vector<std::optional<std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>>>& params) = 0;
+      virtual std::shared_ptr<Promise<std::shared_ptr<HybridNitroSQLiteQueryResultSpec>>> executeAsync(const std::optional<std::vector<std::optional<std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>>>& params) = 0;
       virtual void finalize() = 0;
 
     protected:
