@@ -26,7 +26,9 @@ std::vector<BatchQuery> batchParamsToCommands(const std::vector<BatchQueryComman
     } else {
       groupedCommand.parameterSets.emplace_back();
     }
-    commands.push_back(std::move(groupedCommand));
+    if (!groupedCommand.parameterSets.empty()) {
+      commands.push_back(std::move(groupedCommand));
+    }
   }
 
   return commands;

@@ -169,6 +169,14 @@ export default function registerExecuteBatchUnitTests() {
       ])
     })
 
+    it('rejects a batch containing only empty parameter groups', () => {
+      expect(() =>
+        testDb.executeBatch([
+          { query: 'INSERT INTO missing_table VALUES (?)', params: [] },
+        ]),
+      ).toThrow()
+    })
+
     it('keeps empty groups and schema commands in batch order', async () => {
       const result = await testDb.executeBatchAsync([
         { query: 'INSERT INTO missing_table VALUES (?)', params: [] },
