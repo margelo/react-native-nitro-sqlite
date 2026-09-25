@@ -201,6 +201,37 @@ export default function registerExecuteUnitTests() {
     })
 
     describe('Select', () => {
+      it('preserves SQL-generated text containing embedded NULs', () => {
+        const nul = String.fromCharCode(0)
+        const expected = `${nul}é${nul}中😀${nul}`
+
+        const result = testDb.execute(
+          "SELECT char(0) || 'é' || char(0) || '中😀' || char(0) AS value, '' AS empty, NULL AS nullable",
+        )
+
+        expect(result.rows.item(0)).toEqual({
+          value: expected,
+          empty: '',
+          nullable: null,
+        })
+      })
+
+      it('preserves bound text containing leading, middle, and trailing NULs', () => {
+        const nul = String.fromCharCode(0)
+        const values = [
+          `${nul}leading`,
+          `mid${nul}dle`,
+          `trailing${nul}`,
+          `é${nul}中😀`,
+          '',
+        ]
+
+        for (const value of values) {
+          const result = testDb.execute('SELECT ? AS value', [value])
+          expect(result.rows.item(0)?.value).toBe(value)
+        }
+      })
+
       it('Query without params', () => {
         const id = chance.integer()
         const name = chance.name()
