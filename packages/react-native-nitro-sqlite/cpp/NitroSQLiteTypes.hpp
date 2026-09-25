@@ -4,13 +4,14 @@
 #include "NitroSQLiteQueryColumnMetadata.hpp"
 #include <NitroModules/ArrayBuffer.hpp>
 #include <string>
+#include <unordered_map>
+#include <variant>
+#include <vector>
 
 namespace margelo::nitro::rnnitrosqlite {
 
 using SQLiteValue = std::variant<NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>;
 using SQLiteQueryParams = std::vector<SQLiteValue>;
-using SQLiteQueryResultRow = std::unordered_map<std::string, SQLiteValue>;
-using SQLiteQueryResults = std::vector<SQLiteQueryResultRow>;
 using SQLiteQueryTableMetadata = std::unordered_map<std::string, NitroSQLiteQueryColumnMetadata>;
 
 struct SQLiteOperationResult {

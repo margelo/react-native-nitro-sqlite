@@ -1,4 +1,4 @@
-import type { HybridObject } from 'react-native-nitro-modules'
+import type { CustomType, HybridObject } from 'react-native-nitro-modules'
 import type { ColumnType, SQLiteValue } from '../types'
 
 /** Native result of one SQL statement. The managed API also adds a `rows` adapter. */
@@ -13,7 +13,11 @@ export interface NitroSQLiteQueryResult
   readonly insertId?: number
 
   /** Rows keyed by result column names. */
-  readonly results: Record<string, SQLiteValue>[]
+  readonly results: CustomType<
+    Record<string, SQLiteValue>[],
+    'SQLiteQueryResults',
+    { include: 'NitroSQLiteQueryResults.hpp' }
+  >
 
   /** Column metadata keyed by result column name, when available. */
   readonly metadata?: Record<string, NitroSQLiteQueryColumnMetadata>

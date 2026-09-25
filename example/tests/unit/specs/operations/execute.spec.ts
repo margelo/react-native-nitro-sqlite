@@ -201,6 +201,38 @@ export default function registerExecuteUnitTests() {
     })
 
     describe('Select', () => {
+      it('keeps positional columns and repeated result reads independent', () => {
+        const result = testDb.execute(
+          'SELECT 1 AS duplicate, 2 AS duplicate, 3.5 AS "café", NULL AS nullable, zeroblob(2) AS payload',
+        )
+
+        expect(result.rows.item(0)?.duplicate).toBe(2)
+        expect(result.rows.item(0)?.['café']).toBe(3.5)
+        expect(result.rows.item(0)?.nullable).toBe(null)
+        expect(
+          Array.from(
+            new Uint8Array(result.rows.item(0)?.payload as ArrayBuffer),
+          ),
+        ).toEqual([0, 0])
+        expect(result.metadata?.duplicate?.index).toBe(0)
+
+        const firstRead = result.results
+        const secondRead = result.results
+        expect(secondRead).not.toBe(firstRead)
+        expect(secondRead[0]).not.toBe(firstRead[0])
+        firstRead[0]!.duplicate = 9
+        expect(secondRead[0]?.duplicate).toBe(2)
+        expect(result.results[0]?.duplicate).toBe(2)
+        expect(result.rows.item(0)?.duplicate).toBe(2)
+      })
+
+      it('preserves column metadata for empty results', () => {
+        const result = testDb.execute('SELECT 1 AS value WHERE 0')
+        expect(result.rows._array).toEqual([])
+        expect(result.results).toEqual([])
+        expect(result.metadata?.value?.index).toBe(0)
+      })
+
       it('preserves SQL-generated text containing embedded NULs', () => {
         const nul = String.fromCharCode(0)
         const expected = `${nul}é${nul}中😀${nul}`
