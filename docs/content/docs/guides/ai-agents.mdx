@@ -1,0 +1,17 @@
+---
+title: AI coding agents
+description: Give coding agents the NitroSQLite skill and check generated code against the current API.
+---
+
+Give your coding agent the [NitroSQLite skill](https://github.com/margelo/react-native-skills/blob/nitro-sqlite/skills/react-native-nitro-sqlite/SKILL.md) when it works with `react-native-nitro-sqlite`. The skill points to short references for setup, connections, queries, transactions, batches, concurrency, TypeORM, and migration from `react-native-quick-sqlite`. Ask the agent to read the reference that matches its task before changing code.
+
+The skill currently lives on the `nitro-sqlite` branch of the Margelo skills repository. Check the [API reference](/docs/api) against your installed package version when an example or generated call differs from the package types.
+
+When reviewing generated code, check that it:
+
+- Opens a connection with `open({ name })` and uses that connection for queries.
+- Binds values with `?` parameters instead of inserting user input into SQL strings.
+- Uses the `tx` object for every database operation inside a transaction callback. Awaiting a queued operation on the same connection there can deadlock.
+- Uses async operations for work that could block the JavaScript thread.
+
+For these cases, see [parameters and results](/docs/guides/parameters-and-results), [transactions](/docs/guides/transactions), and [sync and async](/docs/guides/sync-and-async).

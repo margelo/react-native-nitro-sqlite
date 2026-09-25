@@ -11,6 +11,7 @@
     "attach-databases",
     "load-sql-file",
     "performance",
-    "migrate-from-quick-sqlite"
+    "migrate-from-quick-sqlite",
+    "ai-agents"
   ]
 }
