@@ -3,6 +3,7 @@
 #include "NitroSQLiteLogs.hpp"
 #include "NitroSQLiteUtils.hpp"
 #include "hybridObjects/HybridNitroSQLiteQueryResult.hpp"
+#include "sqlite/sqlite3.h"
 #include <NitroModules/ArrayBuffer.hpp>
 #include <NitroModules/Promise.hpp>
 #include <cmath>
@@ -13,7 +14,6 @@
 #include <memory>
 #include <mutex>
 #include <optional>
-#include "sqlite/sqlite3.h"
 #include <sstream>
 #include <unistd.h>
 

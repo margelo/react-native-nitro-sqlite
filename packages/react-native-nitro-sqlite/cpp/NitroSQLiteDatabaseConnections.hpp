@@ -1,5 +1,6 @@
 #pragma once
 
+#include "sqlite/sqlite3.h"
 #include <filesystem>
 #include <functional>
 #include <map>
@@ -7,7 +8,6 @@
 #include <mutex>
 #include <optional>
 #include <queue>
-#include "sqlite/sqlite3.h"
 #include <string>
 
 namespace margelo::nitro::rnnitrosqlite {
