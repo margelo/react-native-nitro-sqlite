@@ -54,6 +54,51 @@ jobs:
       - name: Test release preflight
         run: bun run test:release
 
+      - name: Check trusted publishing for both packages
+        run: |
+          node --input-type=module <<'NODE'
+          const requestUrl = process.env.ACTIONS_ID_TOKEN_REQUEST_URL
+          const requestToken = process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN
+          if (!requestUrl || !requestToken) {
+            throw new Error('GitHub OIDC is unavailable to the release job')
+          }
+
+          const oidcUrl = new URL(requestUrl)
+          oidcUrl.searchParams.set('audience', 'npm:registry.npmjs.org')
+          for (const packageName of [
+            'react-native-nitro-sqlite',
+            'react-native-nitro-sqlite-vec',
+          ]) {
+            const oidcResponse = await fetch(oidcUrl, {
+              headers: { Authorization: `Bearer ${requestToken}` },
+            })
+            if (!oidcResponse.ok) {
+              throw new Error(`GitHub OIDC request failed: ${oidcResponse.status}`)
+            }
+            const { value: idToken } = await oidcResponse.json()
+            if (!idToken) {
+              throw new Error('GitHub OIDC response did not contain a token')
+            }
+
+            const exchangeUrl = new URL(
+              `/-/npm/v1/oidc/token/exchange/package/${encodeURIComponent(packageName)}`,
+              'https://registry.npmjs.org',
+            )
+            const response = await fetch(exchangeUrl, {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${idToken}` },
+            })
+            if (!response.ok) {
+              throw new Error(`${packageName}: npm OIDC exchange failed (${response.status})`)
+            }
+            const { token } = await response.json()
+            if (!token) {
+              throw new Error(`${packageName}: npm OIDC exchange returned no token`)
+            }
+            console.log(`${packageName}: npm trusted publishing is available`)
+          }
+          NODE
+
       - name: Configure Git author
         run: |
           git config user.name "github-actions[bot]"
