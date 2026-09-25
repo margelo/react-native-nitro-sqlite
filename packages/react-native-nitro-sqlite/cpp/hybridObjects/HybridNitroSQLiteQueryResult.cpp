@@ -1,5 +1,4 @@
 #include "HybridNitroSQLiteQueryResult.hpp"
-#include <NitroModules/ArrayBuffer.hpp>
 
 namespace margelo::nitro::rnnitrosqlite {
 
@@ -20,10 +19,6 @@ namespace {
       for (const auto& value : row) {
         if (const auto* text = std::get_if<std::string>(&value)) {
           size += text->capacity();
-        } else if (const auto* blob = std::get_if<std::shared_ptr<ArrayBuffer>>(&value)) {
-          if (*blob) {
-            size += sizeof(ArrayBuffer) + (*blob)->size();
-          }
         }
       }
     }
