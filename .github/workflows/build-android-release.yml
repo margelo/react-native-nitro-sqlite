@@ -3,6 +3,11 @@ name: Build Android (Release)
 on:
   release:
     types: [published]
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -41,8 +46,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload "${{ github.event.release.tag_name }}" \
-            example/android/app/build/outputs/apk/release/app-release.apk#NitroSQLiteExample-${{ github.event.release.tag_name }}.apk \
+          gh release upload "${{ inputs.tag || github.event.release.tag_name }}" \
+            example/android/app/build/outputs/apk/release/app-release.apk#NitroSQLiteExample-${{ inputs.tag || github.event.release.tag_name }}.apk \
             --clobber
 
       # Gradle cache doesn't like daemons

@@ -1,6 +1,5 @@
 {
   "lockfileVersion": 1,
-  "configVersion": 1,
   "workspaces": {
     "": {
       "name": "react-native-nitro-sqlite-workspace",
@@ -46,7 +45,7 @@
     },
     "example": {
       "name": "react-native-nitro-sqlite-example",
-      "version": "9.8.2",
+      "version": "10.0.0",
       "dependencies": {
         "@craftzdog/react-native-buffer": "^6.1.2",
         "@react-native-clipboard/clipboard": "^1.16.3",
@@ -59,8 +58,8 @@
         "react": "19.2.3",
         "react-native": "0.87.1",
         "react-native-nitro-modules": "*",
-        "react-native-nitro-sqlite": "9.8.2",
-        "react-native-nitro-sqlite-vec": "9.8.2",
+        "react-native-nitro-sqlite": "10.0.0",
+        "react-native-nitro-sqlite-vec": "10.0.0",
         "react-native-quick-base64": "^3.0.0",
         "react-native-quick-crypto": "^1.1.5",
         "react-native-safe-area-context": "^5.10.0",
@@ -133,7 +132,7 @@
     },
     "packages/react-native-nitro-sqlite": {
       "name": "react-native-nitro-sqlite",
-      "version": "9.8.2",
+      "version": "10.0.0",
       "dependencies": {
         "typeorm": "0.3.27",
       },
@@ -154,9 +153,9 @@
     },
     "packages/react-native-nitro-sqlite-vec": {
       "name": "react-native-nitro-sqlite-vec",
-      "version": "9.8.2",
+      "version": "10.0.0",
       "devDependencies": {
-        "react-native-nitro-sqlite": "9.8.2",
+        "react-native-nitro-sqlite": "10.0.0",
         "typescript": "^5.8.3",
       },
       "peerDependencies": {

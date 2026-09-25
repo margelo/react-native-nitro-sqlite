@@ -10,7 +10,7 @@ on:
         type: string
 
 permissions:
-  contents: read
+  contents: write
   # Both npm packages must trust margelo/react-native-nitro-sqlite's release.yml.
   id-token: write
 
@@ -27,7 +27,6 @@ jobs:
         with:
           fetch-depth: 0
           ref: main
-          token: ${{ secrets.RELEASE_IT_GITHUB_TOKEN }}
 
       - uses: actions/setup-node@v6
         with:
@@ -99,14 +98,26 @@ jobs:
           }
           NODE
 
-      - name: Configure Git author
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-      - name: Release
-        run: bun release "${{ inputs.version }}" --ci --no-git.requireUpstream
+      - name: Publish prepared release
+        run: ./scripts/release.sh --publish-prepared "${{ inputs.version }}"
         env:
-          RELEASE_IT_GITHUB_TOKEN: ${{ secrets.RELEASE_IT_GITHUB_TOKEN }}
           NPM_CONFIG_CACHE: ${{ runner.temp }}/npm-cache
           NPM_CONFIG_PROVENANCE: "true"
+
+      - name: Create GitHub release
+        run: |
+          version="${{ inputs.version }}"
+          notes="docs/releases/v${version}.md"
+          if [ -f "$notes" ]; then
+            gh release create "v${version}" --target "$GITHUB_SHA" --title "NitroSQLite ${version}" --notes-file "$notes"
+          else
+            gh release create "v${version}" --target "$GITHUB_SHA" --title "NitroSQLite ${version}" --generate-notes
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  build-android:
+    needs: release
+    uses: ./.github/workflows/build-android-release.yml
+    with:
+      tag: v${{ inputs.version }}
