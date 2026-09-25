@@ -37,7 +37,8 @@ public:
    * - The size of this C++ object (`sizeof(*this)`),
    * - Positional rows and one result-level collection of column names,
    * - String values stored in the result set,
-   * - ArrayBuffers used for BLOB columns (object overhead + raw byte size),
+   * - BLOB shared pointers in the positional cells (Nitro accounts for the
+   *   backing bytes when it exposes an ArrayBuffer to JavaScript),
    * - Column metadata strings.
    *
    * This is a best-effort estimate and intentionally focuses on external

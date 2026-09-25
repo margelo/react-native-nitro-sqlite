@@ -213,16 +213,30 @@ namespace {
   }
 
   std::shared_ptr<HybridNitroSQLiteQueryResult> executeStatement(sqlite3* db, sqlite3_stmt* statement) {
-    const int columnCount = sqlite3_column_count(statement);
+    int columnCount = 0;
     std::vector<std::string> columnNames;
-    columnNames.reserve(columnCount);
-    for (int i = 0; i < columnCount; i++) {
-      columnNames.emplace_back(sqlite3_column_name(statement, i));
-    }
-
     std::vector<SQLiteQueryResultRow> rows;
+    bool columnsCaptured = false;
+
+    const auto captureColumns = [&] {
+      columnCount = sqlite3_column_count(statement);
+      columnNames.reserve(columnCount);
+      for (int i = 0; i < columnCount; i++) {
+        const char* columnName = sqlite3_column_name(statement, i);
+        if (columnName == nullptr) {
+          throw NitroSQLiteException::SqlExecution(sqlite3_errmsg(db));
+        }
+        columnNames.emplace_back(columnName);
+      }
+      columnsCaptured = true;
+    };
 
     consumeStatement(db, statement, [&](sqlite3_stmt* currentStatement) {
+      if (!columnsCaptured) {
+        // sqlite3_step() may reprepare a statement after a schema change.
+        captureColumns();
+      }
+
       SQLiteQueryResultRow row;
       row.reserve(columnNames.size());
 
@@ -263,6 +277,11 @@ namespace {
 
       rows.push_back(std::move(row));
     });
+
+    if (!columnsCaptured) {
+      // A zero-row statement can also reprepare on its first step.
+      captureColumns();
+    }
 
     std::optional<SQLiteQueryTableMetadata> metadata = std::nullopt;
     for (int i = 0; i < columnCount; i++) {
