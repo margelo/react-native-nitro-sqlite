@@ -2,11 +2,11 @@
 
 #include "NitroSQLiteDatabaseConnections.hpp"
 #include "hybridObjects/HybridNitroSQLiteQueryResult.hpp"
+#include "sqlite/sqlite3.h"
 #include <functional>
 #include <memory>
 #include <mutex>
 #include <queue>
-#include <sqlite3.h>
 #include <string>
 
 namespace margelo::nitro::rnnitrosqlite {

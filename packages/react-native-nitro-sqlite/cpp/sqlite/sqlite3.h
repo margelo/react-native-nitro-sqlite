@@ -1,3 +1,7 @@
+#ifndef NITRO_SQLITE_USE_PHONE_VERSION
+#include "sqlite3-symbol-prefix.h"
+#endif
+
 /*
 ** 2001-09-15
 **
