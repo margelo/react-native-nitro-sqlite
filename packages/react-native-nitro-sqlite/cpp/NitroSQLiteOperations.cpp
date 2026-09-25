@@ -13,7 +13,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
-#include <sqlite3.h>
+#include "sqlite/sqlite3.h"
 #include <sstream>
 #include <unistd.h>
 
