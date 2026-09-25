@@ -2,6 +2,34 @@
 
 set -eo pipefail
 
+if [ "${1:-}" = "--publish-prepared" ]; then
+  version="${2:-}"
+  if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "A prepared release requires an exact stable version." >&2
+    exit 1
+  fi
+
+  bun run check:lockfile
+  VERSION="$version" node -e '
+    const fs = require("node:fs")
+    const version = process.env.VERSION
+    for (const file of ["package.json", "packages/react-native-nitro-sqlite/package.json", "packages/react-native-nitro-sqlite-vec/package.json", "example/package.json"]) {
+      if (JSON.parse(fs.readFileSync(file, "utf8")).version !== version) {
+        throw new Error(`${file} does not match release version ${version}`)
+      }
+    }
+  '
+
+  if git rev-parse "v${version}" >/dev/null 2>&1; then
+    echo "Tag v${version} already exists." >&2
+    exit 1
+  fi
+
+  (cd packages/react-native-nitro-sqlite && bun release "$version" --ci)
+  (cd packages/react-native-nitro-sqlite-vec && bun release "$version" --ci)
+  exit 0
+fi
+
 echo "Starting the release process..."
 echo "Provided options: $*"
 

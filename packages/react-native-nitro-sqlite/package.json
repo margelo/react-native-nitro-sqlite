@@ -1,6 +1,6 @@
 {
   "name": "react-native-nitro-sqlite",
-  "version": "9.8.2",
+  "version": "10.0.0",
   "description": "Fast SQLite library for React Native built using Nitro Modules",
   "main": "./lib/module/index",
   "module": "./lib/module/index",
@@ -58,7 +58,7 @@
     "type": "git",
     "url": "git+https://github.com/margelo/react-native-nitro-sqlite.git"
   },
-  "author": "Margelo <hello@margelo.com> (https://github.com/margelo)",
+  "author": "Christoph Pader",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/margelo/react-native-nitro-sqlite/issues"
