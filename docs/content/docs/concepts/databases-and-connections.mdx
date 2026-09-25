@@ -1,0 +1,24 @@
+---
+title: Databases and connections
+description: How SQLite files and Nitro SQLite connections relate.
+---
+
+SQLite is an embedded database. Your app calls the SQLite library directly, without a separate database server. A database usually lives in a file containing its tables, indexes, and other schema objects. A connection is an open handle to that database; closing the handle does not remove the file. See [SQLite's overview](https://www.sqlite.org/about.html) for more background.
+
+In Nitro SQLite, `open()` opens an existing file or creates one when it does not exist. Keep the returned connection while you need to query that database:
+
+```ts
+import { open } from 'react-native-nitro-sqlite'
+
+const db = open({ name: 'notes.sqlite' })
+const { rows } = await db.executeAsync(
+  'SELECT name FROM sqlite_master WHERE type = ?',
+  ['table'],
+)
+console.log(rows._array)
+db.close()
+```
+
+The optional `location` is a directory relative to the platform's database root. Only one default connection can be open for a database name at a time. Pass `connection: 'independent'` to `open()` for another handle to the same file. Finish pending async work before calling `close()`; it is synchronous and fails while that connection is busy. See [multiple connections](/docs/guides/multiple-connections) for a reader and writer example.
+
+Use `delete()` to remove the file when you no longer need its data. `close()` only releases the handle. For file locations, prepopulated databases, and cleanup, read the [database lifecycle guide](/docs/guides/database-lifecycle). The generated [`NitroSQLiteConnection` reference](/api/react-native-nitro-sqlite/interfaces/NitroSQLiteConnection) lists its methods.

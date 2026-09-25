@@ -1,0 +1,24 @@
+---
+title: Connection ordering
+description: Understand SQLite isolation and Nitro SQLite's operation queue.
+---
+
+SQLite controls how separate connections see each other's changes. A transaction sees its own writes, while other connections do not see uncommitted writes under SQLite's normal isolation rules. SQLite serializes writes, but the exact reader and writer behavior depends on its journal mode. See [SQLite's isolation guide](https://www.sqlite.org/isolation.html).
+
+Nitro SQLite also coordinates work per managed connection. Ordinary async statements enter the JavaScript queue in call order. The native connection runs operations one at a time in that order, even when JavaScript submits multiple statements before awaiting them. Batches, transactions, and prepared statement executions wait for earlier work and reserve the connection until they finish. A synchronous call on that connection throws a busy error while work is pending or running:
+
+```ts
+import { open } from 'react-native-nitro-sqlite'
+
+const db = open({ name: 'notes.sqlite' })
+
+await db.executeAsync('CREATE TABLE IF NOT EXISTS notes (body TEXT NOT NULL)')
+await db.executeAsync('INSERT INTO notes (body) VALUES (?)', ['Queued write'])
+const { rows } = db.execute<{ count: number }>(
+  'SELECT COUNT(*) AS count FROM notes',
+)
+console.log(rows.item(0)?.count)
+db.close()
+```
+
+A transaction occupies that connection's queue until its callback finishes. Inside it, use `tx` methods. Awaiting another queued call on the same connection from the callback leaves both operations waiting. An [independent connection](/docs/guides/multiple-connections) has its own queue and transactions. Direct calls through `NitroSQLite.native` bypass the JavaScript queue, so coordinate them yourself if you use them with a managed connection. Read [sync and async](/docs/guides/sync-and-async) for choosing a call form and [native access](/docs/guides/sync-and-async#global-helpers-and-native-access) for that lower-level boundary.

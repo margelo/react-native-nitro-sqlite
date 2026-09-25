@@ -1,0 +1,22 @@
+---
+title: Transactions and atomicity
+description: Group related SQLite changes into one commit or rollback.
+---
+
+A transaction groups statements into one unit of work. `COMMIT` makes its changes permanent; `ROLLBACK` discards them. Atomicity means a group of related changes can succeed together or be undone together. Without an explicit transaction, SQLite starts and finishes an implicit transaction around each statement. See [SQLite's transaction documentation](https://www.sqlite.org/lang_transaction.html).
+
+Nitro SQLite's `db.transaction()` starts a transaction and passes a `tx` object to an async callback. It commits when the callback resolves and rolls back when the callback throws. Assuming the `accounts` table and both account rows exist:
+
+```ts
+import { open } from 'react-native-nitro-sqlite'
+
+const db = open({ name: 'accounts.sqlite' })
+
+await db.transaction(async (tx) => {
+  tx.execute('UPDATE accounts SET balance = balance - ? WHERE id = ?', [25, 1])
+  tx.execute('UPDATE accounts SET balance = balance + ? WHERE id = ?', [25, 2])
+})
+db.close()
+```
+
+This groups the two updates, but the example does not check whether both account IDs exist or whether the sender has enough funds. Add those application checks inside the callback, and throw if they fail. Use `tx.execute()` or `tx.executeAsync()` for all statements on this database during the callback. Await every async `tx` call before returning. For a fixed list of statements, `executeBatchAsync()` also runs them in a transaction. The [transactions guide](/docs/guides/transactions) covers callback behavior and pitfalls; the [batch guide](/docs/guides/batch-operations) covers fixed command lists.

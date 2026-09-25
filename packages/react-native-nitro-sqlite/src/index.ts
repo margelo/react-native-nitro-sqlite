@@ -27,5 +27,14 @@ export const NitroSQLite = {
 
 export { open } from './operations/session'
 export { default as NitroSQLiteError } from './NitroSQLiteError'
+export type { NitroSQLiteExceptionType } from './NitroSQLiteError'
+export type { DatabaseQueueKey } from './DatabaseQueue'
+export type { NitroSQLite as NitroSQLiteNative } from './specs/NitroSQLite.nitro'
+export type { NitroSQLitePreparedStatement } from './specs/NitroSQLitePreparedStatement.nitro'
+export type {
+  NitroSQLiteQueryResult,
+  NitroSQLiteQueryColumnMetadata,
+} from './specs/NitroSQLiteQueryResult.nitro'
+export type { TypeOrmNitroSQLiteConnection } from './typeORM'
 export type * from './types'
 export { typeORMDriver } from './typeORM'

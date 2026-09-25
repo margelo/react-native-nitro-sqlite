@@ -1,0 +1,25 @@
+---
+title: Load a SQL file
+description: Run one SQL statement per nonempty line from an app-accessible file.
+---
+
+A SQL file is a text file containing statements that set up or change a database. Apps often use one to create tables or insert initial data. Running those statements in a transaction keeps a failure from leaving only part of the file applied.
+
+NitroSQLite's `loadFile(path)` and `loadFileAsync(path)` read an app-accessible SQL text file and execute its nonempty lines in a native exclusive transaction. The `path` is a file-system path to the SQL file, separate from the database `location` option. Copy bundled assets to an accessible file path first if your asset system does not expose one.
+
+```ts
+const result = await db.loadFileAsync('/absolute/path/to/seed.sql')
+console.log(result.commands, result.rowsAffected)
+```
+
+The file format is deliberately simple. Each nonempty line is sent to SQLite as one statement. Do not split a statement across lines, put a comment on its own line, or rely on a general SQL dump parser. For example:
+
+```sql
+CREATE TABLE IF NOT EXISTS tags (id INTEGER PRIMARY KEY, name TEXT NOT NULL);
+INSERT INTO tags (name) VALUES ('work');
+INSERT INTO tags (name) VALUES ('home');
+```
+
+The loader counts executed lines in `commands` and adds their affected row counts in `rowsAffected`. It rolls back when a statement fails. Choose `loadFileAsync()` for a larger file to keep the database work off the JavaScript thread. Use [batch operations](/docs/guides/batch-operations) when statements need bound parameters or when you already have the commands in JavaScript.
+
+Both methods return a [`FileLoadResult`](/api/react-native-nitro-sqlite/interfaces/FileLoadResult) with optional `commands` and `rowsAffected` numbers.

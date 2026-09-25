@@ -1,0 +1,41 @@
+---
+title: Transactions
+description: Commit or roll back related statements and avoid queue deadlocks.
+---
+
+A SQLite transaction groups related statements into one unit of work. If the transaction commits, SQLite keeps the changes. If it rolls back, SQLite discards them. For example, a transfer between accounts should not leave only one balance updated.
+
+In NitroSQLite, use `db.transaction()` when several statements must succeed or fail together. It starts a SQLite transaction and passes a transaction object to an async callback. The callback's return value becomes the value of the transaction promise.
+
+```ts
+const transferId = await db.transaction(async (tx) => {
+  tx.execute('UPDATE accounts SET balance = balance - ? WHERE id = ?', [25, 1])
+  tx.execute('UPDATE accounts SET balance = balance + ? WHERE id = ?', [25, 2])
+
+  const { insertId } = await tx.executeAsync(
+    'INSERT INTO transfers (amount) VALUES (?)',
+    [25],
+  )
+
+  return insertId
+})
+```
+
+When the callback resolves, the wrapper commits unless you already called `tx.commit()` or `tx.rollback()`. When it rejects or throws, the wrapper rolls back unless the transaction has already been finalized. An explicit `tx.rollback()` does not itself reject the callback: it ends the transaction, and the callback can still resolve. Calls to `tx.execute`, `tx.executeAsync`, `tx.commit`, or `tx.rollback` after finalization throw.
+
+The connection queue is occupied for the whole callback. Use `tx.execute` or `tx.executeAsync` for **every** statement on this database during that callback, including statements in helpers. Awaiting `db.executeAsync()`, `db.executeBatchAsync()`, or another `db.transaction()` for the same database inside the callback deadlocks: those calls wait for the current transaction to leave the queue. A synchronous connection call fails with a busy error instead.
+
+```ts
+await db.transaction(async (tx) => {
+  await tx.executeAsync('INSERT INTO audit_log (message) VALUES (?)', [
+    'started',
+  ])
+  // Use tx in helpers too: await writeMoreAuditEntries(tx)
+})
+```
+
+Await every `tx.executeAsync()` before the callback returns or before manually finalizing. While an async statement is pending, `tx.execute()`, `tx.commit()`, and `tx.rollback()` throw instead of running out of order. If the callback throws, the wrapper waits for pending async statements before rolling back. A thrown error after an explicit commit or rollback cannot undo that completed transaction.
+
+`tx.commit()` and `tx.rollback()` are synchronous. Their declared return type exposes the native query result fields. The JavaScript helper also adds `rows` at runtime, but that field is not in their declared type. Use them to finalize the transaction, not to retrieve rows. The transaction starts with `BEGIN TRANSACTION`; the global [`NitroSQLite.transaction`](/api/react-native-nitro-sqlite/variables/NitroSQLite) helper also accepts `isExclusive` to use `BEGIN EXCLUSIVE TRANSACTION`.
+
+For a fixed list of statements and parameter sets, [batch operations](/docs/guides/batch-operations) need less callback code. See the generated [`Transaction` reference](/api/react-native-nitro-sqlite/interfaces/Transaction) for exact method types.

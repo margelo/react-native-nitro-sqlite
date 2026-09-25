@@ -1,0 +1,94 @@
+---
+title: TypeORM
+description: Use Nitro SQLite as the database driver for TypeORM's React Native DataSource.
+---
+
+TypeORM maps application entities to database tables and builds SQL for operations on those entities. Its `DataSource` needs a driver to open SQLite and run the generated queries in a React Native app.
+
+Nitro SQLite exports `typeORMDriver` for TypeORM's `react-native` database type. TypeORM calls the driver, which opens a regular Nitro SQLite connection and uses its async query method. Use [`open()`](/api/react-native-nitro-sqlite/functions/open) directly when you do not need TypeORM.
+
+## Configure module resolution
+
+Install `typeorm`, `react-native-nitro-sqlite`, and `babel-plugin-module-resolver` in the app. The repository's working example uses TypeORM 0.3.27 and makes two resolution changes:
+
+1. Expose `./package.json` in TypeORM's `exports` map. The repository keeps this as a persistent package patch:
+
+   ```diff
+   "exports": {
+   + "./package.json": "./package.json",
+     ".": {
+   ```
+
+2. Alias the SQLite storage package name that TypeORM imports to Nitro SQLite in `babel.config.js`:
+
+   ```js
+   module.exports = {
+     presets: ['module:@react-native/babel-preset'],
+     plugins: [
+       [
+         'module-resolver',
+         {
+           alias: {
+             'react-native-sqlite-storage': 'react-native-nitro-sqlite',
+           },
+         },
+       ],
+     ],
+   }
+   ```
+
+Merge this plugin into your existing Babel configuration rather than replacing the rest of its plugins.
+
+## Create a DataSource
+
+```ts
+import { DataSource, EntitySchema } from 'typeorm'
+import { typeORMDriver } from 'react-native-nitro-sqlite'
+
+type Note = { id: number; title: string }
+
+const NoteEntity = new EntitySchema<Note>({
+  name: 'Note',
+  columns: {
+    id: { type: Number, primary: true, generated: true },
+    title: { type: String },
+  },
+})
+
+const dataSource = new DataSource({
+  type: 'react-native',
+  database: 'notes.sqlite',
+  location: '.',
+  driver: typeORMDriver,
+  entities: [NoteEntity],
+  synchronize: true,
+})
+
+await dataSource.initialize()
+const notes = dataSource.getRepository(NoteEntity)
+await notes.save({ title: 'First note' })
+const saved = await notes.find()
+await dataSource.destroy()
+```
+
+This small example uses `synchronize: true` to create the table. Choose your application's schema management before shipping. `database` becomes the connection's `name`; `location` is a directory relative to the [platform database root](/docs/guides/database-lifecycle#file-location-and-prepopulated-databases).
+
+## Driver export
+
+`typeORMDriver` has one public method, `openDatabase(options, ok, fail)`. The connection passed to `ok` and returned on success has the exported [`TypeOrmNitroSQLiteConnection`](/api/react-native-nitro-sqlite/interfaces/TypeOrmNitroSQLiteConnection) type. The `TypeORMDriver` alias below is used only on this page.
+
+```ts
+import type { TypeOrmNitroSQLiteConnection } from 'react-native-nitro-sqlite'
+
+type TypeORMDriver = {
+  openDatabase(
+    options: { name: string; location?: string },
+    ok: (connection: TypeOrmNitroSQLiteConnection) => void,
+    fail: (message: string) => void,
+  ): TypeOrmNitroSQLiteConnection | null
+}
+```
+
+`openDatabase()` returns the adapter connection after calling `ok`, or `null` after invoking `fail` when opening fails. `executeSql()` runs `db.executeAsync()` and then invokes one result callback. `close()`, `attach()`, and `detach()` are synchronous; their success callbacks run after the operation succeeds. TypeORM normally handles this contract for you.
+
+The failure callbacks for `openDatabase` and `executeSql` are typed to receive a string, but the adapter casts caught errors to that type without converting them at runtime. Handle an `Error` value as well if you call these callbacks directly. This adapter is for TypeORM's callback interface, not a connection object for direct SQL calls. For those, see the [generated API reference](/api).

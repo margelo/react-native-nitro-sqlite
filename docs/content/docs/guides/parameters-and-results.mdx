@@ -1,0 +1,69 @@
+---
+title: Parameters and results
+description: Bind SQLite values, inspect rows and metadata, and handle query failures.
+---
+
+SQLite parameters let you write SQL with placeholders and supply its values separately. SQLite binds each value to a placeholder when it runs the statement, which is useful for searches and writes that depend on user or app data. A query result contains the rows returned by a read, or information about the rows changed by a write.
+
+In NitroSQLite, pass positional values in an array for `?` placeholders. The public `SQLiteValue` type permits `boolean`, `number`, `string`, `ArrayBuffer`, and `null`. Keep table and column names in your own SQL; parameters bind values, not identifiers.
+
+For repeated executions of the same SQL, [prepare the statement once](/docs/guides/prepared-statements) and pass a new parameter array on each run.
+
+```ts
+const name = 'Ada'
+const age = 37
+
+db.execute('INSERT INTO people (name, age) VALUES (?, ?)', [name, age])
+
+const result = await db.executeAsync<{ name: string; age: number }>(
+  'SELECT name, age FROM people WHERE age >= ?',
+  [18],
+)
+
+for (const person of result.rows._array) {
+  console.log(person.name, person.age)
+}
+```
+
+`results` is an array of row objects keyed by column name. Its values retain the general `SQLiteValue` type. The connection adds `rows._array` with the same rows, `rows.length`, and `rows.item(index)`. The row generic applies to `rows._array` and `rows.item()`; it does not validate values at runtime. `item()` returns `undefined` outside the array bounds. For a `SELECT`, use `rows.length` or `results.length` to count returned rows. `rowsAffected` uses SQLite's last change count, which can retain an earlier write's count after a `SELECT`; use it for `INSERT`, `UPDATE`, or `DELETE`. `insertId` exposes SQLite's last insert row ID when available and can also refer to an earlier statement.
+
+SQLite INTEGER and REAL result values both arrive as JavaScript numbers. BLOB values arrive as `ArrayBuffer`; NULL values arrive as `null`. A bound boolean is stored through SQLite's integer binding, so read it as a number and convert it in application code if needed. JavaScript numbers cannot represent every 64-bit SQLite integer exactly; choose a storage representation appropriate for identifiers that exceed the safe integer range.
+
+## Column metadata
+
+For a query with result columns, `metadata` maps column names to `{ name, type, index }`. `index` is the zero-based result column position. The [`ColumnType` values](/api/react-native-nitro-sqlite/enumerations/ColumnType) are `BOOLEAN = 0`, `NUMBER = 1`, `INT64 = 2`, `TEXT = 3`, `ARRAY_BUFFER = 4`, and `NULL_VALUE = 5`. The package exports `ColumnType` as a TypeScript type, not a runtime enum object. In the current native implementation, `metadata.type` is unreliable for detecting a column's declared SQL type. Use your schema for that decision. An expression without a declared type maps to `NULL_VALUE`, which does not mean the result itself is null. The exact shape is in [`NitroSQLiteQueryColumnMetadata`](/api/react-native-nitro-sqlite/type-aliases/NitroSQLiteQueryColumnMetadata).
+
+```ts
+const result = db.execute('SELECT name FROM people LIMIT 1')
+const nameColumn = result.metadata?.name
+
+if (nameColumn) {
+  console.log(nameColumn.name, nameColumn.index)
+}
+```
+
+Be especially careful with nullable columns and expressions when specifying a row type.
+
+## Errors
+
+The connection's JavaScript helpers normalize database failures to `NitroSQLiteError`. Async methods reject; sync methods throw. An empty SQL string or one containing only comments also fails with the native category `SqlExecutionError`, because SQLite produces no statement to execute. Catch the error around the operation you can recover from:
+
+```ts
+import { NitroSQLiteError } from 'react-native-nitro-sqlite'
+
+try {
+  await db.executeAsync('SELECT * FROM missing_table')
+} catch (error) {
+  if (error instanceof NitroSQLiteError) {
+    console.error(error.message)
+  } else {
+    throw error
+  }
+}
+```
+
+[`NitroSQLiteError`](/api/react-native-nitro-sqlite/classes/NitroSQLiteError) extends `Error`. `NitroSQLiteError.fromError(error)` returns an existing instance unchanged, copies an `Error`'s message, cause, and stack, or uses a string as its message. For other values, it sets the message to `'Unknown error occurred'` and keeps the original value as `cause`.
+
+When a native `NitroSQLiteException` reaches a managed helper, `error.type` holds a [`NitroSQLiteExceptionType`](/api/react-native-nitro-sqlite/type-aliases/NitroSQLiteExceptionType) such as `SqlExecutionError`. It is `undefined` for JavaScript errors, including connection queue errors, and unrecognized native categories. These categories are not SQLite's numeric error codes. The native categories are `UnknownError`, `DatabaseCannotBeOpened`, `DatabaseNotOpen`, `UnableToAttachToDatabase`, `SqlExecutionError`, `CouldNotLoadFile`, and `NoBatchCommandsProvided`. The current native `DatabaseNotOpen` helper emits `UnableToAttachToDatabase`, and a missing database file emits `SqlExecutionError`. Calls through `NitroSQLite.native` throw raw native errors.
+
+For exact types, see [`QueryResult`](/api/react-native-nitro-sqlite/type-aliases/QueryResult), [`NitroSQLiteQueryResult`](/api/react-native-nitro-sqlite/hybrid-objects/NitroSQLiteQueryResult), and [`NitroSQLiteQueryResultRows`](/api/react-native-nitro-sqlite/type-aliases/NitroSQLiteQueryResultRows). The row generic narrows `rows._array` and `rows.item()`, but not the raw `results` array. Query results also inherit Nitro hybrid object members; see [native access](/docs/guides/sync-and-async#global-helpers-and-native-access).
