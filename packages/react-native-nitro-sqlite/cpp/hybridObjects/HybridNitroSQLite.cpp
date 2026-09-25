@@ -31,8 +31,8 @@ static std::optional<SQLiteQueryParams> copyArrayBufferParamsForBackground(const
   copiedParams.reserve(params->size());
 
   for (const auto& value : *params) {
-    if (std::holds_alternative<std::shared_ptr<ArrayBuffer>>(value)) {
-      const auto& buffer = std::get<std::shared_ptr<ArrayBuffer>>(value);
+    if (value && std::holds_alternative<std::shared_ptr<ArrayBuffer>>(*value)) {
+      const auto& buffer = std::get<std::shared_ptr<ArrayBuffer>>(*value);
       const auto copiedBuffer = ArrayBuffer::copy(buffer);
       copiedParams.push_back(copiedBuffer);
     } else {

@@ -15,8 +15,8 @@ namespace {
     copiedParams.reserve(params->size());
 
     for (const auto& value : *params) {
-      if (std::holds_alternative<std::shared_ptr<ArrayBuffer>>(value)) {
-        copiedParams.push_back(ArrayBuffer::copy(std::get<std::shared_ptr<ArrayBuffer>>(value)));
+      if (value && std::holds_alternative<std::shared_ptr<ArrayBuffer>>(*value)) {
+        copiedParams.push_back(ArrayBuffer::copy(std::get<std::shared_ptr<ArrayBuffer>>(*value)));
       } else {
         copiedParams.push_back(value);
       }

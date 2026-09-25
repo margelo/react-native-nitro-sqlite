@@ -57,6 +57,17 @@ function expectQueryResultRows(
 
 export default function registerExecuteUnitTests() {
   describe('execute', () => {
+    it('binds undefined positional values as SQL NULL', async () => {
+      const query = 'SELECT ? AS missing, ? AS explicit_null, ? AS value'
+      const params = [undefined, null, 'text']
+      const expected = [{ missing: null, explicit_null: null, value: 'text' }]
+
+      expect(testDb.execute(query, params).results).toEqual(expected)
+      expect((await testDb.executeAsync(query, params)).results).toEqual(
+        expected,
+      )
+    })
+
     it('materializes native query results once', () => {
       const sourceRows = [
         { id: 1, nullable: null },
