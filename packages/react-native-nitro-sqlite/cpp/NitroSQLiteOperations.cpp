@@ -1,6 +1,7 @@
 #include "NitroSQLiteOperations.hpp"
 #include "NitroSQLiteException.hpp"
 #include "NitroSQLiteLogs.hpp"
+#include "NitroSQLiteStatementGroup.hpp"
 #include "NitroSQLiteUtils.hpp"
 #include "hybridObjects/HybridNitroSQLiteQueryResult.hpp"
 #include <NitroModules/ArrayBuffer.hpp>
@@ -315,6 +316,26 @@ SQLiteOperationResult sqliteExecuteCommand(const SQLiteConnectionPtr& connection
   consumeStatement(db, statement.get(), [](sqlite3_stmt*) {});
 
   return {.rowsAffected = isReadOnly ? 0 : sqlite3_changes(db)};
+}
+
+SQLiteOperationResult sqliteExecuteCommandGroup(const SQLiteConnectionPtr& connection, const std::string& query,
+                                                const std::vector<SQLiteQueryParams>& parameterSets) {
+  if (parameterSets.empty()) {
+    return {.rowsAffected = 0, .commands = 0};
+  }
+
+  std::lock_guard lock(connection->mutex);
+  sqlite3* db = connection->database;
+  if (db == nullptr) {
+    throw NitroSQLiteException::DatabaseNotOpen(connection->name);
+  }
+
+  const auto [rowsAffected, commands] = executeStatementGroup(
+      db, query, parameterSets, [](sqlite3* database, const std::string& sql) { return prepareStatement(database, sql, std::nullopt); },
+      [](sqlite3_stmt* statement, const SQLiteQueryParams& params) { bindStatement(statement, params); },
+      [](sqlite3* database, sqlite3_stmt* statement) { consumeStatement(database, statement, [](sqlite3_stmt*) {}); },
+      [](sqlite3* database) { throw NitroSQLiteException::SqlExecution(sqlite3_errmsg(database)); });
+  return {.rowsAffected = rowsAffected, .commands = commands};
 }
 
 struct SQLitePreparedStatement::State {

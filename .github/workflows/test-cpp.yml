@@ -8,6 +8,9 @@ on:
       - ".github/workflows/test-cpp.yml"
       - "packages/react-native-nitro-sqlite/cpp/NitroSQLiteDatabaseMigration.*"
       - "packages/react-native-nitro-sqlite/cpp/NitroSQLiteDatabaseConnections.*"
+      - "packages/react-native-nitro-sqlite/cpp/NitroSQLiteExecuteBatch.*"
+      - "packages/react-native-nitro-sqlite/cpp/NitroSQLiteOperations.*"
+      - "packages/react-native-nitro-sqlite/cpp/NitroSQLiteStatementGroup.hpp"
       - "packages/react-native-nitro-sqlite/cpp/sqlite/sqlite3.*"
       - "packages/react-native-nitro-sqlite/tests/cpp/**"
   pull_request:
@@ -68,6 +71,23 @@ jobs:
 
       - name: Run connection tests
         run: /tmp/databaseConnectionsTests
+
+      - name: Build and run statement group tests
+        run: |
+          clang++ \
+            -std=c++20 \
+            -Wall \
+            -Wextra \
+            -Werror \
+            -Ipackages/react-native-nitro-sqlite/cpp \
+            -Ipackages/react-native-nitro-sqlite/cpp/sqlite \
+            packages/react-native-nitro-sqlite/tests/cpp/statementGroup.test.cpp \
+            /tmp/sqlite3.o \
+            -ldl \
+            -lm \
+            -pthread \
+            -o /tmp/statementGroupTests
+          /tmp/statementGroupTests
 
       - name: Build and run thread safety gate test
         run: |
