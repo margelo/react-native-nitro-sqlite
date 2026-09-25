@@ -230,7 +230,11 @@ namespace {
             break;
           case SQLITE_TEXT: {
             auto columnValue = reinterpret_cast<const char*>(sqlite3_column_text(currentStatement, i));
-            row[columnName] = columnValue;
+            if (columnValue == nullptr) {
+              throw NitroSQLiteException::SqlExecution(sqlite3_errmsg(db));
+            }
+            int columnBytes = sqlite3_column_bytes(currentStatement, i);
+            row[columnName] = std::string(columnValue, static_cast<size_t>(columnBytes));
             break;
           }
           case SQLITE_BLOB: {

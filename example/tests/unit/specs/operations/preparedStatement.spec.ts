@@ -9,6 +9,32 @@ import { testDb } from '@tests/db'
 
 export default function registerPreparedStatementUnitTests() {
   describe('prepared statements', () => {
+    it('preserves embedded NULs across repeated execution', () => {
+      const nul = String.fromCharCode(0)
+      const firstValue = `${nul}leading`
+      const values = [
+        firstValue,
+        `mid${nul}dle`,
+        `trailing${nul}`,
+        `é${nul}中😀`,
+        '',
+      ]
+      const statement = testDb.prepare('SELECT ? AS value')
+
+      try {
+        for (const value of values) {
+          const result = statement.execute([value])
+          expect(result.rows.item(0)?.value).toBe(value)
+        }
+
+        expect(statement.execute([firstValue]).rows.item(0)?.value).toBe(
+          firstValue,
+        )
+      } finally {
+        statement.finalize()
+      }
+    })
+
     it('reuses one statement with different parameter values', () => {
       const insert = testDb.prepare(
         'INSERT INTO User (id, name, age, networth) VALUES (?, ?, ?, ?)',
