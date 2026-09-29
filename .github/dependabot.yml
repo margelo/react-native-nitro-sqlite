@@ -18,6 +18,10 @@ updates:
     labels:
       - 'dependencies'
       - 'ecosystem:gradle'
+    # Update the example wrapper with its React Native Android toolchain.
+    ignore:
+      - dependency-name: 'gradle-wrapper'
+        update-types: ['version-update:semver-major', 'version-update:semver-minor', 'version-update:semver-patch']
 
   - package-ecosystem: 'npm'
     directories:
@@ -28,13 +32,25 @@ updates:
     labels:
       - 'dependencies'
       - 'ecosystem:npm'
+    # Update the React Native, React, and CLI versions together; allow security updates.
+    ignore:
+      - dependency-name: 'react'
+        update-types: ['version-update:semver-major', 'version-update:semver-minor', 'version-update:semver-patch']
+      - dependency-name: 'react-native'
+        update-types: ['version-update:semver-major', 'version-update:semver-minor', 'version-update:semver-patch']
+      - dependency-name: 'react-test-renderer'
+        update-types: ['version-update:semver-major', 'version-update:semver-minor', 'version-update:semver-patch']
+      - dependency-name: '@react-native/*'
+        update-types: ['version-update:semver-major', 'version-update:semver-minor', 'version-update:semver-patch']
+      - dependency-name: '@react-native-community/cli*'
+        update-types: ['version-update:semver-major', 'version-update:semver-minor', 'version-update:semver-patch']
+      - dependency-name: '@types/react'
+        update-types:
+          - 'version-update:semver-major'
+      - dependency-name: '@types/react-test-renderer'
+        update-types:
+          - 'version-update:semver-major'
     groups:
-      rncli:
-        patterns:
-          - '@react-native-community/cli*'
       babel:
         patterns:
           - '@babel/*'
-      rn:
-        patterns:
-          - '@react-native/*'
