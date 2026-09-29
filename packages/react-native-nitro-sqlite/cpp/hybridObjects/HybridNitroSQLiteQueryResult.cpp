@@ -17,7 +17,10 @@ namespace {
     for (const auto& row : data.rows) {
       size += row.capacity() * sizeof(SQLiteValue);
       for (const auto& value : row) {
-        if (const auto* text = std::get_if<std::string>(&value)) {
+        if (!value) {
+          continue;
+        }
+        if (const auto* text = std::get_if<std::string>(&*value)) {
           size += text->capacity();
         }
       }
