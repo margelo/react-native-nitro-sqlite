@@ -1,3 +1,8 @@
+/**
+ * Adapted from the Onyx SQLite mock originally authored by Hubert Sosinski.
+ * https://github.com/Expensify/react-native-onyx/blob/main/tests/unit/mocks/sqliteMock.ts
+ * See THIRD_PARTY_NOTICES.md for the original MIT license notice.
+ */
 import BetterSqlite3 from 'better-sqlite3'
 import type {
   BatchQueryCommand,
