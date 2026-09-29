@@ -1,338 +1,467 @@
-![screenshot](https://raw.githubusercontent.com/margelo/react-native-quick-sqlite/main/header2.png)
+<a href="https://margelo.com">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./assets/img/banner-dark.png" />
+    <source media="(prefers-color-scheme: light)" srcset="./assets/img/banner-light.png" />
+    <img alt="Nitro Modules" src="./assets/img/banner-light.png" />
+  </picture>
+</a>
+
+<br />
+
+> [!IMPORTANT]
+> `react-native-quick-sqlite` has been deprecated in favor of this new [Nitro module](https://nitro.margelo.com/) implementation.
+>
+> From major version `9.0.0` on, the package is `react-native-nitro-sqlite`. Bug fixes for `react-native-quick-sqlite@8.x.x` will continue for a limited time.
 
 <div align="center">
   <pre align="center">
-    yarn add react-native-quick-sqlite
+    npm i react-native-nitro-sqlite react-native-nitro-modules
     npx pod-install</pre>
-  <a align="center" href="https://github.com/mrousavy?tab=followers">
-    <img src="https://img.shields.io/github/followers/mrousavy?label=Follow%20%40mrousavy&style=social" />
+  <a align="center" href="https://github.com/margelo">
+    <img src="https://img.shields.io/github/followers/margelo?label=Follow%20%40margelo&style=social" />
   </a>
   <br />
-  <a align="center" href="https://twitter.com/margelo_io">
-    <img src="https://img.shields.io/twitter/follow/margelo_io?label=Follow%20%40margelo_io&style=social" />
+  <a align="center" href="https://twitter.com/margelo_com">
+    <img src="https://img.shields.io/twitter/follow/margelo_com?label=Follow%20%40margelo_com&style=social" />
+  </a>
+  <a align="center" href="https://bsky.app/profile/margelo.com">
+    <img src="https://img.shields.io/twitter/follow/margelo_com?label=Follow%20%40margelo_com&style=social&logo=bluesky&url=https%3A%2F%2Fbsky.app%2Fprofile%2Fmargelo.com" style="pointer-events: 'none'" />
   </a>
 </div>
 <br />
 
-Quick SQLite embeds the latest version of SQLite and provides a low-level JSI-backed API to execute SQL queries.
+> [!NOTE]
+> Requires [Nitro modules](https://nitro.margelo.com/) and React Native `0.75` or later.
 
-Performance metrics are intentionally not presented, [anecdotic testimonies](https://dev.to/craftzdog/a-performant-way-to-use-pouchdb7-on-react-native-in-2022-24ej) suggest anywhere between 2x and 5x speed improvement. On small queries you might not notice a difference with the old bridge but as you send large data to JS the speed increase is considerable.
+Nitro SQLite embeds SQLite and exposes a JSI API on iOS, macOS, visionOS, and Android. Each operation is available in **sync** and **async** form; async runs off the JS thread to avoid blocking the UI.
 
-Starting on version `8.0.0` only React-Native `0.71` onwards is supported. This is due to internal changes to React-Native artifacts. If you are on < `0.71` use the latest `7.x.x` version.
+---
 
-TypeORM is officially supported, however, there is currently a parsing issue with React-Native 0.71 and its babel configuration and therefore it will not work, nothing wrong with this package, this is purely an issue on TypeORM.
+# Installation
 
-## API
-
-```typescript
-import {open} from 'react-native-quick-sqlite'
-
-const db = open('myDb.sqlite')
-
-// The db object now contains the following methods:
-
-db = {
-  close: () => void,
-  delete: () => void,
-  attach: (dbNameToAttach: string, alias: string, location?: string) => void,
-  detach: (alias: string) => void,
-  transaction: (fn: (tx: Transaction) => void) => Promise<void>,
-  execute: (query: string, params?: any[]) => QueryResult,
-  executeAsync: (
-    query: string,
-    params?: any[]
-  ) => Promise<QueryResult>,
-  executeBatch: (commands: SQLBatchParams[]) => BatchQueryResult,
-  executeBatchAsync: (commands: SQLBatchParams[]) => Promise<BatchQueryResult>,
-  loadFile: (location: string) => FileLoadResult;,
-  loadFileAsync: (location: string) => Promise<FileLoadResult>
-}
+```bash
+npm install react-native-nitro-sqlite react-native-nitro-modules
+npx pod-install
 ```
 
-### Simple queries
+For a React Native macOS app, run CocoaPods from the `macos` directory:
 
-The basic query is **synchronous**, it will block rendering on large operations, further below you will find async versions.
-
-```typescript
-import { open } from 'react-native-quick-sqlite';
-
-try {
-  const db = open('myDb.sqlite');
-
-  let { rows } = db.execute('SELECT somevalue FROM sometable');
-
-  rows.forEach((row) => {
-    console.log(row);
-  });
-
-  let { rowsAffected } = await db.executeAsync(
-    'UPDATE sometable SET somecolumn = ? where somekey = ?',
-    [0, 1]
-  );
-
-  console.log(`Update affected ${rowsAffected} rows`);
-} catch (e) {
-  console.error('Something went wrong executing SQL commands:', e.message);
-}
+```bash
+cd macos && pod install
 ```
 
-### Transactions
+## Run the macOS example
 
-Throwing an error inside the callback will ROLLBACK the transaction.
+The example targets macOS 14 or later with React Native macOS 0.81. This is the tested example configuration, not a guarantee that every older macOS version allowed by the podspec is supported.
 
-If you want to execute a large set of commands as fast as possible you should use the `executeBatch` method, it wraps all the commands in a transaction and has less overhead.
+Install the workspace dependencies and the example's Ruby dependencies, then run its `pods:macos` and `macos` scripts. The desktop app shares the mobile example's SQLite, TypeORM, sqlite-vec, SQL console, and benchmark screens.
+
+To keep Metro in a separate terminal, run the `start` script in `example/macos` and launch the `macos` script with `--no-packager`. Use `--mode Release --no-packager` to build and launch the embedded production bundle.
+
+---
+
+# API overview
+
+Open a database with `open()`. The returned connection is used for all operations; the database name is bound to that connection.
 
 ```typescript
-await QuickSQLite.transaction('myDatabase', (tx) => {
-  const { status } = tx.execute(
-    'UPDATE sometable SET somecolumn = ? where somekey = ?',
-    [0, 1]
-  );
+import { open } from 'react-native-nitro-sqlite'
 
-  // offload from JS thread
-  await tx.executeAsync = tx.executeAsync(
-    'UPDATE sometable SET somecolumn = ? where somekey = ?',
-    [0, 1]
-  );
-
-  // Any uncatched error ROLLBACK transaction
-  throw new Error('Random Error!');
-
-  // You can manually commit or rollback
-  tx.commit();
-  // or
-  tx.rollback();
-});
+const db = open({ name: 'myDb.sqlite' })
+// Optional: location is relative to the platform database directory.
+// open({ name: 'myDb.sqlite', location: 'databases' })
 ```
 
-### Batch operation
+To open another connection to the same file, use `open({ name: 'myDb.sqlite', connection: 'independent' })`. Add `readOnly: true` for a reader connection. Each connection has its own queue and transaction state. See [multiple connections](docs/multiple-connections.md) for WAL setup, app migration guidance, and concurrency limits.
 
-Batch execution allows the transactional execution of a set of commands
+| Method | Sync | Async | Description |
+|--------|------|-------|-------------|
+| **Execute** | `db.execute(query, params?)` | `db.executeAsync(query, params?)` | Run a single SQL statement. |
+| **Prepared statement** | `db.prepare(query)` | Statement `executeAsync(params?)` | Prepare once and execute repeatedly with different parameters. |
+| **Batch** | `db.executeBatch(commands)` | `db.executeBatchAsync(commands)` | Run multiple statements in one transaction. |
+| **Load file** | `db.loadFile(path)` | `db.loadFileAsync(path)` | Execute SQL from a file. |
+| **Transaction** | — | `db.transaction(async (tx) => { ... })` | Run multiple statements in a transaction (async only). |
+| **Lifecycle** | `db.close()`, `db.delete()` | — | Close or delete the database. |
+| **Attach** | `db.attach(dbName, alias, location?)`, `db.detach(alias)` | — | Attach/detach another database. |
+
+---
+
+# Sync vs async
+
+- **Sync** (`execute`, `executeBatch`, `loadFile`): Run on the JS thread. Use for small, fast work; heavy work can block the UI.
+- **Async** (`executeAsync`, `executeBatchAsync`, `loadFileAsync`, `transaction`): Run off the JS thread. Prefer these for larger or many queries to keep the app responsive.
+
+Async operations submitted on the opened `db` connection outside a transaction callback run in call order. Async work waits for an active transaction to finish, while a conflicting sync operation or `close()` throws a busy error.
+
+You can submit several `executeAsync` calls together with `Promise.all`. NitroSQLite sends them to a native FIFO on that connection, so the next query can start without waiting for JavaScript to process the previous result. A single connection still executes one SQL operation at a time. Transactions wait for earlier queries to finish and hold the connection until the callback completes.
+
+`NitroSQLite.native` bypasses this JavaScript queue. Native calls keep each individual SQLite handle safe, but mixing them with a session transaction can still run statements inside that transaction. A build with `SQLITE_THREADSAFE=0` also remains unsafe when different database handles run concurrently unless the caller serializes every SQLite call globally.
+
+---
+
+# Basic usage
+
+## Execute (sync and async)
+
+Both return a result with `results` (array of rows), `rowsAffected`, and `insertId` (when relevant). Rows are plain objects keyed by column name.
+
+Query parameters accept `boolean`, `number`, `string`, `ArrayBuffer`, and `null`. Always bind user-supplied values as parameters rather than building SQL strings.
+
+```typescript
+// Sync — blocks JS thread
+const { results, rowsAffected } = db.execute(
+  'UPDATE sometable SET somecolumn = ? WHERE somekey = ?',
+  [0, 1]
+)
+
+// Async — off JS thread
+const { results } = await db.executeAsync('SELECT * FROM sometable')
+results.forEach((row) => console.log(row))
+
+// Type the row shape when it is known.
+const users = db.execute<{ id: number; name: string }>(
+  'SELECT id, name FROM users',
+).rows._array
+```
+
+## Transactions (async only)
+
+Use `db.transaction()` for multiple statements in a single transaction. The callback receives a `tx` object with `execute`, `executeAsync`, `commit`, and `rollback`. If the callback throws, the transaction is rolled back. Otherwise it is committed when the callback resolves (or you can call `tx.commit()` / `tx.rollback()` explicitly).
+
+Inside the callback, all database work, including work in helper functions, must use the passed `tx` object. Do not await `db.executeAsync()`, `db.executeBatchAsync()`, or another queued session/global operation for the same database from inside the callback. Those operations wait for the transaction to finish, while the transaction would wait for them, creating a deadlock. Sync session/global calls for that database throw a busy error instead.
+
+```typescript
+await db.transaction(async (tx) => {
+  tx.execute('UPDATE sometable SET somecolumn = ? WHERE somekey = ?', [0, 1])
+  await tx.executeAsync('INSERT INTO sometable (id, name) VALUES (?, ?)', [2, 'foo'])
+  // Uncaught error → rollback
+  // Success → commit (or call tx.commit() / tx.rollback() yourself)
+})
+```
+
+## Batch (sync and async)
+
+Run many statements in one transaction. Each command has `query` and optional `params`. For one query with many parameter sets, use a single `query` and `params` as an array of arrays.
 
 ```typescript
 const commands = [
-  ['CREATE TABLE TEST (id integer)'],
-  ['INSERT INTO TEST (id) VALUES (?)', [1]],
-  [('INSERT INTO TEST (id) VALUES (?)', [2])],
-  [('INSERT INTO TEST (id) VALUES (?)', [[3], [4], [5], [6]])],
-];
+  { query: 'CREATE TABLE IF NOT EXISTS TEST (id INTEGER, age INTEGER)' },
+  { query: 'INSERT INTO TEST (id, age) VALUES (?, ?)', params: [1, 10] },
+  { query: 'INSERT INTO TEST (id, age) VALUES (?, ?)', params: [2, 20] },
+  {
+    query: 'INSERT INTO TEST (id, age) VALUES (?, ?)',
+    params: [
+      [3, 30],
+      [4, 40],
+    ],
+  },
+]
 
-const res = QuickSQLite.executeSqlBatch('myDatabase', commands);
-
-console.log(`Batch affected ${result.rowsAffected} rows`);
+const { rowsAffected } = db.executeBatch(commands)
+// Or: await db.executeBatchAsync(commands)
 ```
 
-### Dynamic Column Metadata
+## Prepared statements
 
-In some scenarios, dynamic applications may need to get some metadata information about the returned result set.
-
-This can be done by testing the returned data directly, but in some cases may not be enough, for example when data is stored outside
-SQLite datatypes. When fetching data directly from tables or views linked to table columns, SQLite can identify the table declared types:
+Use `db.prepare()` when the same SQL statement is executed repeatedly with different parameters. Call `finalize()` once the statement is no longer needed, and always finalize it before closing its database connection.
 
 ```typescript
-let { metadata } = QuickSQLite.executeSql(
-  'myDatabase',
-  'SELECT int_column_1, bol_column_2 FROM sometable'
-);
+const insertUser = db.prepare(
+  'INSERT INTO users (id, name) VALUES (?, ?)',
+)
 
-metadata.forEach((column) => {
-  // Output:
-  // int_column_1 - INTEGER
-  // bol_column_2 - BOOLEAN
-  console.log(`${column.columnName} - ${column.columnDeclaredType}`);
-});
+insertUser.execute([1, 'Ada'])
+await insertUser.executeAsync([2, 'Grace'])
+
+insertUser.finalize()
 ```
 
-### Async operations
+# Column metadata
 
-You might have too much SQL to process and it will cause your application to freeze. There are async versions for some of the operations. This will offload the SQLite processing to a different thread.
+When you need column types or names for the result set, use the `metadata` field on the query result. Keys are column names; values include `name`, `type` (e.g. from `ColumnType`), and `index`.
 
-```ts
-QuickSQLite.executeAsync(
-  'myDatabase',
-  'SELECT * FROM "User";',
-  []).then(({rows}) => {
-    console.log('users', rows);
-  })
-);
-```
-
-### Attach or Detach other databases
-
-SQLite supports attaching or detaching other database files into your main database connection through an alias.
-You can do any operation you like on this attached database like JOIN results across tables in different schemas, or update data or objects.
-These databases can have different configurations, like journal modes, and cache settings.
-
-You can, at any moment, detach a database that you don't need anymore. You don't need to detach an attached database before closing your connection. Closing the main connection will detach any attached databases.
-
-SQLite has a limit for attached databases: A default of 10, and a global max of 125
-
-References: [Attach](https://www.sqlite.org/lang_attach.html) - [Detach](https://www.sqlite.org/lang_detach.html)
-
-```ts
-QuickSQLite.attach('mainDatabase', 'statistics', 'stats', '../databases');
-
-const res = QuickSQLite.executeSql(
-  'mainDatabase',
-  'SELECT * FROM some_table_from_mainschema a INNER JOIN stats.some_table b on a.id_column = b.id_column'
-);
-
-// You can detach databases at any moment
-QuickSQLite.detach('mainDatabase', 'stats');
-if (!detachResult.status) {
-  // Database de-attached
+```typescript
+const { results, metadata } = db.execute('SELECT id, name FROM users LIMIT 1')
+if (metadata) {
+  for (const [columnName, meta] of Object.entries(metadata)) {
+    console.log(columnName, meta.type, meta.index)
+  }
 }
 ```
 
-### Loading SQL Dump Files
+---
 
-If you have a plain SQL file, you can load it directly, with low memory consumption.
+# Attach / detach
 
-```typescript
-const { rowsAffected, commands } = QuickSQLite.loadFile(
-  'myDatabase',
-  '/absolute/path/to/file.sql'
-);
-```
-
-Or use the async version which will load the file in another native thread
+Attach another database file under an alias; useful for JOINs across files or separate configs. Detach when no longer needed. Closing the main connection detaches all.
 
 ```typescript
-QuickSQLite.loadFileAsync('myDatabase', '/absolute/path/to/file.sql').then(
-  (res) => {
-    const { rowsAffected, commands } = res;
-  }
-);
+db.attach('otherDb.sqlite', 'other', '/path/to/dir')
+const { results } = db.execute(
+  'SELECT * FROM main.users a INNER JOIN other.stats b ON a.id = b.user_id'
+)
+db.detach('other')
 ```
 
-## Use built-in SQLite
+---
 
-On iOS you can use the embedded SQLite, when running `pod-install` add an environment flag:
+# Loading SQL files
 
-```
-QUICK_SQLITE_USE_PHONE_VERSION=1 npx pod-install
-```
+Execute all statements in a file (e.g. a dump). The loader executes one non-empty SQL command per line inside an exclusive transaction, so multi-line statements are not supported. Sync and async are available; async is better for large files.
 
-On Android, it is not possible to link (using C++) the embedded SQLite. It is also a bad idea due to vendor changes, old android bugs, etc. Unfortunately, this means this library will add some megabytes to your app size.
-
-## TypeORM
-
-This library is pretty barebones, you can write all your SQL queries manually but for any large application, an ORM is recommended.
-
-You can use this library as a driver for [TypeORM](https://github.com/typeorm/typeorm). However, there are some incompatibilities you need to take care of first.
-
-Starting on Node14 all files that need to be accessed by third-party modules need to be explicitly declared, TypeORM does not export its `package.json` which is needed by Metro, we need to expose it and make those changes "permanent" by using [patch-package](https://github.com/ds300/patch-package):
-
-```json
-// package.json stuff up here
-"exports": {
-    "./package.json": "./package.json", // ADD THIS
-    ".": {
-      "types": "./index.d.ts",
-// The rest of the package json here
+```typescript
+const { rowsAffected, commands } = db.loadFile('/absolute/path/to/file.sql')
+// Or: await db.loadFileAsync('/absolute/path/to/file.sql')
 ```
 
-After you have applied that change, do:
+---
 
-```sh
-yarn patch-package --exclude 'nothing' typeorm
-```
+# Loading existing databases
 
-Now every time you install your node_modules that line will be added.
+By default, databases are created under the app's Documents directory on iOS and visionOS, an app-specific Application Support directory on macOS, or the files directory on Android. iOS apps can select Application Support instead, as described under [Database location](#database-location-ios). `location` is a directory path relative to that root, not an absolute file path. For example, `open({ name: 'myDb.sqlite', location: 'databases' })` opens `myDb.sqlite` under the `databases` directory. To use a database from another app-accessible location, copy or move it into this directory first. In sandboxed Apple apps, files outside the app sandbox are inaccessible.
 
-Next, we need to trick TypeORM to resolve the dependency of `react-native-sqlite-storage` to `react-native-quick-sqlite`, on your `babel.config.js` add the following:
-
-```js
-plugins: [
-  // w/e plugin you already have
-  ...,
-  [
-    'module-resolver',
-    {
-      alias: {
-        "react-native-sqlite-storage": "react-native-quick-sqlite"
-      },
-    },
-  ],
-]
-```
-
-You will need to install the babel `module-resolver` plugin:
-
-```sh
-yarn add babel-plugin-module-resolver
-```
-
-Finally, you will now be able to start the app without any metro/babel errors (you will also need to follow the instructions on how to setup TypeORM), now we can feed the driver into TypeORM:
+Close connections and detach the database from other connections before deleting it. Deletion fails while another connection still uses the file. A read-only connection cannot delete its database. A connection must not be used after `close()` or `delete()`.
 
 ```ts
-import { typeORMDriver } from 'react-native-quick-sqlite'
-
-datasource = new DataSource({
-  type: 'react-native',
-  database: 'typeormdb',
-  location: '.',
-  driver: typeORMDriver,
-  entities: [...],
-  synchronize: true,
-});
+db.close()
+db.delete()
 ```
 
-# Loading existing DBs
+---
 
-The library creates/opens databases by appending the passed name plus, the [documents directory on iOS](https://github.com/margelo/react-native-quick-sqlite/blob/733e876d98896f5efc80f989ae38120f16533a66/ios/QuickSQLite.mm#L34-L35) and the [files directory on Android](https://github.com/margelo/react-native-quick-sqlite/blob/main/android/src/main/java/com/reactnativequicksqlite/QuickSQLiteBridge.java#L16), this differs from other SQL libraries (some place it in a `www` folder, some in androids `databases` folder, etc.).
+# Errors
 
-If you have an existing database file you want to load you can navigate from these directories using dot notation. e.g. `../www/myDb.sqlite`. Note that on iOS the file system is sand-boxed, so you cannot access files/directories outside your app bundle directories.
+The JavaScript helpers—including `open`, `execute`, `executeAsync`, batch methods, transactions, and `close`—normalize database failures to `NitroSQLiteError`. Catch this class when you need to distinguish database failures from errors thrown by your application.
 
-Alternatively, you can place/move your database file using one of the many react-native fs libraries.
+```ts
+import { NitroSQLiteError } from 'react-native-nitro-sqlite'
 
-## Enable compile-time options
+try {
+  db.execute('SELECT * FROM missing_table')
+} catch (error) {
+  if (error instanceof NitroSQLiteError) {
+    console.error(error.message)
+  }
+}
+```
 
-By specifying pre-processor flags, you can enable optional features like FTS5, Geopoly, etc.
+---
 
-### iOS
+# Vector search (sqlite-vec)
 
-Add a `post_install` block to your `<PROJECT_ROOT>/ios/Podfile` like so:
+Vector search is an opt-in companion package. It statically links sqlite-vec into Nitro SQLite's SQLite build—there is no runtime extension loading.
+
+1. Install the companion package:
+   ```bash
+   npm install react-native-nitro-sqlite-vec
+   ```
+2. Enable it for each native platform, then rebuild the app:
+   - **Apple platforms (iOS, macOS, visionOS):** run CocoaPods with `NITRO_SQLITE_VEC=1`, for example:
+     ```bash
+     NITRO_SQLITE_VEC=1 npx pod-install
+     ```
+     For React Native macOS, run `NITRO_SQLITE_VEC=1 pod install` from `macos/`.
+   - **Android:** add this to `android/gradle.properties`:
+     ```properties
+     nitroSqliteVec=true
+     ```
+
+The companion exports small typed helpers. Its full API is also documented in [the package README](./packages/react-native-nitro-sqlite-vec/README.md).
+
+```ts
+import { open } from 'react-native-nitro-sqlite'
+import {
+  createVectorTable,
+  isVecAvailable,
+  knnSearch,
+  vecVersion,
+} from 'react-native-nitro-sqlite-vec'
+
+const db = open({ name: 'vectors.sqlite' })
+
+if (!isVecAvailable(db)) {
+  throw new Error('sqlite-vec is not enabled in this build')
+}
+
+console.log(vecVersion(db))
+createVectorTable(db, 'embeddings', { dimensions: 3 })
+db.execute('INSERT INTO embeddings (rowid, embedding) VALUES (?, ?)', [
+  1,
+  '[0.1, 0.2, 0.3]',
+])
+
+const matches = knnSearch(db, 'embeddings', [0.1, 0.2, 0.25], 10)
+```
+
+The helper APIs interpolate table and column names into SQL; use trusted identifiers only.
+
+---
+
+# TypeORM
+
+You can use this package as a TypeORM driver. Because of Metro and Node resolution, TypeORM’s `package.json` must be exposed and the driver aliased.
+
+1. **Expose TypeORM `package.json`** (in TypeORM’s `package.json` `exports` add `"./package.json": "./package.json"`), then:
+   ```sh
+   npx patch-package --exclude 'nothing' typeorm
+   ```
+2. **Alias the driver** in `babel.config.js`:
+   ```js
+   plugins: [
+     [
+       'module-resolver',
+       {
+         alias: {
+           'react-native-sqlite-storage': 'react-native-nitro-sqlite',
+         },
+       },
+     ],
+   ]
+   ```
+   Install: `npm i -D babel-plugin-module-resolver`
+3. **Use the driver**:
+   ```ts
+   import { typeORMDriver } from 'react-native-nitro-sqlite'
+
+   const datasource = new DataSource({
+     type: 'react-native',
+     database: 'typeormdb',
+     location: '.',
+     driver: typeORMDriver,
+     entities: [...],
+     synchronize: true,
+   })
+   ```
+
+---
+
+# Configuration
+
+## Configure bundled SQLite thread safety
+
+The bundled SQLite library compiles with `SQLITE_THREADSAFE=1` by default on Apple platforms and Android. This includes SQLite's mutex code and selects serialized mode, which lets SQLite serialize concurrent access to database connections and prepared statements. Configure it in your app's `package.json`:
+
+```json
+{
+  "nitroSQLite": {
+    "threadSafe": true
+  }
+}
+```
+
+`threadSafe` accepts `true` or `false` in `package.json` on both platforms. Platform-specific overrides are available when needed:
+
+| Apple platforms | Android |
+| --- | --- |
+| Run `NITRO_SQLITE_THREADSAFE=false pod install` from the app's CocoaPods directory. The variable accepts `true`, `false`, `1`, or `0`. | Set `nitroSqliteFlags="-DSQLITE_THREADSAFE=0"` in `android/gradle.properties`. Use `1` to re-enable it. |
+
+With `SQLITE_THREADSAFE=0`, SQLite removes its mutex code and cannot be made thread-safe at runtime. Only use this setting if the application serializes every SQLite call across the entire process. Per-database JavaScript queues are not sufficient because separate connections and SQLite's global state can still be accessed concurrently by native threads.
+
+When `NITRO_SQLITE_USE_PHONE_VERSION=1`, the pod links the system SQLite library instead of compiling the bundled source. `NITRO_SQLITE_THREADSAFE` does not change how that system library was compiled.
+
+## Configure SQLite performance mode
+
+The bundled SQLite library enables NitroSQLite's performance compile flags by default on Apple platforms and Android. Disable them independently from thread safety in your app's `package.json`:
+
+```json
+{
+  "nitroSQLite": {
+    "threadSafe": true,
+    "performanceMode": false
+  }
+}
+```
+
+`performanceMode` accepts `true` or `false` in `package.json` on both platforms. Disabling it omits NitroSQLite's SQLite optimization flags but does not change `SQLITE_THREADSAFE`. The flags include `SQLITE_DQS=0`, which rejects double-quoted string literals, and `SQLITE_DEFAULT_WAL_SYNCHRONOUS=1`, which changes the default durability setting in WAL mode.
+
+| Apple platforms | Android |
+| --- | --- |
+| Set `NITRO_SQLITE_PERFORMANCE_MODE` for one Pod installation. It accepts `true`, `false`, `1`, or `0`. | Use `performanceMode` in `package.json` to toggle the full set. `nitroSqliteFlags` in `android/gradle.properties` can override individual definitions, but has no full-set toggle. |
+
+## Use system SQLite on Apple platforms
+
+To use the system SQLite instead of the bundled one:
+
+```bash
+NITRO_SQLITE_USE_PHONE_VERSION=1 npx pod-install
+```
+
+For React Native macOS, run the command from `macos/` with `pod install` instead of `npx pod-install`.
+
+## Compile-time options (e.g. FTS5, Geopoly)
+
+**Apple platforms** — in your app's `Podfile`, in a `post_install` block:
 
 ```ruby
-post_install do |installer|
-  installer.pods_project.targets.each do |target|
-    if target.name == "react-native-quick-sqlite" then
-      target.build_configurations.each do |config|
-        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'SQLITE_ENABLE_FTS5=1'
-      end
+installer.pods_project.targets.each do |target|
+  if target.name == "RNNitroSQLite"
+    target.build_configurations.each do |config|
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)']
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'SQLITE_ENABLE_FTS5=1 SQLITE_ENABLE_MATH_FUNCTIONS=1'
     end
   end
 end
 ```
 
-Replace the `<SQLITE_FLAGS>` part with the flags you want to add.
-For example, you could add `SQLITE_ENABLE_FTS5=1` to `GCC_PREPROCESSOR_DEFINITIONS` to enable FTS5 in the iOS project.
+**Android** — in `android/gradle.properties`:
 
-### Android
-
-You can specify flags via `<PROJECT_ROOT>/android/gradle.properties` like so:
-
-```
-quickSqliteFlags="<SQLITE_FLAGS>"
+```properties
+nitroSqliteFlags=-DSQLITE_ENABLE_FTS5=1;-DSQLITE_ENABLE_MATH_FUNCTIONS=1
 ```
 
-## Additional configuration
+## App groups (Apple platforms)
 
-### App groups (iOS only)
+To put the database in an app group (e.g. for extensions), set `RNNitroSQLite_AppGroup` in your `Info.plist` to the app group ID and add the App Groups capability in Xcode.
 
-On iOS, the SQLite database can be placed in an app group, in order to make it accessible from other apps in that app group. E.g. for sharing capabilities.
+## Database location (iOS)
 
-To use an app group, add the app group ID as the value for the `ReactNativeQuickSQLite_AppGroup` key in your project's `Info.plist` file. You'll also need to configure the app group in your project settings. (Xcode -> Project Settings -> Signing & Capabilities -> Add Capability -> App Groups)
+By default, databases are stored in the app's **Documents** directory. If your app enables file sharing (`UIFileSharingEnabled` + `LSSupportsOpeningDocumentsInPlace`), that directory — including your raw database and its `-wal`/`-shm` journal files — becomes visible to users in the Files app, where they can be shared, modified, or deleted from outside your app.
 
-## Community Discord
+To store databases in `Library/Application Support` instead (persistent, backed up, and never user-visible), set `RNNitroSQLite_DatabaseLocation` in your `Info.plist`:
 
-[Join the Margelo Community Discord](https://discord.gg/6CSHz2qAvA) to chat about react-native-quick-sqlite or other Margelo libraries.
+```xml
+<key>RNNitroSQLite_DatabaseLocation</key>
+<string>ApplicationSupport</string>
+```
 
-## Oscar
+Supported values are `Documents` (the default) and `ApplicationSupport`.
 
-react-native-quick-sqlite was originally created by [Oscar Franco](https://github.com/ospfranco). Thanks Oscar!
+Databases created while the app was still using the Documents directory are automatically moved to `Library/Application Support` the first time they are opened or attached after enabling this option, so existing users keep their data. Deleting a database also removes any copy left in Documents by an interrupted migration. If you later remove the option, databases already moved to `Library/Application Support` are **not** moved back.
 
-## License
+This option has no effect when `RNNitroSQLite_AppGroup` is set, since app group databases live in the shared container.
+
+---
+
+# Exports
+
+```typescript
+import {
+  open,
+  NitroSQLite,
+  NitroSQLiteError,
+  typeORMDriver,
+} from 'react-native-nitro-sqlite'
+import type {
+  BatchQueryCommand,
+  BatchQueryResult,
+  FileLoadResult,
+  NitroSQLiteConnection,
+  QueryResult,
+  SQLiteValue,
+  Transaction,
+} from 'react-native-nitro-sqlite'
+```
+
+`open()` is the recommended API. `NitroSQLite` exposes the underlying database-name-based methods for advanced integrations; prefer the connection returned by `open()` because it binds the database name and adds the JavaScript transaction and result helpers.
+
+Name-based methods address the default connection only. Use the returned connection object for operations on an independent connection.
+
+---
+
+# Community
+
+[Join the Margelo Community Discord](https://discord.gg/6CSHz2qAvA)
+
+# License
 
 MIT License.

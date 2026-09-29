@@ -1,21 +1,3 @@
-const path = require('path');
-const pak = require('../package.json');
+const createExampleBabelConfig = require('./babel.config.shared')
 
-module.exports = {
-  presets: ['module:metro-react-native-babel-preset'],
-  plugins: [
-    'nativewind/babel',
-    [
-      'module-resolver',
-      {
-        alias: {
-          [pak.name]: path.join(__dirname, '..', pak.source),
-          stream: 'stream-browserify',
-          "react-native-sqlite-storage": "react-native-quick-sqlite"
-        },
-      },
-    ],
-    'babel-plugin-transform-typescript-metadata',
-    ['@babel/plugin-proposal-decorators', {legacy: true}],
-  ],
-};
+module.exports = createExampleBabelConfig(__dirname)

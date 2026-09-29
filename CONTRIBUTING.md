@@ -4,10 +4,10 @@ We want this community to be friendly and respectful to each other. Please follo
 
 ## Development workflow
 
-To get started with the project, run `yarn` in the root directory to install the required dependencies for each package:
+To get started with the project, run `bun` in the root directory to install the required dependencies for each package:
 
 ```sh
-yarn
+bun
 ```
 
 While developing, you can run the [example app](/example/) to test your changes.
@@ -15,43 +15,43 @@ While developing, you can run the [example app](/example/) to test your changes.
 To start the packager:
 
 ```sh
-yarn example start
+bun example start
 ```
 
 To run the example app on Android:
 
 ```sh
-yarn example android
+bun example android
 ```
 
 To run the example app on iOS:
 
 ```sh
-yarn example ios
+bun example ios
 ```
 
 Make sure your code passes TypeScript and ESLint. Run the following to verify:
 
 ```sh
-yarn typescript
-yarn lint
+bun typescript
+bun lint
 ```
 
 To fix formatting errors, run the following:
 
 ```sh
-yarn lint --fix
+bun lint --fix
 ```
 
 Remember to add tests for your change if possible. Run the unit tests by:
 
 ```sh
-yarn test
+bun test
 ```
 
-To edit the Objective-C files, open `example/ios/SequelExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > react-native-quick-sqlite`.
+To edit the Objective-C files, open `example/ios/SequelExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > react-native-nitro-sqlite`.
 
-To edit the Kotlin files, open `example/android` in Android studio and find the source files at `reactnativequicksqlite` under `Android`.
+To edit the Kotlin files, open `example/android` in Android studio and find the source files at `rnnitrosqlite` under `Android`.
 
 ### Commit message convention
 
@@ -78,13 +78,14 @@ Our pre-commit hooks verify that the linter and tests pass when committing.
 
 The `package.json` file contains various scripts for common tasks:
 
-- `yarn bootstrap`: setup project by installing all dependencies and pods.
-- `yarn typescript`: type-check files with TypeScript.
-- `yarn lint`: lint files with ESLint.
-- `yarn test`: run unit tests with Jest.
-- `yarn example start`: start the Metro server for the example app.
-- `yarn example android`: run the example app on Android.
-- `yarn example ios`: run the example app on iOS.
+- `bun bootstrap`: setup project by installing all dependencies and pods.
+- `bun typecheck`: type-check files with TypeScript.
+- `bun lint`: lint files with ESLint.
+- `bun prettier`: format all source files according to Prettier config
+- `bun test`: run unit tests with Jest.
+- `bun example start`: start the Metro server for the example app.
+- `bun example android`: run the example app on Android.
+- `bun example ios`: run the example app on iOS.
 
 ### Sending a pull request
 

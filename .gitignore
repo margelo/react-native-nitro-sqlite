@@ -6,7 +6,8 @@
 .expo/
 
 # VSCode
-.vscode/
+.vscode/*
+!.vscode/settings.json
 jsconfig.json
 
 # Xcode
@@ -27,6 +28,7 @@ DerivedData
 *.hmap
 *.ipa
 *.xcuserstate
+**/.xcode.env.local
 project.xcworkspace
 
 # Android/IJ
@@ -40,6 +42,7 @@ local.properties
 example/.cxx/
 *.keystore
 !debug.keystore
+.kotlin/
 
 # Bundle
 #
@@ -47,7 +50,7 @@ vendor/
 
 # Cocoapods
 #
-example/ios/Pods
+**/Pods
 example/vendor/bundle
 
 # Temporary files created by Metro to check the health of the file watcher
@@ -56,16 +59,22 @@ example/vendor/bundle
 # node.js
 #
 node_modules/
+coverage/
 npm-debug.log
-yarn-debug.log
-yarn-error.log
 
 # BUCK
 buck-out/
 \.buckd/
+
+#Android
 android/app/libs
 android/keystores/debug.keystore
 android/.cxx
+**/android/bin
+**/android/build
+
+**/android/.project
+**/.settings
 
 # Expo
 .expo/*
@@ -74,4 +83,12 @@ android/.cxx
 lib/
 # Gradle
 android/gradle/
-android/gradle*
+android/.gradle
+
+# Yalc
+.yalc
+yalc.lock
+
+# Typescript
+**/.tsbuild/
+**/tsconfig.tsbuildinfo

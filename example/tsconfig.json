@@ -1,12 +1,15 @@
 {
-  "extends": "@tsconfig/react-native/tsconfig.json",
+  "extends": "../config/tsconfig.json",
+  "include": ["src", "tests", "index.js", "rn-harness.config.mjs"],
+  "references": [{ "path": "../packages/react-native-nitro-sqlite" }],
   "compilerOptions": {
-    "skipLibCheck": true,
     "paths": {
-      "react-native-quick-sqlite": ["../src/index"]
-    },
-    "allowSyntheticDefaultImports": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
+      "react-native-nitro-sqlite": [
+        "../packages/react-native-nitro-sqlite/src/index.ts"
+      ],
+      "@nitro-sqlite/*": ["../packages/react-native-nitro-sqlite/src/*"],
+      "@/*": ["./src/*"],
+      "@tests/*": ["./tests/*"]
+    }
   }
 }

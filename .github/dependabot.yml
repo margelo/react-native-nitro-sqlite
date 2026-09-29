@@ -1,0 +1,40 @@
+version: 2
+
+updates:
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'daily'
+    labels:
+      - 'dependencies'
+      - 'ecosystem:github-actions'
+
+  - package-ecosystem: 'gradle'
+    directories:
+      - '/packages/react-native-nitro-sqlite/android/'
+      - '/example/android/'
+    schedule:
+      interval: 'daily'
+    labels:
+      - 'dependencies'
+      - 'ecosystem:gradle'
+
+  - package-ecosystem: 'npm'
+    directories:
+      - '/packages/react-native-nitro-sqlite/'
+      - '/example/'
+    schedule:
+      interval: 'daily'
+    labels:
+      - 'dependencies'
+      - 'ecosystem:npm'
+    groups:
+      rncli:
+        patterns:
+          - '@react-native-community/cli*'
+      babel:
+        patterns:
+          - '@babel/*'
+      rn:
+        patterns:
+          - '@react-native/*'

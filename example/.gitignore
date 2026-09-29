@@ -20,7 +20,7 @@ DerivedData
 *.hmap
 *.ipa
 *.xcuserstate
-ios/.xcode.env.local
+**/.xcode.env.local
 
 # Android/IntelliJ
 #
@@ -36,7 +36,6 @@ local.properties
 #
 node_modules/
 npm-debug.log
-yarn-error.log
 
 # fastlane
 #
@@ -54,5 +53,8 @@ yarn-error.log
 *.jsbundle
 
 # Ruby / CocoaPods
-/ios/Pods/
+**/Pods/
 /vendor/bundle/
+
+# testing
+/coverage
