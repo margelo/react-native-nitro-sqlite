@@ -3,9 +3,31 @@ import { describe, it } from '@tests/TestApi'
 import { createArrayBufferTestDb, testDb } from '@tests/db'
 import { open } from 'react-native-nitro-sqlite'
 import { buildJSQueryResult } from '@nitro-sqlite/operations/execute'
+import type { ColumnType } from 'react-native-nitro-sqlite'
 import type { NitroSQLiteQueryResult } from '@nitro-sqlite/specs/NitroSQLiteQueryResult.nitro'
 
 const QUERY_RESULT_SIZES = [60, 1_000, 10_000]
+const metadataQuery = `
+  SELECT
+    boolean_value,
+    float_value,
+    integer_value,
+    text_value,
+    blob_value,
+    NULL AS null_value
+  FROM ColumnMetadata
+`
+
+function expectColumnMetadata(
+  metadata: Record<string, { type: ColumnType }> | undefined,
+) {
+  expect(metadata?.boolean_value?.type).toBe(0)
+  expect(metadata?.float_value?.type).toBe(1)
+  expect(metadata?.integer_value?.type).toBe(2)
+  expect(metadata?.text_value?.type).toBe(3)
+  expect(metadata?.blob_value?.type).toBe(4)
+  expect(metadata?.null_value?.type).toBe(5)
+}
 
 function createQueryResultTestDb(name: string) {
   const db = open({ name })
@@ -335,6 +357,28 @@ export default function registerExecuteUnitTests() {
             networth,
           },
         ])
+      })
+    })
+
+    describe('metadata', () => {
+      it('maps declared column types for execute', () => {
+        testDb.execute('DROP TABLE IF EXISTS ColumnMetadata')
+        testDb.execute(
+          'CREATE TABLE ColumnMetadata (boolean_value BOOLEAN, float_value FLOAT, integer_value INTEGER, text_value TEXT, blob_value BLOB)',
+        )
+
+        expectColumnMetadata(testDb.execute(metadataQuery).metadata)
+      })
+
+      it('maps declared column types for executeAsync', async () => {
+        await testDb.executeAsync('DROP TABLE IF EXISTS ColumnMetadata')
+        await testDb.executeAsync(
+          'CREATE TABLE ColumnMetadata (boolean_value BOOLEAN, float_value FLOAT, integer_value INTEGER, text_value TEXT, blob_value BLOB)',
+        )
+
+        expectColumnMetadata(
+          (await testDb.executeAsync(metadataQuery)).metadata,
+        )
       })
     })
 
