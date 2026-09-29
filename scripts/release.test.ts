@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
 import {
   chmodSync,
+  existsSync,
   mkdtempSync,
   readFileSync,
   rmSync,
@@ -41,13 +42,37 @@ test('preflight runs before package publication and the final Git release', () =
   ])
 })
 
-function runRelease(failPreflight: boolean): {
+test('prepared release publishes both packages at the committed version', () => {
+  const version = JSON.parse(readFileSync(join(projectRoot, 'package.json'), 'utf8'))
+    .version as string
+  const result = runRelease(false, ['--publish-prepared', version])
+
+  assert.equal(result.status, 0)
+  assert.deepEqual(result.calls, [
+    'run check:lockfile',
+    `release ${version} --ci`,
+    `release ${version} --ci`,
+  ])
+})
+
+test('prepared release rejects an uncommitted version before publishing', () => {
+  const result = runRelease(false, ['--publish-prepared', '99.0.0'])
+
+  assert.notEqual(result.status, 0)
+  assert.deepEqual(result.calls, ['run check:lockfile'])
+})
+
+function runRelease(
+  failPreflight: boolean,
+  args: string[] = ['--increment', 'patch'],
+): {
   status: number | null
   calls: string[]
 } {
   const fixture = mkdtempSync(join(tmpdir(), 'nitro-release-'))
   const logPath = join(fixture, 'calls.txt')
   const bunStub = join(fixture, 'bun')
+  const gitStub = join(fixture, 'git')
 
   try {
     writeFileSync(
@@ -63,10 +88,14 @@ fi
 `,
     )
     chmodSync(bunStub, 0o755)
+    if (args[0] === '--publish-prepared') {
+      writeFileSync(gitStub, '#!/usr/bin/env bash\nexit 1\n')
+      chmodSync(gitStub, 0o755)
+    }
 
     const result = spawnSync(
       'bash',
-      ['./scripts/release.sh', '--increment', 'patch'],
+      ['./scripts/release.sh', ...args],
       {
         cwd: projectRoot,
         encoding: 'utf8',
@@ -81,7 +110,9 @@ fi
 
     return {
       status: result.status,
-      calls: readFileSync(logPath, 'utf8').trim().split('\n'),
+      calls: existsSync(logPath)
+        ? readFileSync(logPath, 'utf8').trim().split('\n')
+        : [],
     }
   } finally {
     rmSync(fixture, { recursive: true, force: true })

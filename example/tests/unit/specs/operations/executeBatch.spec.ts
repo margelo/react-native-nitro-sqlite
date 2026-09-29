@@ -8,6 +8,35 @@ import { testDb } from '@tests/db'
 
 export default function registerExecuteBatchUnitTests() {
   describe('executeBatch', () => {
+    it('binds undefined values in flat and nested parameter sets', async () => {
+      const query =
+        'INSERT INTO User (id, name, age, networth) VALUES (?, ?, ?, ?)'
+
+      testDb.executeBatch([
+        { query, params: [1, 'first', undefined, null] },
+        {
+          query,
+          params: [
+            [2, 'second', null, undefined],
+            [3, 'third', undefined, undefined],
+          ],
+        },
+      ])
+      await testDb.executeBatchAsync([
+        { query, params: [4, 'fourth', undefined, undefined] },
+      ])
+
+      expect(
+        testDb.execute('SELECT id, age, networth FROM User ORDER BY id')
+          .results,
+      ).toEqual([
+        { id: 1, age: null, networth: null },
+        { id: 2, age: null, networth: null },
+        { id: 3, age: null, networth: null },
+        { id: 4, age: null, networth: null },
+      ])
+    })
+
     it('executeBatch', () => {
       const id1 = chance.integer()
       const name1 = chance.name()

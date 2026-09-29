@@ -26,7 +26,7 @@ try {
 db.close()
 ```
 
-The SQL text stays fixed. Pass a positional array for its `?` placeholders on each execution. The accepted values are `boolean`, `number`, `string`, `ArrayBuffer`, and `null`. Parameters bind values, not table or column names. Each run resets the statement and clears its previous bindings, so omitted values do not carry over. Pass every value your query needs each time.
+The SQL text stays fixed. Pass a positional array for its `?` placeholders on each execution. The accepted values are `boolean`, `number`, `string`, `ArrayBuffer`, `null`, and `undefined`. Both `null` and `undefined` bind as SQL NULL. Parameters bind values, not table or column names. Each run resets the statement and clears its previous bindings, so omitted values do not carry over. Pass every value your query needs each time.
 
 ## Read rows and run asynchronously
 
