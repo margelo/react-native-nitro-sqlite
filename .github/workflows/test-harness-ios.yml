@@ -31,6 +31,10 @@ on:
       - "packages/react-native-nitro-sqlite/nitro.json"
       - "!packages/react-native-nitro-sqlite/src/__tests__/**"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   test:
     name: Harness Tests (iOS)

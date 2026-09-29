@@ -57,6 +57,20 @@ function expectQueryResultRows(
 
 export default function registerExecuteUnitTests() {
   describe('execute', () => {
+    it('creates a temporary database file', () => {
+      testDb.execute("ATTACH DATABASE '' AS temporary_probe")
+
+      try {
+        testDb.execute('CREATE TABLE temporary_probe.items (value INTEGER)')
+        testDb.execute('INSERT INTO temporary_probe.items VALUES (42)')
+        expect(
+          testDb.execute('SELECT value FROM temporary_probe.items').results,
+        ).toEqual([{ value: 42 }])
+      } finally {
+        testDb.execute('DETACH DATABASE temporary_probe')
+      }
+    })
+
     it('binds undefined positional values as SQL NULL', async () => {
       const query = 'SELECT ? AS missing, ? AS explicit_null, ? AS value'
       const params = [undefined, null, 'text']

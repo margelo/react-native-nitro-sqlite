@@ -1,0 +1,9 @@
+.next/
+.source/
+/content/api/
+/content/api-reflection.json
+node_modules/
+*.tsbuildinfo
+next-env.d.ts
+!src/lib/
+!src/lib/**

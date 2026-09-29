@@ -14,7 +14,7 @@ import type {
 import * as Operations from './operations/session'
 
 /** Callback-oriented connection returned to TypeORM. */
-interface TypeOrmNitroSQLiteConnection {
+export interface TypeOrmNitroSQLiteConnection {
   /** Execute SQL asynchronously and report the result through a callback. */
   executeSql: <RowData extends QueryResultRow = never>(
     sql: string,
