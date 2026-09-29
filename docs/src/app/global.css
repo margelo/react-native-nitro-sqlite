@@ -51,13 +51,18 @@ article .prose :not(pre) > code {
 .api-symbol-header {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
-  gap: 0.5rem 1rem;
+  gap: 0.75rem 1rem;
 }
 
 .api-symbol-header h1 {
   margin: 0;
+  min-width: 0;
+  font-size: clamp(2.25rem, 3vw, 3rem);
+  line-height: 1.1;
+  letter-spacing: -0.055em;
+  overflow-wrap: anywhere;
 }
 
 .api-language-badges {
@@ -82,6 +87,113 @@ article .prose :not(pre) > code {
   line-height: 1.4;
   letter-spacing: 0;
   white-space: nowrap;
+}
+
+.api-reference-layout #nd-page,
+.api-reference-layout #nd-page > article,
+.api-reference-body {
+  min-width: 0;
+}
+
+.api-reference-body > h2 {
+  margin-top: 2.25rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid var(--color-fd-border);
+  font-size: clamp(1.8rem, 2.5vw, 2.25rem);
+  line-height: 1.2;
+  letter-spacing: -0.045em;
+}
+
+.api-reference-body > h3 {
+  margin-top: 2.25rem;
+  font-size: 1.5rem;
+  line-height: 1.25;
+  letter-spacing: -0.035em;
+}
+
+.api-reference-body > h3:not(:first-of-type) {
+  padding-top: 1.75rem;
+  border-top: 1px solid var(--color-fd-border);
+}
+
+.api-reference-body > h4,
+.api-reference-body > h5 {
+  margin-bottom: 0.35rem;
+}
+
+.api-reference-body > h5 {
+  margin-left: 1.25rem;
+}
+
+.api-reference-body > h5 + p,
+.api-reference-body > h5 + ul,
+.api-reference-body > h5 + ol {
+  margin-top: 0.35rem;
+  margin-left: 2.25rem;
+}
+
+.api-symbol-header + p {
+  margin-top: 0.75rem;
+  color: var(--color-fd-muted-foreground);
+  font-size: 0.8rem;
+}
+
+.api-symbol-header + p a {
+  color: var(--color-fd-foreground);
+}
+
+.api-signature {
+  min-width: 0;
+  margin: 1rem 0 1.25rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--color-fd-border);
+  border-radius: 0.75rem;
+  background: var(--color-fd-card);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.api-signature p {
+  margin: 0;
+}
+
+.api-signature :not(pre) > code {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: inherit;
+}
+
+.api-signature strong {
+  color: var(--color-fd-primary);
+}
+
+.api-signature a {
+  color: var(--color-fd-primary);
+  text-underline-offset: 3px;
+}
+
+.api-signature + p {
+  margin-top: -0.5rem;
+  color: var(--color-fd-muted-foreground);
+  font-size: 0.8rem;
+}
+
+.api-signature + p a {
+  color: inherit;
+}
+
+@media (max-width: 767px) {
+  .api-reference-body > h2 {
+    margin-top: 1.75rem;
+    padding-top: 1.5rem;
+  }
+
+  .api-reference-body > h3 {
+    margin-top: 1.75rem;
+  }
 }
 
 @media (min-width: 768px) {

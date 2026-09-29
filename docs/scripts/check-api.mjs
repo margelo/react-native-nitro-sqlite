@@ -158,6 +158,11 @@ for (const page of pages) {
     /\]\([^)]*\.mdx(?:#[^)]*)?\)/,
     `Broken MDX link: ${page}`,
   )
+  assert.doesNotMatch(
+    content,
+    /^\[API Reference\]\(\/api\) \/ /m,
+    `Duplicate TypeDoc breadcrumb: ${page}`,
+  )
   if (!page.endsWith('index.mdx')) {
     assert.match(
       content,
@@ -168,6 +173,11 @@ for (const page of pages) {
       content,
       /\*\*Source files:\*\* \[(?:TypeScript|JavaScript|C\+\+|C|Kotlin|Swift)\]\(https:\/\/github\.com\/margelo\/react-native-nitro-sqlite\/blob\/[^)]+\)/,
       `Missing language-labeled source link: ${page}`,
+    )
+    assert.match(
+      content,
+      /<div className="api-signature">/,
+      `Missing formatted API signature: ${page}`,
     )
   }
 

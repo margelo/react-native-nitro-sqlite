@@ -1,11 +1,20 @@
+import { execFileSync } from 'node:child_process'
 import { existsSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import {
   MarkdownPageEvent,
   MarkdownRendererEvent,
   MemberRouter,
 } from 'typedoc-plugin-markdown'
 import { addPackageIntro } from './api-package-intros.mjs'
+
+const gitRevision =
+  process.env.VERCEL_GIT_COMMIT_SHA ??
+  execFileSync('git', ['rev-parse', 'HEAD'], {
+    cwd: fileURLToPath(new URL('..', import.meta.url)),
+    encoding: 'utf8',
+  }).trim()
 
 export function load(app) {
   app.renderer.defineRouter('nitro-member', NitroMemberRouter)
@@ -31,11 +40,17 @@ export function load(app) {
             '',
           )
 
-    const withIntro = addPackageIntro(page.model.name, contents)
+    const withoutTypedocBreadcrumb = contents.replace(
+      /^\[(?:\*\*)?API Reference(?:\*\*)?\]\([^\n]+\n\n/m,
+      '',
+    )
+    const withIntro = addPackageIntro(page.model.name, withoutTypedocBreadcrumb)
     const withHybridSection = addHybridObjectsSection(withIntro)
-    const withSourceHeader = addSourceHeader(page.model, withHybridSection)
+    const withSourceHeader = addSourceHeader(page, withHybridSection)
+    const withSignatures = styleSignatures(withSourceHeader)
+    const withSourceLinks = addMissingSourceLinks(page, withSignatures)
 
-    page.contents = withSourceHeader.replace(/\]\(([^)]+)\)/g, (link, href) => {
+    page.contents = withSourceLinks.replace(/\]\(([^)]+)\)/g, (link, href) => {
       if (
         href.startsWith('#') ||
         href.startsWith('/') ||
@@ -65,6 +80,7 @@ export function load(app) {
         join(event.outputDirectory, packageName, 'meta.json'),
         JSON.stringify(
           {
+            title: packageName,
             pages: [
               'index',
               ...(hasHybridObjects ? ['hybrid-objects'] : []),
@@ -132,7 +148,8 @@ function addHybridObjectsSection(contents) {
   return `${withoutHybrids.slice(0, firstGroup)}## Hybrid Objects\n\n${hybridEntries.join('\n')}\n\n${withoutHybrids.slice(firstGroup)}`
 }
 
-function addSourceHeader(model, contents) {
+function addSourceHeader(page, contents) {
+  const { model } = page
   const source = model.sources?.[0]
   if (!source) return contents
 
@@ -155,12 +172,14 @@ function addSourceHeader(model, contents) {
   const language = languages[extension]
   if (!language) return contents
 
+  const sourceUrl =
+    source.url ?? getSourceUrl(page, source.fileName, source.line)
   const nativeLink = isHybridObject(model)
-    ? getNativeImplementationLink(source)
+    ? getNativeImplementationLink({ url: sourceUrl })
     : undefined
   const languagesInHeader = nativeLink ? `${language},C++` : language
   const sourceLinks = [
-    source.url ? `[${language}](${source.url})` : undefined,
+    `[${language}](${sourceUrl})`,
     nativeLink ? `[C++](${nativeLink})` : undefined,
   ].filter(Boolean)
   const sourceLine = sourceLinks.length
@@ -171,8 +190,30 @@ function addSourceHeader(model, contents) {
     .replace(/^Defined in: [^\n]+\n\n/m, '')
     .replace(
       /^# (.+?)(\n\n)/m,
-      `<ApiSymbolHeader title="$1" languages="${languagesInHeader}" />$2${sourceLine}`,
+      `<ApiSymbolHeader title="${model.name}" languages="${languagesInHeader}" />$2${sourceLine}`,
     )
+}
+
+function styleSignatures(contents) {
+  return contents.replace(
+    /^> ([^\n]+)$/gm,
+    '<div className="api-signature">\n\n$1\n\n</div>',
+  )
+}
+
+function addMissingSourceLinks(page, contents) {
+  return contents.replace(
+    /^Defined in: ([^\n:]+):(\d+)$/gm,
+    (_, fileName, line) =>
+      `Defined in: [${fileName}:${line}](${getSourceUrl(page, fileName, line)})`,
+  )
+}
+
+function getSourceUrl(page, fileName, line) {
+  const packageName = page.url.split('/')[0]
+  const sourcePath = fileName.startsWith('src/') ? fileName : `src/${fileName}`
+
+  return `https://github.com/margelo/react-native-nitro-sqlite/blob/${gitRevision}/packages/${packageName}/${sourcePath}#L${line}`
 }
 
 function getNativeImplementationLink(source) {

@@ -20,15 +20,16 @@ export default async function Page({ params }: Props) {
 
   const MDX = page.data.body
   const isOverview = !slug?.length
+  const toc = page.data.toc?.filter((item) => item.depth <= 3)
 
   return (
     <DocsPage
-      toc={page.data.toc}
+      toc={toc}
       full={page.data.full}
     >
       {isOverview && <DocsTitle>{page.data.title}</DocsTitle>}
       {isOverview && <DocsDescription>{page.data.description}</DocsDescription>}
-      <DocsBody className="prose-lg prose-h3:text-2xl">
+      <DocsBody className="api-reference-body prose-lg prose-h3:text-2xl">
         <MDX
           components={getMDXComponents({
             a: createRelativeLink(apiSource, page),
