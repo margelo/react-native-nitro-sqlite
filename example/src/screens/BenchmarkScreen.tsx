@@ -150,6 +150,11 @@ function BenchmarkResultView({ result }: { result: BenchmarkResult }) {
           ? 'not sampled'
           : `${result.jsTimerDelayMs.toFixed(1)} ms`}
       </Text>
+      <Text style={styles.detail}>
+        {result.memory.status === 'measured'
+          ? `Sampled process peak: +${(result.memory.increaseBytes / 1048576).toFixed(1)} MiB (${result.memory.metric}, ${result.memory.intervalMs} ms interval; separate run)`
+          : `Process memory: ${result.memory.reason}`}
+      </Text>
       {extraMetrics.map((key) => (
         <Text
           key={key}

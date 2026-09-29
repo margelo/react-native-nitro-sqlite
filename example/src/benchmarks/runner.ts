@@ -1,6 +1,11 @@
 import { Platform } from 'react-native'
 import { open, type NitroSQLiteConnection } from 'react-native-nitro-sqlite'
 import { version } from '../../package.json'
+import {
+  getDeviceIdentifier,
+  measureProcessMemory,
+  type MemoryMeasurement,
+} from './memory'
 
 export interface BenchmarkFixture {
   database: NitroSQLiteConnection
@@ -42,6 +47,7 @@ export type BenchmarkResult =
       minMs: number
       maxMs: number
       jsTimerDelayMs: number | null
+      memory: MemoryMeasurement
     }
   | {
       id: string
@@ -79,7 +85,7 @@ export async function runBenchmarkCases(
   buildLabel: string,
   onProgress: (label: string, result?: BenchmarkResult) => void,
 ): Promise<BenchmarkReport> {
-  const environment = readEnvironment(buildLabel)
+  const environment = await readEnvironment(buildLabel)
   const results: BenchmarkResult[] = []
 
   for (const benchmark of cases) {
@@ -121,6 +127,10 @@ async function runCase(benchmark: BenchmarkCase): Promise<BenchmarkResult> {
     const jsTimerDelayMs = await measureJsTimerDelay(fixture.run)
     await fixture.verify()
 
+    await fixture.reset?.()
+    const memory = await measureProcessMemory(fixture.run)
+    if (memory.status === 'measured') await fixture.verify()
+
     const elapsed = samples.map((sample) => sample.elapsedMs)
     result = {
       id: benchmark.id,
@@ -132,6 +142,7 @@ async function runCase(benchmark: BenchmarkCase): Promise<BenchmarkResult> {
       minMs: Math.min(...elapsed),
       maxMs: Math.max(...elapsed),
       jsTimerDelayMs,
+      memory,
     }
   } catch (error) {
     result = {
@@ -196,7 +207,9 @@ async function measureJsTimerDelay(
   }
 }
 
-function readEnvironment(buildLabel: string): BenchmarkReport['environment'] {
+async function readEnvironment(
+  buildLabel: string,
+): Promise<BenchmarkReport['environment']> {
   const db = open({ name: 'benchmark_metadata' })
   try {
     const source = db
@@ -220,7 +233,9 @@ function readEnvironment(buildLabel: string): BenchmarkReport['environment'] {
       buildLabel,
       platform: Platform.OS,
       osVersion: Platform.Version,
-      deviceModel: typeof model === 'string' ? model : 'unknown',
+      deviceModel:
+        (await getDeviceIdentifier()) ??
+        (typeof model === 'string' ? model : 'unknown'),
       jsEngine: 'HermesInternal' in globalThis ? 'Hermes' : 'other',
       developmentBuild: __DEV__,
       sqliteSourceId: source.value,
