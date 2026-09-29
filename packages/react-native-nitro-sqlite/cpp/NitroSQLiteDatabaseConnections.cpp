@@ -87,6 +87,9 @@ namespace {
     if (encryptionKey->empty()) {
       throw NitroSQLiteException(NitroSQLiteExceptionType::DatabaseCannotBeDecrypted, "Encryption key must not be empty");
     }
+    if (encryptionKey->find('\0') != std::string::npos) {
+      throw NitroSQLiteException(NitroSQLiteExceptionType::DatabaseCannotBeDecrypted, "Encryption key must not contain a NUL byte");
+    }
 #else
     throw NitroSQLiteException(NitroSQLiteExceptionType::EncryptionNotEnabled, "SQLite Encryption Extension is not enabled in this build");
 #endif

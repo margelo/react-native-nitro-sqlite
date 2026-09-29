@@ -92,6 +92,15 @@ int main() {
     expect(!registry.isOpen("encrypted.sqlite"), "a failed keyed open must not register a connection");
     expect(!fs::exists(encryptedPath), "a failed keyed open must not create a database file");
 #else
+    const auto invalidKeyPath = root / "invalid-key.sqlite";
+    try {
+      registry.open("invalid-key.sqlite", invalidKeyPath, false, std::string("secret\0suffix", 13));
+      throw std::runtime_error("a key containing a NUL byte must be rejected");
+    } catch (const std::exception& error) {
+      expect(std::string(error.what()).find("must not contain a NUL byte") != std::string::npos,
+             "a key containing a NUL byte must report the invalid key");
+    }
+    expect(!fs::exists(invalidKeyPath), "an invalid key must not create a database file");
     const auto plainPath = root / "plain.sqlite";
     registry.open("plain.sqlite", plainPath, false);
     execute(registry.get("plain.sqlite"), "CREATE TABLE existing_data (value INTEGER)");
