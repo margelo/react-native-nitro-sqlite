@@ -309,7 +309,7 @@ import { open } from 'react-native-nitro-sqlite'
 const db = open({ name: 'myDb.sqlite', encryptionKey: key })
 ```
 
-Adding a key does not migrate an existing unencrypted database. Migrate its data separately before switching the app to encrypted storage. Keep the key outside the app source and supply the same key when reopening the database.
+Adding a key does not migrate an existing unencrypted database. A keyed open rejects a plaintext database; migrate its data separately before switching the app to encrypted storage. Keep the key outside the app source and supply the same key when reopening the database.
 
 # TypeORM
 

@@ -1,7 +1,10 @@
 #include "NitroSQLiteDatabaseConnections.hpp"
 #include "NitroSQLiteDatabaseMigration.hpp"
 #include "NitroSQLiteException.hpp"
+#include <array>
+#include <cstring>
 #include <filesystem>
+#include <fstream>
 #include <memory>
 #include <stdexcept>
 #include <unordered_map>
@@ -89,6 +92,23 @@ namespace {
 #endif
   }
 
+  void rejectPlaintextDatabase(const fs::path& path, const std::optional<std::string>& encryptionKey) {
+#ifdef SQLITE_ENABLE_SEE
+    if (!encryptionKey) {
+      return;
+    }
+    std::ifstream file(path, std::ios::binary);
+    std::array<char, 16> header{};
+    if (file.read(header.data(), header.size()) && std::memcmp(header.data(), "SQLite format 3", header.size()) == 0) {
+      throw NitroSQLiteException(NitroSQLiteExceptionType::DatabaseCannotBeDecrypted,
+                                 "Existing database is unencrypted; migrate it before opening with an encryption key");
+    }
+#else
+    (void)path;
+    (void)encryptionKey;
+#endif
+  }
+
   void applyEncryptionKey(sqlite3* database, const std::optional<std::string>& encryptionKey) {
     if (!encryptionKey) {
       return;
@@ -163,6 +183,7 @@ void DatabaseConnections::openKey(const std::string& key, const fs::path& path, 
   }
   validateEncryptionKey(encryptionKey);
   const auto physicalPath = canonicalDatabasePath(path);
+  rejectPlaintextDatabase(physicalPath, encryptionKey);
   const int flags = (readOnly ? SQLITE_OPEN_READONLY : SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE) | SQLITE_OPEN_FULLMUTEX;
   sqlite3* rawDatabase = nullptr;
   const int result = sqlite3_open_v2(physicalPath.string().c_str(), &rawDatabase, flags, nullptr);

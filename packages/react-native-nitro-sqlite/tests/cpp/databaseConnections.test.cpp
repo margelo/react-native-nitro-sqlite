@@ -91,6 +91,19 @@ int main() {
     }
     expect(!registry.isOpen("encrypted.sqlite"), "a failed keyed open must not register a connection");
     expect(!fs::exists(encryptedPath), "a failed keyed open must not create a database file");
+#else
+    const auto plainPath = root / "plain.sqlite";
+    registry.open("plain.sqlite", plainPath, false);
+    execute(registry.get("plain.sqlite"), "CREATE TABLE existing_data (value INTEGER)");
+    registry.close("plain.sqlite");
+    try {
+      registry.open("plain.sqlite", plainPath, false, std::string("secret"));
+      throw std::runtime_error("a keyed open must reject an existing plaintext database");
+    } catch (const std::exception& error) {
+      expect(std::string(error.what()).find("Existing database is unencrypted") != std::string::npos,
+             "a keyed open must explain that the plaintext database needs migration");
+    }
+    expect(!registry.isOpen("plain.sqlite"), "a rejected plaintext database must not register a connection");
 #endif
     const auto path = root / "shared.sqlite";
     registry.open("shared.sqlite", path, false);
