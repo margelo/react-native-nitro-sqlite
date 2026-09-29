@@ -3,9 +3,31 @@ import { describe, it } from '@tests/TestApi'
 import { createArrayBufferTestDb, testDb } from '@tests/db'
 import { open } from 'react-native-nitro-sqlite'
 import { buildJSQueryResult } from '@nitro-sqlite/operations/execute'
+import type { ColumnType } from 'react-native-nitro-sqlite'
 import type { NitroSQLiteQueryResult } from '@nitro-sqlite/specs/NitroSQLiteQueryResult.nitro'
 
 const QUERY_RESULT_SIZES = [60, 1_000, 10_000]
+const metadataQuery = `
+  SELECT
+    boolean_value,
+    float_value,
+    integer_value,
+    text_value,
+    blob_value,
+    NULL AS null_value
+  FROM ColumnMetadata
+`
+
+function expectColumnMetadata(
+  metadata: Record<string, { type: ColumnType }> | undefined,
+) {
+  expect(metadata?.boolean_value?.type).toBe(0)
+  expect(metadata?.float_value?.type).toBe(1)
+  expect(metadata?.integer_value?.type).toBe(2)
+  expect(metadata?.text_value?.type).toBe(3)
+  expect(metadata?.blob_value?.type).toBe(4)
+  expect(metadata?.null_value?.type).toBe(5)
+}
 
 function createQueryResultTestDb(name: string) {
   const db = open({ name })
@@ -57,6 +79,20 @@ function expectQueryResultRows(
 
 export default function registerExecuteUnitTests() {
   describe('execute', () => {
+    it('creates a temporary database file', () => {
+      testDb.execute("ATTACH DATABASE '' AS temporary_probe")
+
+      try {
+        testDb.execute('CREATE TABLE temporary_probe.items (value INTEGER)')
+        testDb.execute('INSERT INTO temporary_probe.items VALUES (42)')
+        expect(
+          testDb.execute('SELECT value FROM temporary_probe.items').results,
+        ).toEqual([{ value: 42 }])
+      } finally {
+        testDb.execute('DETACH DATABASE temporary_probe')
+      }
+    })
+
     it('binds undefined positional values as SQL NULL', async () => {
       const query = 'SELECT ? AS missing, ? AS explicit_null, ? AS value'
       const params = [undefined, null, 'text']
@@ -212,6 +248,69 @@ export default function registerExecuteUnitTests() {
     })
 
     describe('Select', () => {
+      it('keeps positional columns and repeated result reads independent', () => {
+        const result = testDb.execute(
+          'SELECT 1 AS duplicate, 2 AS duplicate, 3.5 AS "café", NULL AS nullable, zeroblob(2) AS payload',
+        )
+
+        expect(result.rows.item(0)?.duplicate).toBe(2)
+        expect(result.rows.item(0)?.['café']).toBe(3.5)
+        expect(result.rows.item(0)?.nullable).toBe(null)
+        expect(
+          Array.from(
+            new Uint8Array(result.rows.item(0)?.payload as ArrayBuffer),
+          ),
+        ).toEqual([0, 0])
+        expect(result.metadata?.duplicate?.index).toBe(0)
+
+        const firstRead = result.results
+        const secondRead = result.results
+        expect(secondRead).not.toBe(firstRead)
+        expect(secondRead[0]).not.toBe(firstRead[0])
+        firstRead[0]!.duplicate = 9
+        expect(secondRead[0]?.duplicate).toBe(2)
+        expect(result.results[0]?.duplicate).toBe(2)
+        expect(result.rows.item(0)?.duplicate).toBe(2)
+      })
+
+      it('preserves column metadata for empty results', () => {
+        const result = testDb.execute('SELECT 1 AS value WHERE 0')
+        expect(result.rows._array).toEqual([])
+        expect(result.results).toEqual([])
+        expect(result.metadata?.value?.index).toBe(0)
+      })
+
+      it('preserves SQL-generated text containing embedded NULs', () => {
+        const nul = String.fromCharCode(0)
+        const expected = `${nul}é${nul}中😀${nul}`
+
+        const result = testDb.execute(
+          "SELECT char(0) || 'é' || char(0) || '中😀' || char(0) AS value, '' AS empty, NULL AS nullable",
+        )
+
+        expect(result.rows.item(0)).toEqual({
+          value: expected,
+          empty: '',
+          nullable: null,
+        })
+      })
+
+      it('preserves bound text containing leading, middle, and trailing NULs', () => {
+        const nul = String.fromCharCode(0)
+        const values = [
+          `${nul}leading`,
+          `mid${nul}dle`,
+          `trailing${nul}`,
+          `é${nul}中😀`,
+          '',
+        ]
+
+        for (const value of values) {
+          const result = testDb.execute('SELECT ? AS value', [value])
+          expect(result.rows.item(0)?.value).toBe(value)
+        }
+      })
+
       it('Query without params', () => {
         const id = chance.integer()
         const name = chance.name()
@@ -258,6 +357,28 @@ export default function registerExecuteUnitTests() {
             networth,
           },
         ])
+      })
+    })
+
+    describe('metadata', () => {
+      it('maps declared column types for execute', () => {
+        testDb.execute('DROP TABLE IF EXISTS ColumnMetadata')
+        testDb.execute(
+          'CREATE TABLE ColumnMetadata (boolean_value BOOLEAN, float_value FLOAT, integer_value INTEGER, text_value TEXT, blob_value BLOB)',
+        )
+
+        expectColumnMetadata(testDb.execute(metadataQuery).metadata)
+      })
+
+      it('maps declared column types for executeAsync', async () => {
+        await testDb.executeAsync('DROP TABLE IF EXISTS ColumnMetadata')
+        await testDb.executeAsync(
+          'CREATE TABLE ColumnMetadata (boolean_value BOOLEAN, float_value FLOAT, integer_value INTEGER, text_value TEXT, blob_value BLOB)',
+        )
+
+        expectColumnMetadata(
+          (await testDb.executeAsync(metadataQuery)).metadata,
+        )
       })
     })
 

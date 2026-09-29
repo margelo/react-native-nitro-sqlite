@@ -9,9 +9,17 @@ on:
       - "packages/react-native-nitro-sqlite/cpp/NitroSQLiteDatabaseMigration.*"
       - "packages/react-native-nitro-sqlite/cpp/NitroSQLiteDatabaseConnections.*"
       - "packages/react-native-nitro-sqlite/cpp/sqlite/sqlite3.*"
+      - "packages/react-native-nitro-sqlite/cpp/sqlite/sqlite3-symbol-prefix.h"
+      - "packages/react-native-nitro-sqlite-vec/cpp/**"
       - "packages/react-native-nitro-sqlite/tests/cpp/**"
+      - "scripts/generate-sqlite-symbol-prefix.py"
+      - "scripts/test-private-sqlite-symbols.sh"
   pull_request:
     paths: *cpp_test_paths
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   test:
@@ -19,6 +27,11 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
+
+      - name: Check private SQLite symbols and coexistence
+        run: |
+          python3 scripts/generate-sqlite-symbol-prefix.py --check
+          sh scripts/test-private-sqlite-symbols.sh
 
       - name: Build bundled SQLite
         run: |

@@ -1,0 +1,18 @@
+{
+  "title": "Guides",
+  "pages": [
+    "sync-and-async",
+    "parameters-and-results",
+    "node-test-mock",
+    "prepared-statements",
+    "transactions",
+    "batch-operations",
+    "database-lifecycle",
+    "multiple-connections",
+    "attach-databases",
+    "load-sql-file",
+    "performance",
+    "migrate-from-quick-sqlite",
+    "ai-agents"
+  ]
+}

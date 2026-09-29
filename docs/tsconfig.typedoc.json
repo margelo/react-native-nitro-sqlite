@@ -1,0 +1,16 @@
+{
+  "extends": "../config/tsconfig.json",
+  "compilerOptions": {
+    "composite": false,
+    "rootDir": "..",
+    "paths": {
+      "react-native-nitro-sqlite": [
+        "../packages/react-native-nitro-sqlite/src/index.ts"
+      ]
+    }
+  },
+  "files": [
+    "../packages/react-native-nitro-sqlite/src/index.ts",
+    "../packages/react-native-nitro-sqlite-vec/src/index.ts"
+  ]
+}
