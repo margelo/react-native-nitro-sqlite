@@ -14,6 +14,7 @@
     "typecheck": "bun run generate:api && fumadocs-mdx && next typegen && tsc --noEmit"
   },
   "dependencies": {
+    "@r4ai/remark-callout": "^0.6.2",
     "fumadocs-core": "16.9.2",
     "fumadocs-mdx": "15.0.9",
     "fumadocs-ui": "16.9.2",

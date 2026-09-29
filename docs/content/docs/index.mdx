@@ -43,7 +43,10 @@ npx expo run:ios
 npx expo run:android
 ```
 
-Expo Go does not include Nitro SQLite. Expo's run commands generate native directories when they do not exist. If your project keeps generated native directories, follow [Expo's prebuild guidance](https://docs.expo.dev/develop/development-builds/introduction/) to refresh them after adding a native dependency, then rebuild.
+> [!NOTE]
+> Expo Go does not include Nitro SQLite. Use a native build after adding the package.
+
+Expo's run commands generate native directories when they do not exist. If your project keeps generated native directories, follow [Expo's prebuild guidance](https://docs.expo.dev/develop/development-builds/introduction/) to refresh them after adding a native dependency, then rebuild.
 
 ## 4. Run your first query
 

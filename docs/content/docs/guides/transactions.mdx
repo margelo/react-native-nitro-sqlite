@@ -29,7 +29,12 @@ When the callback resolves, the wrapper commits unless you already called `tx.co
 
 ## Keep operations inside the callback
 
-The connection queue is occupied for the whole callback. Use `tx.execute` or `tx.executeAsync` for **every** statement on this database during that callback, including statements in helpers. Awaiting `db.executeAsync()`, `db.executeBatchAsync()`, or another `db.transaction()` for the same database inside the callback deadlocks: those calls wait for the current transaction to leave the queue. A synchronous connection call fails with a busy error instead.
+The connection queue is occupied for the whole callback. Use `tx.execute` or `tx.executeAsync` for **every** statement on this database during that callback, including statements in helpers.
+
+> [!TIP]
+> Pass `tx` to any helper that runs statements during the transaction.
+
+Awaiting `db.executeAsync()`, `db.executeBatchAsync()`, or another `db.transaction()` for the same database inside the callback deadlocks: those calls wait for the current transaction to leave the queue. A synchronous connection call fails with a busy error instead.
 
 ```ts
 await db.transaction(async (tx) => {

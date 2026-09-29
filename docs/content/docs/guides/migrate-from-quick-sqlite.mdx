@@ -29,4 +29,7 @@ Review every call site rather than applying a package-name substitution alone. I
 
 ## Check existing database files
 
-If you have an existing on-device database, keep its filename and verify its actual storage path before upgrading. Nitro SQLite opens files under its platform database root and can create a new empty file when no file is present there. The package rename alone does not prove that every older installation stored files in the same directory. Plan and test a file copy if your previous app version used another location. See [database lifecycle](/docs/guides/database-lifecycle) and the platform pages for [iOS](/docs/configuration/ios) and [Android](/docs/configuration/android).
+> [!NOTE]
+> Existing database files may be under a different directory. If Nitro SQLite cannot find one, it can create a new empty file instead.
+
+Keep the existing filename and verify the actual storage path before upgrading. The package rename alone does not prove that every older installation stored files in the same directory. Plan and test a file copy if your previous app version used another location. See [database lifecycle](/docs/guides/database-lifecycle) and the platform pages for [iOS](/docs/configuration/ios) and [Android](/docs/configuration/android).

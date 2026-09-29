@@ -36,6 +36,7 @@
 }
 
 .margelo-callout {
+  margin-top: 1.5rem;
   padding: 1rem;
   border: 1px solid var(--color-fd-border);
   border-radius: 0.625rem;
@@ -64,8 +65,8 @@
   justify-content: center;
   gap: 0.5rem;
   border-radius: 0.375rem;
-  background: #5ee9b5;
-  color: #06291e;
+  background: #007a55;
+  color: #fafafa;
   font-size: 0.875rem;
   font-weight: 700;
   text-decoration: none;
@@ -73,6 +74,15 @@
 }
 
 .margelo-callout-link:hover {
+  background: #006747;
+}
+
+.dark .margelo-callout-link {
+  background: #5ee9b5;
+  color: #171717;
+}
+
+.dark .margelo-callout-link:hover {
   background: #83f2cb;
 }
 
