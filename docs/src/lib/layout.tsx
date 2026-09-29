@@ -32,6 +32,25 @@ export function sidebarOptions(): BaseLayoutProps {
   }
 }
 
+export function MargeloCallout() {
+  return (
+    <aside className="margelo-callout">
+      <p className="margelo-callout-title">Building something ambitious?</p>
+      <p className="margelo-callout-description">
+        We help teams ship world-class React Native apps.
+      </p>
+      <a
+        className="margelo-callout-link"
+        href="https://margelo.com"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Let&apos;s talk <span aria-hidden="true">→</span>
+      </a>
+    </aside>
+  )
+}
+
 function Brand({ className = '' }: { className?: string }) {
   return (
     <span className={`inline-flex items-center gap-2.5 ${className}`}>

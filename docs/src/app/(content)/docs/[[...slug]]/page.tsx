@@ -2,6 +2,7 @@ import { DocsBody, DocsDescription, DocsPage, DocsTitle } from 'fumadocs-ui/layo
 import { createRelativeLink } from 'fumadocs-ui/mdx'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { ArticleActions } from '@/components/article-actions'
 import { absoluteUrl, site } from '@/lib/site'
 import { source } from '@/lib/source'
 import { getMDXComponents } from '@/mdx-components'
@@ -19,6 +20,10 @@ export default async function Page({ params }: Props) {
     <DocsPage toc={page.data.toc} full={page.data.full}>
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
+      <ArticleActions
+        markdownUrl={`/markdown${page.url}`}
+        githubUrl={`${site.repositoryUrl}/blob/main/docs/content/docs/${page.data.info.path}`}
+      />
       <DocsBody className="prose-lg prose-h3:text-2xl">
         <MDX components={getMDXComponents({ a: createRelativeLink(source, page) })} />
       </DocsBody>
