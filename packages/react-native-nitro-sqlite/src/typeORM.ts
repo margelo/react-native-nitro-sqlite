@@ -43,14 +43,20 @@ export interface TypeOrmNitroSQLiteConnection {
  */
 export const typeORMDriver = {
   /** Open a database for TypeORM.
-   * @param options Database name, optional relative directory, and optional encryption key.
+   * @param options Database name, optional relative directory, and optional SEE key.
    * @param ok Receives the adapter connection on success.
    * @param fail Receives the opening error on failure.
    */
   openDatabase: (
     options: {
+      /** Database file name. */
       name: string
+      /** Directory relative to the platform database directory. */
       location?: string
+      /**
+       * Key for a licensed SQLite SEE build. Without SEE, a supplied key fails
+       * with `EncryptionNotEnabled`. An existing plaintext file is rejected.
+       */
       encryptionKey?: string
     },
     ok: (db: TypeOrmNitroSQLiteConnection) => void,

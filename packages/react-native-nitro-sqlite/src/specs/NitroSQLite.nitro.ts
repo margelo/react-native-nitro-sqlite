@@ -21,7 +21,9 @@ export interface NitroSQLite
    * @param dbName Database file name and default connection key.
    * @param location Directory relative to the platform database directory.
    * @param readOnly Open an existing database without write access.
-   * @param encryptionKey Key for a build with SQLite Encryption Extension.
+   * @param encryptionKey Optional key for a licensed SEE build. Without SEE, a
+   * supplied key throws `EncryptionNotEnabled`. An invalid or wrong key or an
+   * existing plaintext database throws `DatabaseCannotBeDecrypted`.
    */
   open(
     dbName: string,
@@ -34,7 +36,10 @@ export interface NitroSQLite
    * @param dbName Database file name.
    * @param location Directory relative to the platform database directory.
    * @param readOnly Open an existing database without write access.
-   * @param encryptionKey Key for a build with SQLite Encryption Extension.
+   * @param encryptionKey Optional SEE key for this handle. Supply the same key
+   * on every connection to an encrypted file. Without SEE, a supplied key
+   * throws `EncryptionNotEnabled`. An invalid or wrong key or an existing
+   * plaintext database throws `DatabaseCannotBeDecrypted`.
    * @returns An opaque ID to pass to native connection operations.
    */
   openConnection(

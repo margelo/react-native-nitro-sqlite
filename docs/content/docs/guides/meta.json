@@ -7,6 +7,7 @@
     "transactions",
     "batch-operations",
     "database-lifecycle",
+    "encryption",
     "multiple-connections",
     "attach-databases",
     "load-sql-file",

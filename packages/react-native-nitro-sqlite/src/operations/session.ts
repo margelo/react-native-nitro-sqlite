@@ -27,9 +27,14 @@ import type { DatabaseQueueKey } from '../DatabaseQueue'
  * Open a database and return a managed connection. The default connection is
  * addressed by its name, and opening it twice throws. Set `connection` to
  * `'independent'` to open another native handle to the same file. Async calls
- * on each connection run in call order.
- * @param options Database name, optional directory, connection mode, and read-only setting.
+ * on each connection run in call order. An optional `encryptionKey` requires
+ * a native build with SQLite SEE; it does not encrypt an existing plaintext file.
+ * @param options Database name, optional directory, connection mode, read-only setting, and SEE key.
  * @returns A connection bound to the opened native handle.
+ * @throws `NitroSQLiteError` with type `EncryptionNotEnabled` when a key is
+ * supplied without SEE, or `DatabaseCannotBeDecrypted` for an invalid key,
+ * wrong key, or existing plaintext database.
+ * @see [Encryption guide](https://sqlite.margelo.com/docs/guides/encryption)
  */
 export function open(
   options: NitroSQLiteConnectionOptions,

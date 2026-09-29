@@ -19,7 +19,13 @@ export interface NitroSQLiteConnectionOptions {
    * Defaults to `false`.
    */
   readOnly?: boolean
-  /** Key for a database built with the SQLite Encryption Extension. */
+  /**
+   * Key for a database built with the licensed SQLite Encryption Extension (SEE).
+   * Supply the same nonempty key on every connection to an encrypted file.
+   * Passing a key to an existing plaintext database throws; it does not encrypt
+   * or migrate that file. A build without SEE rejects any supplied key.
+   * @see [Encryption guide](https://sqlite.margelo.com/docs/guides/encryption)
+   */
   encryptionKey?: string
 }
 
