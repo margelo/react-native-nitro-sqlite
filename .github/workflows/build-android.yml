@@ -76,6 +76,8 @@ jobs:
         if: matrix.min-sdk == '24'
         working-directory: example/android
         run: |
+          # React Native creates the autolinking file on the first run.
+          ./gradlew :react-native-nitro-sqlite:help --configuration-cache --no-daemon
           ./gradlew :react-native-nitro-sqlite:help --configuration-cache --no-daemon
           ./gradlew :react-native-nitro-sqlite:help --configuration-cache --no-daemon | tee "$RUNNER_TEMP/nitro-sqlite-configuration-cache.log"
           grep -q 'Configuration cache entry reused' "$RUNNER_TEMP/nitro-sqlite-configuration-cache.log"
