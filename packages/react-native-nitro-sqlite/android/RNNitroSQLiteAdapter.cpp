@@ -4,6 +4,7 @@
 #include <fbjni/fbjni.h>
 #include <jni.h>
 #include <jsi/jsi.h>
+#include <mutex>
 #include <typeinfo>
 
 using namespace margelo::nitro::rnnitrosqlite;
@@ -25,8 +26,12 @@ extern "C" JNIEXPORT void JNICALL Java_com_margelo_rnnitrosqlite_DocPathSetter_s
     return;
   }
 
-  // SQLite reads this variable once when its Unix VFS initializes.
-  if (setenv("SQLITE_TMPDIR", cachePath, 1) == 0) {
+  // SQLite caches this environment value during VFS initialization. Do not replace it on JS reload.
+  static std::once_flag tempDirectoryOnce;
+  static bool tempDirectoryConfigured = false;
+  std::call_once(tempDirectoryOnce, [&] { tempDirectoryConfigured = setenv("SQLITE_TMPDIR", cachePath, 1) == 0; });
+
+  if (tempDirectoryConfigured) {
     HybridNitroSQLite::docPath = std::string(docPath);
   } else {
     jclass exception = env->FindClass("java/lang/IllegalStateException");
