@@ -33,7 +33,7 @@ export function ArticleActions({ markdownUrl, githubUrl }: ArticleActionsProps) 
   ]
 
   return (
-    <div className="not-prose mt-5 mb-6 flex flex-wrap items-center gap-2 border-b border-fd-border pb-6">
+    <div className="not-prose flex flex-wrap items-center gap-2 border-b border-fd-border pb-6">
       <MarkdownCopyButton markdownUrl={markdownUrl} />
       <Popover>
         <PopoverTrigger

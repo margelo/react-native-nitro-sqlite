@@ -45,7 +45,7 @@ export default async function Page({ params }: Props) {
       tableOfContentPopover={{ footer: <MargeloCallout /> }}
     >
       {isOverview && <DocsTitle>{page.data.title}</DocsTitle>}
-      {isOverview && <DocsDescription className="mb-0">{page.data.description}</DocsDescription>}
+      {isOverview && <DocsDescription className="mb-2">{page.data.description}</DocsDescription>}
       {isOverview && actions}
       <DocsBody className="api-reference-body prose-lg prose-h3:text-2xl">
         <MDX

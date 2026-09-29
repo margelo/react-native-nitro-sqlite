@@ -25,7 +25,7 @@ export default async function Page({ params }: Props) {
       tableOfContentPopover={{ footer: <MargeloCallout /> }}
     >
       <DocsTitle>{page.data.title}</DocsTitle>
-      <DocsDescription className="mb-0">{page.data.description}</DocsDescription>
+      <DocsDescription className="mb-2">{page.data.description}</DocsDescription>
       <ArticleActions
         markdownUrl={`/markdown${page.url}`}
         githubUrl={`${site.repositoryUrl}/blob/main/docs/content/docs/${page.data.info.path}`}
