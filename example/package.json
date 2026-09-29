@@ -64,7 +64,7 @@
     "@types/react-test-renderer": "^19.1.0",
     "@react-native-harness/cli": "1.2.0",
     "@react-native-harness/jest": "1.2.0",
-    "@react-native-harness/platform-android": "1.2.0",
+    "@react-native-harness/platform-android": "1.5.0",
     "@react-native-harness/platform-apple": "1.2.0",
     "react-native-harness": "1.2.0",
     "mocha": "^10.1.0",
