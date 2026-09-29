@@ -4,6 +4,7 @@ import {
   isDatabaseOpen,
   openDatabaseQueue,
   queueOperationAsync,
+  queueStatementAsync,
   startOperationSync,
   throwIfDatabaseIsNotOpen,
 } from '../DatabaseQueue'
@@ -25,7 +26,12 @@ describe('DatabaseQueue', () => {
 
     openDatabaseQueue(dbName)
     expect(isDatabaseOpen(dbName)).toBe(true)
-    expect(getDatabaseQueue(dbName)).toEqual({ queue: [], inProgress: false })
+    expect(getDatabaseQueue(dbName)).toMatchObject({
+      queue: [],
+      inProgress: false,
+      activeStatements: 0,
+      draining: false,
+    })
     expect(() => openDatabaseQueue(dbName)).toThrow('already open')
 
     closeDatabaseQueue(dbName)
@@ -80,7 +86,71 @@ describe('DatabaseQueue', () => {
     await expect(two).resolves.toBe(2)
     await expect(three).resolves.toBe(3)
     expect(started).toEqual([1, 2, 3])
-    expect(getDatabaseQueue(dbName)).toEqual({ queue: [], inProgress: false })
+    expect(getDatabaseQueue(dbName)).toMatchObject({
+      queue: [],
+      inProgress: false,
+      activeStatements: 0,
+      draining: false,
+    })
+  })
+
+  it('submits a burst of statements before waiting for native results', async () => {
+    openDatabaseQueue(dbName)
+    const first = deferred<number>()
+    const started: number[] = []
+    const operations = Array.from({ length: 64 }, (_, index) =>
+      queueStatementAsync(dbName, () => {
+        started.push(index)
+        return index === 0 ? first.promise : Promise.resolve(index)
+      }),
+    )
+
+    expect(started).toEqual(Array.from({ length: 64 }, (_, index) => index))
+    expect(getDatabaseQueue(dbName).activeStatements).toBe(64)
+    expect(() => startOperationSync(dbName, () => 1)).toThrow('busy')
+    expect(() => closeDatabaseQueue(dbName)).toThrow('busy')
+
+    first.resolve(0)
+    expect(await Promise.all(operations)).toEqual(started)
+    expect(getDatabaseQueue(dbName).inProgress).toBe(false)
+  })
+
+  it('waits for every earlier statement before starting a transaction', async () => {
+    openDatabaseQueue(dbName)
+    const first = deferred<void>()
+    const second = deferred<void>()
+    const order: string[] = []
+    const one = queueStatementAsync(dbName, () => {
+      order.push('first')
+      return first.promise
+    })
+    const two = queueStatementAsync(dbName, () => {
+      order.push('second')
+      return second.promise
+    })
+    const transaction = queueOperationAsync(dbName, async () => {
+      order.push('transaction')
+    })
+    const after = queueStatementAsync(dbName, async () => {
+      order.push('after')
+    })
+
+    expect(order).toEqual(['first', 'second'])
+    second.resolve()
+    await two
+    expect(order).toEqual(['first', 'second'])
+    first.resolve()
+    await Promise.all([one, transaction, after])
+    expect(order).toEqual(['first', 'second', 'transaction', 'after'])
+  })
+
+  it('starts queued async work after a synchronous operation completes', async () => {
+    openDatabaseQueue(dbName)
+    let pending: Promise<number> | undefined
+    startOperationSync(dbName, () => {
+      pending = queueStatementAsync(dbName, async () => 42)
+    })
+    await expect(pending).resolves.toBe(42)
   })
 
   it('keeps queues for different databases independent', async () => {

@@ -4,10 +4,18 @@ import NitroSQLiteError from '../NitroSQLiteError'
 import type { NitroSQLiteQueryResult } from '../specs/NitroSQLiteQueryResult.nitro'
 import {
   isDatabaseOpen,
-  queueOperationAsync,
+  queueStatementAsync,
   startOperationSync,
 } from '../DatabaseQueue'
+import type { DatabaseQueueKey } from '../DatabaseQueue'
 
+/** Execute one SQL statement synchronously by database name.
+ * Uses the managed queue when the database has an open managed connection.
+ * @param dbName Name of an open native database.
+ * @param query SQL statement with optional positional placeholders.
+ * @param params Values bound to the placeholders.
+ * @returns The query result with typed rows.
+ */
 export function execute<Row extends QueryResultRow = never>(
   dbName: string,
   query: string,
@@ -24,8 +32,11 @@ export function executeManaged<Row extends QueryResultRow = never>(
   dbName: string,
   query: string,
   params?: SQLiteQueryParams,
+  queueKey: DatabaseQueueKey = dbName,
 ): QueryResult<Row> {
-  return startOperationSync(dbName, () => executeNative(dbName, query, params))
+  return startOperationSync(queueKey, () =>
+    executeNative(dbName, query, params),
+  )
 }
 
 export function executeNative<Row extends QueryResultRow = never>(
@@ -41,6 +52,13 @@ export function executeNative<Row extends QueryResultRow = never>(
   }
 }
 
+/** Execute one SQL statement asynchronously by database name.
+ * Uses the managed queue when the database has an open managed connection.
+ * @param dbName Name of an open native database.
+ * @param query SQL statement with optional positional placeholders.
+ * @param params Values bound to the placeholders.
+ * @returns A promise of the query result with typed rows.
+ */
 export async function executeAsync<Row extends QueryResultRow = never>(
   dbName: string,
   query: string,
@@ -57,8 +75,9 @@ export async function executeAsyncManaged<Row extends QueryResultRow = never>(
   dbName: string,
   query: string,
   params?: SQLiteQueryParams,
+  queueKey: DatabaseQueueKey = dbName,
 ): Promise<QueryResult<Row>> {
-  return queueOperationAsync(dbName, () =>
+  return queueStatementAsync(queueKey, () =>
     executeAsyncNative(dbName, query, params),
   )
 }

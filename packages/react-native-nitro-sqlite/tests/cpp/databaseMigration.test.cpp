@@ -1,4 +1,4 @@
-#include "databaseMigration.hpp"
+#include "NitroSQLiteDatabaseMigration.hpp"
 #include <array>
 #include <cerrno>
 #include <chrono>

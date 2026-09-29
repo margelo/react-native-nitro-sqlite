@@ -1,18 +1,12 @@
 name: "Update Lockfiles (bun.lock + Podfile.lock)"
 
 on:
-  push:
+  pull_request:
     branches:
       - main
     paths:
-      - ".github/workflows/update-lockfiles.yml"
-      - "package.json"
-      - "**/package.json"
-  pull_request:
-    paths:
-      - ".github/workflows/update-lockfiles.yml"
-      - "package.json"
-      - "**/package.json"
+      - "example/package.json"
+      - "packages/react-native-nitro-sqlite/package.json"
 
 permissions:
   contents: write
@@ -20,7 +14,7 @@ permissions:
 jobs:
   update-lockfiles:
     name: "Update lockfiles (Podfile.lock)"
-    if: github.actor == 'dependabot[bot]'
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: macos-26
     steps:
       - uses: actions/checkout@v7
@@ -46,10 +40,12 @@ jobs:
           cd example
           bundle install
           bun pods
+          bun pods:macos
           cd ..
 
           git add bun.lock
           git add example/ios/Podfile.lock
+          git add example/macos/Podfile.lock
           git add example/Gemfile.lock
 
           git config --global user.name 'dependabot[bot]'

@@ -3,7 +3,7 @@
 #include <string>
 #include <sys/stat.h>
 
-namespace margelo::rnnitrosqlite {
+namespace margelo::nitro::rnnitrosqlite {
 
 bool folder_exists(const std::string& foldername) {
   struct stat buffer;
@@ -57,4 +57,4 @@ std::string get_db_path(const std::string& dbName, const std::string& docPath) {
   return docPath + "/" + dbName;
 }
 
-} // namespace margelo::rnnitrosqlite
+} // namespace margelo::nitro::rnnitrosqlite
