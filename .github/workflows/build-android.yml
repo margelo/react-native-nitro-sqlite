@@ -72,6 +72,14 @@ jobs:
       - name: Test Android SQLite build flags
         run: example/android/gradlew --project-dir scripts/android-sqlite-flags testSqliteFlags --no-daemon
 
+      - name: Check Gradle configuration cache
+        if: matrix.min-sdk == '24'
+        working-directory: example/android
+        run: |
+          ./gradlew :react-native-nitro-sqlite:help --configuration-cache --no-daemon
+          ./gradlew :react-native-nitro-sqlite:help --configuration-cache --no-daemon | tee "$RUNNER_TEMP/nitro-sqlite-configuration-cache.log"
+          grep -q 'Configuration cache entry reused' "$RUNNER_TEMP/nitro-sqlite-configuration-cache.log"
+
       - name: Run Gradle Build for example/android/
         working-directory: example/android
         run: ./gradlew :app:assembleDebug --no-daemon --build-cache -PreactNativeArchitectures=${{ env.TARGET_ANDROID_ARCH }}
