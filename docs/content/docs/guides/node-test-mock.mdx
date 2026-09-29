@@ -1,0 +1,57 @@
+---
+title: Test SQLite in Node
+description: Run SQL in Jest tests with the in-memory SQLite mock.
+---
+
+Use `react-native-nitro-sqlite/mock` to run queries and batches in Node tests without loading the React Native module. Install `better-sqlite3` as a development dependency in your test project. The mock keeps each named database in memory, so close connections or reset the databases between tests. Use device tests for file storage or native scheduling.
+
+## Set up Jest
+
+Add a setup file to your existing Jest `setupFilesAfterEnv` configuration:
+
+```ts
+// jest.setup.ts
+import { resetAllDatabases } from 'react-native-nitro-sqlite/mock'
+
+jest.mock('react-native-nitro-sqlite', () =>
+  require('react-native-nitro-sqlite/mock'),
+)
+
+afterEach(resetAllDatabases)
+```
+
+Tests can then import the package as they do in the app:
+
+```ts
+import { open } from 'react-native-nitro-sqlite'
+
+test('stores a note', () => {
+  const db = open({ name: 'notes.sqlite' })
+  db.execute('CREATE TABLE notes (title TEXT NOT NULL)')
+  db.execute('INSERT INTO notes (title) VALUES (?)', ['Draft'])
+
+  expect(db.execute('SELECT title FROM notes').rows._array).toEqual([
+    { title: 'Draft' },
+  ])
+
+  db.close()
+})
+```
+
+The mock returns query rows through both `results` and `rows`, and supports synchronous and asynchronous queries and [atomic batches](/docs/guides/batch-operations). Bound `undefined` becomes SQL NULL. A query that fails throws from `execute()` or rejects from `executeAsync()`.
+
+## Mock API
+
+Import these exports from `react-native-nitro-sqlite/mock`:
+
+| Export | Behavior |
+| --- | --- |
+| `open({ name })` | Opens a named in-memory database and returns a connection. Opening the same name twice before closing it throws. |
+| `NitroSQLite.open({ name })` | Calls the same `open()` function. |
+| `resetAllDatabases()` | Closes every open mock database and removes its data. |
+
+The returned connection implements `execute()`, `executeAsync()`, `executeBatch()`, `executeBatchAsync()`, `close()`, and `delete()`. `delete()` closes the in-memory database. Query methods return the public data of [`QueryResult`](/api/react-native-nitro-sqlite/type-aliases/QueryResult); batch methods return a `rowsAffected` count. Batch commands use the [`BatchQueryCommand`](/api/react-native-nitro-sqlite/interfaces/BatchQueryCommand) shape.
+
+## Limits
+
+The mock does not implement independent or read-only connections, files, attachments, prepared statements, callback transactions, or other native methods. Its async methods return promises but execute SQL synchronously in Node.

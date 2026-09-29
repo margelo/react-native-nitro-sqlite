@@ -3,6 +3,7 @@
   "pages": [
     "sync-and-async",
     "parameters-and-results",
+    "node-test-mock",
     "prepared-statements",
     "transactions",
     "batch-operations",

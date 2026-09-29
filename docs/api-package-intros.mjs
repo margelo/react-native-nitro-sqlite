@@ -30,7 +30,7 @@ console.log(rows._array)
 db.close()
 \`\`\`
 
-Use [Getting Started](/docs) for native setup and a fuller first query. The [concepts](/docs/concepts/databases-and-connections) and [guides](/docs/guides/parameters-and-results) explain database lifetime, query parameters, and results.
+Use [Getting Started](/docs) for native setup and a fuller first query. The [concepts](/docs/concepts/databases-and-connections) and [guides](/docs/guides/parameters-and-results) explain database lifetime, query parameters, and results. For the Node-only test export and its API, see [Test SQLite in Node](/docs/guides/node-test-mock).
 `,
   'react-native-nitro-sqlite-vec': `This optional package adds [sqlite-vec](https://github.com/asg017/sqlite-vec) vector search to Nitro SQLite. Its native code is compiled into the core package's SQLite build. The functions and types below cover availability checks, vector tables, and nearest-neighbor searches.
 
