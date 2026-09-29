@@ -90,6 +90,7 @@ int main() {
       expect(std::string(error.what()).find("EncryptionNotEnabled") != std::string::npos, "a key must report that SEE is unavailable");
     }
     expect(!registry.isOpen("encrypted.sqlite"), "a failed keyed open must not register a connection");
+    expect(!fs::exists(encryptedPath), "a failed keyed open must not create a database file");
 #endif
     const auto path = root / "shared.sqlite";
     registry.open("shared.sqlite", path, false);
