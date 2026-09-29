@@ -1,6 +1,6 @@
 import { describe, it } from '@tests/TestApi'
 import { expect } from '@tests/unit/common'
-import { resetLargeDbSchema } from '@tests/db'
+import { resetLargeDbSchema } from '@/benchmarks/readCases'
 import { open } from 'react-native-nitro-sqlite'
 
 const DB_NAME = 'benchmark_schema_reset'
