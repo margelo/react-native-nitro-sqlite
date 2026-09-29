@@ -121,6 +121,10 @@ article .prose :not(pre) > code {
   overflow-wrap: anywhere;
 }
 
+.api-symbol-header + .not-prose {
+  margin-top: 1.5rem;
+}
+
 .api-language-badges {
   display: inline-flex;
   flex: none;
