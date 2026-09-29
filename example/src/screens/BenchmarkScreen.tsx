@@ -1,11 +1,11 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import Chance from 'chance'
 import {
   ActivityIndicator,
+  Pressable,
   ScrollView,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native'
 import { StatusBar } from 'expo-status-bar'
@@ -94,6 +94,58 @@ function runBenchmark(benchmark: Benchmark) {
   })
 }
 
+function BenchmarkResults({
+  results,
+}: {
+  results: Record<string, string | null>
+}) {
+  return (
+    <View>
+      {benchmarks.map(({ description }) => {
+        const time = results[description]
+
+        return (
+          <View
+            key={description}
+            style={{ paddingBottom: 10 }}
+          >
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                marginRight: -20,
+              }}
+            >
+              <Text
+                style={{
+                  color: 'black',
+                  fontWeight: 'bold',
+                  textAlign: 'center',
+                  paddingRight: 5,
+                }}
+              >
+                {description}
+              </Text>
+
+              {time === null ? (
+                <ActivityIndicator color="#808080" />
+              ) : (
+                <View style={{ width: 20, height: 20 }} />
+              )}
+            </View>
+
+            {time != null && (
+              <Text style={{ color: 'black', textAlign: 'center' }}>
+                Took <Text style={{ fontWeight: 'bold' }}>{time}ms</Text>
+              </Text>
+            )}
+          </View>
+        )
+      })}
+    </View>
+  )
+}
+
 export function BenchmarkScreen() {
   const [results, setResults] = useState<Record<string, string | null>>({})
   const [isLoading, setIsLoading] = useState(false)
@@ -121,50 +173,6 @@ export function BenchmarkScreen() {
     setIsLoading(false)
   }, [])
 
-  const Results = useMemo(
-    () =>
-      benchmarks.map(({ description }, index) => {
-        const time = results[description]
-        return (
-          <View
-            style={{ paddingBottom: 10 }}
-            key={index}
-          >
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                marginRight: -20,
-              }}
-            >
-              <Text
-                style={{
-                  fontWeight: 'bold',
-                  textAlign: 'center',
-                  paddingRight: 5,
-                }}
-              >
-                {description}
-              </Text>
-
-              {time === null ? (
-                <ActivityIndicator />
-              ) : (
-                <View style={{ width: 20, height: 20 }} />
-              )}
-            </View>
-
-            {time != null && (
-              <Text style={{ textAlign: 'center' }}>
-                Took <Text style={{ fontWeight: 'bold' }}>{time}ms</Text>
-              </Text>
-            )}
-          </View>
-        )
-      }),
-    [results],
-  )
-
   return (
     <ScrollView contentContainerStyle={ScreenStyles.container}>
       <View
@@ -175,23 +183,23 @@ export function BenchmarkScreen() {
           marginBottom: 20,
         }}
       >
-        <TouchableOpacity
-          onPressIn={() => {
-            startBenchmarks()
-          }}
+        <Pressable
+          accessibilityRole="button"
+          disabled={isLoading}
+          onPress={startBenchmarks}
           style={{ paddingRight: 10 }}
         >
           <Text style={ScreenStyles.buttonText}>Run benchmarks</Text>
-        </TouchableOpacity>
+        </Pressable>
 
         {isLoading ? (
-          <ActivityIndicator />
+          <ActivityIndicator color="#808080" />
         ) : (
           <View style={{ width: 20, height: 20 }} />
         )}
       </View>
 
-      {Results}
+      <BenchmarkResults results={results} />
 
       <StatusBar style="auto" />
     </ScrollView>

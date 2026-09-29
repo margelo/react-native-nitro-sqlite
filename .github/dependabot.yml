@@ -7,6 +7,7 @@ updates:
       interval: 'daily'
     labels:
       - 'dependencies'
+      - 'ecosystem:github-actions'
 
   - package-ecosystem: 'gradle'
     directories:
@@ -16,7 +17,7 @@ updates:
       interval: 'daily'
     labels:
       - 'dependencies'
-      - 'kotlin'
+      - 'ecosystem:gradle'
 
   - package-ecosystem: 'npm'
     directories:
@@ -26,7 +27,7 @@ updates:
       interval: 'daily'
     labels:
       - 'dependencies'
-      - 'typescript'
+      - 'ecosystem:npm'
     groups:
       rncli:
         patterns:

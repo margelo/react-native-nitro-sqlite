@@ -1,8 +1,9 @@
-// Android compiles these sources via the core's CMake, so autolink iOS only.
+// CocoaPods autolinks this package on Apple platforms; Android compiles it via the core's CMake.
 module.exports = {
   dependency: {
     platforms: {
       ios: {},
+      macos: {},
       android: null,
     },
   },

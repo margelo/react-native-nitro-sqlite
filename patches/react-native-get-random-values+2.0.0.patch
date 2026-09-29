@@ -1,0 +1,18 @@
+diff --git a/node_modules/react-native-get-random-values/ios/RNGetRandomValues.mm b/node_modules/react-native-get-random-values/ios/RNGetRandomValues.mm
+index 6e92486..a1dcc05 100644
+--- a/node_modules/react-native-get-random-values/ios/RNGetRandomValues.mm
++++ b/node_modules/react-native-get-random-values/ios/RNGetRandomValues.mm
+@@ -3,2 +3,4 @@
+ @implementation RNGetRandomValues
++RCT_EXPORT_MODULE(RNGetRandomValues)
++
+ - (NSString *)getRandomBase64:(double)byteLength {
+@@ -20,7 +22,2 @@
+-
+-+ (NSString *)moduleName
+-{
+-  return @"RNGetRandomValues";
+-}
+-
++
+ @end

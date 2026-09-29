@@ -1,69 +1,46 @@
 import 'mocha'
-import type * as MochaTypes from 'mocha'
 import { expect as chaiExpect } from 'chai'
-import type { TestExpect } from './TestApi'
+import type { TestApi, TestExpect } from './TestApi'
 
-export const rootSuite = new Mocha.Suite('')
-rootSuite.timeout(10 * 1000)
+export function createMochaTestApi(): { suite: Mocha.Suite; api: TestApi } {
+  const suite = new Mocha.Suite('')
+  suite.timeout(10 * 1000)
+  let currentSuite = suite
 
-let mochaContext = rootSuite
-let only = false
+  const api: TestApi = {
+    describe(name, register) {
+      const parent = currentSuite
+      currentSuite = new Mocha.Suite(name, parent.ctx)
+      parent.addSuite(currentSuite)
 
-export const clearTests = () => {
-  rootSuite.suites = []
-  rootSuite.tests = []
-  mochaContext = rootSuite
-  only = false
-}
-
-export const it = (
-  name: string,
-  f: MochaTypes.Func | MochaTypes.AsyncFunc,
-): void => {
-  if (!only) {
-    const test = new Mocha.Test(name, f)
-    mochaContext.addTest(test)
+      try {
+        register()
+      } finally {
+        currentSuite = parent
+      }
+    },
+    it(name, run) {
+      currentSuite.addTest(new Mocha.Test(name, run))
+    },
+    beforeEach(run) {
+      currentSuite.beforeEach(run)
+    },
+    beforeAll(run) {
+      currentSuite.beforeAll(run)
+    },
+    afterEach(run) {
+      currentSuite.afterEach(run)
+    },
+    afterAll(run) {
+      currentSuite.afterAll(run)
+    },
+    expect,
   }
+
+  return { suite, api }
 }
 
-export const itOnly = (
-  name: string,
-  f: MochaTypes.Func | MochaTypes.AsyncFunc,
-): void => {
-  clearTests()
-  const test = new Mocha.Test(name, f)
-  mochaContext.addTest(test)
-  only = true
-}
-
-export const describe = (name: string, f: () => void): void => {
-  const prevMochaContext = mochaContext
-  mochaContext = new Mocha.Suite(name, prevMochaContext.ctx)
-  prevMochaContext.addSuite(mochaContext)
-  f()
-  mochaContext = prevMochaContext
-}
-
-export const beforeEach = (f: MochaTypes.Func | MochaTypes.AsyncFunc) =>
-  mochaContext.beforeEach(f)
-export const beforeEachAsync = (f: Mocha.AsyncFunc) =>
-  mochaContext.beforeEach(f)
-
-export const beforeAll = (f: MochaTypes.Func | MochaTypes.AsyncFunc) =>
-  mochaContext.beforeAll(f)
-export const beforeAllAsync = (f: MochaTypes.AsyncFunc) =>
-  mochaContext.beforeAll(f)
-
-export const afterEach = (f: MochaTypes.Func | MochaTypes.AsyncFunc) =>
-  mochaContext.afterEach(f)
-export const afterEachAsync = (f: Mocha.AsyncFunc) => mochaContext.afterEach(f)
-
-export const afterAll = (f: MochaTypes.Func | MochaTypes.AsyncFunc) =>
-  mochaContext.afterAll(f)
-export const afterAllAsync = (f: MochaTypes.AsyncFunc) =>
-  mochaContext.afterAll(f)
-
-export function expect(value: unknown): TestExpect {
+function expect(value: unknown): TestExpect {
   return {
     toBe: (expected: unknown) => chaiExpect(value).to.equal(expected),
     toEqual: (expected: unknown) => chaiExpect(value).to.eql(expected),

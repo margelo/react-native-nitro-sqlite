@@ -21,8 +21,8 @@
     <img src="https://img.shields.io/github/followers/margelo?label=Follow%20%40margelo&style=social" />
   </a>
   <br />
-  <a align="center" href="https://twitter.com/margelo_io">
-    <img src="https://img.shields.io/twitter/follow/margelo_io?label=Follow%20%40margelo_io&style=social" />
+  <a align="center" href="https://twitter.com/margelo_com">
+    <img src="https://img.shields.io/twitter/follow/margelo_com?label=Follow%20%40margelo_com&style=social" />
   </a>
   <a align="center" href="https://bsky.app/profile/margelo.com">
     <img src="https://img.shields.io/twitter/follow/margelo_com?label=Follow%20%40margelo_com&style=social&logo=bluesky&url=https%3A%2F%2Fbsky.app%2Fprofile%2Fmargelo.com" style="pointer-events: 'none'" />
@@ -33,7 +33,7 @@
 > [!NOTE]
 > Requires [Nitro modules](https://nitro.margelo.com/) and React Native `0.75` or later.
 
-Nitro SQLite embeds SQLite and exposes a JSI API. Each operation is available in **sync** and **async** form; async runs off the JS thread to avoid blocking the UI.
+Nitro SQLite embeds SQLite and exposes a JSI API on iOS, macOS, visionOS, and Android. Each operation is available in **sync** and **async** form; async runs off the JS thread to avoid blocking the UI.
 
 ---
 
@@ -43,6 +43,20 @@ Nitro SQLite embeds SQLite and exposes a JSI API. Each operation is available in
 npm install react-native-nitro-sqlite react-native-nitro-modules
 npx pod-install
 ```
+
+For a React Native macOS app, run CocoaPods from the `macos` directory:
+
+```bash
+cd macos && pod install
+```
+
+## Run the macOS example
+
+The example targets macOS 14 or later with React Native macOS 0.81. This is the tested example configuration, not a guarantee that every older macOS version allowed by the podspec is supported.
+
+Install the workspace dependencies and the example's Ruby dependencies, then run its `pods:macos` and `macos` scripts. The desktop app shares the mobile example's SQLite, TypeORM, sqlite-vec, SQL console, and benchmark screens.
+
+To keep Metro in a separate terminal, run the `start` script in `example/macos` and launch the `macos` script with `--no-packager`. Use `--mode Release --no-packager` to build and launch the embedded production bundle.
 
 ---
 
@@ -58,9 +72,12 @@ const db = open({ name: 'myDb.sqlite' })
 // open({ name: 'myDb.sqlite', location: 'databases' })
 ```
 
+To open another connection to the same file, use `open({ name: 'myDb.sqlite', connection: 'independent' })`. Add `readOnly: true` for a reader connection. Each connection has its own queue and transaction state. See [multiple connections](docs/multiple-connections.md) for WAL setup, app migration guidance, and concurrency limits.
+
 | Method | Sync | Async | Description |
 |--------|------|-------|-------------|
 | **Execute** | `db.execute(query, params?)` | `db.executeAsync(query, params?)` | Run a single SQL statement. |
+| **Prepared statement** | `db.prepare(query)` | Statement `executeAsync(params?)` | Prepare once and execute repeatedly with different parameters. |
 | **Batch** | `db.executeBatch(commands)` | `db.executeBatchAsync(commands)` | Run multiple statements in one transaction. |
 | **Load file** | `db.loadFile(path)` | `db.loadFileAsync(path)` | Execute SQL from a file. |
 | **Transaction** | — | `db.transaction(async (tx) => { ... })` | Run multiple statements in a transaction (async only). |
@@ -73,6 +90,12 @@ const db = open({ name: 'myDb.sqlite' })
 
 - **Sync** (`execute`, `executeBatch`, `loadFile`): Run on the JS thread. Use for small, fast work; heavy work can block the UI.
 - **Async** (`executeAsync`, `executeBatchAsync`, `loadFileAsync`, `transaction`): Run off the JS thread. Prefer these for larger or many queries to keep the app responsive.
+
+Async operations submitted on the opened `db` connection outside a transaction callback run in call order. Async work waits for an active transaction to finish, while a conflicting sync operation or `close()` throws a busy error.
+
+You can submit several `executeAsync` calls together with `Promise.all`. NitroSQLite sends them to a native FIFO on that connection, so the next query can start without waiting for JavaScript to process the previous result. A single connection still executes one SQL operation at a time. Transactions wait for earlier queries to finish and hold the connection until the callback completes.
+
+`NitroSQLite.native` bypasses this JavaScript queue. Native calls keep each individual SQLite handle safe, but mixing them with a session transaction can still run statements inside that transaction. A build with `SQLITE_THREADSAFE=0` also remains unsafe when different database handles run concurrently unless the caller serializes every SQLite call globally.
 
 ---
 
@@ -105,6 +128,8 @@ const users = db.execute<{ id: number; name: string }>(
 
 Use `db.transaction()` for multiple statements in a single transaction. The callback receives a `tx` object with `execute`, `executeAsync`, `commit`, and `rollback`. If the callback throws, the transaction is rolled back. Otherwise it is committed when the callback resolves (or you can call `tx.commit()` / `tx.rollback()` explicitly).
 
+Inside the callback, all database work, including work in helper functions, must use the passed `tx` object. Do not await `db.executeAsync()`, `db.executeBatchAsync()`, or another queued session/global operation for the same database from inside the callback. Those operations wait for the transaction to finish, while the transaction would wait for them, creating a deadlock. Sync session/global calls for that database throw a busy error instead.
+
 ```typescript
 await db.transaction(async (tx) => {
   tx.execute('UPDATE sometable SET somecolumn = ? WHERE somekey = ?', [0, 1])
@@ -134,6 +159,21 @@ const commands = [
 
 const { rowsAffected } = db.executeBatch(commands)
 // Or: await db.executeBatchAsync(commands)
+```
+
+## Prepared statements
+
+Use `db.prepare()` when the same SQL statement is executed repeatedly with different parameters. Call `finalize()` once the statement is no longer needed, and always finalize it before closing its database connection.
+
+```typescript
+const insertUser = db.prepare(
+  'INSERT INTO users (id, name) VALUES (?, ?)',
+)
+
+insertUser.execute([1, 'Ada'])
+await insertUser.executeAsync([2, 'Grace'])
+
+insertUser.finalize()
 ```
 
 # Column metadata
@@ -178,9 +218,9 @@ const { rowsAffected, commands } = db.loadFile('/absolute/path/to/file.sql')
 
 # Loading existing databases
 
-Databases are created under the app documents directory (iOS) or files directory (Android). `location` is a directory path relative to that root, not an absolute file path. For example, `open({ name: 'myDb.sqlite', location: 'databases' })` opens `myDb.sqlite` under the `databases` directory. To use a database from another app-accessible location, copy or move it into this directory first. On iOS, files outside the app sandbox are inaccessible.
+By default, databases are created under the app's Documents directory on iOS and visionOS, an app-specific Application Support directory on macOS, or the files directory on Android. iOS apps can select Application Support instead, as described under [Database location](#database-location-ios). `location` is a directory path relative to that root, not an absolute file path. For example, `open({ name: 'myDb.sqlite', location: 'databases' })` opens `myDb.sqlite` under the `databases` directory. To use a database from another app-accessible location, copy or move it into this directory first. In sandboxed Apple apps, files outside the app sandbox are inaccessible.
 
-Close a connection before deleting its database. A connection must not be used after `close()` or `delete()`.
+Close connections and detach the database from other connections before deleting it. Deletion fails while another connection still uses the file. A read-only connection cannot delete its database. A connection must not be used after `close()` or `delete()`.
 
 ```ts
 db.close()
@@ -216,10 +256,11 @@ Vector search is an opt-in companion package. It statically links sqlite-vec int
    npm install react-native-nitro-sqlite-vec
    ```
 2. Enable it for each native platform, then rebuild the app:
-   - **iOS:** run CocoaPods with `NITRO_SQLITE_VEC=1`, for example:
+   - **Apple platforms (iOS, macOS, visionOS):** run CocoaPods with `NITRO_SQLITE_VEC=1`, for example:
      ```bash
      NITRO_SQLITE_VEC=1 npx pod-install
      ```
+     For React Native macOS, run `NITRO_SQLITE_VEC=1 pod install` from `macos/`.
    - **Android:** add this to `android/gradle.properties`:
      ```properties
      nitroSqliteVec=true
@@ -296,7 +337,48 @@ You can use this package as a TypeORM driver. Because of Metro and Node resoluti
 
 # Configuration
 
-## Use system SQLite on iOS
+## Configure bundled SQLite thread safety
+
+The bundled SQLite library compiles with `SQLITE_THREADSAFE=1` by default on Apple platforms and Android. This includes SQLite's mutex code and selects serialized mode, which lets SQLite serialize concurrent access to database connections and prepared statements. Configure it in your app's `package.json`:
+
+```json
+{
+  "nitroSQLite": {
+    "threadSafe": true
+  }
+}
+```
+
+`threadSafe` accepts `true` or `false` in `package.json` on both platforms. Platform-specific overrides are available when needed:
+
+| Apple platforms | Android |
+| --- | --- |
+| Run `NITRO_SQLITE_THREADSAFE=false pod install` from the app's CocoaPods directory. The variable accepts `true`, `false`, `1`, or `0`. | Set `nitroSqliteFlags="-DSQLITE_THREADSAFE=0"` in `android/gradle.properties`. Use `1` to re-enable it. |
+
+With `SQLITE_THREADSAFE=0`, SQLite removes its mutex code and cannot be made thread-safe at runtime. Only use this setting if the application serializes every SQLite call across the entire process. Per-database JavaScript queues are not sufficient because separate connections and SQLite's global state can still be accessed concurrently by native threads.
+
+When `NITRO_SQLITE_USE_PHONE_VERSION=1`, the pod links the system SQLite library instead of compiling the bundled source. `NITRO_SQLITE_THREADSAFE` does not change how that system library was compiled.
+
+## Configure SQLite performance mode
+
+The bundled SQLite library enables NitroSQLite's performance compile flags by default on Apple platforms and Android. Disable them independently from thread safety in your app's `package.json`:
+
+```json
+{
+  "nitroSQLite": {
+    "threadSafe": true,
+    "performanceMode": false
+  }
+}
+```
+
+`performanceMode` accepts `true` or `false` in `package.json` on both platforms. Disabling it omits NitroSQLite's SQLite optimization flags but does not change `SQLITE_THREADSAFE`. The flags include `SQLITE_DQS=0`, which rejects double-quoted string literals, and `SQLITE_DEFAULT_WAL_SYNCHRONOUS=1`, which changes the default durability setting in WAL mode.
+
+| Apple platforms | Android |
+| --- | --- |
+| Set `NITRO_SQLITE_PERFORMANCE_MODE` for one Pod installation. It accepts `true`, `false`, `1`, or `0`. | Use `performanceMode` in `package.json` to toggle the full set. `nitroSqliteFlags` in `android/gradle.properties` can override individual definitions, but has no full-set toggle. |
+
+## Use system SQLite on Apple platforms
 
 To use the system SQLite instead of the bundled one:
 
@@ -304,16 +386,18 @@ To use the system SQLite instead of the bundled one:
 NITRO_SQLITE_USE_PHONE_VERSION=1 npx pod-install
 ```
 
+For React Native macOS, run the command from `macos/` with `pod install` instead of `npx pod-install`.
+
 ## Compile-time options (e.g. FTS5, Geopoly)
 
-**iOS** — in your app’s `ios/Podfile`, in a `post_install` block:
+**Apple platforms** — in your app's `Podfile`, in a `post_install` block:
 
 ```ruby
 installer.pods_project.targets.each do |target|
   if target.name == "RNNitroSQLite"
     target.build_configurations.each do |config|
       config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)']
-      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'SQLITE_ENABLE_FTS5=1'
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'SQLITE_ENABLE_FTS5=1 SQLITE_ENABLE_MATH_FUNCTIONS=1'
     end
   end
 end
@@ -322,12 +406,29 @@ end
 **Android** — in `android/gradle.properties`:
 
 ```properties
-nitroSqliteFlags="-DSQLITE_ENABLE_FTS5=1"
+nitroSqliteFlags=-DSQLITE_ENABLE_FTS5=1;-DSQLITE_ENABLE_MATH_FUNCTIONS=1
 ```
 
-## App groups (iOS)
+## App groups (Apple platforms)
 
 To put the database in an app group (e.g. for extensions), set `RNNitroSQLite_AppGroup` in your `Info.plist` to the app group ID and add the App Groups capability in Xcode.
+
+## Database location (iOS)
+
+By default, databases are stored in the app's **Documents** directory. If your app enables file sharing (`UIFileSharingEnabled` + `LSSupportsOpeningDocumentsInPlace`), that directory — including your raw database and its `-wal`/`-shm` journal files — becomes visible to users in the Files app, where they can be shared, modified, or deleted from outside your app.
+
+To store databases in `Library/Application Support` instead (persistent, backed up, and never user-visible), set `RNNitroSQLite_DatabaseLocation` in your `Info.plist`:
+
+```xml
+<key>RNNitroSQLite_DatabaseLocation</key>
+<string>ApplicationSupport</string>
+```
+
+Supported values are `Documents` (the default) and `ApplicationSupport`.
+
+Databases created while the app was still using the Documents directory are automatically moved to `Library/Application Support` the first time they are opened or attached after enabling this option, so existing users keep their data. Deleting a database also removes any copy left in Documents by an interrupted migration. If you later remove the option, databases already moved to `Library/Application Support` are **not** moved back.
+
+This option has no effect when `RNNitroSQLite_AppGroup` is set, since app group databases live in the shared container.
 
 ---
 
@@ -352,6 +453,8 @@ import type {
 ```
 
 `open()` is the recommended API. `NitroSQLite` exposes the underlying database-name-based methods for advanced integrations; prefer the connection returned by `open()` because it binds the database name and adds the JavaScript transaction and result helpers.
+
+Name-based methods address the default connection only. Use the returned connection object for operations on an independent connection.
 
 ---
 

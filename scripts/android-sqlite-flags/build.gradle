@@ -1,0 +1,40 @@
+apply from: rootProject.file('../../packages/react-native-nitro-sqlite/android/sqlite-flags.gradle')
+
+tasks.register('testSqliteFlags') {
+  doLast {
+    def packageFile = new File(temporaryDir, 'package.json')
+    packageFile.parentFile.mkdirs()
+    def flagsFor = { Map appPackage, String customFlags ->
+      packageFile.text = groovy.json.JsonOutput.toJson(appPackage)
+      resolveNitroSqliteDefaultFlags(packageFile, customFlags)
+    }
+
+    def defaultFlags = flagsFor([:], '')
+    assert defaultFlags.size() == 10
+    assert defaultFlags.contains('-DSQLITE_THREADSAFE=1')
+    assert defaultFlags.contains('-DSQLITE_DQS=0')
+    assert defaultFlags.contains('-DSQLITE_DEFAULT_WAL_SYNCHRONOUS=1')
+    assert resolveNitroSqliteDefaultFlags(new File(temporaryDir, 'missing.json'), '') == defaultFlags
+
+    assert flagsFor([nitroSQLite: [performanceMode: false]], '') == ['-DSQLITE_THREADSAFE=1']
+    assert flagsFor([nitroSQLite: [threadSafe: false]], '').contains('-DSQLITE_THREADSAFE=0')
+    assert flagsFor([nitroSQLite: [threadSafe: false, performanceMode: false]], '') == ['-DSQLITE_THREADSAFE=0']
+
+    def customFlags = flagsFor([:], '-DSQLITE_THREADSAFE=0 -DSQLITE_DQS=3 -DSQLITE_ENABLE_FTS5=1')
+    assert !customFlags.any { it.startsWith('-DSQLITE_THREADSAFE=') || it.startsWith('-DSQLITE_DQS=') }
+    assert !flagsFor([:], '-DTHREADSAFE=0').any { it.startsWith('-DSQLITE_THREADSAFE=') }
+
+    def expectInvalid = { Map appPackage, String message ->
+      try {
+        flagsFor(appPackage, '')
+      } catch (GradleException error) {
+        assert error.message == message
+        return
+      }
+      throw new GradleException("Expected invalid nitroSQLite configuration: ${appPackage}")
+    }
+    expectInvalid([nitroSQLite: true], 'nitroSQLite in package.json must be an object')
+    expectInvalid([nitroSQLite: [threadSafe: 1]], 'nitroSQLite.threadSafe in package.json must be true or false')
+    expectInvalid([nitroSQLite: [performanceMode: 'false']], 'nitroSQLite.performanceMode in package.json must be true or false')
+  }
+}
