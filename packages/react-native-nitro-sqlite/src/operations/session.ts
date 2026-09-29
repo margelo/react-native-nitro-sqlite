@@ -175,21 +175,25 @@ function openNativeConnection(options: NitroSQLiteConnectionOptions): {
   if (options.connection === 'independent') {
     let connectionId: string
     try {
-      connectionId =
-        options.encryptionKey !== undefined
-          ? HybridNitroSQLite.openConnection(
-              options.name,
-              options.location,
-              options.readOnly,
-              options.encryptionKey,
-            )
-          : options.readOnly
-            ? HybridNitroSQLite.openConnection(
-                options.name,
-                options.location,
-                true,
-              )
-            : HybridNitroSQLite.openConnection(options.name, options.location)
+      if (options.encryptionKey !== undefined) {
+        connectionId = HybridNitroSQLite.openConnection(
+          options.name,
+          options.location,
+          options.readOnly,
+          options.encryptionKey,
+        )
+      } else if (options.readOnly) {
+        connectionId = HybridNitroSQLite.openConnection(
+          options.name,
+          options.location,
+          true,
+        )
+      } else {
+        connectionId = HybridNitroSQLite.openConnection(
+          options.name,
+          options.location,
+        )
+      }
       const queueKey = Symbol(options.name)
       openDatabaseQueue(queueKey)
       return { connectionId, queueKey }
