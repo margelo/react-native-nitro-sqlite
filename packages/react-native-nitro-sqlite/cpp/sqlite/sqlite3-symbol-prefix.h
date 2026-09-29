@@ -37,6 +37,8 @@
 #define sqlite3_busy_handler nitro_sqlite3_busy_handler
 #define sqlite3_busy_timeout nitro_sqlite3_busy_timeout
 #define sqlite3_cancel_auto_extension nitro_sqlite3_cancel_auto_extension
+#define sqlite3_carray_bind nitro_sqlite3_carray_bind
+#define sqlite3_carray_bind_v2 nitro_sqlite3_carray_bind_v2
 #define sqlite3_changes nitro_sqlite3_changes
 #define sqlite3_changes64 nitro_sqlite3_changes64
 #define sqlite3_clear_bindings nitro_sqlite3_clear_bindings
@@ -88,6 +90,7 @@
 #define sqlite3_db_readonly nitro_sqlite3_db_readonly
 #define sqlite3_db_release_memory nitro_sqlite3_db_release_memory
 #define sqlite3_db_status nitro_sqlite3_db_status
+#define sqlite3_db_status64 nitro_sqlite3_db_status64
 #define sqlite3_declare_vtab nitro_sqlite3_declare_vtab
 #define sqlite3_deserialize nitro_sqlite3_deserialize
 #define sqlite3_drop_modules nitro_sqlite3_drop_modules
@@ -189,7 +192,9 @@
 #define sqlite3_set_authorizer nitro_sqlite3_set_authorizer
 #define sqlite3_set_auxdata nitro_sqlite3_set_auxdata
 #define sqlite3_set_clientdata nitro_sqlite3_set_clientdata
+#define sqlite3_set_errmsg nitro_sqlite3_set_errmsg
 #define sqlite3_set_last_insert_rowid nitro_sqlite3_set_last_insert_rowid
+#define sqlite3_setlk_timeout nitro_sqlite3_setlk_timeout
 #define sqlite3_shutdown nitro_sqlite3_shutdown
 #define sqlite3_sleep nitro_sqlite3_sleep
 #define sqlite3_snapshot_cmp nitro_sqlite3_snapshot_cmp
@@ -219,9 +224,11 @@
 #define sqlite3_str_appendf nitro_sqlite3_str_appendf
 #define sqlite3_str_errcode nitro_sqlite3_str_errcode
 #define sqlite3_str_finish nitro_sqlite3_str_finish
+#define sqlite3_str_free nitro_sqlite3_str_free
 #define sqlite3_str_length nitro_sqlite3_str_length
 #define sqlite3_str_new nitro_sqlite3_str_new
 #define sqlite3_str_reset nitro_sqlite3_str_reset
+#define sqlite3_str_truncate nitro_sqlite3_str_truncate
 #define sqlite3_str_value nitro_sqlite3_str_value
 #define sqlite3_str_vappendf nitro_sqlite3_str_vappendf
 #define sqlite3_strglob nitro_sqlite3_strglob
