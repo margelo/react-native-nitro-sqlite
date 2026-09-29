@@ -57,7 +57,11 @@ describe('open', () => {
       rowsAffected: 3,
     })
 
-    expect(HybridNitroSQLite.open).toHaveBeenCalledWith(dbName, 'data')
+    expect(HybridNitroSQLite.open).toHaveBeenCalledWith(
+      dbName,
+      'data',
+      undefined,
+    )
     expect(db.execute('SELECT 1').rows.length).toBe(0)
     expect((await db.executeAsync('SELECT 2')).rows.length).toBe(0)
     expect(db.executeBatch([{ query: 'INSERT 1' }])).toEqual({
@@ -274,11 +278,13 @@ describe('open', () => {
       1,
       dbName,
       'data',
+      undefined,
     )
     expect(HybridNitroSQLite.openConnection).toHaveBeenNthCalledWith(
       2,
       dbName,
       'data',
+      undefined,
     )
     first.execute('SELECT 1')
     second.execute('SELECT 2')

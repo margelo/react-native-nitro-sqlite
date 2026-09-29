@@ -172,6 +172,7 @@ function openNativeConnection(options: NitroSQLiteConnectionOptions): {
   connectionId: string
   queueKey: DatabaseQueueKey
 } {
+  // Older native builds accept at most three arguments for unkeyed opens.
   if (options.connection === 'independent') {
     let connectionId: string
     try {
@@ -182,16 +183,11 @@ function openNativeConnection(options: NitroSQLiteConnectionOptions): {
           options.readOnly,
           options.encryptionKey,
         )
-      } else if (options.readOnly) {
-        connectionId = HybridNitroSQLite.openConnection(
-          options.name,
-          options.location,
-          true,
-        )
       } else {
         connectionId = HybridNitroSQLite.openConnection(
           options.name,
           options.location,
+          options.readOnly,
         )
       }
       const queueKey = Symbol(options.name)
@@ -211,10 +207,8 @@ function openNativeConnection(options: NitroSQLiteConnectionOptions): {
         options.readOnly,
         options.encryptionKey,
       )
-    } else if (options.readOnly) {
-      HybridNitroSQLite.open(options.name, options.location, true)
     } else {
-      HybridNitroSQLite.open(options.name, options.location)
+      HybridNitroSQLite.open(options.name, options.location, options.readOnly)
     }
   } catch (error) {
     closeDatabaseQueue(options.name)
