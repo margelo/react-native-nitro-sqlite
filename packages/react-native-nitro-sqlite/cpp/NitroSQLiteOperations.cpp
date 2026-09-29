@@ -131,26 +131,26 @@ void sqliteRemoveDb(const std::string& dbName, const std::string& docPath, const
 void bindStatement(sqlite3_stmt* statement, const SQLiteQueryParams& values) {
   for (size_t valueIndex = 0; valueIndex < values.size(); valueIndex++) {
     int sqliteIndex = valueIndex + 1;
-    const SQLiteValue& value = values.at(valueIndex);
+    const auto& optionalValue = values.at(valueIndex);
     int bindStatus = SQLITE_OK;
 
-    if (std::holds_alternative<NullType>(value)) {
+    if (!optionalValue || std::holds_alternative<NullType>(*optionalValue)) {
       bindStatus = sqlite3_bind_null(statement, sqliteIndex);
-    } else if (std::holds_alternative<bool>(value)) {
-      bindStatus = sqlite3_bind_int(statement, sqliteIndex, std::get<bool>(value));
-    } else if (std::holds_alternative<double>(value)) {
+    } else if (std::holds_alternative<bool>(*optionalValue)) {
+      bindStatus = sqlite3_bind_int(statement, sqliteIndex, std::get<bool>(*optionalValue));
+    } else if (std::holds_alternative<double>(*optionalValue)) {
       // Bind whole numbers as INTEGER so vec0 rowid/pk/partition (which reject REAL) work; SQLite still coerces to REAL for REAL columns.
-      double doubleValue = std::get<double>(value);
+      double doubleValue = std::get<double>(*optionalValue);
       if (std::trunc(doubleValue) == doubleValue && doubleValue >= kInt64MinAsDouble && doubleValue < kInt64UpperBoundAsDouble) {
         bindStatus = sqlite3_bind_int64(statement, sqliteIndex, static_cast<sqlite3_int64>(doubleValue));
       } else {
         bindStatus = sqlite3_bind_double(statement, sqliteIndex, doubleValue);
       }
-    } else if (std::holds_alternative<std::string>(value)) {
-      const auto& stringValue = std::get<std::string>(value);
+    } else if (std::holds_alternative<std::string>(*optionalValue)) {
+      const auto& stringValue = std::get<std::string>(*optionalValue);
       bindStatus = sqlite3_bind_text(statement, sqliteIndex, stringValue.c_str(), stringValue.length(), SQLITE_TRANSIENT);
-    } else if (std::holds_alternative<std::shared_ptr<ArrayBuffer>>(value)) {
-      const auto& arrayBufferValue = std::get<std::shared_ptr<ArrayBuffer>>(value);
+    } else if (std::holds_alternative<std::shared_ptr<ArrayBuffer>>(*optionalValue)) {
+      const auto& arrayBufferValue = std::get<std::shared_ptr<ArrayBuffer>>(*optionalValue);
       bindStatus = sqlite3_bind_blob(statement, sqliteIndex, arrayBufferValue->data(), arrayBufferValue->size(), SQLITE_TRANSIENT);
     }
 

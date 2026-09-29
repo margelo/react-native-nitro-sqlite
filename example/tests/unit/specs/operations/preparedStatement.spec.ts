@@ -9,6 +9,21 @@ import { testDb } from '@tests/db'
 
 export default function registerPreparedStatementUnitTests() {
   describe('prepared statements', () => {
+    it('binds undefined on synchronous and asynchronous execution', async () => {
+      const statement = testDb.prepare('SELECT ? AS missing, ? AS value')
+
+      try {
+        expect(statement.execute([undefined, 'first']).results).toEqual([
+          { missing: null, value: 'first' },
+        ])
+        expect(
+          (await statement.executeAsync([undefined, 'second'])).results,
+        ).toEqual([{ missing: null, value: 'second' }])
+      } finally {
+        statement.finalize()
+      }
+    })
+
     it('reuses one statement with different parameter values', () => {
       const insert = testDb.prepare(
         'INSERT INTO User (id, name, age, networth) VALUES (?, ?, ?, ?)',
