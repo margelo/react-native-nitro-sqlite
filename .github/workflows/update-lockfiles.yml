@@ -27,9 +27,9 @@ jobs:
       - name: Setup Ruby (bundle)
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 2.7.2
+          ruby-version: 3.3.0
           bundler-cache: true
-          working-directory: example/ios
+          working-directory: example
 
       - name: Select Xcode 26.5
         run: sudo xcode-select -s "/Applications/Xcode_26.5.app/Contents/Developer"
