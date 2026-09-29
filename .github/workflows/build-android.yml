@@ -27,6 +27,10 @@ on:
   pull_request:
     paths: *android_paths
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
 env:
   # Build a single ABI in CI to reduce native compile time.
   TARGET_ANDROID_ARCH: x86_64
