@@ -20,6 +20,21 @@ afterEach(() => {
 })
 
 describe('typeORMDriver', () => {
+  it('passes an encryption key through the TypeORM adapter', () => {
+    const connection = typeORMDriver.openDatabase(
+      { name: dbName, encryptionKey: 'secret' },
+      jest.fn(),
+      jest.fn(),
+    )
+    expect(HybridNitroSQLite.open).toHaveBeenCalledWith(
+      dbName,
+      undefined,
+      undefined,
+      'secret',
+    )
+    connection?.close(jest.fn(), jest.fn())
+  })
+
   it('opens a connection and forwards successful query, transaction, attachment, and close callbacks', async () => {
     const opened = jest.fn()
     const failed = jest.fn()

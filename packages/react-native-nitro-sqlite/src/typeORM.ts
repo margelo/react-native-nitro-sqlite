@@ -43,7 +43,7 @@ interface TypeOrmNitroSQLiteConnection {
  */
 export const typeORMDriver = {
   /** Open a database for TypeORM.
-   * @param options Database name and optional relative directory.
+   * @param options Database name, optional relative directory, and optional encryption key.
    * @param ok Receives the adapter connection on success.
    * @param fail Receives the opening error on failure.
    */
@@ -51,6 +51,7 @@ export const typeORMDriver = {
     options: {
       name: string
       location?: string
+      encryptionKey?: string
     },
     ok: (db: TypeOrmNitroSQLiteConnection) => void,
     fail: (msg: string) => void,

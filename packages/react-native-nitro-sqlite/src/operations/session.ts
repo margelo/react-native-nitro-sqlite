@@ -170,9 +170,21 @@ function openNativeConnection(options: NitroSQLiteConnectionOptions): {
   if (options.connection === 'independent') {
     let connectionId: string
     try {
-      connectionId = options.readOnly
-        ? HybridNitroSQLite.openConnection(options.name, options.location, true)
-        : HybridNitroSQLite.openConnection(options.name, options.location)
+      connectionId =
+        options.encryptionKey !== undefined
+          ? HybridNitroSQLite.openConnection(
+              options.name,
+              options.location,
+              options.readOnly,
+              options.encryptionKey,
+            )
+          : options.readOnly
+            ? HybridNitroSQLite.openConnection(
+                options.name,
+                options.location,
+                true,
+              )
+            : HybridNitroSQLite.openConnection(options.name, options.location)
       const queueKey = Symbol(options.name)
       openDatabaseQueue(queueKey)
       return { connectionId, queueKey }
@@ -183,7 +195,14 @@ function openNativeConnection(options: NitroSQLiteConnectionOptions): {
 
   openDatabaseQueue(options.name)
   try {
-    if (options.readOnly) {
+    if (options.encryptionKey !== undefined) {
+      HybridNitroSQLite.open(
+        options.name,
+        options.location,
+        options.readOnly,
+        options.encryptionKey,
+      )
+    } else if (options.readOnly) {
       HybridNitroSQLite.open(options.name, options.location, true)
     } else {
       HybridNitroSQLite.open(options.name, options.location)

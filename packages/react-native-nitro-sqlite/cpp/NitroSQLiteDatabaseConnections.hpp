@@ -7,6 +7,9 @@
 #include <mutex>
 #include <optional>
 #include <queue>
+#ifdef SQLITE_ENABLE_SEE
+#define SQLITE_HAS_CODEC 1
+#endif
 #include <sqlite3.h>
 #include <string>
 
@@ -50,9 +53,11 @@ public:
   std::recursive_mutex lifecycleMutex;
 
   /** Open a name-based default connection. An existing key is an error. */
-  void open(const std::string& key, const std::filesystem::path& path, bool readOnly);
+  void open(const std::string& key, const std::filesystem::path& path, bool readOnly,
+            const std::optional<std::string>& encryptionKey = std::nullopt);
   /** Open a separate handle to @p path and return its opaque connection ID. */
-  std::string openIndependent(const std::filesystem::path& path, bool readOnly);
+  std::string openIndependent(const std::filesystem::path& path, bool readOnly,
+                              const std::optional<std::string>& encryptionKey = std::nullopt);
   /** Close the handle identified by a default name or independent ID. */
   void close(const std::string& key);
   /** Close all registered handles. */
@@ -72,7 +77,7 @@ public:
             const std::optional<std::filesystem::path>& otherPath = std::nullopt);
 
 private:
-  void openKey(const std::string& key, const std::filesystem::path& path, bool readOnly);
+  void openKey(const std::string& key, const std::filesystem::path& path, bool readOnly, const std::optional<std::string>& encryptionKey);
   bool isPathInUse(const std::filesystem::path& path, const std::string& excludedKey) const;
 
   std::map<std::string, SQLiteConnectionPtr> connections;

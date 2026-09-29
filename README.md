@@ -297,6 +297,20 @@ The helper APIs interpolate table and column names into SQL; use trusted identif
 
 ---
 
+## Encryption
+
+Database encryption is opt-in through the licensed [SQLite Encryption Extension](https://sqlite.org/see) (SEE). This package does not include SEE. To use it, replace `cpp/sqlite/sqlite3.c` and `cpp/sqlite/sqlite3.h` in your installed copy of `react-native-nitro-sqlite` with the matching SEE amalgamation and header, then add `SQLITE_ENABLE_SEE=1` to the [native compile-time options](#compile-time-options-eg-fts5-geopoly) for both platforms. Use the bundled SQLite build on Apple platforms, not the system SQLite option.
+
+Pass a nonempty key when opening an encrypted database. The same option works for default, independent, and read-only connections. Without SEE, passing a key throws `EncryptionNotEnabled`; omitting the key keeps the usual unencrypted behavior.
+
+```typescript
+import { open } from 'react-native-nitro-sqlite'
+
+const db = open({ name: 'myDb.sqlite', encryptionKey: key })
+```
+
+Adding a key does not migrate an existing unencrypted database. Migrate its data separately before switching the app to encrypted storage. Keep the key outside the app source and supply the same key when reopening the database.
+
 # TypeORM
 
 You can use this package as a TypeORM driver. Because of Metro and Node resolution, TypeORM’s `package.json` must be exposed and the driver aliased.

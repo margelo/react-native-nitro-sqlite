@@ -19,6 +19,8 @@ export interface NitroSQLiteConnectionOptions {
    * Defaults to `false`.
    */
   readOnly?: boolean
+  /** Key for a database built with the SQLite Encryption Extension. */
+  encryptionKey?: string
 }
 
 /** A managed connection bound to one database name. Do not use it after closing or deleting it. */

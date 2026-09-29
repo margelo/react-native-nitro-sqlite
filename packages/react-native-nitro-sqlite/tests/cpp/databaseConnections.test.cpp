@@ -81,6 +81,16 @@ int main() {
   fs::create_directories(root);
   try {
     DatabaseConnections registry;
+#ifndef SQLITE_ENABLE_SEE
+    const auto encryptedPath = root / "encrypted.sqlite";
+    try {
+      registry.open("encrypted.sqlite", encryptedPath, false, std::string("secret"));
+      throw std::runtime_error("a key must fail without SEE");
+    } catch (const std::exception& error) {
+      expect(std::string(error.what()).find("EncryptionNotEnabled") != std::string::npos, "a key must report that SEE is unavailable");
+    }
+    expect(!registry.isOpen("encrypted.sqlite"), "a failed keyed open must not register a connection");
+#endif
     const auto path = root / "shared.sqlite";
     registry.open("shared.sqlite", path, false);
     const auto first = registry.get("shared.sqlite");

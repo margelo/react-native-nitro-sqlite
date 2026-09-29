@@ -133,18 +133,19 @@ const std::string getMigratedDocPath(const std::string& dbName, const std::optio
   return selectedPath;
 }
 
-void HybridNitroSQLite::open(const std::string& dbName, const std::optional<std::string>& location, std::optional<bool> readOnly) {
+void HybridNitroSQLite::open(const std::string& dbName, const std::optional<std::string>& location, std::optional<bool> readOnly,
+                             const std::optional<std::string>& encryptionKey) {
   validateDatabaseName(dbName);
   std::lock_guard lock(databaseConnections().lifecycleMutex);
   if (databaseConnections().isOpen(dbName)) {
     throw NitroSQLiteException::DatabaseAlreadyOpen(dbName);
   }
   const auto docPath = getMigratedDocPath(dbName, location, readOnly.value_or(false));
-  sqliteOpenDb(dbName, docPath, readOnly.value_or(false));
+  sqliteOpenDb(dbName, docPath, readOnly.value_or(false), encryptionKey);
 }
 
 std::string HybridNitroSQLite::openConnection(const std::string& dbName, const std::optional<std::string>& location,
-                                              std::optional<bool> readOnly) {
+                                              std::optional<bool> readOnly, const std::optional<std::string>& encryptionKey) {
   validateDatabaseName(dbName);
   if (sqlite3_threadsafe() == 0) {
     throw NitroSQLiteException(NitroSQLiteExceptionType::DatabaseCannotBeOpened,
@@ -152,7 +153,7 @@ std::string HybridNitroSQLite::openConnection(const std::string& dbName, const s
   }
   std::lock_guard lock(databaseConnections().lifecycleMutex);
   const auto docPath = getMigratedDocPath(dbName, location, readOnly.value_or(false));
-  return sqliteOpenConnection(dbName, docPath, readOnly.value_or(false));
+  return sqliteOpenConnection(dbName, docPath, readOnly.value_or(false), encryptionKey);
 }
 
 void HybridNitroSQLite::close(const std::string& dbName) {

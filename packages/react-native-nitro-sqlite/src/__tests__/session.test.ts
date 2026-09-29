@@ -22,6 +22,32 @@ afterEach(() => {
 })
 
 describe('open', () => {
+  it('passes an encryption key after the existing read-only argument', () => {
+    const db = open({ ...options, encryptionKey: 'secret' })
+    expect(HybridNitroSQLite.open).toHaveBeenCalledWith(
+      dbName,
+      'data',
+      undefined,
+      'secret',
+    )
+    db.close()
+
+    jest.mocked(HybridNitroSQLite.openConnection).mockReturnValueOnce('keyed-1')
+    const independent = open({
+      ...options,
+      connection: 'independent',
+      readOnly: true,
+      encryptionKey: 'secret',
+    })
+    expect(HybridNitroSQLite.openConnection).toHaveBeenCalledWith(
+      dbName,
+      'data',
+      true,
+      'secret',
+    )
+    independent.close()
+  })
+
   it('opens a native connection and routes its query and batch methods', async () => {
     const db = open(options)
     jest

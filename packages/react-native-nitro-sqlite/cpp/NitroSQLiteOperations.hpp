@@ -12,10 +12,11 @@
 namespace margelo::nitro::rnnitrosqlite {
 
 /** Open the default connection by database name. Read-only mode requires an existing file. */
-void sqliteOpenDb(const std::string& dbName, const std::string& docPath, bool readOnly = false);
+void sqliteOpenDb(const std::string& dbName, const std::string& docPath, bool readOnly, const std::optional<std::string>& encryptionKey);
 
 /** Open a separate native handle and return its opaque connection ID. */
-std::string sqliteOpenConnection(const std::string& dbName, const std::string& docPath, bool readOnly = false);
+std::string sqliteOpenConnection(const std::string& dbName, const std::string& docPath, bool readOnly,
+                                 const std::optional<std::string>& encryptionKey);
 
 /** Prepared SQL statement bound to one native connection. */
 class SQLitePreparedStatement {
