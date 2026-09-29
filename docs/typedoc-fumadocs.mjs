@@ -49,8 +49,9 @@ export function load(app) {
     const withSourceHeader = addSourceHeader(page, withHybridSection)
     const withSignatures = styleSignatures(withSourceHeader)
     const withSourceLinks = addMissingSourceLinks(page, withSignatures)
+    const withDefinitionSection = addDefinitionSection(withSourceLinks)
 
-    page.contents = withSourceLinks.replace(/\]\(([^)]+)\)/g, (link, href) => {
+    page.contents = withDefinitionSection.replace(/\]\(([^)]+)\)/g, (link, href) => {
       if (
         href.startsWith('#') ||
         href.startsWith('/') ||
@@ -118,6 +119,15 @@ class NitroMemberRouter extends MemberRouter {
 function isHybridObject(reflection) {
   return reflection.extendedTypes?.some(
     (type) => type.type === 'reference' && type.name === 'HybridObject',
+  )
+}
+
+function addDefinitionSection(contents) {
+  if (/^## /m.test(contents)) return contents
+
+  return contents.replace(
+    '<div className="api-signature">',
+    '## Definition\n\n<div className="api-signature">',
   )
 }
 

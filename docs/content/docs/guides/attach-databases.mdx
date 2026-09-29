@@ -5,6 +5,8 @@ description: Query another database file through a named SQLite schema.
 
 SQLite's `ATTACH DATABASE` makes another database file available through an existing connection. You give it a schema name, then use that name to distinguish tables in the attached file from tables in the main database. This is useful when one query needs data from both files.
 
+## Attach and query a database
+
 In NitroSQLite, call `attach()` on an open connection. The alias becomes the SQLite schema name. Use the same platform root and relative `location` convention as `open()`.
 
 ```ts
@@ -23,6 +25,8 @@ const { results } = db.execute(
 db.detach('archive')
 db.close()
 ```
+
+## File paths and aliases
 
 The example assumes the tables and files already exist. SQLite can create the attached file when it is missing, so verify the intended path when opening prepopulated data. `attach()` and `detach()` are synchronous connection operations; they fail while the connection queue is busy. A failed attach or detach throws `NitroSQLiteError` through the connection wrapper.
 

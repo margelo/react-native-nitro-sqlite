@@ -150,6 +150,11 @@ article .prose :not(pre) > code {
   letter-spacing: -0.045em;
 }
 
+.api-reference-body > h2:first-of-type {
+  padding-top: 0;
+  border-top: 0;
+}
+
 .api-reference-body > h3 {
   margin-top: 2.25rem;
   font-size: 1.5rem;

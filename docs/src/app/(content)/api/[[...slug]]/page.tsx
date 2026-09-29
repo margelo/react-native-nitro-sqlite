@@ -10,6 +10,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { ArticleActions } from '@/components/article-actions'
 import { ApiSymbolHeader } from '@/components/api-symbol-header'
+import { MargeloCallout } from '@/lib/layout'
 import { absoluteUrl, site } from '@/lib/site'
 import { apiSource } from '@/lib/source'
 import { getMDXComponents } from '@/mdx-components'
@@ -40,9 +41,11 @@ export default async function Page({ params }: Props) {
     <DocsPage
       toc={toc}
       full={page.data.full}
+      tableOfContent={{ footer: <MargeloCallout /> }}
+      tableOfContentPopover={{ footer: <MargeloCallout /> }}
     >
       {isOverview && <DocsTitle>{page.data.title}</DocsTitle>}
-      {isOverview && <DocsDescription>{page.data.description}</DocsDescription>}
+      {isOverview && <DocsDescription className="mb-0">{page.data.description}</DocsDescription>}
       {isOverview && actions}
       <DocsBody className="api-reference-body prose-lg prose-h3:text-2xl">
         <MDX

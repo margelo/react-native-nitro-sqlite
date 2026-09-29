@@ -1,5 +1,5 @@
 import { DocsLayout } from 'fumadocs-ui/layouts/docs'
-import { MargeloCallout, sidebarOptions } from '@/lib/layout'
+import { sidebarOptions } from '@/lib/layout'
 import { apiSource } from '@/lib/source'
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -11,7 +11,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         className:
           'api-reference-layout md:[--fd-sidebar-width:19rem] lg:[--fd-sidebar-width:20rem]',
       }}
-      sidebar={{ collapsible: false, footer: <MargeloCallout /> }}
+      sidebar={{ collapsible: false }}
       themeSwitch={{ enabled: false }}
       searchToggle={{ components: { lg: false } }}
     >

@@ -3,6 +3,7 @@ import { createRelativeLink } from 'fumadocs-ui/mdx'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { ArticleActions } from '@/components/article-actions'
+import { MargeloCallout } from '@/lib/layout'
 import { absoluteUrl, site } from '@/lib/site'
 import { source } from '@/lib/source'
 import { getMDXComponents } from '@/mdx-components'
@@ -17,9 +18,14 @@ export default async function Page({ params }: Props) {
   const MDX = page.data.body
 
   return (
-    <DocsPage toc={page.data.toc} full={page.data.full}>
+    <DocsPage
+      toc={page.data.toc}
+      full={page.data.full}
+      tableOfContent={{ footer: <MargeloCallout /> }}
+      tableOfContentPopover={{ footer: <MargeloCallout /> }}
+    >
       <DocsTitle>{page.data.title}</DocsTitle>
-      <DocsDescription>{page.data.description}</DocsDescription>
+      <DocsDescription className="mb-0">{page.data.description}</DocsDescription>
       <ArticleActions
         markdownUrl={`/markdown${page.url}`}
         githubUrl={`${site.repositoryUrl}/blob/main/docs/content/docs/${page.data.info.path}`}
