@@ -1,7 +1,7 @@
 #include "NitroSQLiteVecRegisterVectorExtensions.hpp"
 
 #include <mutex>
-#include <sqlite3.h>
+#include "sqlite3.h"
 
 #include "sqlite-vec/sqlite-vec.h"
 
