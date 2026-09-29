@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef SQLITE_ENABLE_SEE
+#define SQLITE_HAS_CODEC 1
+#endif
+#include "sqlite/sqlite3.h"
 #include <filesystem>
 #include <functional>
 #include <map>
@@ -7,10 +11,6 @@
 #include <mutex>
 #include <optional>
 #include <queue>
-#ifdef SQLITE_ENABLE_SEE
-#define SQLITE_HAS_CODEC 1
-#endif
-#include <sqlite3.h>
 #include <string>
 
 namespace margelo::nitro::rnnitrosqlite {

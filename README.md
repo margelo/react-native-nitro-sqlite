@@ -299,7 +299,7 @@ The helper APIs interpolate table and column names into SQL; use trusted identif
 
 ## Encryption
 
-Database encryption is opt-in through the licensed [SQLite Encryption Extension](https://sqlite.org/see) (SEE). This package does not include SEE. To use it, replace `cpp/sqlite/sqlite3.c` and `cpp/sqlite/sqlite3.h` in your installed copy of `react-native-nitro-sqlite` with the matching SEE amalgamation and header, then add `SQLITE_ENABLE_SEE=1` to the [native compile-time options](#compile-time-options-eg-fts5-geopoly) for both platforms. Use the bundled SQLite build on Apple platforms, not the system SQLite option.
+Database encryption is opt-in through the licensed [SQLite Encryption Extension](https://sqlite.org/see) (SEE). This package does not include SEE. To use it, replace the contents of `cpp/sqlite/sqlite3.c` and `cpp/sqlite/sqlite3.h` in your installed copy of `react-native-nitro-sqlite` with SEE files built from the same SQLite version. Keep the `sqlite3-symbol-prefix.h` include at the top of both files so SEE links to this package's SQLite instance. Then add `SQLITE_ENABLE_SEE=1` to the [native compile-time options](#compile-time-options-eg-fts5-geopoly) for both platforms. Use the bundled SQLite build on Apple platforms, not the system SQLite option.
 
 Pass a nonempty key when opening an encrypted database. The same option works for default, independent, and read-only connections. Without SEE, passing a key throws `EncryptionNotEnabled`; omitting the key keeps the usual unencrypted behavior.
 
