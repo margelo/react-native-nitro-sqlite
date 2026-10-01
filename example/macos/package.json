@@ -23,11 +23,12 @@
     "react-native-nitro-modules": "0.37.1",
     "react-native-nitro-sqlite": "workspace:*",
     "react-native-nitro-sqlite-vec": "workspace:*",
-    "reflect-metadata": "^0.1.13",
-    "typeorm": "0.3.27",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "1.1.1",
     "util": "^0.12.5"
   },
   "devDependencies": {
+    "@babel/plugin-transform-class-static-block": "^7.28.3",
     "@react-native-community/cli": "19.1.2",
     "@react-native-community/cli-platform-android": "19.1.2",
     "@react-native-community/cli-platform-apple": "19.1.2",

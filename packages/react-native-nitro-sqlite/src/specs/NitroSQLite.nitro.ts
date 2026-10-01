@@ -130,12 +130,17 @@ export interface NitroSQLite
    * @param dbName Name of an open database.
    * @param location Path to the SQL file.
    * @returns Number of executed commands and affected rows.
+   * @throws An Error with native category CouldNotLoadFile on an import
+   * failure, including the path, failing SQL/line, and any rollback failure.
+   * Completed commands are discarded when rollback succeeds.
    */
   loadFile(dbName: string, location: string): FileLoadResult
   /** Import a SQL file on a background thread.
    * @param dbName Name of an open database.
    * @param location Path to the SQL file.
    * @returns A promise of the command and affected row counts.
+   * @throws An Error with native category CouldNotLoadFile, preserving
+   * the original import error and any rollback failure. Rejects asynchronously.
    */
   loadFileAsync(dbName: string, location: string): Promise<FileLoadResult>
 }

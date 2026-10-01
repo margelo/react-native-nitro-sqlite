@@ -27,6 +27,10 @@ const transferId = await db.transaction(async (tx) => {
 
 When the callback resolves, the wrapper commits unless you already called `tx.commit()` or `tx.rollback()`. When it rejects or throws, the wrapper rolls back unless the transaction has already been finalized. An explicit `tx.rollback()` does not itself reject the callback: it ends the transaction, and the callback can still resolve. Calls to `tx.execute`, `tx.executeAsync`, `tx.commit`, or `tx.rollback` after finalization throw.
 
+A failed COMMIT can leave SQLite's transaction active, for example when a deferred foreign-key constraint fails. NitroSQLite marks a commit complete only after SQLite accepts it. A failed manual or automatic commit triggers rollback and rejects with the commit error. This also happens if the callback catches a failed `tx.commit()` and returns without explicitly rolling back. After the failure, only `tx.rollback()` is allowed on that transaction handle.
+
+If rollback also fails, the rejection preserves the original message and appends the rollback error. Its `cause` is an `AggregateError` containing the normalized primary and rollback errors, in that order. A callback that catches a failed manual rollback still causes the transaction promise to reject. A failed BEGIN does not roll back a transaction that the wrapper did not start.
+
 ## Keep operations inside the callback
 
 The connection queue is occupied for the whole callback. Use `tx.execute` or `tx.executeAsync` for **every** statement on this database during that callback, including statements in helpers.

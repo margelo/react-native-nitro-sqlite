@@ -39,13 +39,14 @@
     "react-native-quick-crypto": "^1.1.5",
     "react-native-safe-area-context": "^5.10.0",
     "react-native-screens": "^4.28.0",
-    "reflect-metadata": "^0.1.13",
+    "reflect-metadata": "^0.2.2",
     "stream-browserify": "^3.0.0",
-    "typeorm": "0.3.27",
+    "typeorm": "1.1.1",
     "util": "^0.12.5"
   },
   "devDependencies": {
     "@babel/core": "^7.28.5",
+    "@babel/plugin-transform-class-static-block": "^7.28.3",
     "@babel/plugin-proposal-decorators": "^7.20.5",
     "@babel/preset-env": "^7.25.4",
     "@babel/runtime": "^7.25.4",

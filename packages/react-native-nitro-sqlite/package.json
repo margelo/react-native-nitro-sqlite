@@ -79,7 +79,7 @@
     "registry": "https://registry.npmjs.org/"
   },
   "dependencies": {
-    "typeorm": "0.3.27"
+    "typeorm": "1.1.1"
   },
   "devDependencies": {
     "@react-native/jest-preset": "0.87.1",

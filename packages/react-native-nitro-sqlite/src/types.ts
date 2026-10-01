@@ -49,6 +49,8 @@ export interface NitroSQLiteConnection {
   detach(alias: string): void
   /** Run a callback in a queued transaction. The callback must use `tx` for database work.
    * It commits on success and rolls back on error unless explicitly finalized.
+   * A failed commit triggers rollback and rejection unless the callback explicitly rolls back.
+   * If rollback also fails, the error cause is an AggregateError of both failures.
    * Awaiting another queued operation for this database inside the callback deadlocks.
    * Synchronous connection methods throw while this transaction is active.
    * @param transactionCallback Async callback receiving the transaction handle.
@@ -81,10 +83,16 @@ export interface NitroSQLiteConnection {
    * `location` is a path to the SQL file; multi-line statements are unsupported.
    * @param location Path to the SQL file.
    * @returns Number of executed commands and affected rows.
+   * @throws NitroSQLiteError with native category CouldNotLoadFile on an import
+   * failure, including the path, failing SQL/line, and any rollback failure.
+   * Completed commands are discarded when rollback succeeds.
    */
   loadFile(location: string): FileLoadResult
   /** Queue the file import and resolve with its command and row counts.
    * @param location Path to the SQL file.
+   * @returns A promise of the command and affected row counts.
+   * @throws NitroSQLiteError with native category CouldNotLoadFile, preserving
+   * the original import error and any rollback failure. Rejects asynchronously.
    */
   loadFileAsync(location: string): Promise<FileLoadResult>
 }
@@ -114,7 +122,12 @@ export type SQLiteValue =
   | null
   | undefined
 
-/** Positional values for SQL placeholders. */
+/** Positional values for SQL placeholders.
+ * Omitted placeholders bind as SQL NULL; an exact count is not required.
+ * Extra values and other binding failures throw or reject with the one-based
+ * parameter index and SQLite error code/text, without including parameter values.
+ * This applies to regular, batch, and prepared statement execution.
+ */
 export type SQLiteQueryParams = SQLiteValue[]
 
 /** A row keyed by result column names. */
@@ -201,9 +214,16 @@ export type ExecutePreparedStatementAsync = <
 
 /** Handle valid only while its transaction callback is active. */
 export interface Transaction {
-  /** Commit now. Further operations on this transaction throw. */
+  /** Commit now. Marks completion only after SQLite accepts COMMIT.
+   * On failure, only rollback remains available and the wrapper rejects unless
+   * the callback explicitly rolls back. Throws while async queries are pending.
+   */
   commit(): NitroSQLiteQueryResult
-  /** Roll back now. Further operations on this transaction throw. */
+  /** Roll back now, including after a failed commit.
+   * Marks completion only after SQLite accepts ROLLBACK. A failed rollback
+   * rejects the transaction promise even if caught by the callback.
+   * Throws while async queries are pending or after successful finalization.
+   */
   rollback(): NitroSQLiteQueryResult
   /** Execute within this transaction on the calling thread. */
   execute: ExecuteQuery
@@ -215,7 +235,9 @@ export interface Transaction {
 export interface BatchQueryCommand {
   /** SQL statement to execute. */
   query: string
-  /** One parameter set, or several sets for repeated execution. */
+  /** One parameter set, or several sets for repeated execution.
+   * An empty array skips the command. Omit this field to execute once without bindings.
+   */
   params?: SQLiteQueryParams | SQLiteQueryParams[]
 }
 

@@ -9,7 +9,7 @@ Nitro SQLite exports `typeORMDriver` for TypeORM's `react-native` database type.
 
 ## Configure module resolution
 
-Install `typeorm`, `react-native-nitro-sqlite`, and `babel-plugin-module-resolver` in the app. The repository's working example uses TypeORM 0.3.27 and makes two resolution changes:
+Install `typeorm`, `react-native-nitro-sqlite`, `babel-plugin-module-resolver`, and `@babel/plugin-transform-class-static-block` in the app. The repository's working example uses TypeORM 1.1.1. Its browser build uses static class blocks, so the Babel transform is needed in addition to two resolution changes:
 
 1. Expose `./package.json` in TypeORM's `exports` map. The repository keeps this as a persistent package patch:
 
@@ -25,6 +25,7 @@ Install `typeorm`, `react-native-nitro-sqlite`, and `babel-plugin-module-resolve
    module.exports = {
      presets: ['module:@react-native/babel-preset'],
      plugins: [
+       '@babel/plugin-transform-class-static-block',
        [
          'module-resolver',
          {
@@ -95,7 +96,7 @@ The failure callbacks for `openDatabase` and `executeSql` are typed to receive a
 
 ## Encrypt a TypeORM database
 
-After building Nitro SQLite with licensed SEE, pass the key through the DataSource's `extra` option. TypeORM forwards `extra` to `typeORMDriver.openDatabase`:
+After building Nitro SQLite with licensed SEE, pass the key through the DataSource's `encryptionKey` option. TypeORM 1.1.1 forwards it to `typeORMDriver.openDatabase`:
 
 ```ts
 const dataSource = new DataSource({
@@ -103,7 +104,7 @@ const dataSource = new DataSource({
   database: 'private.sqlite',
   location: '.',
   driver: typeORMDriver,
-  extra: { encryptionKey },
+  encryptionKey,
   entities: [NoteEntity],
 })
 ```

@@ -1,5 +1,6 @@
 jest.mock('../nitro')
 
+import { DataSource } from 'typeorm'
 import { HybridNitroSQLite } from '../nitro'
 import { closeDatabaseQueue, isDatabaseOpen } from '../DatabaseQueue'
 import { typeORMDriver } from '../typeORM'
@@ -20,6 +21,26 @@ afterEach(() => {
 })
 
 describe('typeORMDriver', () => {
+  it('forwards a top-level encryption key from TypeORM', async () => {
+    const dataSource = new DataSource({
+      type: 'react-native',
+      database: dbName,
+      location: '.',
+      driver: typeORMDriver,
+      encryptionKey: 'secret',
+      entities: [],
+    })
+
+    await dataSource.initialize()
+    expect(HybridNitroSQLite.open).toHaveBeenCalledWith(
+      dbName,
+      '.',
+      undefined,
+      'secret',
+    )
+    await dataSource.destroy()
+  })
+
   it('passes an encryption key through the TypeORM adapter', () => {
     const connection = typeORMDriver.openDatabase(
       { name: dbName, encryptionKey: 'secret' },

@@ -1,4 +1,4 @@
-import { chance, expect } from '@tests/unit/common'
+import { chance, expect, isNitroSQLiteError } from '@tests/unit/common'
 import {
   NitroSQLiteError,
   type BatchQueryCommand,
@@ -361,6 +361,81 @@ export default function registerExecuteBatchUnitTests() {
       expect(testDb.execute('SELECT 1 AS value').results).toEqual([
         { value: 1 },
       ])
+    })
+    it('throws when executeBatch receives an extra parameter without exposing it', () => {
+      const extraParameter = 'do-not-expose-batch-parameter'
+
+      try {
+        testDb.executeBatch([
+          {
+            query: 'SELECT ?',
+            params: [1, extraParameter],
+          },
+        ])
+        throw new Error(
+          'Expected executeBatch to throw for the extra parameter',
+        )
+      } catch (error: unknown) {
+        if (!isNitroSQLiteError(error)) {
+          throw new Error('Should have thrown a valid NitroSQLiteError')
+        }
+
+        expect(error.message).toContain('parameter 2')
+        expect(error.message).toContain('25')
+        expect(error.message).toContain('column index out of range')
+        expect(error.message.includes(extraParameter)).toBe(false)
+      }
+    })
+
+    it('rejects when executeBatchAsync receives an extra parameter without exposing it', async () => {
+      const extraParameter = 'do-not-expose-batch-async-parameter'
+
+      try {
+        await testDb.executeBatchAsync([
+          {
+            query: 'SELECT ?',
+            params: [1, extraParameter],
+          },
+        ])
+        throw new Error(
+          'Expected executeBatchAsync to reject for the extra parameter',
+        )
+      } catch (error: unknown) {
+        if (!isNitroSQLiteError(error)) {
+          throw new Error('Should have thrown a valid NitroSQLiteError')
+        }
+
+        expect(error.message).toContain('parameter 2')
+        expect(error.message).toContain('25')
+        expect(error.message).toContain('column index out of range')
+        expect(error.message.includes(extraParameter)).toBe(false)
+      }
+    })
+    it('rolls back grouped writes after a later parameter set fails to bind', async () => {
+      testDb.execute('CREATE TABLE BindFailureBatch (value TEXT)')
+      const secret = 'do-not-expose-grouped-parameter'
+      for (const asynchronous of [false, true]) {
+        const commands = [
+          {
+            query: 'INSERT INTO BindFailureBatch VALUES (?)',
+            params: [['rolled back'], ['invalid', secret]],
+          },
+        ]
+        try {
+          if (asynchronous) await testDb.executeBatchAsync(commands)
+          else testDb.executeBatch(commands)
+          throw new Error('Expected grouped binding to fail')
+        } catch (error) {
+          if (!isNitroSQLiteError(error)) throw error
+          expect(error.message).toContain('parameter 2')
+          expect(error.message).toContain('25')
+          expect(error.message.includes(secret)).toBe(false)
+        }
+        expect(
+          testDb.execute('SELECT * FROM BindFailureBatch').rows._array,
+        ).toEqual([])
+      }
+      testDb.execute('DROP TABLE BindFailureBatch')
     })
   })
 }

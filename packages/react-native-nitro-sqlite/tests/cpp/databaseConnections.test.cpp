@@ -80,6 +80,57 @@ int main() {
                     ("nitro-sqlite-connections-" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
   fs::create_directories(root);
   try {
+    // Retained work must observe closure even when it outlives its registry.
+    const auto runtimePath = root / "runtime.sqlite";
+    auto oldOwner = std::make_unique<DatabaseConnections>();
+    oldOwner->open("runtime.sqlite", runtimePath, false);
+    const auto oldConnection = oldOwner->get("runtime.sqlite");
+    execute(oldConnection, "PRAGMA journal_mode=WAL");
+    execute(oldConnection, "CREATE TABLE session (value INTEGER)");
+    execute(oldConnection, "INSERT INTO session VALUES (42)");
+    expectThrows([&]() { oldOwner->open("runtime.sqlite", runtimePath, false); },
+                 "duplicate default opens within an owner must remain errors");
+    const auto oldIndependentId = oldOwner->openIndependent(runtimePath, false);
+    const auto oldIndependent = oldOwner->get(oldIndependentId);
+
+    // Overlapping roots may use the same name, but cannot close each other's handles.
+    DatabaseConnections newOwner;
+    newOwner.open("runtime.sqlite", runtimePath, false);
+    const auto newConnection = newOwner.get("runtime.sqlite");
+    const auto newIndependentId = newOwner.openIndependent(runtimePath, false);
+    expect(oldIndependentId != newIndependentId, "independent IDs must remain unique across owners");
+    expectThrows([&]() { newOwner.get(oldIndependentId); }, "an owner must not resolve another owner's independent ID");
+    expectThrows([&]() { newOwner.drop("runtime.sqlite", runtimePath, std::nullopt); },
+                 "drop must reject a file still open in another owner with the same key");
+    execute(oldConnection, "BEGIN; UPDATE session SET value = 0");
+    oldOwner.reset();
+    expect(oldConnection->database == nullptr && oldIndependent->database == nullptr,
+           "owner destruction must close default and independent handles retained by pending work");
+    expect(scalar(newConnection, "SELECT value FROM session") == 42,
+           "owner destruction must roll back unfinished work and preserve the newer handle and WAL session");
+    newOwner.close(newIndependentId);
+    newOwner.close("runtime.sqlite");
+
+    // File migration and deletion must still see other owners' attached databases.
+    auto attachedOwner = std::make_unique<DatabaseConnections>();
+    const auto mainPath = root / "runtime-main.sqlite";
+    attachedOwner->open("runtime-main.sqlite", mainPath, false);
+    execute(attachedOwner->get("runtime-main.sqlite"), "ATTACH DATABASE '" + runtimePath.string() + "' AS attached");
+    expect(newOwner.findLivePath(runtimePath, root / "new-location.sqlite") == runtimePath,
+           "migration must reuse a database attached in another owner");
+    expectThrows([&]() { newOwner.drop("runtime.sqlite", runtimePath, std::nullopt); },
+                 "drop must reject a database attached in another owner");
+    attachedOwner.reset();
+
+    for (int handoff = 0; handoff < 100; ++handoff) {
+      DatabaseConnections recreatedOwner;
+      recreatedOwner.open("runtime.sqlite", runtimePath, false);
+      expect(scalar(recreatedOwner.get("runtime.sqlite"), "SELECT value FROM session") == 42,
+             "repeated owner destruction and recreation must preserve session data");
+    }
+    newOwner.drop("runtime.sqlite", runtimePath, std::nullopt);
+    expect(!fs::exists(runtimePath), "expired observers must not prevent deletion");
+
     DatabaseConnections registry;
 #ifndef SQLITE_ENABLE_SEE
     const auto encryptedPath = root / "encrypted.sqlite";
@@ -259,7 +310,7 @@ int main() {
                  "independent database paths containing NUL must be rejected");
     registry.closeAll();
     fs::remove_all(root);
-    std::cout << "[PASS] independent connections, lifecycle, attachments, read-only and concurrent writes\n";
+    std::cout << "[PASS] runtime ownership, independent connections, lifecycle, attachments, read-only and concurrent writes\n";
     return 0;
   } catch (const std::exception& error) {
     fs::remove_all(root);
