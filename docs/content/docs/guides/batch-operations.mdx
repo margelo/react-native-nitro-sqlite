@@ -30,6 +30,8 @@ const { rowsAffected } = await db.executeBatchAsync(commands)
 
 When the same SQL runs with different values, give one command an array of parameter arrays. The native batch code expands it into separate executions before starting the transaction.
 
+An empty `params` array skips that command. If every command has an empty array, the batch throws or rejects because it has nothing to execute. Omit `params` for a statement that should run once without bindings, such as `CREATE TABLE`.
+
 ```ts
 await db.executeBatchAsync([
   {

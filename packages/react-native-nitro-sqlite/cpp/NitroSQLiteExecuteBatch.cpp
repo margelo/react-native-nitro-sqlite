@@ -21,7 +21,12 @@ std::vector<BatchQuery> batchParamsToCommands(const std::vector<BatchQueryComman
       if (std::holds_alternative<NestedParamsVec>(*command.params)) {
         groupedCommand.parameterSets = std::get<NestedParamsVec>(*command.params);
       } else {
-        groupedCommand.parameterSets.push_back(std::get<ParamsVec>(*command.params));
+        const auto& params = std::get<ParamsVec>(*command.params);
+        // An empty JavaScript array matches the flat variant first. It still
+        // represents an empty group, so only omitted params execute once.
+        if (!params.empty()) {
+          groupedCommand.parameterSets.push_back(params);
+        }
       }
     } else {
       groupedCommand.parameterSets.emplace_back();
