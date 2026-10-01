@@ -1,0 +1,57 @@
+---
+title: Sync and async
+description: Pick the query form that fits your workload and understand connection ordering.
+---
+
+SQLite work can take time, especially when a query reads many rows or a transaction writes many of them. A synchronous JavaScript call waits for that work to finish before the app can continue on the same thread. An asynchronous call lets JavaScript continue while the database work runs elsewhere.
+
+NitroSQLite's connection offers synchronous `execute`, `executeBatch`, and `loadFile` methods, with matching `Async` methods. A [prepared statement](/docs/guides/prepared-statements) also has `execute()` and `executeAsync()` for repeated SQL. Synchronous calls return before JavaScript continues, so a slow query blocks that JavaScript call. Asynchronous calls run the database work off the JavaScript thread and return a promise.
+
+```ts
+import { open } from 'react-native-nitro-sqlite'
+
+const db = open({ name: 'app.sqlite' })
+
+const smallResult = db.execute('SELECT 1 AS value')
+const largerResult = await db.executeAsync('SELECT * FROM notes')
+
+console.log(smallResult.results, largerResult.results)
+```
+
+Use synchronous calls when immediate results are useful and the work is small. Prefer async calls for queries that may scan many rows, batches, or file imports. [Performance guidance](/docs/guides/performance) covers other ways to keep work bounded.
+
+An `open()` connection submits ordinary async statements in call order. Native operations on that connection run one at a time in submission order, but await a write before starting a read that depends on it so you can handle write errors. Batches and transactions wait for preceding statements and reserve the connection until complete. A synchronous operation, `close()`, or `delete()` throws a busy error if work is pending or active. Await async work before calling a synchronous method on the same connection:
+
+```ts
+await db.executeAsync('INSERT INTO notes (body) VALUES (?)', ['Queued write'])
+const total = db
+  .execute<{ total: number }>('SELECT COUNT(*) AS total FROM notes')
+  .rows.item(0)?.total
+console.log(total)
+```
+
+`db.transaction()` also occupies the connection's queue until its callback finishes. Inside that callback, use the provided `tx` methods. Awaiting `db.executeAsync()` or another queued operation on the same connection inside it leaves both operations waiting for each other. See [transactions](/docs/guides/transactions) and [multiple connections](/docs/guides/multiple-connections).
+
+Prepared statement `executeAsync()` reserves the connection queue until it finishes. Await it before running a synchronous call or finalizing that statement. Inside a transaction callback, use `tx` methods instead of a prepared statement's async method on the same connection.
+
+## Global helpers and native access
+
+The [`NitroSQLite` export](/api/react-native-nitro-sqlite/variables/NitroSQLite) also has `execute`, `executeAsync`, `prepare`, `executeBatch`, `executeBatchAsync`, and `transaction` helpers that take a database name. `NitroSQLite.open(options)` is the same helper as the named [`open()` export](/api/react-native-nitro-sqlite/functions/open). Global queries join the default connection's JavaScript queue when the name was opened through `open()`. They do not address independent connections; use the object returned by `open()` for those. Without a default managed connection, global `execute` and `executeAsync` call the native methods directly and still need an open native database handle. Global `prepare`, batches, and transactions need a default connection opened through `open()`.
+
+`NitroSQLite.native` exposes the underlying [`NitroSQLiteNative` hybrid object](/api/react-native-nitro-sqlite/hybrid-objects/NitroSQLiteNative). Its methods take a database name and return raw results without the connection helper's `rows` container. They also throw native errors without converting them to `NitroSQLiteError`.
+
+```ts
+import { NitroSQLite } from 'react-native-nitro-sqlite'
+
+NitroSQLite.native.open('raw.sqlite')
+try {
+  const result = NitroSQLite.native.execute('raw.sqlite', 'SELECT 1 AS value')
+  console.log(result.results[0]?.value)
+} finally {
+  NitroSQLite.native.close('raw.sqlite')
+}
+```
+
+Native calls bypass the JavaScript queue. If you use them alongside an `open()` connection, coordinate access yourself. A native statement can run inside an active connection transaction without joining its callback's sequence. The raw result is a Nitro hybrid object with `name`, `toString()`, `equals(other)`, and `dispose()` members. Disposing it makes that result unusable. `dispose()` is not a database `close()` call, and ordinary garbage collection handles these objects. Do not dispose the shared `NitroSQLite.native` instance during normal database cleanup.
+
+The `NitroSQLite` export spreads the hybrid instance, but inherited native methods do not appear on that top-level object. Call them through `.native`. If you compile SQLite with `SQLITE_THREADSAFE=0`, also serialize access across separate database handles and native threads. See the [iOS](/docs/configuration/ios#thread-safety-and-performance-mode) and [Android](/docs/configuration/android#threading) configuration pages.

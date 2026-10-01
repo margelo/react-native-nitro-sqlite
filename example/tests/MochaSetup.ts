@@ -1,74 +1,87 @@
 import 'mocha'
-import * as mochaTestApi from './MochaRNAdapter'
-import { clearTests, rootSuite } from './MochaRNAdapter'
+import { createMochaTestApi } from './MochaRNAdapter'
 import { setTestApi } from './TestApi'
 
-export interface MochaTestResult {
-  description: string
-  key: string
-  type: string
-  errorMsg?: string
-}
+export type MochaTestResult =
+  | { type: 'suite'; id: string; parentId: string | null; title: string }
+  | {
+      type: 'test'
+      id: string
+      parentId: string | null
+      title: string
+      status: 'passed'
+    }
+  | {
+      type: 'test'
+      id: string
+      parentId: string | null
+      title: string
+      status: 'failed'
+      errorMsg: string
+    }
 
-export function runTests(...registrators: (() => void)[]) {
-  // testRegistrators: Array<() => void> = []
-  // console.log('setting up mocha');
+export async function runTests(
+  onResult: (result: MochaTestResult) => void,
+  ...registrators: (() => void)[]
+): Promise<void> {
+  const { suite, api } = createMochaTestApi()
+  setTestApi(api)
+  registrators.forEach((register) => register())
 
-  const promise = new Promise<MochaTestResult[]>((resolve) => {
+  await new Promise<void>((resolve) => {
     const {
       EVENT_RUN_END,
       EVENT_TEST_FAIL,
       EVENT_TEST_PASS,
       EVENT_SUITE_BEGIN,
     } = Mocha.Runner.constants
-
-    clearTests()
-    const results: MochaTestResult[] = []
-    const runner = new Mocha.Runner(rootSuite)
+    const runner = new Mocha.Runner(suite)
+    const suiteIds = new Map<Mocha.Suite, string>()
+    let nextId = 0
 
     runner
-      .on(EVENT_SUITE_BEGIN, (suite) => {
-        const name = suite.title
-        if (name !== '') {
-          results.push({
-            description: name,
-            key: Math.random().toString(),
-            type: 'grouping',
+      .on(EVENT_SUITE_BEGIN, (startedSuite) => {
+        if (startedSuite.title !== '') {
+          const id = `suite-${nextId++}`
+          suiteIds.set(startedSuite, id)
+          onResult({
+            type: 'suite',
+            id,
+            parentId: getParentId(startedSuite.parent, suite, suiteIds),
+            title: startedSuite.title,
           })
         }
       })
       .on(EVENT_TEST_PASS, (test) => {
-        results.push({
-          description: test.title,
-          key: Math.random().toString(),
-          type: 'correct',
+        onResult({
+          type: 'test',
+          id: `test-${nextId++}`,
+          parentId: getParentId(test.parent, suite, suiteIds),
+          title: test.title,
+          status: 'passed',
         })
-        // console.log(`${indent()}pass: ${test.fullTitle()}`);
       })
-      .on(EVENT_TEST_FAIL, (test, err: Error) => {
-        results.push({
-          description: test.title,
-          key: Math.random().toString(),
-          type: 'incorrect',
-          errorMsg: err.message,
+      .on(EVENT_TEST_FAIL, (test, error: Error) => {
+        onResult({
+          type: 'test',
+          id: `test-${nextId++}`,
+          parentId: getParentId(test.parent, suite, suiteIds),
+          title: test.title,
+          status: 'failed',
+          errorMsg: error.message,
         })
-        // console.log(
-        // `${indent()}fail: ${test.fullTitle()} - error: ${err.message}`
-        // );
       })
-      .once(EVENT_RUN_END, () => {
-        resolve(results)
-      })
+      .once(EVENT_RUN_END, resolve)
 
-    setTestApi(mochaTestApi)
-    registrators.forEach((register) => register())
     runner.run()
   })
+}
 
-  // return () => {
-  //   console.log('aborting');
-  //   runner.abort();
-  // };
-
-  return promise
+function getParentId(
+  parent: Mocha.Suite | undefined,
+  root: Mocha.Suite,
+  suiteIds: Map<Mocha.Suite, string>,
+): string | null {
+  if (!parent || parent === root) return null
+  return suiteIds.get(parent) ?? null
 }

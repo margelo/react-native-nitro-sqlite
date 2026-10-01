@@ -1,0 +1,8 @@
+{
+  "name": "react-native-nitro-sqlite/mock",
+  "private": true,
+  "typedocOptions": {
+    "entryPoints": ["../../packages/react-native-nitro-sqlite/src/mock.ts"],
+    "tsconfig": "../tsconfig.typedoc.json"
+  }
+}

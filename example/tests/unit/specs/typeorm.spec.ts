@@ -68,5 +68,31 @@ export default function registerTypeORMUnitTests() {
       expect(books).toHaveLength(1)
       expect(books[0]?.title).toBe('Test Book')
     })
+
+    it('runs parallel reads through the TypeORM driver', async () => {
+      const users = Array.from({ length: 20 }, (_, index) =>
+        userRepository.create({
+          name: `Concurrent User ${index}`,
+          age: index,
+          networth: index * 100,
+          metadata: { nickname: `concurrent-${index}` },
+          avatar: new Uint8Array([index]).buffer,
+        }),
+      )
+      await userRepository.save(users)
+
+      const reads = await Promise.all(
+        Array.from({ length: 32 }, () =>
+          userRepository.find({ order: { age: 'ASC' } }),
+        ),
+      )
+
+      for (const result of reads) {
+        expect(result).toHaveLength(users.length)
+        expect(result.map((user) => user.age)).toEqual(
+          users.map((user) => user.age),
+        )
+      }
+    })
   })
 }

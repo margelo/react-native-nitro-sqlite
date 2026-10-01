@@ -8,6 +8,7 @@ import {
 } from '@tests/unit/common'
 import { describe, it } from '@tests/TestApi'
 import type { User } from '@/model/User'
+import { NitroSQLiteError } from 'react-native-nitro-sqlite'
 import { testDb } from '@tests/db'
 
 export default function registerTransactionUnitTests() {
@@ -145,11 +146,21 @@ export default function registerTransactionUnitTests() {
 
         tx.commit()
 
+        let queryError: unknown
         try {
           tx.execute('SELECT * FROM "User"')
         } catch (e) {
-          expect(e).not.toBe(undefined)
+          queryError = e
         }
+        expect(queryError).toBeInstanceOf(NitroSQLiteError)
+
+        let asyncQueryError: unknown
+        try {
+          await tx.executeAsync('SELECT * FROM "User"')
+        } catch (e) {
+          asyncQueryError = e
+        }
+        expect(asyncQueryError).toBeInstanceOf(NitroSQLiteError)
       })
 
       const res = testDb.execute('SELECT * FROM User')
@@ -196,9 +207,10 @@ export default function registerTransactionUnitTests() {
           [id, name, age, networth],
         )
         tx.rollback()
-        const res = testDb.execute('SELECT * FROM User')
-        expect(res.rows?._array).toEqual([])
       })
+
+      const res = testDb.execute('SELECT * FROM User')
+      expect(res.rows?._array).toEqual([])
     })
 
     it('Transaction, rejects on callback error', async () => {

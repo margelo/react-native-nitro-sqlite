@@ -7,11 +7,38 @@ import {
 } from '@tests/unit/common'
 import { describe, it } from '@tests/TestApi'
 import { testDb, testDbQueue } from '@tests/db'
-import type { BatchQueryCommand } from 'react-native-nitro-sqlite'
+import {
+  NitroSQLite,
+  NitroSQLiteError,
+  open,
+  type BatchQueryCommand,
+} from 'react-native-nitro-sqlite'
 
 const TEST_QUERY = 'SELECT * FROM [User];'
 
 const TEST_BATCH_COMMANDS: BatchQueryCommand[] = [{ query: TEST_QUERY }]
+
+function createDeferred() {
+  let resolve!: () => void
+  const promise = new Promise<void>((promiseResolve) => {
+    resolve = promiseResolve
+  })
+  return { promise, resolve }
+}
+
+function dropDatabaseIfExists(dbName: string, location?: string) {
+  try {
+    NitroSQLite.native.drop(dbName, location)
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.includes('Database file not found')
+    ) {
+      return
+    }
+    throw error
+  }
+}
 
 export default function registerDatabaseQueueUnitTests() {
   describe('Database Queue', () => {
@@ -60,33 +87,20 @@ export default function registerDatabaseQueueUnitTests() {
       expect(testDbQueue.inProgress).toBe(false)
     })
 
-    it('multiple executeBatchAsync operations are queued', async () => {
+    it('submits multiple executeBatchAsync operations together', async () => {
       const executeBatch1Promise = testDb.executeBatchAsync(TEST_BATCH_COMMANDS)
-
-      expect(testDbQueue.queue.length).toBe(0)
-      expect(testDbQueue.inProgress).toBe(true)
-
       const executeBatch2Promise = testDb.executeBatchAsync(TEST_BATCH_COMMANDS)
-
-      expect(testDbQueue.queue.length).toBe(1)
-      expect(testDbQueue.inProgress).toBe(true)
-
       const executeBatch3Promise = testDb.executeBatchAsync(TEST_BATCH_COMMANDS)
 
-      expect(testDbQueue.queue.length).toBe(2)
-      expect(testDbQueue.inProgress).toBe(true)
-
-      await executeBatch1Promise
-
-      expect(testDbQueue.queue.length).toBe(1)
-      expect(testDbQueue.inProgress).toBe(true)
-
-      await executeBatch2Promise
-
       expect(testDbQueue.queue.length).toBe(0)
       expect(testDbQueue.inProgress).toBe(true)
+      expect(testDbQueue.activeStatements).toBe(3)
 
-      await executeBatch3Promise
+      await Promise.all([
+        executeBatch1Promise,
+        executeBatch2Promise,
+        executeBatch3Promise,
+      ])
 
       expect(testDbQueue.queue.length).toBe(0)
       expect(testDbQueue.inProgress).toBe(false)
@@ -177,6 +191,497 @@ export default function registerDatabaseQueueUnitTests() {
           throw new Error(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
         }
       }
+    })
+
+    it('queues ordinary async work behind a transaction rollback', async () => {
+      const transactionStarted = createDeferred()
+      const finishTransaction = createDeferred()
+      const transactionPromise = testDb.transaction(async (tx) => {
+        tx.execute(
+          'INSERT INTO User (id, name, age, networth) VALUES (?, ?, ?, ?)',
+          [1, 'transaction', 1, 1],
+        )
+        transactionStarted.resolve()
+        await finishTransaction.promise
+        throw new Error('rollback transaction')
+      })
+
+      await transactionStarted.promise
+      const externalWrites = Array.from({ length: 24 }, (_, index) =>
+        testDb.executeAsync(
+          'INSERT INTO User (id, name, age, networth) VALUES (?, ?, ?, ?)',
+          [index + 2, `external-${index}`, 2, 2],
+        ),
+      )
+      finishTransaction.resolve()
+
+      try {
+        await transactionPromise
+      } catch (error) {
+        expect((error as Error).message).toContain('rollback transaction')
+      }
+      await Promise.all(externalWrites)
+
+      expect(
+        testDb.execute<{ id: number }>('SELECT id FROM User').results,
+      ).toEqual(Array.from({ length: 24 }, (_, index) => ({ id: index + 2 })))
+    })
+
+    it('returns distinct insert IDs from parallel async inserts', async () => {
+      testDb.execute(
+        'CREATE TABLE ConcurrentInsert (id INTEGER PRIMARY KEY AUTOINCREMENT, value TEXT)',
+      )
+
+      const results = await Promise.all(
+        Array.from({ length: 24 }, (_, index) =>
+          testDb.executeAsync(
+            'INSERT INTO ConcurrentInsert (value) VALUES (?)',
+            [`value-${index}`],
+          ),
+        ),
+      )
+
+      expect(results.map((result) => result.insertId)).toEqual(
+        Array.from({ length: 24 }, (_, index) => index + 1),
+      )
+    })
+
+    it('starts a transaction after an earlier burst of async writes finishes', async () => {
+      testDb.execute('CREATE TABLE TransactionBarrier (value INTEGER)')
+      const writes = Array.from({ length: 24 }, (_, index) =>
+        testDb.executeAsync(
+          'INSERT INTO TransactionBarrier (value) VALUES (?)',
+          [index],
+        ),
+      )
+      const transaction = testDb.transaction(
+        async (tx) =>
+          tx.execute<{ total: number }>(
+            'SELECT count(*) AS total FROM TransactionBarrier',
+          ).results[0]?.total,
+      )
+
+      await Promise.all(writes)
+      expect(await transaction).toBe(24)
+    })
+
+    it('keeps a batch atomic between async statements', async () => {
+      testDb.execute('CREATE TABLE BatchBarrier (value INTEGER PRIMARY KEY)')
+      const before = testDb.executeAsync(
+        'INSERT INTO BatchBarrier (value) VALUES (1)',
+      )
+      const batch = testDb.executeBatchAsync([
+        { query: 'INSERT INTO BatchBarrier (value) VALUES (2)' },
+        { query: 'INSERT INTO BatchBarrier (value) VALUES (1)' },
+      ])
+      const batchErrorPromise = batch.then(
+        () => undefined,
+        (error: unknown) => error,
+      )
+      const after = testDb.executeAsync(
+        'INSERT INTO BatchBarrier (value) VALUES (3)',
+      )
+
+      await before
+      const batchError = await batchErrorPromise
+      expect(batchError).toBeInstanceOf(NitroSQLiteError)
+      await after
+      expect(
+        testDb.execute<{ value: number }>(
+          'SELECT value FROM BatchBarrier ORDER BY value',
+        ).results,
+      ).toEqual([{ value: 1 }, { value: 3 }])
+    })
+
+    it('rejects synchronous transaction work while an async query is pending', async () => {
+      await testDb.transaction(async (tx) => {
+        const pending = tx.executeAsync('SELECT 1')
+        let syncError: unknown
+        try {
+          tx.execute('SELECT 2')
+        } catch (error) {
+          syncError = error
+        }
+        expect(syncError).toBeInstanceOf(NitroSQLiteError)
+        expect((syncError as Error).message).toContain(
+          'Await all tx.executeAsync',
+        )
+        await pending
+        expect(tx.execute('SELECT 2').results).toEqual([{ '2': 2 }])
+      })
+    })
+
+    it('runs native async statements in submission order', async () => {
+      const dbName = 'native-fifo-order'
+      dropDatabaseIfExists(dbName)
+      NitroSQLite.native.open(dbName)
+
+      try {
+        NitroSQLite.native.execute(
+          dbName,
+          'CREATE TABLE NativeQueueInsert (id INTEGER PRIMARY KEY AUTOINCREMENT, value INTEGER)',
+        )
+        const results = await Promise.all(
+          Array.from({ length: 64 }, (_, index) =>
+            NitroSQLite.native.executeAsync(
+              dbName,
+              'INSERT INTO NativeQueueInsert (value) VALUES (?)',
+              [index],
+            ),
+          ),
+        )
+
+        expect(results.map((result) => result.insertId)).toEqual(
+          Array.from({ length: 64 }, (_, index) => index + 1),
+        )
+
+        const batch = NitroSQLite.native.executeBatchAsync(dbName, [
+          {
+            query: 'INSERT INTO NativeQueueInsert (value) VALUES (?)',
+            params: [[64], [65]],
+          },
+        ])
+        const afterBatch = NitroSQLite.native.executeAsync(
+          dbName,
+          'INSERT INTO NativeQueueInsert (value) VALUES (?)',
+          [66],
+        )
+        await batch
+        expect((await afterBatch).insertId).toBe(67)
+      } finally {
+        NitroSQLite.native.close(dbName)
+        dropDatabaseIfExists(dbName)
+      }
+    })
+
+    it('continues the native FIFO after a query fails', async () => {
+      const dbName = 'native-fifo-recovery'
+      dropDatabaseIfExists(dbName)
+      NitroSQLite.native.open(dbName)
+
+      try {
+        const failed = NitroSQLite.native.executeAsync(
+          dbName,
+          'SELECT * FROM MissingTable',
+        )
+        const next = NitroSQLite.native.executeAsync(
+          dbName,
+          'SELECT 42 AS value',
+        )
+
+        let queryError: unknown
+        try {
+          await failed
+        } catch (error) {
+          queryError = error
+        }
+        expect(queryError).toBeInstanceOf(Error)
+        expect((await next).results).toEqual([{ value: 42 }])
+      } finally {
+        NitroSQLite.native.close(dbName)
+        dropDatabaseIfExists(dbName)
+      }
+    })
+
+    it('rejects sync work and close while async work is pending', async () => {
+      const dbName = 'busy-close'
+      dropDatabaseIfExists(dbName)
+      const db = open({ name: dbName })
+
+      const pending = db.executeAsync(
+        'WITH RECURSIVE counter(value) AS (VALUES(0) UNION ALL SELECT value + 1 FROM counter WHERE value < 100000) SELECT sum(value) FROM counter',
+      )
+
+      const syncOperations = [
+        () => db.execute('SELECT 1'),
+        () => db.executeBatch([{ query: 'SELECT 1' }]),
+        () => db.loadFile('/nitro-sqlite-does-not-exist.sql'),
+        () => db.attach('other.sqlite', 'other'),
+        () => db.detach('other'),
+        () => db.delete(),
+        () => db.close(),
+      ]
+
+      for (const operation of syncOperations) {
+        let operationError: unknown
+        try {
+          operation()
+        } catch (error) {
+          operationError = error
+        }
+
+        expect(operationError).toBeInstanceOf(NitroSQLiteError)
+        expect((operationError as Error).message).toContain('busy')
+      }
+
+      await pending
+      db.close()
+      const reopened = open({ name: dbName })
+      reopened.close()
+      reopened.delete()
+    })
+
+    it('releases the queue after loadFileAsync rejects', async () => {
+      let loadError: unknown
+      try {
+        await testDb.loadFileAsync('/nitro-sqlite-does-not-exist.sql')
+      } catch (error) {
+        loadError = error
+      }
+
+      expect(loadError).toBeInstanceOf(NitroSQLiteError)
+      expect((loadError as Error).message).toContain('Could not load file')
+      expect((await testDb.executeAsync('SELECT 42 AS value')).results).toEqual(
+        [{ value: 42 }],
+      )
+    })
+
+    it('does not block operations on another database', async () => {
+      const firstName = 'independent-first'
+      const secondName = 'independent-second'
+      dropDatabaseIfExists(firstName)
+      dropDatabaseIfExists(secondName)
+      const first = open({ name: firstName })
+      const second = open({ name: secondName })
+      const transactionStarted = createDeferred()
+      const finishTransaction = createDeferred()
+
+      try {
+        const transactionPromise = first.transaction(async () => {
+          transactionStarted.resolve()
+          await finishTransaction.promise
+        })
+        await transactionStarted.promise
+
+        const result = await second.executeAsync('SELECT 42 AS value')
+        expect(result.results).toEqual([{ value: 42 }])
+
+        finishTransaction.resolve()
+        await transactionPromise
+      } finally {
+        finishTransaction.resolve()
+        first.close()
+        first.delete()
+        second.close()
+        second.delete()
+      }
+    })
+
+    it('rejects a duplicate session open without replacing the original connection', () => {
+      const dbName = 'duplicate-session-open'
+      dropDatabaseIfExists(dbName)
+      dropDatabaseIfExists(dbName, '..')
+
+      const db = open({ name: dbName })
+
+      try {
+        db.execute('CREATE TABLE ConnectionMarker (value TEXT NOT NULL)')
+        db.execute('INSERT INTO ConnectionMarker (value) VALUES (?)', [
+          'original',
+        ])
+
+        let duplicateError: unknown
+        try {
+          open({ name: dbName, location: '..' })
+        } catch (error) {
+          duplicateError = error
+        }
+
+        expect(duplicateError).toBeInstanceOf(NitroSQLiteError)
+        expect((duplicateError as Error).message).toContain('already open')
+        expect(
+          db.execute<{ value: string }>('SELECT value FROM ConnectionMarker')
+            .results,
+        ).toEqual([{ value: 'original' }])
+      } finally {
+        db.close()
+        dropDatabaseIfExists(dbName)
+        dropDatabaseIfExists(dbName, '..')
+      }
+    })
+
+    it('rejects duplicate direct native opens', () => {
+      const dbName = 'duplicate-native-open'
+      dropDatabaseIfExists(dbName)
+
+      NitroSQLite.native.open(dbName)
+
+      try {
+        NitroSQLite.execute(
+          dbName,
+          'CREATE TABLE ConnectionMarker (value TEXT NOT NULL)',
+        )
+        NitroSQLite.execute(
+          dbName,
+          'INSERT INTO ConnectionMarker (value) VALUES (?)',
+          ['original'],
+        )
+
+        let duplicateError: unknown
+        try {
+          NitroSQLite.native.open(dbName)
+        } catch (error) {
+          duplicateError = error
+        }
+
+        expect(duplicateError).toBeInstanceOf(Error)
+        expect((duplicateError as Error).message).toContain('already open')
+        expect(
+          NitroSQLite.execute<{ value: string }>(
+            dbName,
+            'SELECT value FROM ConnectionMarker',
+          ).results,
+        ).toEqual([{ value: 'original' }])
+      } finally {
+        NitroSQLite.native.close(dbName)
+        dropDatabaseIfExists(dbName)
+      }
+    })
+
+    it('preserves an open connection when deleting a missing target', () => {
+      const dbName = 'missing-delete-target'
+      dropDatabaseIfExists(dbName)
+      dropDatabaseIfExists(dbName, '..')
+      const db = open({ name: dbName })
+
+      try {
+        db.execute('CREATE TABLE ConnectionMarker (value TEXT NOT NULL)')
+        db.execute('INSERT INTO ConnectionMarker (value) VALUES (?)', [
+          'original',
+        ])
+
+        let deleteError: unknown
+        try {
+          NitroSQLite.native.drop(dbName, '..')
+        } catch (error) {
+          deleteError = error
+        }
+
+        expect(deleteError).toBeInstanceOf(Error)
+        expect((deleteError as Error).message).toContain(
+          'Database file not found',
+        )
+        expect(
+          db.execute<{ value: string }>('SELECT value FROM ConnectionMarker')
+            .results,
+        ).toEqual([{ value: 'original' }])
+      } finally {
+        db.close()
+        dropDatabaseIfExists(dbName)
+      }
+    })
+
+    it('serializes direct native async result metadata', async () => {
+      const dbName = 'native-concurrent-inserts'
+      dropDatabaseIfExists(dbName)
+      NitroSQLite.native.open(dbName)
+
+      try {
+        NitroSQLite.native.execute(
+          dbName,
+          'CREATE TABLE Item (id INTEGER PRIMARY KEY AUTOINCREMENT, value TEXT)',
+        )
+        const results = await Promise.all(
+          Array.from({ length: 24 }, (_, index) =>
+            NitroSQLite.native.executeAsync(
+              dbName,
+              'INSERT INTO Item (value) VALUES (?)',
+              [`value-${index}`],
+            ),
+          ),
+        )
+
+        const insertIds = results
+          .map((result) => result.insertId)
+          .sort((a, b) => (a ?? 0) - (b ?? 0))
+        expect(insertIds).toEqual(
+          Array.from({ length: 24 }, (_, index) => index + 1),
+        )
+
+        const storedRows = NitroSQLite.native.execute(
+          dbName,
+          'SELECT id, value FROM Item',
+        ).results
+        results.forEach((result, index) => {
+          const storedRow = storedRows.find((row) => row.id === result.insertId)
+          expect(storedRow?.value).toBe(`value-${index}`)
+        })
+      } finally {
+        NitroSQLite.native.close(dbName)
+        dropDatabaseIfExists(dbName)
+      }
+    })
+
+    it('does not reroute native async work after close and reopen', async () => {
+      const dbName = 'native-close-reopen'
+      dropDatabaseIfExists(dbName)
+      dropDatabaseIfExists(dbName, '..')
+      NitroSQLite.native.open(dbName)
+
+      try {
+        NitroSQLite.native.execute(
+          dbName,
+          'CREATE TABLE ConnectionMarker (value TEXT NOT NULL)',
+        )
+        NitroSQLite.native.execute(
+          dbName,
+          'INSERT INTO ConnectionMarker (value) VALUES (?)',
+          ['original'],
+        )
+
+        const pending = NitroSQLite.native.executeAsync(
+          dbName,
+          'WITH RECURSIVE counter(value) AS (VALUES(0) UNION ALL SELECT value + 1 FROM counter WHERE value < 100000) SELECT ConnectionMarker.value, sum(counter.value) AS total FROM ConnectionMarker, counter',
+        )
+
+        NitroSQLite.native.close(dbName)
+        NitroSQLite.native.open(dbName, '..')
+        NitroSQLite.native.execute(
+          dbName,
+          'CREATE TABLE ConnectionMarker (value TEXT NOT NULL)',
+        )
+        NitroSQLite.native.execute(
+          dbName,
+          'INSERT INTO ConnectionMarker (value) VALUES (?)',
+          ['replacement'],
+        )
+
+        try {
+          const result = await pending
+          expect(result.results[0]?.value).toBe('original')
+        } catch (error) {
+          expect((error as Error).message).toContain('not open')
+        }
+
+        expect(
+          NitroSQLite.execute<{ value: string }>(
+            dbName,
+            'SELECT value FROM ConnectionMarker',
+          ).results,
+        ).toEqual([{ value: 'replacement' }])
+      } finally {
+        if (NitroSQLite.native.isConnectionOpen(dbName)) {
+          NitroSQLite.native.close(dbName)
+        }
+        dropDatabaseIfExists(dbName)
+        dropDatabaseIfExists(dbName, '..')
+      }
+    })
+
+    it('rejects missing native async databases asynchronously', async () => {
+      const dbName = 'native-async-missing-database'
+      dropDatabaseIfExists(dbName)
+
+      const pending = NitroSQLite.native.executeAsync(dbName, 'SELECT 1')
+      let asyncError: unknown
+      try {
+        await pending
+      } catch (error) {
+        asyncError = error
+      }
+
+      expect(asyncError).toBeInstanceOf(Error)
+      expect((asyncError as Error).message).toContain('not open')
     })
   })
 }

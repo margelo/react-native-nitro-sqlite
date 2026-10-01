@@ -6,6 +6,7 @@ module.exports = {
     '**/.eslintrc.js',
     '**/.prettierrc.js',
     '**/jest.config.js',
+    '**/jest.mocha.config.js',
     '**/babel.config.js',
     '**/metro.config.js',
     '**/react-native.config.js',
