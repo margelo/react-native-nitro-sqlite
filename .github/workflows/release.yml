@@ -96,6 +96,12 @@ jobs:
           }
           NODE
 
+      - name: Generate release notes
+        run: node scripts/generate-release-notes.ts "$RELEASE_VERSION" "$RUNNER_TEMP/release-notes.md"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ inputs.version }}
+
       - name: Publish prepared release
         run: ./scripts/release.sh --publish-prepared "$RELEASE_VERSION"
         env:
@@ -110,14 +116,7 @@ jobs:
           if [[ "${version%%.*}" == 9 ]]; then
             latest=false
           fi
-          notes="docs/releases/v${version}.md"
-          args=("v${version}" --target "$(git rev-parse HEAD)" --title "NitroSQLite ${version}" --latest="$latest")
-          if [ -f "$notes" ]; then
-            args+=(--notes-file "$notes")
-          else
-            args+=(--generate-notes)
-          fi
-          gh release create "${args[@]}"
+          gh release create "v${version}" --target "$(git rev-parse HEAD)" --title "NitroSQLite ${version}" --latest="$latest" --notes-file "$RUNNER_TEMP/release-notes.md"
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_VERSION: ${{ inputs.version }}
