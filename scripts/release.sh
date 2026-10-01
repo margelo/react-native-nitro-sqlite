@@ -2,6 +2,15 @@
 
 set -eo pipefail
 
+npm_tag_for_version() {
+  local version="${1#v}"
+  if [[ "${version%%.*}" == 9 ]]; then
+    printf '%s\n' legacy-9
+    return
+  fi
+  printf '%s\n' latest
+}
+
 if [ "${1:-}" = "--publish-prepared" ]; then
   version="${2:-}"
   if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
@@ -25,8 +34,9 @@ if [ "${1:-}" = "--publish-prepared" ]; then
     exit 1
   fi
 
-  (cd packages/react-native-nitro-sqlite && bun release "$version" --ci)
-  (cd packages/react-native-nitro-sqlite-vec && bun release "$version" --ci)
+  npm_tag="$(npm_tag_for_version "$version")"
+  (cd packages/react-native-nitro-sqlite && bun release "$version" --ci --npm.tag="$npm_tag")
+  (cd packages/react-native-nitro-sqlite-vec && bun release "$version" --ci --npm.tag="$npm_tag")
   exit 0
 fi
 
@@ -92,13 +102,15 @@ echo "Resolved release version: $release_version"
 echo "Preparing and validating release versions before publishing"
 bun run release-it "$release_version" "${forward_args[@]}" --ci --no-git --no-github
 
+npm_tag="$(npm_tag_for_version "$release_version")"
+
 echo "Publishing react-native-nitro-sqlite@$release_version to NPM"
 cd packages/react-native-nitro-sqlite
-bun release "$release_version" "${package_args[@]}"
+bun release "$release_version" "${package_args[@]}" --npm.tag="$npm_tag"
 
 echo "Publishing react-native-nitro-sqlite-vec@$release_version to NPM"
 cd ../react-native-nitro-sqlite-vec
-bun release "$release_version" "${package_args[@]}"
+bun release "$release_version" "${package_args[@]}" --npm.tag="$npm_tag"
 
 echo "Creating a Git bump commit and GitHub release"
 
