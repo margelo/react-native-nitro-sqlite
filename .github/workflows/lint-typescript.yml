@@ -9,27 +9,43 @@ on:
   push:
     branches:
       - main
-    paths:
+    paths: &typescript_paths
       - ".github/workflows/lint-typescript.yml"
-      - "config"
-      - "**/*.ts"
-      - "**/*.tsx"
-      - "**/*.js"
-      - "**/*.jsx"
-      - "**/*.json"
-      - "**/bun.lock"
-      - "**/package.json"
+      - ".prettierrc.js"
+      - "config/**"
+      - "tsconfig.json"
+      - "package.json"
+      - "bun.lock"
+      - "patches/**"
+      - "example/**/*.ts"
+      - "example/**/*.tsx"
+      - "example/**/*.js"
+      - "example/**/*.jsx"
+      - "example/**/*.mjs"
+      - "example/tsconfig.json"
+      - "example/app.json"
+      - "example/package.json"
+      - "example/macos/package.json"
+      - "packages/react-native-nitro-sqlite/**/*.ts"
+      - "packages/react-native-nitro-sqlite/**/*.tsx"
+      - "packages/react-native-nitro-sqlite/**/*.js"
+      - "packages/react-native-nitro-sqlite/**/*.jsx"
+      - "packages/react-native-nitro-sqlite/tsconfig.json"
+      - "packages/react-native-nitro-sqlite/tsconfig.build.json"
+      - "packages/react-native-nitro-sqlite/package.json"
+      - "packages/react-native-nitro-sqlite/nitro.json"
+      - "packages/react-native-nitro-sqlite-vec/**/*.ts"
+      - "packages/react-native-nitro-sqlite-vec/**/*.tsx"
+      - "packages/react-native-nitro-sqlite-vec/**/*.js"
+      - "packages/react-native-nitro-sqlite-vec/**/*.jsx"
+      - "packages/react-native-nitro-sqlite-vec/tsconfig.json"
+      - "packages/react-native-nitro-sqlite-vec/package.json"
   pull_request:
-    paths:
-      - ".github/workflows/lint-typescript.yml"
-      - "config"
-      - "**/*.ts"
-      - "**/*.tsx"
-      - "**/*.js"
-      - "**/*.jsx"
-      - "**/*.json"
-      - "**/bun.lock"
-      - "**/package.json"
+    paths: *typescript_paths
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   tsc:
@@ -51,7 +67,7 @@ jobs:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   lint:
-    name: Lint TypeScript (eslint, prettier)
+    name: Lint and test TypeScript
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
@@ -69,3 +85,15 @@ jobs:
 
       - name: Verify no files have changed after auto-fix
         run: git diff --exit-code HEAD -- . ':(exclude)bun.lock'
+
+      - name: Test core JavaScript wrappers
+        working-directory: packages/react-native-nitro-sqlite
+        run: ../../node_modules/.bin/jest --coverage --runInBand
+
+      - name: Test sqlite-vec helpers
+        working-directory: packages/react-native-nitro-sqlite-vec
+        run: ../../node_modules/.bin/jest --coverage --runInBand
+
+      - name: Test the in-app Mocha runner
+        working-directory: example
+        run: ../node_modules/.bin/jest --config jest.mocha.config.js --runInBand --watchman=false

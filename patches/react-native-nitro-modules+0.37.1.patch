@@ -1,0 +1,90 @@
+diff --git a/node_modules/react-native-nitro-modules/cpp/utils/NitroDefines.hpp b/node_modules/react-native-nitro-modules/cpp/utils/NitroDefines.hpp
+index f26400a..e4d09da 100644
+--- a/node_modules/react-native-nitro-modules/cpp/utils/NitroDefines.hpp
++++ b/node_modules/react-native-nitro-modules/cpp/utils/NitroDefines.hpp
+@@ -31,6 +31,13 @@
+ #define _CXX_INTEROP_HAS_ATTRIBUTE(x) 0
+ #endif
+ 
++// Helper to find out if this code is currently being compiled as part of a given clang module
++#ifdef __building_module
++#define NITRO_BUILDING_MODULE(module) __building_module(module)
++#else
++#define NITRO_BUILDING_MODULE(module) 0
++#endif
++
+ // Closed/Final Enums
+ #if _CXX_INTEROP_HAS_ATTRIBUTE(enum_extensibility)
+ // Enum is marked as closed/not extensible
+diff --git a/node_modules/react-native-nitro-modules/cpp/views/ReactProp.hpp b/node_modules/react-native-nitro-modules/cpp/views/ReactProp.hpp
+index ad9e4c0..e5ff10c 100644
+--- a/node_modules/react-native-nitro-modules/cpp/views/ReactProp.hpp
++++ b/node_modules/react-native-nitro-modules/cpp/views/ReactProp.hpp
+@@ -4,6 +4,13 @@
+ 
+ #pragma once
+ 
++#include "NitroDefines.hpp"
++
++// This header includes <react/renderer/*> headers, which cannot be compiled as part of a
++// clang module - so it is hidden from the Swift-facing `NitroModules` module and can only
++// be included textually, from C++.
++#if !NITRO_BUILDING_MODULE(NitroModules)
++
+ #include "BorrowingReference.hpp"
+ #include "IsFunctionProp.hpp"
+ #include "JSIConverter.hpp"
+@@ -121,3 +128,5 @@ class ReactProp final {
+ };
+ 
+ } // namespace margelo::nitro
++
++#endif
+diff --git a/node_modules/react-native-nitro-modules/cpp/views/ViewComponentDescriptor.hpp b/node_modules/react-native-nitro-modules/cpp/views/ViewComponentDescriptor.hpp
+index a2d9f29..7f34a26 100644
+--- a/node_modules/react-native-nitro-modules/cpp/views/ViewComponentDescriptor.hpp
++++ b/node_modules/react-native-nitro-modules/cpp/views/ViewComponentDescriptor.hpp
+@@ -4,6 +4,13 @@
+ 
+ #pragma once
+ 
++#include "NitroDefines.hpp"
++
++// This header includes <react/renderer/*> headers, which cannot be compiled as part of a
++// clang module - so it is hidden from the Swift-facing `NitroModules` module and can only
++// be included textually, from C++.
++#if !NITRO_BUILDING_MODULE(NitroModules)
++
+ #include "RawPropsCompat.hpp"
+ 
+ #include <concepts>
+@@ -75,3 +82,5 @@ class ViewComponentDescriptor final : public react::ConcreteComponentDescriptor<
+ };
+ 
+ } // namespace margelo::nitro
++
++#endif
+diff --git a/node_modules/react-native-nitro-modules/cpp/views/ViewPropsHolderState.hpp b/node_modules/react-native-nitro-modules/cpp/views/ViewPropsHolderState.hpp
+index cedaf00..4486094 100644
+--- a/node_modules/react-native-nitro-modules/cpp/views/ViewPropsHolderState.hpp
++++ b/node_modules/react-native-nitro-modules/cpp/views/ViewPropsHolderState.hpp
+@@ -4,6 +4,13 @@
+ 
+ #pragma once
+ 
++#include "NitroDefines.hpp"
++
++// This header includes <react/renderer/*> headers, which cannot be compiled as part of a
++// clang module - so it is hidden from the Swift-facing `NitroModules` module and can only
++// be included textually, from C++.
++#if !NITRO_BUILDING_MODULE(NitroModules)
++
+ #include <memory>
+ #include <react/renderer/core/ConcreteComponentDescriptor.h>
+ #include <utility>
+@@ -48,3 +55,5 @@ struct ViewPropsHolderState final {
+ };
+ 
+ } // namespace margelo::nitro
++
++#endif

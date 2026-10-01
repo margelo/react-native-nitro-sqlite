@@ -1,6 +1,7 @@
 {
   "extends": "../../config/tsconfig.json",
   "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["src/__tests__", "src/__mocks__"],
   "compilerOptions": {
     "rootDir": "src",
     "noEmit": false

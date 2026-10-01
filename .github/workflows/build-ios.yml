@@ -4,29 +4,35 @@ on:
   push:
     branches:
       - main
-    paths:
+    paths: &ios_paths
       - ".github/workflows/build-ios.yml"
       - "example/ios/**"
-      - "**/nitrogen/generated/shared/**"
-      - "**/nitrogen/generated/ios/**"
+      - "packages/react-native-nitro-sqlite/nitrogen/generated/shared/**"
+      - "packages/react-native-nitro-sqlite/nitrogen/generated/ios/**"
+      - "packages/react-native-nitro-sqlite/src/specs/**"
       - "packages/react-native-nitro-sqlite/cpp/**"
       - "packages/react-native-nitro-sqlite/ios/**"
-      - "**/Podfile.lock"
-      - "**/*.podspec"
-      - "**/react-native.config.js"
-      - "**/nitro.json"
+      - "packages/react-native-nitro-sqlite-vec/cpp/**"
+      - "packages/react-native-nitro-sqlite/RNNitroSQLite.podspec"
+      - "packages/react-native-nitro-sqlite-vec/RNNitroSqliteVec.podspec"
+      - "scripts/test-podspec-threadsafe.rb"
+      - "example/Gemfile.lock"
+      - "bun.lock"
+      - "package.json"
+      - "example/package.json"
+      - "packages/react-native-nitro-sqlite/package.json"
+      - "packages/react-native-nitro-sqlite-vec/package.json"
+      - "patches/react-native-nitro-modules*"
+      - "example/react-native.config.js"
+      - "packages/react-native-nitro-sqlite/react-native.config.js"
+      - "packages/react-native-nitro-sqlite-vec/react-native.config.js"
+      - "packages/react-native-nitro-sqlite/nitro.json"
   pull_request:
-    paths:
-      - ".github/workflows/build-ios.yml"
-      - "example/ios/**"
-      - "**/nitrogen/generated/shared/**"
-      - "**/nitrogen/generated/ios/**"
-      - "packages/react-native-nitro-sqlite/cpp/**"
-      - "packages/react-native-nitro-sqlite/ios/**"
-      - "**/Podfile.lock"
-      - "**/*.podspec"
-      - "**/react-native.config.js"
-      - "**/nitro.json"
+    paths: *ios_paths
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
 
 env:
   USE_CCACHE: 1
@@ -44,6 +50,10 @@ jobs:
             use_frameworks: "" # intentionally unset
     steps:
       - uses: actions/checkout@v7
+
+      - name: Test SQLite thread-safety pod configuration
+        run: ruby scripts/test-podspec-threadsafe.rb
+
       - uses: oven-sh/setup-bun@v2
 
       - name: Set USE_FRAMEWORKS
@@ -80,9 +90,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: example/ios/Pods
-          key: ${{ runner.os }}-${{ matrix.use_frameworks }}-pods-${{ hashFiles('**/Podfile.lock', '**/Gemfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.use_frameworks }}-pods-
+          key: ${{ runner.os }}-${{ matrix.use_frameworks }}-pods-v2-${{ hashFiles('**/Podfile.lock', '**/Gemfile.lock') }}
       - name: Clean generated iOS codegen
         run: rm -rf example/ios/build/generated
       - name: Install Pods
@@ -108,7 +116,7 @@ jobs:
             -scheme NitroSQLiteExample \
             -sdk iphonesimulator \
             -configuration Debug \
-            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+            -destination 'generic/platform=iOS Simulator' \
             -showBuildTimingSummary \
             ONLY_ACTIVE_ARCH=YES \
             build \

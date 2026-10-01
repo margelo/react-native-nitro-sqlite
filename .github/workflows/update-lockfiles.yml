@@ -1,18 +1,12 @@
 name: "Update Lockfiles (bun.lock + Podfile.lock)"
 
 on:
-  push:
+  pull_request:
     branches:
       - main
     paths:
-      - ".github/workflows/update-lockfiles.yml"
-      - "package.json"
-      - "**/package.json"
-  pull_request:
-    paths:
-      - ".github/workflows/update-lockfiles.yml"
-      - "package.json"
-      - "**/package.json"
+      - "example/package.json"
+      - "packages/react-native-nitro-sqlite/package.json"
 
 permissions:
   contents: write
@@ -20,7 +14,7 @@ permissions:
 jobs:
   update-lockfiles:
     name: "Update lockfiles (Podfile.lock)"
-    if: github.actor == 'dependabot[bot]'
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: macos-26
     steps:
       - uses: actions/checkout@v7
@@ -33,9 +27,9 @@ jobs:
       - name: Setup Ruby (bundle)
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 2.7.2
+          ruby-version: 3.3.0
           bundler-cache: true
-          working-directory: example/ios
+          working-directory: example
 
       - name: Select Xcode 26.5
         run: sudo xcode-select -s "/Applications/Xcode_26.5.app/Contents/Developer"
@@ -46,11 +40,18 @@ jobs:
           cd example
           bundle install
           bun pods
+          bun pods:macos
           cd ..
 
           git add bun.lock
           git add example/ios/Podfile.lock
+          git add example/macos/Podfile.lock
           git add example/Gemfile.lock
+
+          if git diff --cached --quiet; then
+            echo "Lockfiles are already up to date"
+            exit 0
+          fi
 
           git config --global user.name 'dependabot[bot]'
           git config --global user.email 'dependabot[bot]@users.noreply.github.com'

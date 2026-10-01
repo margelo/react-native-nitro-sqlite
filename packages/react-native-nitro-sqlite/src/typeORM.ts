@@ -13,33 +13,51 @@ import type {
 } from './types'
 import * as Operations from './operations/session'
 
-interface TypeOrmNitroSQLiteConnection {
+/** Callback-oriented connection returned to TypeORM. */
+export interface TypeOrmNitroSQLiteConnection {
+  /** Execute SQL asynchronously and report the result through a callback. */
   executeSql: <RowData extends QueryResultRow = never>(
     sql: string,
     params: SQLiteQueryParams | undefined,
     okExecute: (res: QueryResult<RowData>) => void,
     failExecute: (msg: string) => void,
   ) => Promise<void>
+  /** Run TypeORM work in a managed transaction. */
   transaction: (fn: (tx: Transaction) => Promise<void>) => Promise<void>
+  /** Close the connection and report completion through callbacks. */
   close: (okClose: () => void, failClose: (e: unknown) => void) => void
+  /** Attach another database and invoke `callback` after it succeeds. */
   attach: (
     dbNameToAttach: string,
     alias: string,
     location: string | undefined,
     callback: () => void,
   ) => void
+  /** Detach an attached database and invoke `callback` after it succeeds. */
   detach: (alias: string, callback: () => void) => void
 }
 
-/**
- * DO NOT USE THIS! THIS IS MEANT FOR TYPEORM
- * If you are looking for a convenience wrapper use `connect`
+/** Adapter for TypeORM's React Native driver. Application code should use `open()`.
+ * `openDatabase` reports success or failure through callbacks and returns the
+ * connection on success, or `null` when opening fails.
  */
 export const typeORMDriver = {
+  /** Open a database for TypeORM.
+   * @param options Database name, optional relative directory, and optional SEE key.
+   * @param ok Receives the adapter connection on success.
+   * @param fail Receives the opening error on failure.
+   */
   openDatabase: (
     options: {
+      /** Database file name. */
       name: string
+      /** Directory relative to the platform database directory. */
       location?: string
+      /**
+       * Key for a licensed SQLite SEE build. Without SEE, a supplied key fails
+       * with `EncryptionNotEnabled`. An existing plaintext file is rejected.
+       */
+      encryptionKey?: string
     },
     ok: (db: TypeOrmNitroSQLiteConnection) => void,
     fail: (msg: string) => void,

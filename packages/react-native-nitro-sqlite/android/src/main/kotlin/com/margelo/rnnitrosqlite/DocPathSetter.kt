@@ -6,8 +6,9 @@ object DocPathSetter {
     @JvmStatic
     fun setDocPath(context: ReactApplicationContext) {
         val path = context.filesDir.absolutePath
-        setDocPathInJNI(path)
+        val cachePath = context.cacheDir.absolutePath
+        setDocPathInJNI(path, cachePath)
     }
 
-    private external fun setDocPathInJNI(docPath: String)
+    private external fun setDocPathInJNI(docPath: String, cachePath: String)
 }

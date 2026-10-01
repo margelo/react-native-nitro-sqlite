@@ -1,18 +1,13 @@
 {
   "extends": "../config/tsconfig.json",
-  "include": [
-    "src",
-    "tests",
-    "index.js",
-    "../packages/react-native-nitro-sqlite/src",
-    "rn-harness.config.mjs"
-  ],
+  "include": ["src", "tests", "index.js", "rn-harness.config.mjs"],
+  "references": [{ "path": "../packages/react-native-nitro-sqlite" }],
   "compilerOptions": {
     "paths": {
       "react-native-nitro-sqlite": [
-        "../packages/react-native-nitro-sqlite/src"
+        "../packages/react-native-nitro-sqlite/src/index.ts"
       ],
-      "*": ["./*"],
+      "@nitro-sqlite/*": ["../packages/react-native-nitro-sqlite/src/*"],
       "@/*": ["./src/*"],
       "@tests/*": ["./tests/*"]
     }

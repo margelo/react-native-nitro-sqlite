@@ -10,6 +10,8 @@ const std::string NITRO_SQLITE_EXCEPTION_PREFIX = "[NativeNitroSQLiteException]"
 enum NitroSQLiteExceptionType {
   UnknownError,
   DatabaseCannotBeOpened,
+  EncryptionNotEnabled,
+  DatabaseCannotBeDecrypted,
   DatabaseNotOpen,
   UnableToAttachToDatabase,
   SqlExecutionError,
@@ -20,6 +22,8 @@ enum NitroSQLiteExceptionType {
 inline std::unordered_map<NitroSQLiteExceptionType, std::string> exceptionTypeStrings = {
     {UnknownError, "UnknownError"},
     {DatabaseCannotBeOpened, "DatabaseCannotBeOpened"},
+    {EncryptionNotEnabled, "EncryptionNotEnabled"},
+    {DatabaseCannotBeDecrypted, "DatabaseCannotBeDecrypted"},
     {DatabaseNotOpen, "DatabaseNotOpen"},
     {UnableToAttachToDatabase, "UnableToAttachToDatabase"},
     {SqlExecutionError, "SqlExecutionError"},
@@ -44,6 +48,11 @@ private:
 public:
   [[nodiscard]] const char* what() const noexcept override {
     return this->_exceptionString.c_str();
+  }
+
+  static NitroSQLiteException DatabaseAlreadyOpen(const std::string& dbName) {
+    return NitroSQLiteException(NitroSQLiteExceptionType::DatabaseCannotBeOpened,
+                                "Database " + dbName + " is already open. There is already a connection to the database.");
   }
 
   static NitroSQLiteException DatabaseNotOpen(const std::string& dbName) {

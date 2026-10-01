@@ -4,27 +4,32 @@ on:
   push:
     branches:
       - main
-    paths:
+    paths: &android_paths
       - ".github/workflows/build-android.yml"
       - "example/android/**"
-      - "**/nitrogen/generated/shared/**"
-      - "**/nitrogen/generated/android/**"
+      - "packages/react-native-nitro-sqlite/nitrogen/generated/shared/**"
+      - "packages/react-native-nitro-sqlite/nitrogen/generated/android/**"
+      - "packages/react-native-nitro-sqlite/src/specs/**"
       - "packages/react-native-nitro-sqlite/cpp/**"
       - "packages/react-native-nitro-sqlite/android/**"
-      - "**/bun.lock"
-      - "**/react-native.config.js"
-      - "**/nitro.json"
+      - "packages/react-native-nitro-sqlite-vec/cpp/**"
+      - "scripts/android-sqlite-flags/**"
+      - "bun.lock"
+      - "package.json"
+      - "example/package.json"
+      - "packages/react-native-nitro-sqlite/package.json"
+      - "packages/react-native-nitro-sqlite-vec/package.json"
+      - "patches/react-native-nitro-modules*"
+      - "example/react-native.config.js"
+      - "packages/react-native-nitro-sqlite/react-native.config.js"
+      - "packages/react-native-nitro-sqlite-vec/react-native.config.js"
+      - "packages/react-native-nitro-sqlite/nitro.json"
   pull_request:
-    paths:
-      - ".github/workflows/build-android.yml"
-      - "example/android/**"
-      - "**/nitrogen/generated/shared/**"
-      - "**/nitrogen/generated/android/**"
-      - "packages/react-native-nitro-sqlite/cpp/**"
-      - "packages/react-native-nitro-sqlite/android/**"
-      - "**/bun.lock"
-      - "**/react-native.config.js"
-      - "**/nitro.json"
+    paths: *android_paths
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
 
 env:
   # Build a single ABI in CI to reduce native compile time.
@@ -50,7 +55,7 @@ jobs:
         run: sed -i "s/minSdkVersion = 24/minSdkVersion = ${{ matrix.min-sdk }}/g" example/android/build.gradle
 
       - name: Setup JDK 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: "zulu"
           java-version: 17
@@ -68,6 +73,19 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-${{ matrix.min-sdk }}-${{ env.TARGET_ANDROID_ARCH }}-
             ${{ runner.os }}-gradle-
+      - name: Test Android SQLite build flags
+        run: example/android/gradlew --project-dir scripts/android-sqlite-flags testSqliteFlags --no-daemon
+
+      - name: Check Gradle configuration cache
+        if: matrix.min-sdk == '24'
+        working-directory: example/android
+        run: |
+          # React Native creates the autolinking file on the first run.
+          ./gradlew :react-native-nitro-sqlite:help --configuration-cache --no-daemon
+          ./gradlew :react-native-nitro-sqlite:help --configuration-cache --no-daemon
+          ./gradlew :react-native-nitro-sqlite:help --configuration-cache --no-daemon | tee "$RUNNER_TEMP/nitro-sqlite-configuration-cache.log"
+          grep -q 'Configuration cache entry reused' "$RUNNER_TEMP/nitro-sqlite-configuration-cache.log"
+
       - name: Run Gradle Build for example/android/
         working-directory: example/android
         run: ./gradlew :app:assembleDebug --no-daemon --build-cache -PreactNativeArchitectures=${{ env.TARGET_ANDROID_ARCH }}

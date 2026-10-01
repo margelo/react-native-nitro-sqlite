@@ -1,0 +1,10 @@
+# NitroSQLite
+
+> SQLite for React Native on iOS and Android, built with Nitro Modules.
+
+## Documentation
+
+- [Getting started](https://sqlite.margelo.com/docs): Installation, native setup, and a first query.
+- [API reference](https://sqlite.margelo.com/docs/api): Public methods and types.
+- [AI coding agents](https://sqlite.margelo.com/docs/guides/ai-agents): Skill link and checks for generated code.
+- [NitroSQLite skill](https://github.com/margelo/react-native-skills/blob/nitro-sqlite/skills/react-native-nitro-sqlite/SKILL.md): Task-specific guidance and references.

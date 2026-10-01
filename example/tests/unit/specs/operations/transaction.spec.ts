@@ -8,43 +8,10 @@ import {
 } from '@tests/unit/common'
 import { describe, it } from '@tests/TestApi'
 import type { User } from '@/model/User'
+import { NitroSQLiteError } from 'react-native-nitro-sqlite'
 import { testDb } from '@tests/db'
 
 const FOREIGN_KEY_COMMIT_ERROR = 'FOREIGN KEY constraint failed'
-
-async function expectDeferredForeignKeyCommitFailure(
-  finalize?: (
-    tx: Parameters<Parameters<typeof testDb.transaction>[0]>[0],
-  ) => void,
-) {
-  testDb.execute('PRAGMA foreign_keys = ON')
-  testDb.execute('DROP TABLE IF EXISTS Child')
-  testDb.execute('DROP TABLE IF EXISTS Parent')
-  testDb.execute('CREATE TABLE Parent (id INTEGER PRIMARY KEY)')
-  testDb.execute(
-    'CREATE TABLE Child (parentId INTEGER REFERENCES Parent(id) DEFERRABLE INITIALLY DEFERRED)',
-  )
-
-  try {
-    await testDb.transaction(async (tx) => {
-      tx.execute('INSERT INTO Child (parentId) VALUES (1)')
-      finalize?.(tx)
-    })
-    throw new Error(TEST_ERROR_CODES.EXPECT_PROMISE_REJECTION)
-  } catch (error) {
-    if (isNitroSQLiteError(error)) {
-      expect(error.message).toContain(FOREIGN_KEY_COMMIT_ERROR)
-    } else {
-      throw new Error(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
-    }
-  }
-
-  expect(testDb.execute('SELECT * FROM Child').rows?._array).toEqual([])
-
-  await testDb.transaction(async (tx) => {
-    tx.execute('INSERT INTO Parent (id) VALUES (1)')
-  })
-}
 
 export default function registerTransactionUnitTests() {
   describe('transaction', () => {
@@ -54,6 +21,17 @@ export default function registerTransactionUnitTests() {
 
     it('Transaction, rolls back after manual deferred foreign key commit failure', async () => {
       await expectDeferredForeignKeyCommitFailure((tx) => tx.commit())
+    })
+
+    it('Transaction, rolls back a caught manual commit failure', async () => {
+      await expectDeferredForeignKeyCommitFailure((tx) => {
+        try {
+          tx.commit()
+        } catch (error) {
+          if (!isNitroSQLiteError(error)) throw error
+          expect(error.message).toContain(FOREIGN_KEY_COMMIT_ERROR)
+        }
+      })
     })
 
     it('Transaction, auto commit', async () => {
@@ -189,11 +167,21 @@ export default function registerTransactionUnitTests() {
 
         tx.commit()
 
+        let queryError: unknown
         try {
           tx.execute('SELECT * FROM "User"')
         } catch (e) {
-          expect(e).not.toBe(undefined)
+          queryError = e
         }
+        expect(queryError).toBeInstanceOf(NitroSQLiteError)
+
+        let asyncQueryError: unknown
+        try {
+          await tx.executeAsync('SELECT * FROM "User"')
+        } catch (e) {
+          asyncQueryError = e
+        }
+        expect(asyncQueryError).toBeInstanceOf(NitroSQLiteError)
       })
 
       const res = testDb.execute('SELECT * FROM User')
@@ -240,9 +228,10 @@ export default function registerTransactionUnitTests() {
           [id, name, age, networth],
         )
         tx.rollback()
-        const res = testDb.execute('SELECT * FROM User')
-        expect(res.rows?._array).toEqual([])
       })
+
+      const res = testDb.execute('SELECT * FROM User')
+      expect(res.rows?._array).toEqual([])
     })
 
     it('Transaction, rejects on callback error', async () => {
@@ -489,5 +478,39 @@ export default function registerTransactionUnitTests() {
         else throw new Error(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
       }
     })
+  })
+}
+
+async function expectDeferredForeignKeyCommitFailure(
+  finalize?: (
+    tx: Parameters<Parameters<typeof testDb.transaction>[0]>[0],
+  ) => void,
+) {
+  testDb.execute('PRAGMA foreign_keys = ON')
+  testDb.execute('DROP TABLE IF EXISTS Child')
+  testDb.execute('DROP TABLE IF EXISTS Parent')
+  testDb.execute('CREATE TABLE Parent (id INTEGER PRIMARY KEY)')
+  testDb.execute(
+    'CREATE TABLE Child (parentId INTEGER REFERENCES Parent(id) DEFERRABLE INITIALLY DEFERRED)',
+  )
+
+  try {
+    await testDb.transaction(async (tx) => {
+      tx.execute('INSERT INTO Child (parentId) VALUES (1)')
+      finalize?.(tx)
+    })
+    throw new Error(TEST_ERROR_CODES.EXPECT_PROMISE_REJECTION)
+  } catch (error) {
+    if (isNitroSQLiteError(error)) {
+      expect(error.message).toContain(FOREIGN_KEY_COMMIT_ERROR)
+    } else {
+      throw new Error(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
+    }
+  }
+
+  expect(testDb.execute('SELECT * FROM Child').rows?._array).toEqual([])
+
+  await testDb.transaction(async (tx) => {
+    tx.execute('INSERT INTO Parent (id) VALUES (1)')
   })
 }
