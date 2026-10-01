@@ -22,6 +22,32 @@ afterEach(() => {
 })
 
 describe('open', () => {
+  it('passes an encryption key after the existing read-only argument', () => {
+    const db = open({ ...options, encryptionKey: 'secret' })
+    expect(HybridNitroSQLite.open).toHaveBeenCalledWith(
+      dbName,
+      'data',
+      undefined,
+      'secret',
+    )
+    db.close()
+
+    jest.mocked(HybridNitroSQLite.openConnection).mockReturnValueOnce('keyed-1')
+    const independent = open({
+      ...options,
+      connection: 'independent',
+      readOnly: true,
+      encryptionKey: 'secret',
+    })
+    expect(HybridNitroSQLite.openConnection).toHaveBeenCalledWith(
+      dbName,
+      'data',
+      true,
+      'secret',
+    )
+    independent.close()
+  })
+
   it('opens a native connection and routes its query and batch methods', async () => {
     const db = open(options)
     jest
@@ -31,7 +57,11 @@ describe('open', () => {
       rowsAffected: 3,
     })
 
-    expect(HybridNitroSQLite.open).toHaveBeenCalledWith(dbName, 'data')
+    expect(HybridNitroSQLite.open).toHaveBeenCalledWith(
+      dbName,
+      'data',
+      undefined,
+    )
     expect(db.execute('SELECT 1').rows.length).toBe(0)
     expect((await db.executeAsync('SELECT 2')).rows.length).toBe(0)
     expect(db.executeBatch([{ query: 'INSERT 1' }])).toEqual({
@@ -248,11 +278,13 @@ describe('open', () => {
       1,
       dbName,
       'data',
+      undefined,
     )
     expect(HybridNitroSQLite.openConnection).toHaveBeenNthCalledWith(
       2,
       dbName,
       'data',
+      undefined,
     )
     first.execute('SELECT 1')
     second.execute('SELECT 2')

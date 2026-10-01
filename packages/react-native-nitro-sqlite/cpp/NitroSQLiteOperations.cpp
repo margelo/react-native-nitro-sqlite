@@ -1,6 +1,7 @@
 #include "NitroSQLiteOperations.hpp"
 #include "NitroSQLiteException.hpp"
 #include "NitroSQLiteLogs.hpp"
+#include "NitroSQLiteStatementGroup.hpp"
 #include "NitroSQLiteUtils.hpp"
 #include "hybridObjects/HybridNitroSQLiteQueryResult.hpp"
 #include "sqlite/sqlite3.h"
@@ -60,16 +61,18 @@ void SQLiteConnection::drainAsync() {
   }
 }
 
-void sqliteOpenDb(DatabaseConnections& connections, const std::string& dbName, const std::string& docPath, bool readOnly) {
+void sqliteOpenDb(DatabaseConnections& connections, const std::string& dbName, const std::string& docPath, bool readOnly,
+                  const std::optional<std::string>& encryptionKey) {
 #ifdef NITRO_SQLITE_VEC
   // Register before opening so the connection exposes vec0 + vec_*.
   margelo::rnnitrosqlitevec::registerVectorExtensions();
 #endif
   const std::string dbPath = readOnly ? docPath + "/" + dbName : get_db_path(dbName, docPath);
-  connections.open(dbName, dbPath, readOnly);
+  connections.open(dbName, dbPath, readOnly, encryptionKey);
 }
 
-std::string sqliteOpenConnection(DatabaseConnections& connections, const std::string& dbName, const std::string& docPath, bool readOnly) {
+std::string sqliteOpenConnection(DatabaseConnections& connections, const std::string& dbName, const std::string& docPath, bool readOnly,
+                                 const std::optional<std::string>& encryptionKey) {
   if (sqlite3_threadsafe() == 0) {
     throw NitroSQLiteException(NitroSQLiteExceptionType::DatabaseCannotBeOpened,
                                "Independent connections require a thread-safe SQLite build");
@@ -78,7 +81,7 @@ std::string sqliteOpenConnection(DatabaseConnections& connections, const std::st
   margelo::rnnitrosqlitevec::registerVectorExtensions();
 #endif
   const std::string dbPath = readOnly ? docPath + "/" + dbName : get_db_path(dbName, docPath);
-  return connections.openIndependent(dbPath, readOnly);
+  return connections.openIndependent(dbPath, readOnly, encryptionKey);
 }
 
 void sqliteAttachDb(const SQLiteConnectionPtr& connection, const std::string& docPath, const std::string& databaseToAttach,
@@ -315,6 +318,26 @@ SQLiteOperationResult sqliteExecuteCommand(const SQLiteConnectionPtr& connection
   consumeStatement(db, statement.get(), [](sqlite3_stmt*) {});
 
   return {.rowsAffected = isReadOnly ? 0 : sqlite3_changes(db)};
+}
+
+SQLiteOperationResult sqliteExecuteCommandGroup(const SQLiteConnectionPtr& connection, const std::string& query,
+                                                const std::vector<SQLiteQueryParams>& parameterSets) {
+  if (parameterSets.empty()) {
+    return {.rowsAffected = 0, .commands = 0};
+  }
+
+  std::lock_guard lock(connection->mutex);
+  sqlite3* db = connection->database;
+  if (db == nullptr) {
+    throw NitroSQLiteException::DatabaseNotOpen(connection->name);
+  }
+
+  const auto [rowsAffected, commands] = executeStatementGroup(
+      db, query, parameterSets, [](sqlite3* database, const std::string& sql) { return prepareStatement(database, sql, std::nullopt); },
+      [](sqlite3_stmt* statement, const SQLiteQueryParams& params) { bindStatement(statement, params); },
+      [](sqlite3* database, sqlite3_stmt* statement) { consumeStatement(database, statement, [](sqlite3_stmt*) {}); },
+      [](sqlite3* database) { throw NitroSQLiteException::SqlExecution(sqlite3_errmsg(database)); });
+  return {.rowsAffected = rowsAffected, .commands = commands};
 }
 
 struct SQLitePreparedStatement::State {

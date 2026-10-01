@@ -47,6 +47,8 @@ describe('NitroSQLiteError', () => {
   it.each([
     'UnknownError',
     'DatabaseCannotBeOpened',
+    'EncryptionNotEnabled',
+    'DatabaseCannotBeDecrypted',
     'DatabaseNotOpen',
     'UnableToAttachToDatabase',
     'SqlExecutionError',

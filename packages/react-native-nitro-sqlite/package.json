@@ -117,6 +117,7 @@
       "!src/**/__tests__/**",
       "!src/**/__mocks__/**",
       "!src/mock.ts",
+      "!src/mock/**",
       "!src/specs/**",
       "!src/types.ts"
     ],

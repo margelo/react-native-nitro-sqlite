@@ -5,6 +5,8 @@ const NATIVE_EXCEPTION_PREFIX = '[NativeNitroSQLiteException]['
 export type NitroSQLiteExceptionType =
   | 'UnknownError'
   | 'DatabaseCannotBeOpened'
+  | 'EncryptionNotEnabled'
+  | 'DatabaseCannotBeDecrypted'
   | 'DatabaseNotOpen'
   | 'UnableToAttachToDatabase'
   | 'SqlExecutionError'
@@ -72,6 +74,8 @@ function getNativeExceptionType(
   switch (type) {
     case 'UnknownError':
     case 'DatabaseCannotBeOpened':
+    case 'EncryptionNotEnabled':
+    case 'DatabaseCannotBeDecrypted':
     case 'DatabaseNotOpen':
     case 'UnableToAttachToDatabase':
     case 'SqlExecutionError':

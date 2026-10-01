@@ -25,6 +25,12 @@ const requiredExports = {
     'TypeOrmNitroSQLiteConnection',
     'typeORMDriver',
   ],
+  'react-native-nitro-sqlite/mock': [
+    'open',
+    'NitroSQLite',
+    'MockConnection',
+    'resetAllDatabases',
+  ],
   'react-native-nitro-sqlite-vec': [
     'VectorColumnType',
     'VectorDistanceMetric',
@@ -82,10 +88,12 @@ const requiredMembers = {
       'loadFile',
       'loadFileAsync',
     ],
+    NitroSQLiteConnectionOptions: ['encryptionKey'],
     Transaction: ['commit', 'rollback', 'execute', 'executeAsync'],
     NitroSQLiteError: ['type', 'fromError'],
     NitroSQLiteNative: [
       'open',
+      'openConnection',
       'close',
       'drop',
       'attach',
