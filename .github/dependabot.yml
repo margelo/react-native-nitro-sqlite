@@ -50,6 +50,14 @@ updates:
       - dependency-name: '@types/react-test-renderer'
         update-types:
           - 'version-update:semver-major'
+      # Review Babel majors with React Native's Babel preset.
+      - dependency-name: '@babel/*'
+        update-types:
+          - 'version-update:semver-major'
+      # Review Expo runtime requirements before upgrading expo-status-bar majors.
+      - dependency-name: 'expo-status-bar'
+        update-types:
+          - 'version-update:semver-major'
     groups:
       babel:
         patterns:
