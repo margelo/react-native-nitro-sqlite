@@ -1,7 +1,8 @@
 {
   "entryPoints": [
     "../packages/react-native-nitro-sqlite",
-    "../packages/react-native-nitro-sqlite-vec"
+    "../packages/react-native-nitro-sqlite-vec",
+    "./mock-api"
   ],
   "entryPointStrategy": "packages",
   "name": "API Reference",

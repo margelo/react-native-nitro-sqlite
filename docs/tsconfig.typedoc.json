@@ -11,6 +11,7 @@
   },
   "files": [
     "../packages/react-native-nitro-sqlite/src/index.ts",
+    "../packages/react-native-nitro-sqlite/src/mock.ts",
     "../packages/react-native-nitro-sqlite-vec/src/index.ts"
   ]
 }
