@@ -25,6 +25,12 @@ const requiredExports = {
     'TypeOrmNitroSQLiteConnection',
     'typeORMDriver',
   ],
+  'react-native-nitro-sqlite/mock': [
+    'open',
+    'NitroSQLite',
+    'MockConnection',
+    'resetAllDatabases',
+  ],
   'react-native-nitro-sqlite-vec': [
     'VectorColumnType',
     'VectorDistanceMetric',

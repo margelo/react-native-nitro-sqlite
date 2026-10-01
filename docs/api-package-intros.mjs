@@ -32,6 +32,8 @@ db.close()
 
 Use [Getting Started](/docs) for native setup and a fuller first query. The [concepts](/docs/concepts/databases-and-connections) and [guides](/docs/guides/parameters-and-results) explain database lifetime, query parameters, and results. For the Node-only test export and its API, see [Test SQLite in Node](/docs/guides/node-test-mock).
 `,
+  'react-native-nitro-sqlite/mock': `This Node-only export runs SQLite tests through \`better-sqlite3\` without loading the React Native module. Install \`better-sqlite3\` as a development dependency and import this module in your test setup. See [Test SQLite in Node](/docs/guides/node-test-mock) for Jest setup, shared connections, prepared statements, transactions, and cleanup.
+`,
   'react-native-nitro-sqlite-vec': `This optional package adds [sqlite-vec](https://github.com/asg017/sqlite-vec) vector search to Nitro SQLite. Its native code is compiled into the core package's SQLite build. The functions and types below cover availability checks, vector tables, and nearest-neighbor searches.
 
 ## Install
