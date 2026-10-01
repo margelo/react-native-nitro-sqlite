@@ -60,6 +60,25 @@ jobs:
       - name: Select Xcode ${{ matrix.config.xcode }}
         run: sudo xcode-select -s "/Applications/Xcode_${{ matrix.config.xcode }}.app/Contents/Developer"
 
+      - name: Start iOS simulator
+        run: |
+          set -euo pipefail
+
+          simulator="$(xcrun simctl list devices available --json | node -e '
+            const { readFileSync } = require("node:fs")
+            const runtime = `com.apple.CoreSimulator.SimRuntime.iOS-${process.env.IOS_SIMULATOR_OS.replaceAll(".", "-")}`
+            const devices = JSON.parse(readFileSync(0, "utf8")).devices[runtime] ?? []
+            const device = devices.find((candidate) => candidate.name === process.env.IOS_SIMULATOR_NAME && candidate.isAvailable)
+            if (!device) throw new Error(`Simulator ${process.env.IOS_SIMULATOR_NAME} on ${runtime} is unavailable`)
+            console.log(`${device.udid} ${device.state}`)
+          ')"
+          read -r simulator_udid simulator_state <<< "$simulator"
+          echo "IOS_SIMULATOR_UDID=$simulator_udid" >> "$GITHUB_ENV"
+
+          if [[ "$simulator_state" == "Shutdown" ]]; then
+            xcrun simctl boot "$simulator_udid"
+          fi
+
       - name: Restore Pods cache
         uses: actions/cache@v6
         with:
@@ -87,8 +106,15 @@ jobs:
             ONLY_ACTIVE_ARCH=YES \
             build \
             CODE_SIGNING_ALLOWED=NO | xcbeautify --renderer github-actions
+
+      - name: Wait for iOS simulator
+        timeout-minutes: 10
+        run: xcrun simctl bootstatus "$IOS_SIMULATOR_UDID" -b
+
       - name: Run iOS integration tests
         uses: callstackincubator/react-native-harness@v1.5.0
+        env:
+          HARNESS_DEBUG: "1"
         with:
           app: ios/build/DerivedData/Build/Products/Debug-iphonesimulator/NitroSQLiteExample.app
           runner: ios
