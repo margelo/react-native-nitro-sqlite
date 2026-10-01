@@ -31,6 +31,7 @@ function createExampleBabelConfig(projectRoot, { buffer, crypto } = {}) {
   return {
     presets: ['module:@react-native/babel-preset'],
     plugins: [
+      '@babel/plugin-transform-class-static-block',
       [
         'module-resolver',
         {
