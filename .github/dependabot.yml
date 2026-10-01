@@ -4,20 +4,31 @@ updates:
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:
-      interval: 'daily'
+      interval: 'weekly'
+      day: 'monday'
     labels:
       - 'dependencies'
       - 'ecosystem:github-actions'
+    groups:
+      actions:
+        patterns: ['*']
+        update-types: ['minor', 'patch']
 
   - package-ecosystem: 'gradle'
     directories:
       - '/packages/react-native-nitro-sqlite/android/'
       - '/example/android/'
     schedule:
-      interval: 'daily'
+      interval: 'weekly'
+      day: 'monday'
     labels:
       - 'dependencies'
       - 'ecosystem:gradle'
+    groups:
+      gradle:
+        patterns: ['*']
+        update-types: ['minor', 'patch']
+        group-by: 'dependency-name'
     # Update the example wrapper with its React Native Android toolchain.
     ignore:
       - dependency-name: 'gradle-wrapper'
@@ -28,7 +39,8 @@ updates:
       - '/packages/react-native-nitro-sqlite/'
       - '/example/'
     schedule:
-      interval: 'daily'
+      interval: 'weekly'
+      day: 'monday'
     labels:
       - 'dependencies'
       - 'ecosystem:npm'
@@ -62,3 +74,16 @@ updates:
       babel:
         patterns:
           - '@babel/*'
+        update-types: ['minor', 'patch']
+      development:
+        patterns:
+          - '@types/*'
+          - '*jest*'
+          - '*eslint*'
+          - 'typescript*'
+          - 'prettier'
+        update-types: ['minor', 'patch']
+      shared-dependencies:
+        patterns: ['*']
+        update-types: ['minor', 'patch']
+        group-by: 'dependency-name'

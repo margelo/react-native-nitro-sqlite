@@ -1,54 +1,54 @@
-name: Test Harness iOS
+name: Build and test iOS
 
 on:
-  workflow_dispatch:
-  pull_request:
-    paths:
-      - ".github/workflows/test-harness-ios.yml"
-      - "example/ios/**"
-      - "example/src/tests/**"
-      - "example/tests/**"
-      - "example/rn-harness.config.mjs"
-      - "example/jest.config.js"
-      - "packages/react-native-nitro-sqlite/cpp/**"
-      - "packages/react-native-nitro-sqlite/ios/**"
-      - "packages/react-native-nitro-sqlite/src/**"
-      - "packages/react-native-nitro-sqlite/nitrogen/generated/shared/**"
-      - "packages/react-native-nitro-sqlite/nitrogen/generated/ios/**"
-      - "packages/react-native-nitro-sqlite-vec/cpp/**"
-      - "packages/react-native-nitro-sqlite/RNNitroSQLite.podspec"
-      - "packages/react-native-nitro-sqlite-vec/RNNitroSqliteVec.podspec"
-      - "example/Gemfile.lock"
-      - "bun.lock"
-      - "package.json"
-      - "example/package.json"
-      - "packages/react-native-nitro-sqlite/package.json"
-      - "packages/react-native-nitro-sqlite-vec/package.json"
-      - "patches/react-native-nitro-modules*"
-      - "example/react-native.config.js"
-      - "packages/react-native-nitro-sqlite/react-native.config.js"
-      - "packages/react-native-nitro-sqlite-vec/react-native.config.js"
-      - "packages/react-native-nitro-sqlite/nitro.json"
-      - "!packages/react-native-nitro-sqlite/src/__tests__/**"
+  workflow_call:
+    inputs:
+      full:
+        type: boolean
+        default: false
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
-  cancel-in-progress: true
+permissions:
+  contents: read
 
 jobs:
   test:
-    name: Harness Tests (iOS)
-    runs-on: macOS-26
+    name: iOS integration tests, ${{ matrix.config.name }}, Xcode ${{ matrix.config.xcode }}
+    runs-on: macos-26
+    timeout-minutes: 40
+    strategy:
+      matrix:
+        config: ${{ fromJSON(inputs.full && '[{"name":"static_frameworks","frameworks":"static","xcode":"26.5"},{"name":"no_frameworks","frameworks":"","xcode":"26.5"},{"name":"static_frameworks","frameworks":"static","xcode":"26.2"}]' || '[{"name":"static_frameworks","frameworks":"static","xcode":"26.5"},{"name":"no_frameworks","frameworks":"","xcode":"26.5"}]') }}
     env:
+      USE_CCACHE: 1
+      USE_FRAMEWORKS: ${{ matrix.config.frameworks }}
       IOS_SIMULATOR_NAME: iPhone 17 Pro
-      IOS_SIMULATOR_OS: "26.2"
-
+      IOS_SIMULATOR_OS: ${{ matrix.config.xcode }}
     steps:
       - uses: actions/checkout@v7
-      - uses: oven-sh/setup-bun@v2
+      - uses: actions/download-artifact@v4
+        with:
+          name: ci-lockfiles
+          path: .
 
-      - name: Install dependencies (bun)
-        run: bun install
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.1
+
+      - name: Install npm dependencies (bun)
+        run: bun install --frozen-lockfile
+
+      - name: Install Ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          max-size: 500M
+          key: ${{ runner.os }}-${{ matrix.config.name }}-ccache-example-ios-xcode${{ matrix.config.xcode }}
+          create-symlink: true
+      - name: Setup ccache behavior
+        run: |
+          echo "CCACHE_SLOPPINESS=clang_index_store,file_stat_matches,include_file_ctime,include_file_mtime,ivfsoverlay,pch_defines,modules,system_headers,time_macros" >> $GITHUB_ENV
+          echo "CCACHE_FILECLONE=true" >> $GITHUB_ENV
+          echo "CCACHE_DEPEND=true" >> $GITHUB_ENV
+          echo "CCACHE_INODECACHE=true" >> $GITHUB_ENV
 
       - name: Setup Ruby (bundle)
         uses: ruby/setup-ruby@v1
@@ -57,33 +57,40 @@ jobs:
           bundler-cache: true
           working-directory: example
 
-      - name: Select Xcode 26.2
-        run: sudo xcode-select -s "/Applications/Xcode_26.2.app/Contents/Developer"
+      - name: Select Xcode ${{ matrix.config.xcode }}
+        run: sudo xcode-select -s "/Applications/Xcode_${{ matrix.config.xcode }}.app/Contents/Developer"
 
+      - name: Restore Pods cache
+        uses: actions/cache@v6
+        with:
+          path: example/ios/Pods
+          key: ${{ runner.os }}-${{ matrix.config.name }}-pods-v2-${{ hashFiles('**/Podfile.lock', '**/Gemfile.lock') }}
+      - name: Clean generated iOS codegen
+        run: rm -rf example/ios/build/generated
       - name: Install Pods
         working-directory: example
         run: bun pods
 
-      - name: Build debug app
+      - name: Build App
         working-directory: example/ios
         run: |
-          set -euo pipefail
-
+          set -o pipefail
           xcodebuild \
             CC=clang CPLUSPLUS=clang++ LD=clang LDPLUSPLUS=clang++ \
-            -derivedDataPath build -UseModernBuildSystem=YES \
+            -derivedDataPath build/DerivedData -UseModernBuildSystem=YES \
             -workspace NitroSQLiteExample.xcworkspace \
             -scheme NitroSQLiteExample \
             -sdk iphonesimulator \
             -configuration Debug \
-            -destination "generic/platform=iOS Simulator" \
+            -destination 'generic/platform=iOS Simulator' \
+            -showBuildTimingSummary \
+            ONLY_ACTIVE_ARCH=YES \
             build \
-            CODE_SIGNING_ALLOWED=NO
-
-      - name: Run react-native-harness on iOS
+            CODE_SIGNING_ALLOWED=NO | xcbeautify --renderer github-actions
+      - name: Run iOS integration tests
         uses: callstackincubator/react-native-harness@v1.5.0
         with:
-          app: ios/build/Build/Products/Debug-iphonesimulator/NitroSQLiteExample.app
+          app: ios/build/DerivedData/Build/Products/Debug-iphonesimulator/NitroSQLiteExample.app
           runner: ios
           projectRoot: example
           packageManager: bun

@@ -18,8 +18,17 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  preflight:
+    name: Release compatibility checks
+    permissions:
+      contents: read
+    uses: ./.github/workflows/ci.yml
+    with:
+      full: true
+
   release:
     name: Publish packages and GitHub release
+    needs: preflight
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
