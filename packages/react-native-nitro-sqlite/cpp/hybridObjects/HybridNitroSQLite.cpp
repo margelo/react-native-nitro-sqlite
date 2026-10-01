@@ -43,16 +43,16 @@ static std::optional<SQLiteQueryParams> copyArrayBufferParamsForBackground(const
   return copiedParams;
 }
 
-// Overload for batch execution: copy ArrayBuffer params inside each BatchQuery.
+// Copy ArrayBuffer params inside each grouped batch command.
 static std::vector<BatchQuery> copyArrayBufferParamsForBackground(const std::vector<BatchQuery>& commands) {
   std::vector<BatchQuery> copiedCommands;
   copiedCommands.reserve(commands.size());
 
   for (const auto& command : commands) {
-    BatchQuery copiedCommand = command;
-
-    if (command.params) {
-      copiedCommand.params = copyArrayBufferParamsForBackground(command.params);
+    BatchQuery copiedCommand{command.sql, {}};
+    copiedCommand.parameterSets.reserve(command.parameterSets.size());
+    for (const auto& params : command.parameterSets) {
+      copiedCommand.parameterSets.push_back(*copyArrayBufferParamsForBackground(params));
     }
 
     copiedCommands.push_back(std::move(copiedCommand));
