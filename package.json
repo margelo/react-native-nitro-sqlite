@@ -29,7 +29,7 @@
     "sqlite": "bun --cwd packages/react-native-nitro-sqlite",
     "example": "bun --cwd example",
     "sync:lockfile": "bun scripts/sync-bun-lockfile.ts",
-    "test:release": "bun test scripts/sync-bun-lockfile.test.ts && node --test scripts/release.test.ts"
+    "test:release": "bun test scripts/sync-bun-lockfile.test.ts && node --test scripts/release.test.ts scripts/generate-release-notes.test.ts"
   },
   "engines": {
     "node": ">=22.13.0"
