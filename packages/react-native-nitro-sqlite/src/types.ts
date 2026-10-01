@@ -83,10 +83,16 @@ export interface NitroSQLiteConnection {
    * `location` is a path to the SQL file; multi-line statements are unsupported.
    * @param location Path to the SQL file.
    * @returns Number of executed commands and affected rows.
+   * @throws NitroSQLiteError with native category CouldNotLoadFile on an import
+   * failure, including the path, failing SQL/line, and any rollback failure.
+   * Completed commands are discarded when rollback succeeds.
    */
   loadFile(location: string): FileLoadResult
   /** Queue the file import and resolve with its command and row counts.
    * @param location Path to the SQL file.
+   * @returns A promise of the command and affected row counts.
+   * @throws NitroSQLiteError with native category CouldNotLoadFile, preserving
+   * the original import error and any rollback failure. Rejects asynchronously.
    */
   loadFileAsync(location: string): Promise<FileLoadResult>
 }
