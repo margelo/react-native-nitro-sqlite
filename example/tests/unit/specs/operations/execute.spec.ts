@@ -411,6 +411,46 @@ export default function registerExecuteUnitTests() {
           testDb.execute('DROP TABLE IF EXISTS SpatialIndex')
         }
       })
+
+      for (const module of ['rtree', 'rtree_i32']) {
+        it(`reopens and migrates a database containing ${module}`, () => {
+          const name = `rtree-migration-${module}`
+          let db = open({ name })
+          let isOpen = true
+
+          try {
+            db.execute('CREATE TABLE Item (id INTEGER PRIMARY KEY)')
+            db.execute(
+              `CREATE VIRTUAL TABLE SpatialIndex USING ${module}(id, minX, maxX, minY, maxY)`,
+            )
+            db.execute('INSERT INTO Item VALUES (1)')
+            db.execute('INSERT INTO SpatialIndex VALUES (1, 10, 20, 30, 40)')
+            db.execute(
+              'CREATE VIEW SpatialItems AS SELECT Item.id FROM Item JOIN SpatialIndex USING (id)',
+            )
+            db.close()
+            isOpen = false
+
+            db = open({ name })
+            isOpen = true
+            db.execute('ALTER TABLE Item RENAME TO RenamedItem')
+            db.execute('ALTER TABLE SpatialIndex RENAME TO RenamedSpatialIndex')
+
+            expect(db.execute('SELECT id FROM SpatialItems').results).toEqual([
+              { id: 1 },
+            ])
+            expect(
+              db.execute(
+                'SELECT id FROM RenamedSpatialIndex WHERE minX <= ? AND maxX >= ? AND minY <= ? AND maxY >= ?',
+                [15, 15, 35, 35],
+              ).results,
+            ).toEqual([{ id: 1 }])
+          } finally {
+            if (isOpen) db.close()
+            db.delete()
+          }
+        })
+      }
     })
 
     describe('ArrayBuffer support', () => {

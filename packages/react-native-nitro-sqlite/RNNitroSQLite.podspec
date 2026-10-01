@@ -9,6 +9,11 @@ unless app_config.is_a?(Hash)
   raise "nitroSQLite in package.json must be an object"
 end
 
+enable_rtree = app_config.fetch("enableRTree", true)
+unless [true, false].include?(enable_rtree)
+  raise "nitroSQLite.enableRTree in package.json must be true or false"
+end
+
 if ENV.key?("NITRO_SQLITE_THREADSAFE")
   thread_safe_value = ENV["NITRO_SQLITE_THREADSAFE"]
   unless %w[true false 1 0].include?(thread_safe_value)
@@ -77,7 +82,9 @@ Pod::Spec.new do |s|
   log_message.call("SQLite thread safety: SQLITE_THREADSAFE=#{sqlite_threadsafe}")
   log_message.call("SQLite performance mode: #{performance_mode ? "enabled" : "disabled"}")
   performance_cflags = performance_mode ? " #{optimized_cflags}" : ""
-  other_cflags = "#{inherited_cflags}#{performance_cflags} -DSQLITE_THREADSAFE=#{sqlite_threadsafe} "
+  # SQLite checks whether this macro is defined, so disabling RTree must omit it.
+  rtree_cflags = enable_rtree ? " -DSQLITE_ENABLE_RTREE=1" : ""
+  other_cflags = "#{inherited_cflags}#{performance_cflags}#{rtree_cflags} -DSQLITE_THREADSAFE=#{sqlite_threadsafe} "
 
   s.pod_target_xcconfig = {
     :GCC_PREPROCESSOR_DEFINITIONS => "HAVE_FULLFSYNC=1",
@@ -86,7 +93,7 @@ Pod::Spec.new do |s|
     'CLANG_CXX_LIBRARY' => 'libc++',
     'DEFINES_MODULE' => 'YES',
     "HEADER_SEARCH_PATHS" => "\"${PODS_ROOT}/RCT-Folly\"" + (nitro_sqlite_vec ? " \"#{nitro_sqlite_vec_cpp}\"" : ""),
-    "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) FOLLY_NO_CONFIG FOLLY_CFG_NO_COROUTINES SQLITE_ENABLE_RTREE=1" + (nitro_sqlite_vec ? " NITRO_SQLITE_VEC=1" : "") + (ENV['NITRO_SQLITE_USE_PHONE_VERSION'] == '1' ? " NITRO_SQLITE_USE_PHONE_VERSION=1" : ""),
+    "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) FOLLY_NO_CONFIG FOLLY_CFG_NO_COROUTINES" + (nitro_sqlite_vec ? " NITRO_SQLITE_VEC=1" : "") + (ENV['NITRO_SQLITE_USE_PHONE_VERSION'] == '1' ? " NITRO_SQLITE_USE_PHONE_VERSION=1" : ""),
     "OTHER_CPLUSPLUSFLAGS" => folly_compiler_flags,
     "OTHER_CFLAGS" => other_cflags,
   }
