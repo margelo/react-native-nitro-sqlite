@@ -4,21 +4,18 @@ on:
   push:
     branches:
       - main
-    paths:
+    paths: &cpp_paths
       - ".github/workflows/lint-cpp.yml"
-      - "**/*.h"
-      - "**/*.hpp"
-      - "**/*.cpp"
-      - "**/*.c"
-      - "**/*.mm"
+      - ".clang-format"
+      - "scripts/clang-format.sh"
+      - "packages/react-native-nitro-sqlite/cpp/**"
+      - "packages/react-native-nitro-sqlite/tests/cpp/**"
   pull_request:
-    paths:
-      - ".github/workflows/lint-cpp.yml"
-      - "**/*.h"
-      - "**/*.hpp"
-      - "**/*.cpp"
-      - "**/*.c"
-      - "**/*.mm"
+    paths: *cpp_paths
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   lint:

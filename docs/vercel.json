@@ -1,0 +1,6 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "ignoreCommand": "if [ -n \"$VERCEL_GIT_PREVIOUS_SHA\" ] && cd .. && git diff --quiet \"$VERCEL_GIT_PREVIOUS_SHA\" HEAD -- docs packages config package.json bun.lock; then exit 0; else exit 1; fi",
+  "installCommand": "cd .. && bun install --frozen-lockfile"
+}

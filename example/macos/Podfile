@@ -1,0 +1,34 @@
+require 'pathname'
+
+ENV['NITRO_SQLITE_VEC'] = '1'
+# Nitro async APIs can use several worker threads, so this example retains
+# SQLite's internal mutex support.
+ENV['NITRO_SQLITE_THREADSAFE'] = '1'
+resolver = File.join(__dir__, 'scripts', 'resolve-react-native.js')
+ENV['NODE_OPTIONS'] = [ENV['NODE_OPTIONS'], "--require=#{resolver}"].compact.join(' ')
+
+ws_dir = Pathname.new(__dir__)
+ws_dir = ws_dir.parent until
+  File.exist?("#{ws_dir}/node_modules/react-native-macos-local/scripts/react_native_pods.rb") ||
+  ws_dir.expand_path.to_s == '/'
+require "#{ws_dir}/node_modules/react-native-macos-local/scripts/react_native_pods.rb"
+
+react_native_macos_path = ws_dir.join('node_modules', 'react-native-macos-local').relative_path_from(Pathname.new(__dir__))
+
+prepare_react_native_project!
+
+target 'NitroSQLiteExample-macOS' do
+  platform :macos, '14.0'
+  use_native_modules!(['node', File.join(__dir__, 'scripts', 'react-native-macos-config.js')])
+
+  use_react_native!(
+    :path => react_native_macos_path.to_s,
+    :fabric_enabled => ENV['RCT_NEW_ARCH_ENABLED'] == '1',
+    # An absolute path to your application root.
+    :app_path => Pod::Config.instance.installation_root.to_s
+  )
+
+  post_install do |installer|
+    react_native_post_install(installer, react_native_macos_path.to_s)
+  end
+end

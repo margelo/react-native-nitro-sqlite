@@ -7,6 +7,7 @@ import { HomeScreen } from './screens/HomeScreen'
 import { UnitTestScreen } from './screens/UnitTestScreen'
 import { BenchmarkScreen } from './screens/BenchmarkScreen'
 import { SqlConsoleScreen } from './screens/SqlConsoleScreen'
+import { MigrationTestScreen } from './screens/MigrationTestScreen'
 
 export default function App() {
   return (
@@ -27,6 +28,10 @@ export default function App() {
         <RootStack.Screen
           name="SQL Console"
           component={SqlConsoleScreen}
+        />
+        <RootStack.Screen
+          name="Database Migration"
+          component={MigrationTestScreen}
         />
       </RootStack.Navigator>
 

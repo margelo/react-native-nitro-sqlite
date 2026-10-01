@@ -17,13 +17,10 @@
 namespace margelo::nitro::rnnitrosqlite { struct NitroSQLiteQueryColumnMetadata; }
 
 #include <optional>
+#include "NitroSQLiteQueryResults.hpp"
 #include <string>
-#include <NitroModules/Null.hpp>
-#include <NitroModules/ArrayBuffer.hpp>
-#include <variant>
-#include <unordered_map>
-#include <vector>
 #include "NitroSQLiteQueryColumnMetadata.hpp"
+#include <unordered_map>
 
 namespace margelo::nitro::rnnitrosqlite {
 
@@ -54,7 +51,7 @@ namespace margelo::nitro::rnnitrosqlite {
       // Properties
       virtual double getRowsAffected() = 0;
       virtual std::optional<double> getInsertId() = 0;
-      virtual std::vector<std::unordered_map<std::string, std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>> getResults() = 0;
+      virtual SQLiteQueryResults getResults() = 0;
       virtual std::optional<std::unordered_map<std::string, NitroSQLiteQueryColumnMetadata>> getMetadata() = 0;
 
     public:

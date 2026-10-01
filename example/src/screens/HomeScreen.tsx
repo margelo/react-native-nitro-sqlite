@@ -18,6 +18,11 @@ export function HomeScreen() {
       <TouchableOpacity onPress={() => navigation.navigate('SQL Console')}>
         <Text style={ScreenStyles.buttonText}>SQL Console</Text>
       </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => navigation.navigate('Database Migration')}
+      >
+        <Text style={ScreenStyles.buttonText}>Database Migration</Text>
+      </TouchableOpacity>
 
       <StatusBar style="auto" />
     </ScrollView>

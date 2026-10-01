@@ -5,13 +5,14 @@ set (CMAKE_VERBOSE_MAKEFILE ON)
 set (CMAKE_CXX_STANDARD 20)
 
 add_definitions(
+  ${SQLITE_DEFAULT_FLAGS}
   ${SQLITE_FLAGS}
 )
 
 file(GLOB_RECURSE cpp_files RELATIVE ${CMAKE_SOURCE_DIR}
   "../cpp/**.c"
   "../cpp/**.cpp"
-  "cpp-adapter.cpp"
+  "RNNitroSQLiteAdapter.cpp"
 )
 
 # Create library "RNNitroSQLite" and add all C++ files to it
@@ -34,7 +35,7 @@ if(NITRO_SQLITE_VEC)
   message(STATUS "[react-native-nitro-sqlite] vector search ENABLED (sqlite-vec from ${NITRO_SQLITE_VEC_CPP_DIR})")
   set(NITRO_SQLITE_VEC_SOURCES
     "${NITRO_SQLITE_VEC_CPP_DIR}/sqlite-vec/sqlite-vec.c"
-    "${NITRO_SQLITE_VEC_CPP_DIR}/registerVectorExtensions.cpp"
+    "${NITRO_SQLITE_VEC_CPP_DIR}/NitroSQLiteVecRegisterVectorExtensions.cpp"
   )
   target_sources(${CMAKE_PROJECT_NAME} PRIVATE ${NITRO_SQLITE_VEC_SOURCES})
   # SQLITE_CORE: link against our bundled sqlite3; SQLITE_VEC_STATIC: drop Windows dllexport.

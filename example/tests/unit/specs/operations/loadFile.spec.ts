@@ -12,14 +12,16 @@ export default function registerLoadFileUnitTests() {
 
   describe('loadFile', () => {
     it('preserves the SQL error context and rolls back the completed commands', () => {
-      expect(loadFileFixturePath).toBeTypeOf('string')
+      if (typeof loadFileFixturePath !== 'string') {
+        throw new Error('SQL import fixture path is missing')
+      }
       testDb.execute(
         'CREATE TABLE LoadFileRegression (value TEXT NOT NULL) STRICT;',
       )
 
       let errorMessage: string | undefined
       try {
-        testDb.loadFile(loadFileFixturePath as string)
+        testDb.loadFile(loadFileFixturePath)
       } catch (error) {
         if (!(error instanceof Error)) {
           throw error
