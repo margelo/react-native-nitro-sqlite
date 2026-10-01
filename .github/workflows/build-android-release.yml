@@ -24,6 +24,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.tag || github.event.release.tag_name || github.sha }}
       - uses: oven-sh/setup-bun@v2
 
       - name: Install npm dependencies (bun)

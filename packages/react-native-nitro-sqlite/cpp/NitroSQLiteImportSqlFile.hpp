@@ -14,13 +14,9 @@ namespace margelo::nitro::rnnitrosqlite {
 struct SQLiteConnection;
 
 /** Import one nonempty line per statement in an exclusive transaction.
+ * Holds the retained connection's lock for the entire import.
  * File and SQL failures throw CouldNotLoadFile with the path and original SQL/line context.
- * Resolving a database that is not open fails before import starts.
  * Attempts rollback only after BEGIN succeeds; rollback errors are appended.
- */
-SQLiteOperationResult importSqlFile(const std::string& dbName, const std::string& fileLocation);
-/** Import using a retained connection, holding its lock for the entire import.
- * Uses the same rollback and error behavior as the database-name overload.
  */
 SQLiteOperationResult importSqlFile(const std::shared_ptr<SQLiteConnection>& connection, const std::string& fileLocation);
 

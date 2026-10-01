@@ -7,6 +7,8 @@ SQLite parameters let you write SQL with placeholders and supply its values sepa
 
 In NitroSQLite, pass positional values in an array for `?` placeholders. The public `SQLiteValue` type permits `boolean`, `number`, `string`, `ArrayBuffer`, `null`, and `undefined`. Both `null` and `undefined` bind as SQL NULL. Keep table and column names in your own SQL; parameters bind values, not identifiers.
 
+SQLite leaves omitted placeholders as SQL NULL, so NitroSQLite does not require an exact parameter count. Extra values and other binding failures throw or reject with the one-based parameter index and SQLite error code and text. The error does not include parameter values. This behavior applies to synchronous, asynchronous, batch, and prepared statement execution.
+
 For repeated executions of the same SQL, [prepare the statement once](/docs/guides/prepared-statements) and pass a new parameter array on each run.
 
 ```ts
