@@ -42,12 +42,18 @@ private:
 /** Shared ownership of a native connection across pending operations. */
 using SQLiteConnectionPtr = std::shared_ptr<SQLiteConnection>;
 
-/** Registry of default database names and opaque independent connection IDs. */
+/** Connections owned by one NitroSQLite root. Destruction closes only this owner's handles. */
 class DatabaseConnections final {
 public:
+  DatabaseConnections();
+  ~DatabaseConnections();
+
+  DatabaseConnections(const DatabaseConnections&) = delete;
+  DatabaseConnections& operator=(const DatabaseConnections&) = delete;
+
   // Callers hold this while resolving or migrating a database path. It is recursive because
-  // open, attach and drop take it again after path resolution.
-  std::recursive_mutex lifecycleMutex;
+  // open, attach and drop take it again after path resolution. Shared across roots to protect files.
+  std::recursive_mutex& lifecycleMutex;
 
   /** Open a name-based default connection. An existing key is an error. */
   void open(const std::string& key, const std::filesystem::path& path, bool readOnly);
@@ -63,9 +69,9 @@ public:
   bool isOpen(const std::string& key);
   /** Resolve the file path for a registered or encoded independent key. */
   std::optional<std::filesystem::path> physicalPathForKey(const std::string& key);
-  /** Find an open connection using either candidate path. */
+  /** Find an open connection in any owner using either candidate path. */
   std::optional<std::filesystem::path> findLivePath(const std::filesystem::path& first, const std::filesystem::path& second);
-  /** Run @p action while holding the lifecycle and every connection lock. */
+  /** Run an internal file operation while holding the lifecycle and all owners' connection locks. */
   void withConnectionsLocked(const std::function<void()>& action);
   /** Delete a database after checking that no other connection or attachment uses it. */
   void drop(const std::string& dbName, const std::filesystem::path& path, const std::optional<std::string>& connectionId,
@@ -73,13 +79,11 @@ public:
 
 private:
   void openKey(const std::string& key, const std::filesystem::path& path, bool readOnly);
-  bool isPathInUse(const std::filesystem::path& path, const std::string& excludedKey) const;
+  bool isPathInUse(const std::filesystem::path& path, const SQLiteConnectionPtr& excludedConnection) const;
 
   std::map<std::string, SQLiteConnectionPtr> connections;
-  unsigned long long nextConnectionId = 0;
 };
 
-DatabaseConnections& databaseConnections();
 std::filesystem::path canonicalDatabasePath(const std::filesystem::path& path);
 void validateDatabaseName(const std::string& dbName);
 

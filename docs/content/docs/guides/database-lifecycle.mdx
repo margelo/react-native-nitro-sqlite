@@ -5,7 +5,7 @@ description: Open, close, delete, and place database files in an app directory.
 
 A SQLite database usually lives in a file. Your app opens a connection to read or change that file, then closes the connection when it is done. Closing a connection leaves the data on disk; deleting the file removes the database.
 
-In NitroSQLite, `open({ name })` opens an existing SQLite file or creates a new one. A database name can have only one active default connection. Close it before opening another default connection with that name, or use `connection: 'independent'` for a separate handle to the same file. See [multiple connections](/docs/guides/multiple-connections).
+In NitroSQLite, `open({ name })` opens an existing SQLite file or creates a new one. A database name can have only one active default connection per native NitroSQLite root. Close it before opening another default connection with that name, or use `connection: 'independent'` for a separate handle to the same file. See [multiple connections](/docs/guides/multiple-connections).
 
 ```ts
 import { open } from 'react-native-nitro-sqlite'
@@ -30,6 +30,14 @@ temporary.delete()
 Both methods are synchronous. They fail if an operation on that connection is queued or running. Await outstanding promises first, and [finalize prepared statements](/docs/guides/prepared-statements#connection-ordering-and-cleanup) before closing. `delete()` also fails if the named file does not exist.
 
 On iOS, when a database is being moved from Documents to Application Support, deletion also cleans up copies and SQLite sidecar files from both locations.
+
+## Runtime teardown
+
+SQLite connections are native resources. A JavaScript runtime can be destroyed while the app process stays alive, such as when an app switches between React Native hosts. Closing a connection preserves committed data on disk and rolls back any unfinished transaction.
+
+Each native NitroSQLite root owns its default and independent connections. When that root is destroyed, it closes its handles. A replacement runtime can open the same database names without restarting the process. An older root's cleanup does not close connections opened by a newer root.
+
+Queued operations and prepared statements keep their original connection. After its owner closes it, those operations fail instead of using a replacement connection with the same name. Await pending work and finalize prepared statements before an intentional runtime teardown when your app controls that transition.
 
 ## File location and prepopulated databases
 
