@@ -54,16 +54,13 @@ test('combines the announcement, configured changelog, and new contributors from
   })
 })
 
-test('regenerates a published release from its previous tag and states when no new contributors are detected', () => {
+test('regenerates a published release from its previous tag and omits the section when there are no new contributors', () => {
   withFixture("## What's Changed\n* existing contributor", (directory) => {
     git(directory, 'tag', 'v1.0.1')
     const notes = generate(directory)
     assert.match(notes, /repair runtime connections/)
     assert.match(notes, /v1\.0\.0\.\.\.v1\.0\.1/)
-    assert.match(
-      notes,
-      /## New Contributors\n\nNo new contributors were detected for this release\./,
-    )
+    assert.doesNotMatch(notes, /New Contributors|No new contributors/)
   })
 })
 
