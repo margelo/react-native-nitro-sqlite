@@ -18,9 +18,14 @@ project.ext.resolveNitroSqliteDefaultFlags = { File appPackageFile, String custo
 
   def threadSafe = readBooleanFlag("threadSafe")
   def performanceMode = readBooleanFlag("performanceMode")
+  def enableRTree = readBooleanFlag("enableRTree")
   def customFlagNames = (customFlags =~ /-D([A-Za-z_][A-Za-z0-9_]*)/).collect { it[1] }.toSet()
 
   def defaultFlags = [threadSafe ? '-DSQLITE_THREADSAFE=1' : '-DSQLITE_THREADSAFE=0']
+  // Omit the macro when disabled; SQLITE_ENABLE_RTREE=0 still enables SQLite's module.
+  if (enableRTree) {
+    defaultFlags += '-DSQLITE_ENABLE_RTREE=1'
+  }
   if (performanceMode) {
     defaultFlags += [
       "-DSQLITE_DQS=0",
