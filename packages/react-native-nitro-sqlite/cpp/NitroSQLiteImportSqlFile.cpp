@@ -10,10 +10,6 @@
 
 namespace margelo::nitro::rnnitrosqlite {
 
-SQLiteOperationResult importSqlFile(const std::string& dbName, const std::string& fileLocation) {
-  return importSqlFile(sqliteGetOpenDatabase(dbName), fileLocation);
-}
-
 SQLiteOperationResult importSqlFile(const SQLiteConnectionPtr& connection, const std::string& fileLocation) {
   std::lock_guard lock(connection->mutex);
   std::string line;

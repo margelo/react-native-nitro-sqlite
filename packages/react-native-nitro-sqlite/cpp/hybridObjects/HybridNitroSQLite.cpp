@@ -112,16 +112,17 @@ const std::string getOldDocPath(const std::optional<std::string>& location) {
   return oldDocPath;
 }
 
-const std::string getMigratedDocPath(const std::string& dbName, const std::optional<std::string>& location, bool readOnly = false) {
+const std::string getMigratedDocPath(DatabaseConnections& connections, const std::string& dbName,
+                                     const std::optional<std::string>& location, bool readOnly = false) {
   const auto currentDocPath = getDocPath(location);
   if (HybridNitroSQLite::migrationDocPath.empty()) {
     return currentDocPath;
   }
   const auto oldDocPath = getOldDocPath(location);
   std::string selectedPath;
-  databaseConnections().withConnectionsLocked([&]() {
+  connections.withConnectionsLocked([&]() {
     const auto oldPath = std::filesystem::path(oldDocPath) / dbName;
-    const auto livePath = databaseConnections().findLivePath(oldPath, std::filesystem::path(currentDocPath) / dbName);
+    const auto livePath = connections.findLivePath(oldPath, std::filesystem::path(currentDocPath) / dbName);
     if (livePath) {
       selectedPath = *livePath == oldPath ? oldDocPath : currentDocPath;
     } else if (readOnly) {
@@ -136,12 +137,12 @@ const std::string getMigratedDocPath(const std::string& dbName, const std::optio
 void HybridNitroSQLite::open(const std::string& dbName, const std::optional<std::string>& location, std::optional<bool> readOnly,
                              const std::optional<std::string>& encryptionKey) {
   validateDatabaseName(dbName);
-  std::lock_guard lock(databaseConnections().lifecycleMutex);
-  if (databaseConnections().isOpen(dbName)) {
+  std::lock_guard lock(_connections.lifecycleMutex);
+  if (_connections.isOpen(dbName)) {
     throw NitroSQLiteException::DatabaseAlreadyOpen(dbName);
   }
-  const auto docPath = getMigratedDocPath(dbName, location, readOnly.value_or(false));
-  sqliteOpenDb(dbName, docPath, readOnly.value_or(false), encryptionKey);
+  const auto docPath = getMigratedDocPath(_connections, dbName, location, readOnly.value_or(false));
+  sqliteOpenDb(_connections, dbName, docPath, readOnly.value_or(false), encryptionKey);
 }
 
 std::string HybridNitroSQLite::openConnection(const std::string& dbName, const std::optional<std::string>& location,
@@ -151,31 +152,31 @@ std::string HybridNitroSQLite::openConnection(const std::string& dbName, const s
     throw NitroSQLiteException(NitroSQLiteExceptionType::DatabaseCannotBeOpened,
                                "Independent connections require a thread-safe SQLite build");
   }
-  std::lock_guard lock(databaseConnections().lifecycleMutex);
-  const auto docPath = getMigratedDocPath(dbName, location, readOnly.value_or(false));
-  return sqliteOpenConnection(dbName, docPath, readOnly.value_or(false), encryptionKey);
+  std::lock_guard lock(_connections.lifecycleMutex);
+  const auto docPath = getMigratedDocPath(_connections, dbName, location, readOnly.value_or(false));
+  return sqliteOpenConnection(_connections, dbName, docPath, readOnly.value_or(false), encryptionKey);
 }
 
 void HybridNitroSQLite::close(const std::string& dbName) {
-  sqliteCloseDb(dbName);
+  _connections.close(dbName);
 };
 
 bool HybridNitroSQLite::isConnectionOpen(const std::string& connectionId) {
-  return databaseConnections().isOpen(connectionId);
+  return _connections.isOpen(connectionId);
 }
 
 void HybridNitroSQLite::drop(const std::string& dbName, const std::optional<std::string>& location,
                              const std::optional<std::string>& connectionId) {
   validateDatabaseName(dbName);
-  std::lock_guard lock(databaseConnections().lifecycleMutex);
+  std::lock_guard lock(_connections.lifecycleMutex);
   const auto currentDocPath = getDocPath(location);
   if (migrationDocPath.empty()) {
-    sqliteRemoveDb(dbName, currentDocPath, connectionId);
+    sqliteRemoveDb(_connections, dbName, currentDocPath, connectionId);
     return;
   }
 
   const auto oldDocPath = getOldDocPath(location);
-  const auto preferredPath = databaseConnections().physicalPathForKey(connectionId.value_or(dbName));
+  const auto preferredPath = _connections.physicalPathForKey(connectionId.value_or(dbName));
   const auto currentPath = std::filesystem::path(currentDocPath) / dbName;
   std::error_code ec;
   const bool oldDatabaseExists = std::filesystem::exists(std::filesystem::path(oldDocPath) / dbName, ec);
@@ -189,27 +190,27 @@ void HybridNitroSQLite::drop(const std::string& dbName, const std::optional<std:
   const bool prefersCurrent = preferredPath && (std::filesystem::equivalent(*preferredPath, currentPath, equivalentError) ||
                                                 canonicalDatabasePath(*preferredPath) == canonicalDatabasePath(currentPath));
   const bool useOldPath = !prefersCurrent && (preferredPath || oldDatabaseExists || ec);
-  sqliteRemoveDb(dbName, useOldPath ? oldDocPath : currentDocPath, connectionId, useOldPath ? currentDocPath : oldDocPath);
+  sqliteRemoveDb(_connections, dbName, useOldPath ? oldDocPath : currentDocPath, connectionId, useOldPath ? currentDocPath : oldDocPath);
 };
 
 void HybridNitroSQLite::attach(const std::string& mainDbName, const std::string& dbNameToAttach, const std::string& alias,
                                const std::optional<std::string>& location) {
   validateDatabaseName(dbNameToAttach);
-  std::lock_guard lock(databaseConnections().lifecycleMutex);
-  if (databaseConnections().get(mainDbName)->readOnly) {
+  std::lock_guard lock(_connections.lifecycleMutex);
+  if (_connections.get(mainDbName)->readOnly) {
     throw NitroSQLiteException(NitroSQLiteExceptionType::UnableToAttachToDatabase, "Cannot attach a database to a read-only connection");
   }
-  const auto attachedDocPath = getMigratedDocPath(dbNameToAttach, location);
-  sqliteAttachDb(mainDbName, attachedDocPath, dbNameToAttach, alias);
+  const auto attachedDocPath = getMigratedDocPath(_connections, dbNameToAttach, location);
+  sqliteAttachDb(_connections.get(mainDbName), attachedDocPath, dbNameToAttach, alias);
 };
 
 void HybridNitroSQLite::detach(const std::string& mainDbName, const std::string& alias) {
-  sqliteDetachDb(mainDbName, alias);
+  sqliteDetachDb(_connections.get(mainDbName), alias);
 };
 
 std::shared_ptr<HybridNitroSQLiteQueryResultSpec> HybridNitroSQLite::execute(const std::string& dbName, const std::string& query,
                                                                              const std::optional<SQLiteQueryParams>& params) {
-  return sqliteExecute(dbName, query, params);
+  return sqliteExecute(_connections.get(dbName), query, params);
 };
 
 std::shared_ptr<Promise<std::shared_ptr<HybridNitroSQLiteQueryResultSpec>>>
@@ -217,7 +218,7 @@ HybridNitroSQLite::executeAsync(const std::string& dbName, const std::string& qu
   const auto copiedParams = copyArrayBufferParamsForBackground(params);
   SQLiteConnectionPtr connection;
   try {
-    connection = sqliteGetOpenDatabase(dbName);
+    connection = _connections.get(dbName);
   } catch (...) {
     return Promise<std::shared_ptr<HybridNitroSQLiteQueryResultSpec>>::rejected(std::current_exception());
   }
@@ -230,13 +231,13 @@ HybridNitroSQLite::executeAsync(const std::string& dbName, const std::string& qu
 };
 
 std::shared_ptr<HybridNitroSQLitePreparedStatementSpec> HybridNitroSQLite::prepare(const std::string& dbName, const std::string& query) {
-  return std::make_shared<HybridNitroSQLitePreparedStatement>(sqlitePrepare(dbName, query));
+  return std::make_shared<HybridNitroSQLitePreparedStatement>(sqlitePrepare(_connections.get(dbName), query));
 }
 
 BatchQueryResult HybridNitroSQLite::executeBatch(const std::string& dbName, const std::vector<BatchQueryCommand>& batchParams) {
   const auto commands = batchParamsToCommands(batchParams);
 
-  auto result = sqliteExecuteBatch(dbName, commands);
+  auto result = sqliteExecuteBatch(_connections.get(dbName), commands);
   return BatchQueryResult(result.rowsAffected);
 };
 
@@ -248,7 +249,7 @@ std::shared_ptr<Promise<BatchQueryResult>> HybridNitroSQLite::executeBatchAsync(
   const auto copiedCommands = copyArrayBufferParamsForBackground(commands);
   SQLiteConnectionPtr connection;
   try {
-    connection = sqliteGetOpenDatabase(dbName);
+    connection = _connections.get(dbName);
   } catch (...) {
     return Promise<BatchQueryResult>::rejected(std::current_exception());
   }
@@ -260,14 +261,14 @@ std::shared_ptr<Promise<BatchQueryResult>> HybridNitroSQLite::executeBatchAsync(
 };
 
 FileLoadResult HybridNitroSQLite::loadFile(const std::string& dbName, const std::string& location) {
-  const auto result = importSqlFile(dbName, location);
+  const auto result = importSqlFile(_connections.get(dbName), location);
   return FileLoadResult(result.commands, result.rowsAffected);
 };
 
 std::shared_ptr<Promise<FileLoadResult>> HybridNitroSQLite::loadFileAsync(const std::string& dbName, const std::string& location) {
   SQLiteConnectionPtr connection;
   try {
-    connection = sqliteGetOpenDatabase(dbName);
+    connection = _connections.get(dbName);
   } catch (...) {
     return Promise<FileLoadResult>::rejected(std::current_exception());
   }

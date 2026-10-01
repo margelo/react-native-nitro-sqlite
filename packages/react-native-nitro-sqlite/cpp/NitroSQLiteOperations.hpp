@@ -12,10 +12,11 @@
 namespace margelo::nitro::rnnitrosqlite {
 
 /** Open the default connection by database name. Read-only mode requires an existing file. */
-void sqliteOpenDb(const std::string& dbName, const std::string& docPath, bool readOnly, const std::optional<std::string>& encryptionKey);
+void sqliteOpenDb(DatabaseConnections& connections, const std::string& dbName, const std::string& docPath, bool readOnly,
+                  const std::optional<std::string>& encryptionKey);
 
 /** Open a separate native handle and return its opaque connection ID. */
-std::string sqliteOpenConnection(const std::string& dbName, const std::string& docPath, bool readOnly,
+std::string sqliteOpenConnection(DatabaseConnections& connections, const std::string& dbName, const std::string& docPath, bool readOnly,
                                  const std::optional<std::string>& encryptionKey);
 
 /** Prepared SQL statement bound to one native connection. */
@@ -39,29 +40,22 @@ private:
 
   std::shared_ptr<State> _state;
 
-  friend std::shared_ptr<SQLitePreparedStatement> sqlitePrepare(const std::string& dbName, const std::string& query);
+  friend std::shared_ptr<SQLitePreparedStatement> sqlitePrepare(const SQLiteConnectionPtr& connection, const std::string& query);
 };
 
-void sqliteCloseDb(const std::string& dbName);
-
 /** Delete a database, optionally closing its independent connection first. */
-void sqliteRemoveDb(const std::string& dbName, const std::string& docPath, const std::optional<std::string>& connectionId = std::nullopt,
+void sqliteRemoveDb(DatabaseConnections& connections, const std::string& dbName, const std::string& docPath,
+                    const std::optional<std::string>& connectionId = std::nullopt,
                     const std::optional<std::string>& otherDocPath = std::nullopt);
 
-void sqliteAttachDb(const std::string& mainDBName, const std::string& docPath, const std::string& databaseToAttach,
+void sqliteAttachDb(const SQLiteConnectionPtr& connection, const std::string& docPath, const std::string& databaseToAttach,
                     const std::string& alias);
 
-void sqliteDetachDb(const std::string& mainDBName, const std::string& alias);
+void sqliteDetachDb(const SQLiteConnectionPtr& connection, const std::string& alias);
 
-SQLiteConnectionPtr sqliteGetOpenDatabase(const std::string& dbName);
-
-std::shared_ptr<HybridNitroSQLiteQueryResult> sqliteExecute(const std::string& dbName, const std::string& query,
-                                                            const std::optional<SQLiteQueryParams>& params);
 std::shared_ptr<HybridNitroSQLiteQueryResult> sqliteExecute(const SQLiteConnectionPtr& connection, const std::string& query,
                                                             const std::optional<SQLiteQueryParams>& params);
 
-SQLiteOperationResult sqliteExecuteCommand(const std::string& dbName, const std::string& query,
-                                           const std::optional<SQLiteQueryParams>& params = std::nullopt);
 SQLiteOperationResult sqliteExecuteCommand(const SQLiteConnectionPtr& connection, const std::string& query,
                                            const std::optional<SQLiteQueryParams>& params = std::nullopt);
 
@@ -70,8 +64,6 @@ SQLiteOperationResult sqliteExecuteCommandGroup(const SQLiteConnectionPtr& conne
                                                 const std::vector<SQLiteQueryParams>& parameterSets);
 
 /** Prepare one SQL statement on an open default or independent connection. */
-std::shared_ptr<SQLitePreparedStatement> sqlitePrepare(const std::string& dbName, const std::string& query);
-
-void sqliteCloseAll();
+std::shared_ptr<SQLitePreparedStatement> sqlitePrepare(const SQLiteConnectionPtr& connection, const std::string& query);
 
 } // namespace margelo::nitro::rnnitrosqlite

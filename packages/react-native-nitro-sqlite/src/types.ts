@@ -215,7 +215,9 @@ export interface Transaction {
 export interface BatchQueryCommand {
   /** SQL statement to execute. */
   query: string
-  /** One parameter set, or several sets for repeated execution. */
+  /** One parameter set, or several sets for repeated execution.
+   * An empty array skips the command. Omit this field to execute once without bindings.
+   */
   params?: SQLiteQueryParams | SQLiteQueryParams[]
 }
 

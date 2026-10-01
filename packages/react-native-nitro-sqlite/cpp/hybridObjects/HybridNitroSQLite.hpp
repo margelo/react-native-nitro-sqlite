@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../NitroSQLiteDatabaseConnections.hpp"
 #include "../NitroSQLiteTypes.hpp"
 #include "HybridNitroSQLitePreparedStatementSpec.hpp"
 #include "HybridNitroSQLiteQueryResultSpec.hpp"
@@ -7,7 +8,11 @@
 
 namespace margelo::nitro::rnnitrosqlite {
 
-/** Native database operations exposed to JavaScript through the Nitro hybrid object. */
+/** Native database operations exposed to JavaScript through the Nitro hybrid object.
+ * Owns its default and independent connections and closes them on destruction.
+ * Queued operations and prepared statements retain their original connection and
+ * fail after that connection closes. Other NitroSQLite roots remain usable.
+ */
 class HybridNitroSQLite : public HybridNitroSQLiteSpec {
 public:
   HybridNitroSQLite() : HybridObject(TAG) {}
@@ -18,6 +23,9 @@ public:
   // relocated docPath (e.g. iOS with RNNitroSQLite_DatabaseLocation set to "ApplicationSupport").
   // When non-empty, databases found there are resolved as they are opened, attached, or dropped.
   static std::string migrationDocPath;
+
+private:
+  DatabaseConnections _connections;
 
 public:
   // Methods
