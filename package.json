@@ -1,6 +1,6 @@
 {
   "name": "react-native-nitro-sqlite-workspace",
-  "version": "9.8.2",
+  "version": "9.8.3",
   "packageManager": "bun@1.3.1",
   "private": "true",
   "workspaces": [
@@ -27,7 +27,9 @@
     "check:lockfile": "bun scripts/check-bun-lockfile.ts",
     "release": "./scripts/release.sh",
     "sqlite": "bun --cwd packages/react-native-nitro-sqlite",
-    "example": "bun --cwd example"
+    "example": "bun --cwd example",
+    "sync:lockfile": "bun scripts/sync-bun-lockfile.ts",
+    "test:release": "bun test scripts/sync-bun-lockfile.test.ts && node --test scripts/release.test.ts"
   },
   "engines": {
     "node": ">=22.13.0"
@@ -68,7 +70,8 @@
     "release-it": "^19.2.4",
     "typeorm": "0.3.27",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.46.3"
+    "typescript-eslint": "^8.46.3",
+    "jsonc-parser": "^3.3.1"
   },
   "release-it": {
     "npm": false,
@@ -86,7 +89,7 @@
       }
     },
     "hooks": {
-      "before:release": "bun install --lockfile-only && bun run check:lockfile && bun example bundle-install && bun example pods && git add bun.lock example/ios/Podfile.lock"
+      "before:release": "bun install --lockfile-only && bun run sync:lockfile && bun run check:lockfile && bun example bundle-install && bun example pods && git add bun.lock example/ios/Podfile.lock"
     },
     "plugins": {
       "@release-it/bumper": {
