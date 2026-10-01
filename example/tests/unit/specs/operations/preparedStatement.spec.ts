@@ -9,6 +9,30 @@ import { testDb } from '@tests/db'
 
 export default function registerPreparedStatementUnitTests() {
   describe('prepared statements', () => {
+    it('reports bind errors and remains reusable for sync and async execution', async () => {
+      const statement = testDb.prepare('SELECT ? AS value')
+      const secret = 'do-not-expose-prepared-parameter'
+      try {
+        for (const asynchronous of [false, true]) {
+          try {
+            if (asynchronous) await statement.executeAsync([1, secret])
+            else statement.execute([1, secret])
+            throw new Error('Expected prepared binding to fail')
+          } catch (error) {
+            if (!isNitroSQLiteError(error)) throw error
+            expect(error.message).toContain('parameter 2')
+            expect(error.message).toContain('25')
+            expect(error.message).toContain('column index out of range')
+            expect(error.message.includes(secret)).toBe(false)
+          }
+          expect(statement.execute([7]).rows._array).toEqual([{ value: 7 }])
+          expect(statement.execute([]).rows._array).toEqual([{ value: null }])
+        }
+      } finally {
+        statement.finalize()
+      }
+    })
+
     it('binds undefined on synchronous and asynchronous execution', async () => {
       const statement = testDb.prepare('SELECT ? AS missing, ? AS value')
 

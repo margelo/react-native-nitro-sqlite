@@ -116,7 +116,12 @@ export type SQLiteValue =
   | null
   | undefined
 
-/** Positional values for SQL placeholders. */
+/** Positional values for SQL placeholders.
+ * Omitted placeholders bind as SQL NULL; an exact count is not required.
+ * Extra values and other binding failures throw or reject with the one-based
+ * parameter index and SQLite error code/text, without including parameter values.
+ * This applies to regular, batch, and prepared statement execution.
+ */
 export type SQLiteQueryParams = SQLiteValue[]
 
 /** A row keyed by result column names. */

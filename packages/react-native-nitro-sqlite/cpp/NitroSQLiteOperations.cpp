@@ -144,7 +144,8 @@ void bindStatement(sqlite3_stmt* statement, const SQLiteQueryParams& values) {
     }
 
     if (bindStatus != SQLITE_OK) {
-      throw NitroSQLiteException::SqlExecution(sqlite3_errmsg(sqlite3_db_handle(statement)));
+      throw NitroSQLiteException::SqlExecution("Failed to bind parameter " + std::to_string(sqliteIndex) + " (SQLite error " +
+                                               std::to_string(bindStatus) + "): " + sqlite3_errstr(bindStatus));
     }
   }
 }
