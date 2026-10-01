@@ -28,11 +28,11 @@
     "clean": "rm -rf **/.tsbuild **/tsconfig.tsbuildinfo node_modules packages/react-native-nitro-sqlite/node_module packages/react-native-nitro-sqlite/lib",
     "check:lockfile": "bun scripts/check-bun-lockfile.ts",
     "sync:lockfile": "bun scripts/sync-bun-lockfile.ts",
-    "test:release": "bun test scripts/sync-bun-lockfile.test.ts && node --test scripts/release.test.ts scripts/generate-release-notes.test.ts",
-    "release": "./scripts/release.sh",
+    "test:release": "bun test scripts/sync-bun-lockfile.test.ts && node --test scripts/release.test.ts scripts/generate-release-notes.test.ts scripts/publish-release.test.ts",
     "sqlite": "bun --cwd packages/react-native-nitro-sqlite",
     "example": "bun --cwd example",
-    "docs": "bun --cwd docs"
+    "docs": "bun --cwd docs",
+    "typecheck:release": "tsc -p tsconfig.release.json"
   },
   "engines": {
     "node": ">=22.13.0"
@@ -56,8 +56,6 @@
     "@react-native/eslint-config": "0.87.1",
     "@react-native/metro-config": "0.87.1",
     "@react-native/typescript-config": "0.87.1",
-    "@release-it/bumper": "^6.0.1",
-    "@release-it/conventional-changelog": "^8.0.2",
     "@tsconfig/react-native": "^2.0.2",
     "@types/eslint__js": "^8.42.3",
     "@types/jest": "^29.5.13",
@@ -71,96 +69,9 @@
     "jsonc-parser": "^3.3.1",
     "nitrogen": "0.37.1",
     "prettier": "^3.6.2",
-    "release-it": "^19.2.4",
     "typeorm": "1.1.1",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.46.3"
-  },
-  "release-it": {
-    "npm": false,
-    "git": {
-      "commitMessage": "chore: release ${version}",
-      "tagName": "v${version}",
-      "requireCleanWorkingDir": false
-    },
-    "github": {
-      "release": true,
-      "tokenRef": "RELEASE_IT_GITHUB_TOKEN",
-      "skipChecks": true,
-      "comments": {
-        "submit": true
-      }
-    },
-    "hooks": {
-      "before:release": "bun install --lockfile-only && bun run sync:lockfile && bun run check:lockfile && bun example bundle-install && bun example pods && bun example pods:macos && git add bun.lock example/ios/Podfile.lock example/macos/Podfile.lock"
-    },
-    "plugins": {
-      "@release-it/bumper": {
-        "in": {
-          "file": "packages/react-native-nitro-sqlite/package.json",
-          "path": "version"
-        },
-        "out": [
-          {
-            "file": "packages/react-native-nitro-sqlite/package.json",
-            "path": "version"
-          },
-          {
-            "file": "packages/react-native-nitro-sqlite-vec/package.json",
-            "path": [
-              "version",
-              "devDependencies.react-native-nitro-sqlite"
-            ]
-          },
-          {
-            "file": "package.json",
-            "path": "version"
-          },
-          {
-            "file": "example/package.json",
-            "path": [
-              "version",
-              "dependencies.react-native-nitro-sqlite",
-              "dependencies.react-native-nitro-sqlite-vec"
-            ]
-          }
-        ]
-      },
-      "@release-it/conventional-changelog": {
-        "preset": {
-          "name": "conventionalcommits",
-          "types": [
-            {
-              "type": "feat",
-              "section": "✨ Features"
-            },
-            {
-              "type": "perf",
-              "section": "💨 Performance Improvements"
-            },
-            {
-              "type": "fix",
-              "section": "🐛 Bug Fixes"
-            },
-            {
-              "type": "refactor",
-              "section": "🔄 Code Refactoring"
-            },
-            {
-              "type": "chore",
-              "section": "🏗️ Project configuration and build flow"
-            },
-            {
-              "type": "chore(deps)",
-              "section": "🛠️ Dependency Upgrades"
-            },
-            {
-              "type": "docs",
-              "section": "📚 Documentation"
-            }
-          ]
-        }
-      }
-    }
+    "typescript-eslint": "^8.46.3",
+    "release-please": "17.6.0"
   }
 }

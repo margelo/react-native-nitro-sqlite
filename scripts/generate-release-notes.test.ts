@@ -11,24 +11,11 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { test } from 'node:test'
 import { fileURLToPath } from 'node:url'
-
-type Configuration = {
-  'repository': { type: string; url: string }
-  'release-it': {
-    plugins: {
-      '@release-it/conventional-changelog': {
-        preset: { types: { type: string; section: string }[] }
-      }
-    }
-  }
-}
+import { versionChangelog } from './generate-release-notes.ts'
 
 const script = fileURLToPath(
   new URL('./generate-release-notes.ts', import.meta.url),
 )
-const configuration = JSON.parse(
-  readFileSync(new URL('../package.json', import.meta.url), 'utf8'),
-) as Configuration
 
 test('combines the announcement, configured changelog, and new contributors from the selected release branch', () => {
   const githubNotes =
@@ -36,11 +23,7 @@ test('combines the announcement, configured changelog, and new contributors from
   withFixture(githubNotes, (directory) => {
     const notes = generate(directory)
     assert.match(notes, /^Custom announcement\.\n\n---\n\n/)
-    const fixSection = configuration['release-it'].plugins[
-      '@release-it/conventional-changelog'
-    ].preset.types.find((entry) => entry.type === 'fix')?.section
-    assert.ok(fixSection)
-    assert.ok(notes.includes(fixSection))
+    assert.ok(notes.includes('🐛 Bug Fixes'))
     assert.match(notes, /repair runtime connections/)
     assert.match(notes, /v1\.0\.0\.\.\.v1\.0\.1/)
     assert.match(
@@ -73,6 +56,29 @@ test('rejects a release increment before generating notes', () => {
   })
 })
 
+test('supplies an announcement when no custom text exists and omits an empty contributors section', () => {
+  withFixture(
+    '## New Contributors\n\n**Full Changelog**: ignored',
+    (directory) => {
+      rmSync(join(directory, 'docs/releases/v1.0.1.md'))
+      const notes = generate(directory)
+      assert.match(notes, /^NitroSQLite 1.0.1 is available\./)
+      assert.match(notes, /\n\n---\n\n## \[1.0.1\]/)
+      assert.doesNotMatch(notes, /New Contributors|No new contributors/)
+    },
+  )
+})
+
+test('preserves generated sections and rejects a missing changelog version', () => {
+  const changelog =
+    '# Changelog\n\n## 2.0.0\n\n## ⚠ BREAKING CHANGES\n\n* changed API\n\n### ✨ Features\n\n* new feature\n\n## 1.0.0\n\n* old feature'
+  assert.equal(
+    versionChangelog(changelog, '2.0.0'),
+    '## 2.0.0\n\n## ⚠ BREAKING CHANGES\n\n* changed API\n\n### ✨ Features\n\n* new feature',
+  )
+  assert.throws(() => versionChangelog(changelog, '3.0.0'), /no entry/)
+})
+
 function generate(directory: string, version = '1.0.1'): string {
   const destination = join(directory, 'notes.md')
   execFileSync(process.execPath, [script, version, destination], {
@@ -97,11 +103,13 @@ function withFixture(body: string, run: (directory: string) => void): void {
     writeFileSync(
       join(directory, 'package.json'),
       JSON.stringify({
-        'name': 'release-notes-fixture',
-        'version': '1.0.1',
-        'repository': configuration.repository,
-        'release-it': configuration['release-it'],
+        name: 'release-notes-fixture',
+        version: '1.0.1',
       }),
+    )
+    writeFileSync(
+      join(directory, 'CHANGELOG.md'),
+      '# Changelog\n\n## [1.0.1](https://github.com/margelo/react-native-nitro-sqlite/compare/v1.0.0...v1.0.1)\n\n### 🐛 Bug Fixes\n\n* repair runtime connections\n\n## 1.0.0\n\n* initial release fixture\n',
     )
     mkdirSync(join(directory, 'docs/releases'), { recursive: true })
     writeFileSync(
