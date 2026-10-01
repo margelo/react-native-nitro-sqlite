@@ -2,6 +2,7 @@
 
 #include "hybridObjects/HybridNitroSQLiteQueryResult.hpp"
 #include "types.hpp"
+#include <map>
 #include <memory>
 #include <mutex>
 #include <sqlite3.h>
@@ -28,29 +29,31 @@ struct SQLiteConnection final {
 
 using SQLiteConnectionPtr = std::shared_ptr<SQLiteConnection>;
 
-void sqliteOpenDb(const std::string& dbName, const std::string& docPath);
+// Each NitroSQLite root owns its connections. Destroying an old root must not
+// close or retarget connections opened by a newer JavaScript runtime.
+class SQLiteDatabaseConnections final {
+public:
+  ~SQLiteDatabaseConnections();
 
-void sqliteCloseDb(const std::string& dbName);
+  void open(const std::string& dbName, const std::string& docPath);
+  void close(const std::string& dbName);
+  void remove(const std::string& dbName, const std::string& docPath);
+  void attach(const std::string& mainDBName, const std::string& docPath, const std::string& databaseToAttach, const std::string& alias);
+  void detach(const std::string& mainDBName, const std::string& alias);
+  SQLiteConnectionPtr get(const std::string& dbName);
 
-void sqliteRemoveDb(const std::string& dbName, const std::string& docPath);
+private:
+  void closeAll();
 
-void sqliteAttachDb(const std::string& mainDBName, const std::string& docPath, const std::string& databaseToAttach,
-                    const std::string& alias);
+  std::map<std::string, SQLiteConnectionPtr> dbMap;
+  std::mutex dbMapMutex;
+  std::mutex dbLifecycleMutex;
+};
 
-void sqliteDetachDb(const std::string& mainDBName, const std::string& alias);
-
-SQLiteConnectionPtr sqliteGetOpenDatabase(const std::string& dbName);
-
-std::shared_ptr<HybridNitroSQLiteQueryResult> sqliteExecute(const std::string& dbName, const std::string& query,
-                                                            const std::optional<SQLiteQueryParams>& params);
 std::shared_ptr<HybridNitroSQLiteQueryResult> sqliteExecute(const SQLiteConnectionPtr& connection, const std::string& query,
                                                             const std::optional<SQLiteQueryParams>& params);
 
-SQLiteOperationResult sqliteExecuteCommand(const std::string& dbName, const std::string& query,
-                                           const std::optional<SQLiteQueryParams>& params = std::nullopt);
 SQLiteOperationResult sqliteExecuteCommand(const SQLiteConnectionPtr& connection, const std::string& query,
                                            const std::optional<SQLiteQueryParams>& params = std::nullopt);
-
-void sqliteCloseAll();
 
 } // namespace margelo::rnnitrosqlite

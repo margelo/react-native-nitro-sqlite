@@ -32,10 +32,6 @@ std::vector<BatchQuery> batchParamsToCommands(const std::vector<BatchQueryComman
   return commands;
 }
 
-SQLiteOperationResult sqliteExecuteBatch(const std::string& dbName, const std::vector<BatchQuery>& commands) {
-  return sqliteExecuteBatch(sqliteGetOpenDatabase(dbName), commands);
-}
-
 SQLiteOperationResult sqliteExecuteBatch(const SQLiteConnectionPtr& connection, const std::vector<BatchQuery>& commands) {
   std::lock_guard lock(connection->mutex);
   size_t commandCount = commands.size();

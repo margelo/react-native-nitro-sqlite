@@ -2,6 +2,7 @@
 
 #include "HybridNitroSQLiteQueryResultSpec.hpp"
 #include "HybridNitroSQLiteSpec.hpp"
+#include "operations.hpp"
 #include "types.hpp"
 
 using namespace margelo::rnnitrosqlite;
@@ -18,6 +19,9 @@ public:
   // relocated docPath (e.g. iOS with RNNitroSQLite_DatabaseLocation set to "ApplicationSupport").
   // When non-empty, databases found there are resolved as they are opened, attached, or dropped.
   static std::string migrationDocPath;
+
+private:
+  SQLiteDatabaseConnections _connections;
 
 public:
   // Methods
