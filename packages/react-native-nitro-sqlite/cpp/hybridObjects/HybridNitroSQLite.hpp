@@ -22,10 +22,12 @@ public:
 public:
   // Methods
   /** Open the default connection, requiring an existing file in read-only mode. */
-  void open(const std::string& dbName, const std::optional<std::string>& location, std::optional<bool> readOnly) override;
+  void open(const std::string& dbName, const std::optional<std::string>& location, std::optional<bool> readOnly,
+            const std::optional<std::string>& encryptionKey) override;
 
   /** Open a separate native handle and return an opaque ID for later calls. */
-  std::string openConnection(const std::string& dbName, const std::optional<std::string>& location, std::optional<bool> readOnly) override;
+  std::string openConnection(const std::string& dbName, const std::optional<std::string>& location, std::optional<bool> readOnly,
+                             const std::optional<std::string>& encryptionKey) override;
 
   /** Close the named native database handle. */
   void close(const std::string& dbName) override;

@@ -88,10 +88,12 @@ const requiredMembers = {
       'loadFile',
       'loadFileAsync',
     ],
+    NitroSQLiteConnectionOptions: ['encryptionKey'],
     Transaction: ['commit', 'rollback', 'execute', 'executeAsync'],
     NitroSQLiteError: ['type', 'fromError'],
     NitroSQLiteNative: [
       'open',
+      'openConnection',
       'close',
       'drop',
       'attach',

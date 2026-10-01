@@ -60,16 +60,17 @@ void SQLiteConnection::drainAsync() {
   }
 }
 
-void sqliteOpenDb(const std::string& dbName, const std::string& docPath, bool readOnly) {
+void sqliteOpenDb(const std::string& dbName, const std::string& docPath, bool readOnly, const std::optional<std::string>& encryptionKey) {
 #ifdef NITRO_SQLITE_VEC
   // Register before opening so the connection exposes vec0 + vec_*.
   margelo::rnnitrosqlitevec::registerVectorExtensions();
 #endif
   const std::string dbPath = readOnly ? docPath + "/" + dbName : get_db_path(dbName, docPath);
-  databaseConnections().open(dbName, dbPath, readOnly);
+  databaseConnections().open(dbName, dbPath, readOnly, encryptionKey);
 }
 
-std::string sqliteOpenConnection(const std::string& dbName, const std::string& docPath, bool readOnly) {
+std::string sqliteOpenConnection(const std::string& dbName, const std::string& docPath, bool readOnly,
+                                 const std::optional<std::string>& encryptionKey) {
   if (sqlite3_threadsafe() == 0) {
     throw NitroSQLiteException(NitroSQLiteExceptionType::DatabaseCannotBeOpened,
                                "Independent connections require a thread-safe SQLite build");
@@ -78,7 +79,7 @@ std::string sqliteOpenConnection(const std::string& dbName, const std::string& d
   margelo::rnnitrosqlitevec::registerVectorExtensions();
 #endif
   const std::string dbPath = readOnly ? docPath + "/" + dbName : get_db_path(dbName, docPath);
-  return databaseConnections().openIndependent(dbPath, readOnly);
+  return databaseConnections().openIndependent(dbPath, readOnly, encryptionKey);
 }
 
 void sqliteCloseDb(const std::string& dbName) {

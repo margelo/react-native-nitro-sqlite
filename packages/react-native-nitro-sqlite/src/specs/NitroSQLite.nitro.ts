@@ -21,16 +21,33 @@ export interface NitroSQLite
    * @param dbName Database file name and default connection key.
    * @param location Directory relative to the platform database directory.
    * @param readOnly Open an existing database without write access.
+   * @param encryptionKey Optional key for a licensed SEE build. Without SEE, a
+   * supplied key throws `EncryptionNotEnabled`. An invalid or wrong key or an
+   * existing plaintext database throws `DatabaseCannotBeDecrypted`.
    */
-  open(dbName: string, location?: string, readOnly?: boolean): void
+  open(
+    dbName: string,
+    location?: string,
+    readOnly?: boolean,
+    encryptionKey?: string,
+  ): void
   /** Open a separate native handle, even when the database file is already open.
    * Independent connections require a thread-safe SQLite build.
    * @param dbName Database file name.
    * @param location Directory relative to the platform database directory.
    * @param readOnly Open an existing database without write access.
+   * @param encryptionKey Optional SEE key for this handle. Supply the same key
+   * on every connection to an encrypted file. Without SEE, a supplied key
+   * throws `EncryptionNotEnabled`. An invalid or wrong key or an existing
+   * plaintext database throws `DatabaseCannotBeDecrypted`.
    * @returns An opaque ID to pass to native connection operations.
    */
-  openConnection(dbName: string, location?: string, readOnly?: boolean): string
+  openConnection(
+    dbName: string,
+    location?: string,
+    readOnly?: boolean,
+    encryptionKey?: string,
+  ): string
   /** Check whether a native connection ID is still open.
    * @param connectionId ID returned by `openConnection`.
    */

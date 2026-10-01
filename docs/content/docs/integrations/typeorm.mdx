@@ -82,7 +82,7 @@ import type { TypeOrmNitroSQLiteConnection } from 'react-native-nitro-sqlite'
 
 type TypeORMDriver = {
   openDatabase(
-    options: { name: string; location?: string },
+    options: { name: string; location?: string; encryptionKey?: string },
     ok: (connection: TypeOrmNitroSQLiteConnection) => void,
     fail: (message: string) => void,
   ): TypeOrmNitroSQLiteConnection | null
@@ -92,3 +92,20 @@ type TypeORMDriver = {
 `openDatabase()` returns the adapter connection after calling `ok`, or `null` after invoking `fail` when opening fails. `executeSql()` runs `db.executeAsync()` and then invokes one result callback. `close()`, `attach()`, and `detach()` are synchronous; their success callbacks run after the operation succeeds. TypeORM normally handles this contract for you.
 
 The failure callbacks for `openDatabase` and `executeSql` are typed to receive a string, but the adapter casts caught errors to that type without converting them at runtime. Handle an `Error` value as well if you call these callbacks directly. This adapter is for TypeORM's callback interface, not a connection object for direct SQL calls. For those, see the [generated API reference](/api).
+
+## Encrypt a TypeORM database
+
+After building Nitro SQLite with licensed SEE, pass the key through the DataSource's `extra` option. TypeORM forwards `extra` to `typeORMDriver.openDatabase`:
+
+```ts
+const dataSource = new DataSource({
+  type: 'react-native',
+  database: 'private.sqlite',
+  location: '.',
+  driver: typeORMDriver,
+  extra: { encryptionKey },
+  entities: [NoteEntity],
+})
+```
+
+Use a new database file or migrate an existing plaintext file first. Keep the key outside app source and supply it again when TypeORM reconnects. See [encrypt a database](/docs/guides/encryption) for the SEE build steps and open errors.

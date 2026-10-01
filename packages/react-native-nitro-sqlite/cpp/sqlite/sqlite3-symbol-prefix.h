@@ -3,6 +3,7 @@
 #define NITRO_SQLITE3_SYMBOL_PREFIX_H
 
 #define sqlite3_activate_cerod nitro_sqlite3_activate_cerod
+#define sqlite3_activate_see nitro_sqlite3_activate_see
 #define sqlite3_aggregate_context nitro_sqlite3_aggregate_context
 #define sqlite3_aggregate_count nitro_sqlite3_aggregate_count
 #define sqlite3_auto_extension nitro_sqlite3_auto_extension
@@ -122,6 +123,9 @@
 #define sqlite3_initialize nitro_sqlite3_initialize
 #define sqlite3_interrupt nitro_sqlite3_interrupt
 #define sqlite3_is_interrupted nitro_sqlite3_is_interrupted
+#define sqlite3_key nitro_sqlite3_key
+#define sqlite3_key_v2 nitro_sqlite3_key_v2
+#define sqlite3_key_v3 nitro_sqlite3_key_v3
 #define sqlite3_keyword_check nitro_sqlite3_keyword_check
 #define sqlite3_keyword_count nitro_sqlite3_keyword_count
 #define sqlite3_keyword_name nitro_sqlite3_keyword_name
@@ -161,6 +165,9 @@
 #define sqlite3_randomness nitro_sqlite3_randomness
 #define sqlite3_realloc nitro_sqlite3_realloc
 #define sqlite3_realloc64 nitro_sqlite3_realloc64
+#define sqlite3_rekey nitro_sqlite3_rekey
+#define sqlite3_rekey_v2 nitro_sqlite3_rekey_v2
+#define sqlite3_rekey_v3 nitro_sqlite3_rekey_v3
 #define sqlite3_release_memory nitro_sqlite3_release_memory
 #define sqlite3_reset nitro_sqlite3_reset
 #define sqlite3_reset_auto_extension nitro_sqlite3_reset_auto_extension
