@@ -4,9 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Release version or increment"
+        description: "Exact prepared version, such as 10.0.1 or 9.8.3"
         required: true
-        default: "patch"
         type: string
 
 permissions:
@@ -26,7 +25,16 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-          ref: main
+          ref: ${{ github.sha }}
+
+      - name: Validate release version
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          if [[ ! "$RELEASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "An exact stable release version is required." >&2
+            exit 1
+          fi
 
       - uses: actions/setup-node@v6
         with:
@@ -89,22 +97,30 @@ jobs:
           NODE
 
       - name: Publish prepared release
-        run: ./scripts/release.sh --publish-prepared "${{ inputs.version }}"
+        run: ./scripts/release.sh --publish-prepared "$RELEASE_VERSION"
         env:
+          RELEASE_VERSION: ${{ inputs.version }}
           NPM_CONFIG_CACHE: ${{ runner.temp }}/npm-cache
           NPM_CONFIG_PROVENANCE: "true"
 
       - name: Create GitHub release
         run: |
-          version="${{ inputs.version }}"
-          notes="docs/releases/v${version}.md"
-          if [ -f "$notes" ]; then
-            gh release create "v${version}" --target "$GITHUB_SHA" --title "NitroSQLite ${version}" --notes-file "$notes"
-          else
-            gh release create "v${version}" --target "$GITHUB_SHA" --title "NitroSQLite ${version}" --generate-notes
+          version="$RELEASE_VERSION"
+          latest=true
+          if [[ "${version%%.*}" == 9 ]]; then
+            latest=false
           fi
+          notes="docs/releases/v${version}.md"
+          args=("v${version}" --target "$(git rev-parse HEAD)" --title "NitroSQLite ${version}" --latest="$latest")
+          if [ -f "$notes" ]; then
+            args+=(--notes-file "$notes")
+          else
+            args+=(--generate-notes)
+          fi
+          gh release create "${args[@]}"
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ inputs.version }}
 
   build-android:
     needs: release
