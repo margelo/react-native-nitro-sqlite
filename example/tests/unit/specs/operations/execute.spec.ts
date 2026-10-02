@@ -104,6 +104,33 @@ export default function registerExecuteUnitTests() {
       )
     })
 
+    it('rejects a query that contains more than one statement', async () => {
+      const query =
+        'CREATE TABLE MultiStatementFirst (id INTEGER); CREATE TABLE MultiStatementSecond (id INTEGER)'
+
+      for (const run of [
+        () => testDb.execute(query),
+        () => testDb.executeAsync(query),
+        () => testDb.prepare(query),
+      ]) {
+        try {
+          await run()
+          throw new Error('Expected a multi-statement query to fail')
+        } catch (error) {
+          if (!isNitroSQLiteError(error)) throw error
+          expect(error.message).toContain(
+            'Query contains more than one SQL statement',
+          )
+        }
+      }
+
+      expect(
+        testDb.execute(
+          "SELECT name FROM sqlite_schema WHERE name LIKE 'MultiStatement%'",
+        ).results,
+      ).toEqual([])
+    })
+
     it('materializes native query results once', () => {
       const sourceRows = [
         { id: 1, nullable: null },
