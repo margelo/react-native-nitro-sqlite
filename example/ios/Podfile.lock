@@ -1766,7 +1766,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - RNNitroSQLite (10.0.0):
+  - RNNitroSQLite (10.1.0):
     - hermes-engine
     - NitroModules
     - RCTRequired
@@ -1789,7 +1789,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - RNNitroSqliteVec (10.0.0):
+  - RNNitroSqliteVec (10.1.0):
     - RNNitroSQLite
   - RNScreens (4.28.0):
     - hermes-engine
@@ -2222,12 +2222,12 @@ SPEC CHECKSUMS:
   ReactCommon: 749169e12aa3461a3df3656a00e48dbe0456b2d6
   ReactNativeDependencies: 94c922c39e0e6150ee9ad05e2ca1946e0ef55783
   RNCClipboard: e706ef7ccbbfd69f829c1b683f893bc7668c9fdb
-  RNNitroSQLite: 119ba2dae35083ed5306594ad99cf5d4d7e100c0
-  RNNitroSqliteVec: 0c255fb910dbcea6c77ab22a9b9b2e10cefdc7f0
+  RNNitroSQLite: 8f61cb932daf0f55b10310821b9982c43ca5b1c4
+  RNNitroSqliteVec: 6f95f4347daf1fcbf64d273170b2fbf235b46a87
   RNScreens: 3c977859fd13e67dc4ebfc24afb4d7c2e894db61
   SocketRocket: 37aec555668fb852ec12e3c0de59a86ca58f0871
   Yoga: d1c536142c5ff8ec8cd856ab2a7c227a1d875c8e
 
-PODFILE CHECKSUM: 6933dbd8b4eea93df54a57c95e03351734e37a5b
+PODFILE CHECKSUM: fd5bc9f335e919fdcd0b0eaf293b8e68d12e6ed4
 
 COCOAPODS: 1.15.2

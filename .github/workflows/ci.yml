@@ -1,0 +1,189 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths: &ci_paths
+      - '.github/**'
+      - 'packages/**'
+      - 'example/**'
+      - 'docs/**'
+      - 'scripts/**'
+      - 'config/**'
+      - 'patches/**'
+      - 'package.json'
+      - 'bun.lock'
+      - 'tsconfig.json'
+      - '.clang-format'
+      - '.prettierrc.js'
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths: *ci_paths
+  schedule:
+    - cron: '17 5 * * 1'
+  workflow_dispatch:
+    inputs:
+      full:
+        description: 'Run all checks and secondary native configurations'
+        type: boolean
+        default: true
+  workflow_call:
+    inputs:
+      full:
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ inputs.full || github.event_name == 'schedule' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
+
+jobs:
+  checks:
+    name: Fast checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    outputs:
+      android: ${{ steps.select.outputs.android }}
+      android_configuration: ${{ steps.select.outputs.android_configuration }}
+      ios: ${{ steps.select.outputs.ios }}
+      macos: ${{ steps.select.outputs.macos }}
+      ios_pods: ${{ steps.pods.outputs.ios_pods }}
+      macos_pods: ${{ steps.pods.outputs.macos_pods }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Select affected checks
+        id: select
+        run: node scripts/ci.ts
+        env:
+          CI_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
+          CI_FULL: ${{ inputs.full || github.event_name == 'schedule' }}
+      - name: Test CI routing
+        run: |
+          node --test scripts/ci.test.ts
+          ruby scripts/ci-pod-lockfiles.test.rb
+      - uses: oven-sh/setup-bun@v2
+        if: steps.select.outputs.dependencies == 'true'
+        with:
+          bun-version: 1.3.1
+      - name: Refresh dependency update lockfile
+        if: steps.select.outputs.dependencies == 'true' && github.event.pull_request.user.login == 'dependabot[bot]'
+        run: bun install --lockfile-only --ignore-scripts
+      - name: Install dependencies
+        if: steps.select.outputs.dependencies == 'true'
+        run: bun install --frozen-lockfile
+      - name: Synchronize workspace lockfile metadata
+        if: steps.select.outputs.dependencies == 'true'
+        run: bun run sync:lockfile
+      - name: Attach prepared lockfiles
+        if: always() && steps.select.outputs.dependencies == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-lockfiles
+          path: |
+            bun.lock
+            example/ios/Podfile.lock
+            example/macos/Podfile.lock
+          retention-days: 1
+      - name: Require committed dependency resolutions
+        if: steps.select.outputs.dependencies == 'true'
+        run: |
+          bun run check:lockfile
+          git diff --exit-code -- bun.lock
+      - name: Select native lockfile checks
+        id: pods
+        if: steps.select.outputs.dependencies == 'true' && (steps.select.outputs.ios == 'true' || steps.select.outputs.macos == 'true')
+        run: node scripts/ci-dependencies.ts
+        env:
+          CI_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
+          CI_FULL: ${{ inputs.full || github.event_name == 'schedule' }}
+      - name: Test dependency routing and release preflight
+        if: steps.select.outputs.dependencies == 'true'
+        run: |
+          node --test scripts/ci-dependencies.test.ts
+          bun run test:release
+      - name: Compile TypeScript
+        if: steps.select.outputs.typescript == 'true'
+        run: bun typecheck
+      - name: Lint TypeScript
+        if: steps.select.outputs.typescript == 'true'
+        run: |
+          bun --cwd example lint
+          bun --cwd packages/react-native-nitro-sqlite lint
+          git diff --exit-code HEAD -- . ':(exclude)bun.lock'
+      - name: Test JavaScript wrappers and example runners
+        if: steps.select.outputs.typescript == 'true'
+        run: |
+          (cd packages/react-native-nitro-sqlite && ../../node_modules/.bin/jest --coverage --runInBand)
+          (cd packages/react-native-nitro-sqlite-vec && ../../node_modules/.bin/jest --coverage --runInBand)
+          (cd example && ../node_modules/.bin/jest --config jest.mocha.config.js --runInBand --watchman=false)
+          node --test example/macos/scripts/test-macos.test.mjs
+      - name: Format C++
+        if: steps.select.outputs.cpp_format == 'true'
+        run: |
+          bash scripts/clang-format.sh
+          git diff --exit-code HEAD -- . ':(exclude)bun.lock'
+      - name: Test C++ database lifecycle and SQLite symbols
+        if: steps.select.outputs.cpp_tests == 'true'
+        run: bash scripts/test-cpp.sh
+      - name: Test SQLite thread-safety pod configuration
+        if: steps.select.outputs.ios == 'true'
+        run: ruby scripts/test-podspec-threadsafe.rb
+      - name: Check documentation
+        if: steps.select.outputs.docs == 'true'
+        run: |
+          bun docs typecheck
+          bun docs build
+
+  lockfiles:
+    name: Native lockfiles
+    needs: checks
+    if: >-
+      github.event_name != 'push' && !github.event.pull_request.draft &&
+      (needs.checks.outputs.ios_pods == 'true' || needs.checks.outputs.macos_pods == 'true')
+    uses: ./.github/workflows/update-lockfiles.yml
+    with:
+      ios: ${{ needs.checks.outputs.ios_pods == 'true' }}
+      macos: ${{ needs.checks.outputs.macos_pods == 'true' }}
+
+  android:
+    name: Android
+    needs: [checks, lockfiles]
+    if: >-
+      !cancelled() && needs.checks.result == 'success' &&
+      (needs.lockfiles.result == 'success' || needs.lockfiles.result == 'skipped') &&
+      github.event_name != 'push' && !github.event.pull_request.draft &&
+      needs.checks.outputs.android == 'true'
+    uses: ./.github/workflows/test-harness-android.yml
+    with:
+      full: ${{ inputs.full || github.event_name == 'schedule' }}
+      configuration: ${{ needs.checks.outputs.android_configuration == 'true' }}
+
+  ios:
+    name: iOS
+    needs: [checks, lockfiles]
+    if: >-
+      !cancelled() && needs.checks.result == 'success' &&
+      (needs.lockfiles.result == 'success' || needs.lockfiles.result == 'skipped') &&
+      github.event_name != 'push' && !github.event.pull_request.draft &&
+      needs.checks.outputs.ios == 'true'
+    uses: ./.github/workflows/test-harness-ios.yml
+    with:
+      full: ${{ inputs.full || github.event_name == 'schedule' }}
+
+  macos:
+    name: macOS
+    needs: [checks, lockfiles]
+    if: >-
+      !cancelled() && needs.checks.result == 'success' &&
+      (needs.lockfiles.result == 'success' || needs.lockfiles.result == 'skipped') &&
+      github.event_name != 'push' && !github.event.pull_request.draft &&
+      needs.checks.outputs.macos == 'true'
+    uses: ./.github/workflows/test-macos.yml

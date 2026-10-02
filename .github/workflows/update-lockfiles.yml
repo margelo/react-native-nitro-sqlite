@@ -1,59 +1,68 @@
-name: "Update Lockfiles (bun.lock + Podfile.lock)"
+name: Check native lockfiles
 
 on:
-  pull_request:
-    branches:
-      - main
-    paths:
-      - "example/package.json"
-      - "packages/react-native-nitro-sqlite/package.json"
+  workflow_call:
+    inputs:
+      ios:
+        type: boolean
+        default: false
+      macos:
+        type: boolean
+        default: false
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  update-lockfiles:
-    name: "Update lockfiles (Podfile.lock)"
-    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.event.pull_request.head.repo.full_name == github.repository
+  check:
+    name: Check CocoaPods dependency resolutions
     runs-on: macos-26
+    timeout-minutes: 15
+    env:
+      USE_FRAMEWORKS: static
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v4
         with:
-          fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.ref }}
-
+          name: ci-lockfiles
+          path: .
       - uses: oven-sh/setup-bun@v2
-
-      - name: Setup Ruby (bundle)
-        uses: ruby/setup-ruby@v1
+        with:
+          bun-version: 1.3.1
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.3.0
           bundler-cache: true
           working-directory: example
-
       - name: Select Xcode 26.5
-        run: sudo xcode-select -s "/Applications/Xcode_26.5.app/Contents/Developer"
-
-      - run: |
-          bun install
-
-          cd example
-          bundle install
-          bun pods
-          bun pods:macos
-          cd ..
-
-          git add bun.lock
-          git add example/ios/Podfile.lock
-          git add example/macos/Podfile.lock
-          git add example/Gemfile.lock
-
-          if git diff --cached --quiet; then
-            echo "Lockfiles are already up to date"
-            exit 0
-          fi
-
-          git config --global user.name 'dependabot[bot]'
-          git config --global user.email 'dependabot[bot]@users.noreply.github.com'
-          git commit --amend --no-edit
-          git push --force
+        run: sudo xcode-select -s '/Applications/Xcode_26.5.app/Contents/Developer'
+      - name: Refresh iOS lockfile
+        if: inputs.ios
+        working-directory: example
+        run: bun pods
+      - name: Refresh macOS lockfile
+        if: inputs.macos
+        working-directory: example
+        run: bun pods:macos
+      - name: Attach refreshed native lockfiles
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-lockfiles
+          path: |
+            example/ios/Podfile.lock
+            example/macos/Podfile.lock
+            example/Gemfile.lock
+          retention-days: 1
+      - name: Require committed native dependency resolutions
+        env:
+          CHECK_IOS: ${{ inputs.ios }}
+          CHECK_MACOS: ${{ inputs.macos }}
+        run: |
+          lockfiles=()
+          if [[ "$CHECK_IOS" == true ]]; then lockfiles+=(example/ios/Podfile.lock); fi
+          if [[ "$CHECK_MACOS" == true ]]; then lockfiles+=(example/macos/Podfile.lock); fi
+          ruby scripts/ci-pod-lockfiles.rb "${lockfiles[@]}"
+          git diff --exit-code -- example/Gemfile.lock

@@ -28,8 +28,17 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  preflight:
+    name: Release compatibility checks
+    permissions:
+      contents: read
+    uses: ./.github/workflows/ci.yml
+    with:
+      full: true
+
   prepare:
     name: Prepare release PR and lockfiles
+    needs: preflight
     if: inputs.release_tag == ''
     runs-on: macos-26
     timeout-minutes: 40
@@ -136,8 +145,8 @@ jobs:
 
   publish:
     name: Publish both packages from the release tag
-    needs: merge
-    if: ${{ always() && (needs.merge.result == 'success' || inputs.release_tag != '') }}
+    needs: [preflight, merge]
+    if: ${{ always() && needs.preflight.result == 'success' && (needs.merge.result == 'success' || inputs.release_tag != '') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
