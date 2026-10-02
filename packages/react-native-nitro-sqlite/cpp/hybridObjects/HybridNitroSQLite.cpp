@@ -7,7 +7,6 @@
 #include "../NitroSQLiteMacros.hpp"
 #include "../NitroSQLiteOperations.hpp"
 #include "HybridNitroSQLitePreparedStatement.hpp"
-#include "HybridNitroSQLiteQueryResult.hpp"
 #include <exception>
 #include <filesystem>
 #include <iostream>
@@ -208,25 +207,25 @@ void HybridNitroSQLite::detach(const std::string& mainDbName, const std::string&
   sqliteDetachDb(_connections.get(mainDbName), alias);
 };
 
-std::shared_ptr<HybridNitroSQLiteQueryResultSpec> HybridNitroSQLite::execute(const std::string& dbName, const std::string& query,
-                                                                             const std::optional<SQLiteQueryParams>& params) {
+NitroSQLiteQueryResult HybridNitroSQLite::execute(const std::string& dbName, const std::string& query,
+                                                  const std::optional<SQLiteQueryParams>& params) {
   return sqliteExecute(_connections.get(dbName), query, params);
 };
 
-std::shared_ptr<Promise<std::shared_ptr<HybridNitroSQLiteQueryResultSpec>>>
-HybridNitroSQLite::executeAsync(const std::string& dbName, const std::string& query, const std::optional<SQLiteQueryParams>& params) {
+std::shared_ptr<Promise<NitroSQLiteQueryResult>> HybridNitroSQLite::executeAsync(const std::string& dbName, const std::string& query,
+                                                                                 const std::optional<SQLiteQueryParams>& params,
+                                                                                 const std::optional<SQLiteRowBatchHandler>& onRows) {
   const auto copiedParams = copyArrayBufferParamsForBackground(params);
   SQLiteConnectionPtr connection;
   try {
     connection = _connections.get(dbName);
   } catch (...) {
-    return Promise<std::shared_ptr<HybridNitroSQLiteQueryResultSpec>>::rejected(std::current_exception());
+    return Promise<NitroSQLiteQueryResult>::rejected(std::current_exception());
   }
 
-  return enqueueConnectionOperation<std::shared_ptr<HybridNitroSQLiteQueryResultSpec>>(
-      connection, [connection, query, copiedParams]() -> std::shared_ptr<HybridNitroSQLiteQueryResultSpec> {
-        auto result = sqliteExecute(connection, query, copiedParams);
-        return result;
+  return enqueueConnectionOperation<NitroSQLiteQueryResult>(
+      connection, [connection, query, copiedParams, onRows = onRows.value_or(nullptr)]() -> NitroSQLiteQueryResult {
+        return sqliteExecute(connection, query, copiedParams, onRows);
       });
 };
 

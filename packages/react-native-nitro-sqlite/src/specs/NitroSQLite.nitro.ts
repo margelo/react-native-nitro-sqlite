@@ -5,7 +5,10 @@ import type {
   FileLoadResult,
   SQLiteQueryParams,
 } from '../types'
-import type { NitroSQLiteQueryResult } from './NitroSQLiteQueryResult.nitro'
+import type {
+  NitroSQLiteQueryResult,
+  NitroSQLiteQueryRows,
+} from './NitroSQLiteQueryResult.nitro'
 import type { NitroSQLitePreparedStatement } from './NitroSQLitePreparedStatement.nitro'
 
 /** Native database operations exposed through `NitroSQLite.native`.
@@ -94,12 +97,16 @@ export interface NitroSQLite
    * @param dbName Name of an open database.
    * @param query SQL statement with optional positional placeholders.
    * @param params Positional values bound to SQL placeholders.
+   * @param onRows Receives leading rows in batches, in order, while SQLite still reads the rest, so
+   * JavaScript can convert a batch while the next one is read. Batched rows are not repeated in the
+   * result's `results`, which then holds only the rows after the last batch.
    * @returns A promise of the native query result.
    */
   executeAsync(
     dbName: string,
     query: string,
     params?: SQLiteQueryParams,
+    onRows?: (rows: NitroSQLiteQueryRows) => void,
   ): Promise<NitroSQLiteQueryResult>
   /** Prepare one SQL statement on an open native connection for repeated execution.
    * Finalize the returned statement before closing its connection.

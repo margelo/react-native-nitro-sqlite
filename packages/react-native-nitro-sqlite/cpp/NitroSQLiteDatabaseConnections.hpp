@@ -3,6 +3,7 @@
 #ifdef SQLITE_ENABLE_SEE
 #define SQLITE_HAS_CODEC 1
 #endif
+#include "NitroSQLiteStatementCache.hpp"
 #include "sqlite/sqlite3.h"
 #include <filesystem>
 #include <functional>
@@ -10,13 +11,34 @@
 #include <memory>
 #include <mutex>
 #include <optional>
-#include <queue>
 #include <string>
+#include <thread>
 
 namespace margelo::nitro::rnnitrosqlite {
 
+/** Runs operations in FIFO order on one dedicated thread. */
+class SerialWorker final {
+public:
+  /** Start the thread. @p name identifies the worker in error logs. */
+  explicit SerialWorker(std::string name);
+  /** Run the remaining operations, then stop the thread. */
+  ~SerialWorker();
+
+  SerialWorker(const SerialWorker&) = delete;
+  SerialWorker& operator=(const SerialWorker&) = delete;
+
+  /** Queue an operation. Exceptions it throws are logged and dropped. */
+  void enqueue(std::function<void()> operation);
+
+private:
+  struct State;
+
+  std::shared_ptr<State> _state;
+  std::thread _thread;
+};
+
 /** One native SQLite handle, its file identity, and its operation locks. */
-struct SQLiteConnection final : std::enable_shared_from_this<SQLiteConnection> {
+struct SQLiteConnection final {
   SQLiteConnection(std::string name, std::filesystem::path physicalPath, bool readOnly, sqlite3* database);
   ~SQLiteConnection();
 
@@ -33,13 +55,14 @@ struct SQLiteConnection final : std::enable_shared_from_this<SQLiteConnection> {
   const bool readOnly;
   sqlite3* database;
   std::recursive_mutex mutex;
+  /** Reusable statements for repeated SQL. Guarded by mutex and cleared on close. */
+  SQLiteStatementCache statementCache;
 
 private:
-  void drainAsync();
-
-  std::mutex asyncQueueMutex;
-  std::queue<std::function<void()>> asyncQueue;
-  bool asyncWorkerRunning = false;
+  std::mutex asyncWorkerMutex;
+  // Started by the first async operation. One dedicated thread, rather than a shared pool that
+  // spreads operations across its threads, lets the OS scheduler see the connection's sustained load.
+  std::unique_ptr<SerialWorker> asyncWorker;
 };
 
 /** Shared ownership of a native connection across pending operations. */

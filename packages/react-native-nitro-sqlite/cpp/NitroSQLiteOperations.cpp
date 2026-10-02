@@ -1,12 +1,9 @@
 #include "NitroSQLiteOperations.hpp"
 #include "NitroSQLiteException.hpp"
-#include "NitroSQLiteLogs.hpp"
 #include "NitroSQLiteStatementGroup.hpp"
 #include "NitroSQLiteUtils.hpp"
-#include "hybridObjects/HybridNitroSQLiteQueryResult.hpp"
 #include "sqlite/sqlite3.h"
 #include <NitroModules/ArrayBuffer.hpp>
-#include <NitroModules/Promise.hpp>
 #include <cmath>
 #include <ctime>
 #include <exception>
@@ -29,37 +26,6 @@ namespace margelo::nitro::rnnitrosqlite {
 
 static constexpr double kInt64MinAsDouble = static_cast<double>(std::numeric_limits<int64_t>::min());
 static constexpr double kInt64UpperBoundAsDouble = -kInt64MinAsDouble;
-
-void SQLiteConnection::enqueueAsync(std::function<void()> operation) {
-  std::lock_guard lock(asyncQueueMutex);
-  if (!asyncWorkerRunning) {
-    Promise<void>::async([connection = shared_from_this()] { connection->drainAsync(); });
-    asyncWorkerRunning = true;
-  }
-  asyncQueue.push(std::move(operation));
-}
-
-void SQLiteConnection::drainAsync() {
-  while (true) {
-    std::function<void()> operation;
-    {
-      std::lock_guard lock(asyncQueueMutex);
-      if (asyncQueue.empty()) {
-        asyncWorkerRunning = false;
-        return;
-      }
-      operation = std::move(asyncQueue.front());
-      asyncQueue.pop();
-    }
-    try {
-      operation();
-    } catch (const std::exception& error) {
-      LOGE("Async operation on database %s failed while settling its promise: %s", name.c_str(), error.what());
-    } catch (...) {
-      LOGE("Async operation on database %s failed while settling its promise", name.c_str());
-    }
-  }
-}
 
 void sqliteOpenDb(DatabaseConnections& connections, const std::string& dbName, const std::string& docPath, bool readOnly,
                   const std::optional<std::string>& encryptionKey) {
@@ -184,6 +150,44 @@ namespace {
     return statement;
   }
 
+  // Borrows the connection's cached statement for a query, or prepares one, and returns it
+  // reset to the cache when the scope ends. Requires the connection's mutex.
+  class CachedStatement final {
+  public:
+    CachedStatement(SQLiteConnection& connection, const std::string& query)
+        : _connection(connection), _query(query), _cacheable(SQLiteStatementCache::isCacheable(query)) {
+      if (_cacheable) {
+        _statement = connection.statementCache.take(query);
+      }
+      if (_statement == nullptr) {
+        _statement = prepareStatement(connection.database, query, std::nullopt).release();
+      }
+    }
+
+    ~CachedStatement() {
+      if (!_cacheable) {
+        sqlite3_finalize(_statement);
+        return;
+      }
+      sqlite3_reset(_statement);
+      sqlite3_clear_bindings(_statement);
+      _connection.statementCache.put(_query, _statement);
+    }
+
+    CachedStatement(const CachedStatement&) = delete;
+    CachedStatement& operator=(const CachedStatement&) = delete;
+
+    sqlite3_stmt* get() const {
+      return _statement;
+    }
+
+  private:
+    SQLiteConnection& _connection;
+    const std::string& _query;
+    const bool _cacheable;
+    sqlite3_stmt* _statement = nullptr;
+  };
+
   template <typename OnRow>
   void consumeStatement(sqlite3* db, sqlite3_stmt* statement, OnRow&& onRow) {
     while (true) {
@@ -202,7 +206,11 @@ namespace {
     }
   }
 
-  std::shared_ptr<HybridNitroSQLiteQueryResult> executeStatement(sqlite3* db, sqlite3_stmt* statement) {
+  // Rows per batch handed to a row batch handler. Each batch costs a hand-off to the JS thread,
+  // and a smaller final batch shortens the conversion left after the statement completes.
+  constexpr size_t kRowBatchSize = 256;
+
+  NitroSQLiteQueryResult executeStatement(sqlite3* db, sqlite3_stmt* statement, const SQLiteRowBatchHandler& onRows = nullptr) {
     int columnCount = 0;
     std::vector<std::string> columnNames;
     std::vector<SQLiteQueryResultRow> rows;
@@ -266,6 +274,10 @@ namespace {
       }
 
       rows.push_back(std::move(row));
+      if (onRows && rows.size() == kRowBatchSize) {
+        onRows(SQLiteQueryResults(columnNames, std::move(rows)));
+        rows = {};
+      }
     });
 
     if (!columnsCaptured) {
@@ -285,24 +297,29 @@ namespace {
       metadata->insert({columnName, std::move(columnMeta)});
     }
 
-    int rowsAffected = sqlite3_changes(db);
-    long long latestInsertRowId = sqlite3_last_insert_rowid(db);
-    return std::make_shared<HybridNitroSQLiteQueryResult>(SQLiteQueryResults(std::move(columnNames), std::move(rows)),
-                                                          static_cast<double>(latestInsertRowId), rowsAffected, std::move(metadata));
+    NitroSQLiteQueryResult result;
+    result.rowsAffected = sqlite3_changes(db);
+    result.insertId = static_cast<double>(sqlite3_last_insert_rowid(db));
+    result.results = SQLiteQueryResults(std::move(columnNames), std::move(rows));
+    result.metadata = std::move(metadata);
+    return result;
   }
 
 } // namespace
 
-std::shared_ptr<HybridNitroSQLiteQueryResult> sqliteExecute(const SQLiteConnectionPtr& connection, const std::string& query,
-                                                            const std::optional<SQLiteQueryParams>& params) {
+NitroSQLiteQueryResult sqliteExecute(const SQLiteConnectionPtr& connection, const std::string& query,
+                                     const std::optional<SQLiteQueryParams>& params, const SQLiteRowBatchHandler& onRows) {
   std::lock_guard lock(connection->mutex);
   sqlite3* db = connection->database;
   if (db == nullptr) {
     throw NitroSQLiteException::DatabaseNotOpen(connection->name);
   }
 
-  auto statement = prepareStatement(db, query, params);
-  return executeStatement(db, statement.get());
+  CachedStatement statement(*connection, query);
+  if (params) {
+    bindStatement(statement.get(), *params);
+  }
+  return executeStatement(db, statement.get(), onRows);
 }
 
 SQLiteOperationResult sqliteExecuteCommand(const SQLiteConnectionPtr& connection, const std::string& query,
@@ -355,7 +372,7 @@ SQLitePreparedStatement::~SQLitePreparedStatement() {
   finalize();
 }
 
-std::shared_ptr<HybridNitroSQLiteQueryResult> SQLitePreparedStatement::execute(const std::optional<SQLiteQueryParams>& params) {
+NitroSQLiteQueryResult SQLitePreparedStatement::execute(const std::optional<SQLiteQueryParams>& params) {
   std::lock_guard lock(_state->mutex);
   std::lock_guard connectionLock(_state->connection->mutex);
 

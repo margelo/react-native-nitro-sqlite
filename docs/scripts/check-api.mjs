@@ -239,7 +239,7 @@ assert.ok(
     corePackageHome.indexOf('## Classes'),
   'Hybrid Objects must appear before other API groups',
 )
-for (const name of ['NitroSQLiteNative', 'NitroSQLiteQueryResult']) {
+for (const name of ['NitroSQLiteNative']) {
   assert.ok(
     pagePaths.has(`react-native-nitro-sqlite/hybrid-objects/${name}.mdx`),
     `Missing Hybrid Object page: ${name}`,
