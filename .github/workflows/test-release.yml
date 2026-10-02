@@ -1,0 +1,31 @@
+name: Test release automation
+
+on:
+  pull_request:
+    paths:
+      - "scripts/**"
+      - "*release*.json"
+      - "package.json"
+      - "bun.lock"
+      - ".github/workflows/release.yml"
+      - ".github/workflows/test-release.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.1
+      - run: bun install --frozen-lockfile
+      - run: bun run test:release
+      - run: bun run typecheck:release

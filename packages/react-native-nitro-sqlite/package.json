@@ -54,7 +54,6 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\" --fix",
     "test": "jest",
-    "release": "release-it",
     "prepublishOnly": "bun run build"
   },
   "keywords": [
@@ -133,23 +132,6 @@
       "<rootDir>/example/node_modules",
       "<rootDir>/lib/"
     ]
-  },
-  "release-it": {
-    "npm": {
-      "publish": true,
-      "skipChecks": true,
-      "versionArgs": [
-        "--allow-same-version"
-      ]
-    },
-    "git": false,
-    "github": {
-      "release": false
-    },
-    "hooks": {
-      "before:init": "bun typecheck && bun lint",
-      "after:bump": "bun run build"
-    }
   },
   "react-native-builder-bob": {
     "source": "src",
