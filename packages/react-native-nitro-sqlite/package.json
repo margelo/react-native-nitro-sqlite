@@ -83,7 +83,7 @@
   "devDependencies": {
     "@react-native/jest-preset": "0.87.1",
     "@types/better-sqlite3": "^9.6.0",
-    "better-sqlite3": "^12.11.1",
+    "better-sqlite3": "^13.0.3",
     "jest": "^30.2.0",
     "nitrogen": "0.37.1",
     "react": "19.2.3",
@@ -92,7 +92,7 @@
     "react-native-nitro-modules": "0.37.1"
   },
   "peerDependencies": {
-    "better-sqlite3": "^12.11.1",
+    "better-sqlite3": "^13.0.3",
     "react": ">=17.0.0",
     "react-native": ">=0.75.0",
     "react-native-nitro-modules": ">=0.35.0"
