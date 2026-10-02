@@ -2222,8 +2222,8 @@ SPEC CHECKSUMS:
   ReactCommon: 749169e12aa3461a3df3656a00e48dbe0456b2d6
   ReactNativeDependencies: 94c922c39e0e6150ee9ad05e2ca1946e0ef55783
   RNCClipboard: e706ef7ccbbfd69f829c1b683f893bc7668c9fdb
-  RNNitroSQLite: 7a3bc04bf9db485a4b88f308f5c0de186b39dfb0
-  RNNitroSqliteVec: b776070e72840e921c4c66ff264f035191d86b78
+  RNNitroSQLite: 119ba2dae35083ed5306594ad99cf5d4d7e100c0
+  RNNitroSqliteVec: 0c255fb910dbcea6c77ab22a9b9b2e10cefdc7f0
   RNScreens: 3c977859fd13e67dc4ebfc24afb4d7c2e894db61
   SocketRocket: 37aec555668fb852ec12e3c0de59a86ca58f0871
   Yoga: d1c536142c5ff8ec8cd856ab2a7c227a1d875c8e

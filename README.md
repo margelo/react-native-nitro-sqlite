@@ -10,6 +10,8 @@
 
 Nitro SQLite is a SQLite library for React Native on iOS, macOS, visionOS, and Android, built with [Nitro Modules](https://nitro.margelo.com/). It provides synchronous and asynchronous queries, transactions, and batch operations.
 
+The bundled SQLite build enables [R\*Tree indexes](https://sqlite.margelo.com/docs/concepts/queries-and-indexes#query-spatial-ranges) by default on Apple platforms and Android. Set `nitroSQLite.enableRTree` to `false` in your app's `package.json` to omit it from the native build.
+
 **[Read the documentation](https://sqlite.margelo.com/docs)** for setup, guides, integrations, and the API reference.
 
 If you use a coding agent, give it the [NitroSQLite skill](https://github.com/margelo/react-native-skills/blob/nitro-sqlite/skills/react-native-nitro-sqlite/SKILL.md). It links to focused guidance for connections, queries, transactions, concurrency, and migration. See the [AI agent guide](https://sqlite.margelo.com/docs/guides/ai-agents) for what to check in generated code.

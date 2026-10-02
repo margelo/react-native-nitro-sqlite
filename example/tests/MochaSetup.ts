@@ -1,4 +1,4 @@
-import 'mocha'
+import 'mocha/mocha.js'
 import { createMochaTestApi } from './MochaRNAdapter'
 import { setTestApi } from './TestApi'
 

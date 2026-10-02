@@ -1,4 +1,4 @@
-import { describe, expect, it, jest } from '@jest/globals'
+import { describe, expect, it } from '@jest/globals'
 import { runTests } from './MochaSetup'
 import type { MochaTestResult } from './MochaSetup'
 import {
@@ -6,12 +6,6 @@ import {
   describe as registerSuite,
   it as registerTest,
 } from './TestApi'
-
-jest.mock('mocha', () => {
-  const Runtime: typeof Mocha = jest.requireActual('mocha')
-  Object.assign(globalThis, { Mocha: Runtime })
-  return { __esModule: true, default: {} }
-})
 
 describe('MochaSetup', () => {
   it('reports suites and test results as they finish', async () => {
