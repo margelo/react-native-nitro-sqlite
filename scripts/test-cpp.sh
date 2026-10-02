@@ -60,6 +60,38 @@ clang++ \
   -o /tmp/statementGroupTests
 /tmp/statementGroupTests
 
+clang++ \
+  -std=c++20 \
+  -Wall \
+  -Wextra \
+  -Werror \
+  -Ipackages/react-native-nitro-sqlite/cpp \
+  -Ipackages/react-native-nitro-sqlite/cpp/sqlite \
+  packages/react-native-nitro-sqlite/tests/cpp/statementCache.test.cpp \
+  /tmp/sqlite3.o \
+  -ldl \
+  -lm \
+  -pthread \
+  -o /tmp/statementCacheTests
+/tmp/statementCacheTests
+
+clang++ \
+  -std=c++20 \
+  -Wall \
+  -Wextra \
+  -Werror \
+  -Ipackages/react-native-nitro-sqlite/cpp \
+  -Ipackages/react-native-nitro-sqlite/cpp/sqlite \
+  packages/react-native-nitro-sqlite/cpp/NitroSQLiteDatabaseConnections.cpp \
+  packages/react-native-nitro-sqlite/cpp/NitroSQLiteDatabaseMigration.cpp \
+  packages/react-native-nitro-sqlite/tests/cpp/serialWorker.test.cpp \
+  /tmp/sqlite3.o \
+  -ldl \
+  -lm \
+  -pthread \
+  -o /tmp/serialWorkerTests
+/tmp/serialWorkerTests
+
 clang \
   -std=c11 \
   -DSQLITE_THREADSAFE=0 \

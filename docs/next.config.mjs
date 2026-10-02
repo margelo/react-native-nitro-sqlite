@@ -47,9 +47,9 @@ const config = {
       },
       {
         source:
-          '/api/react-native-nitro-sqlite/interfaces/NitroSQLiteQueryResult',
-        destination:
           '/api/react-native-nitro-sqlite/hybrid-objects/NitroSQLiteQueryResult',
+        destination:
+          '/api/react-native-nitro-sqlite/interfaces/NitroSQLiteQueryResult',
         permanent: true,
       },
     ]

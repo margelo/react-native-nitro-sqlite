@@ -19,12 +19,23 @@ project.ext.resolveNitroSqliteDefaultFlags = { File appPackageFile, String custo
   def threadSafe = readBooleanFlag("threadSafe")
   def performanceMode = readBooleanFlag("performanceMode")
   def enableRTree = readBooleanFlag("enableRTree")
+  def enableBatchAtomicWrite = readBooleanFlag("enableBatchAtomicWrite")
   def customFlagNames = (customFlags =~ /-D([A-Za-z_][A-Za-z0-9_]*)/).collect { it[1] }.toSet()
 
   def defaultFlags = [threadSafe ? '-DSQLITE_THREADSAFE=1' : '-DSQLITE_THREADSAFE=0']
   // Omit the macro when disabled; SQLITE_ENABLE_RTREE=0 still enables SQLite's module.
   if (enableRTree) {
     defaultFlags += '-DSQLITE_ENABLE_RTREE=1'
+  }
+  // Without this SQLite substitutes fsync() for fdatasync(). Linux's fdatasync() also flushes the
+  // metadata needed to read the data back, such as file size, so commits stay durable. Android's
+  // platform SQLite makes the same choice.
+  defaultFlags += '-DHAVE_FDATASYNC=1'
+  // On F2FS, commit transactions with the filesystem's atomic batch write instead of a rollback
+  // journal file. SQLite falls back to the journal when the filesystem lacks support.
+  // Like RTree, SQLite only checks whether the macro is defined.
+  if (enableBatchAtomicWrite) {
+    defaultFlags += '-DSQLITE_ENABLE_BATCH_ATOMIC_WRITE=1'
   }
   if (performanceMode) {
     defaultFlags += [

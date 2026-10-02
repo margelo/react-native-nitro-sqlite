@@ -33,6 +33,7 @@ export type { NitroSQLite as NitroSQLiteNative } from './specs/NitroSQLite.nitro
 export type { NitroSQLitePreparedStatement } from './specs/NitroSQLitePreparedStatement.nitro'
 export type {
   NitroSQLiteQueryResult,
+  NitroSQLiteQueryRows,
   NitroSQLiteQueryColumnMetadata,
 } from './specs/NitroSQLiteQueryResult.nitro'
 export type { TypeOrmNitroSQLiteConnection } from './typeORM'

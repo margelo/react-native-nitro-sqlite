@@ -21,6 +21,21 @@ console.log(rows._array)
 
 An async call still consumes device CPU and database I/O. Paginate large result sets instead of bringing every row into JavaScript at once.
 
+## Reuse SQL text
+
+Before SQLite runs a statement, it compiles the SQL text into a program for its virtual machine. Compiling one statement is quick, but the cost adds up when the same statement runs many times, such as an `INSERT` in a loop.
+
+Each connection keeps the compiled programs of its 32 most recently used queries and data changes: statements that start with `SELECT`, `INSERT`, `UPDATE`, `DELETE`, `REPLACE`, `WITH`, or `VALUES`. When `execute()` or `executeAsync()` receives the same SQL text again, it reuses the program with the new parameters. Pass values as parameters rather than formatting them into the SQL so the text stays identical between calls. Other statements, such as `PRAGMA`, `ATTACH`, and `BEGIN`, compile on every call because SQLite can apply their effect while compiling them. Use [prepared statements](/docs/guides/prepared-statements) when you want to manage a compiled statement's lifetime yourself.
+
+```ts
+for (const metric of metrics) {
+  db.execute('INSERT INTO metrics (key, value) VALUES (?, ?)', [
+    metric.key,
+    metric.value,
+  ])
+}
+```
+
 ## Group related writes
 
 One `executeBatchAsync()` call executes a fixed set of statements inside a native transaction. Use nested parameter arrays for repeated SQL. Use `db.transaction()` when application logic must inspect a result between writes. Both keep a transaction open while they work; keep the scope short and await each operation inside a transaction callback.

@@ -13,11 +13,10 @@
 #error NitroModules cannot be found! Are you sure you installed NitroModules properly?
 #endif
 
-// Forward declaration of `HybridNitroSQLiteQueryResultSpec` to properly resolve imports.
-namespace margelo::nitro::rnnitrosqlite { class HybridNitroSQLiteQueryResultSpec; }
+// Forward declaration of `NitroSQLiteQueryResult` to properly resolve imports.
+namespace margelo::nitro::rnnitrosqlite { struct NitroSQLiteQueryResult; }
 
-#include <memory>
-#include "HybridNitroSQLiteQueryResultSpec.hpp"
+#include "NitroSQLiteQueryResult.hpp"
 #include <NitroModules/Null.hpp>
 #include <NitroModules/ArrayBuffer.hpp>
 #include <string>
@@ -57,8 +56,8 @@ namespace margelo::nitro::rnnitrosqlite {
 
     public:
       // Methods
-      virtual std::shared_ptr<HybridNitroSQLiteQueryResultSpec> execute(const std::optional<std::vector<std::optional<std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>>>& params) = 0;
-      virtual std::shared_ptr<Promise<std::shared_ptr<HybridNitroSQLiteQueryResultSpec>>> executeAsync(const std::optional<std::vector<std::optional<std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>>>& params) = 0;
+      virtual NitroSQLiteQueryResult execute(const std::optional<std::vector<std::optional<std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>>>& params) = 0;
+      virtual std::shared_ptr<Promise<NitroSQLiteQueryResult>> executeAsync(const std::optional<std::vector<std::optional<std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>>>& params) = 0;
       virtual void finalize() = 0;
 
     protected:

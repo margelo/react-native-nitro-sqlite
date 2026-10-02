@@ -1,7 +1,7 @@
 #pragma once
 
 #include "NitroSQLiteDatabaseConnections.hpp"
-#include "hybridObjects/HybridNitroSQLiteQueryResult.hpp"
+#include "NitroSQLiteQueryResult.hpp"
 #include "sqlite/sqlite3.h"
 #include <functional>
 #include <memory>
@@ -25,7 +25,7 @@ public:
   ~SQLitePreparedStatement();
 
   /** Reset and execute with new bindings. Throws after finalization or connection closure. */
-  std::shared_ptr<HybridNitroSQLiteQueryResult> execute(const std::optional<SQLiteQueryParams>& params);
+  NitroSQLiteQueryResult execute(const std::optional<SQLiteQueryParams>& params);
   /** Release the native statement. Repeated calls are safe. */
   void finalize();
   /** Check whether the native statement has been released. */
@@ -53,8 +53,11 @@ void sqliteAttachDb(const SQLiteConnectionPtr& connection, const std::string& do
 
 void sqliteDetachDb(const SQLiteConnectionPtr& connection, const std::string& alias);
 
-std::shared_ptr<HybridNitroSQLiteQueryResult> sqliteExecute(const SQLiteConnectionPtr& connection, const std::string& query,
-                                                            const std::optional<SQLiteQueryParams>& params);
+/** Execute one statement. With @p onRows, full batches of rows go to it as they are read and the
+ * returned result holds only the rows after the last batch.
+ */
+NitroSQLiteQueryResult sqliteExecute(const SQLiteConnectionPtr& connection, const std::string& query,
+                                     const std::optional<SQLiteQueryParams>& params, const SQLiteRowBatchHandler& onRows = nullptr);
 
 SQLiteOperationResult sqliteExecuteCommand(const SQLiteConnectionPtr& connection, const std::string& query,
                                            const std::optional<SQLiteQueryParams>& params = std::nullopt);

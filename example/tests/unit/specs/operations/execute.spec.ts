@@ -7,6 +7,8 @@ import type { ColumnType } from 'react-native-nitro-sqlite'
 import type { NitroSQLiteQueryResult } from '@nitro-sqlite/specs/NitroSQLiteQueryResult.nitro'
 
 const QUERY_RESULT_SIZES = [60, 1_000, 10_000]
+// Asynchronous reads hand rows to JavaScript in batches of 256; cover the batch edges.
+const ASYNC_BATCH_EDGE_SIZES = [255, 256, 257, 512, 513]
 const metadataQuery = `
   SELECT
     boolean_value,
@@ -150,14 +152,29 @@ export default function registerExecuteUnitTests() {
       const db = createQueryResultTestDb('query_result_rows_async')
 
       try {
-        for (const size of QUERY_RESULT_SIZES) {
+        for (const size of [...QUERY_RESULT_SIZES, ...ASYNC_BATCH_EDGE_SIZES]) {
           const result = await db.executeAsync(
             'SELECT * FROM QueryResultRows ORDER BY id LIMIT ?',
             [size],
           )
 
           expectQueryResultRows(result, size)
+          expect(result.results).toBe(result.rows._array)
+          expect(
+            result.rows._array.every((row, index) => row.id === index + 1),
+          ).toBe(true)
         }
+
+        await db.transaction(async (tx) => {
+          const result = await tx.executeAsync(
+            'SELECT * FROM QueryResultRows ORDER BY id LIMIT ?',
+            [1_000],
+          )
+          expectQueryResultRows(result, 1_000)
+          expect(
+            result.rows._array.every((row, index) => row.id === index + 1),
+          ).toBe(true)
+        })
       } finally {
         db.close()
         db.delete()
@@ -248,7 +265,7 @@ export default function registerExecuteUnitTests() {
     })
 
     describe('Select', () => {
-      it('keeps positional columns and repeated result reads independent', () => {
+      it('keeps positional columns in one plain result array', () => {
         const result = testDb.execute(
           'SELECT 1 AS duplicate, 2 AS duplicate, 3.5 AS "café", NULL AS nullable, zeroblob(2) AS payload',
         )
@@ -263,14 +280,9 @@ export default function registerExecuteUnitTests() {
         ).toEqual([0, 0])
         expect(result.metadata?.duplicate?.index).toBe(0)
 
-        const firstRead = result.results
-        const secondRead = result.results
-        expect(secondRead).not.toBe(firstRead)
-        expect(secondRead[0]).not.toBe(firstRead[0])
-        firstRead[0]!.duplicate = 9
-        expect(secondRead[0]?.duplicate).toBe(2)
-        expect(result.results[0]?.duplicate).toBe(2)
-        expect(result.rows.item(0)?.duplicate).toBe(2)
+        // The native result is a plain object: `results` is one array, shared with `rows`.
+        expect(result.results).toBe(result.results)
+        expect(result.rows._array).toBe(result.results)
       })
 
       it('preserves column metadata for empty results', () => {
