@@ -1,0 +1,33 @@
+name: Test AI triage
+
+on:
+  pull_request:
+    paths:
+      - '.github/scripts/ai-triage*.mjs'
+      - '.github/workflows/ai-triage.yml'
+      - '.github/workflows/test-ai-triage.yml'
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/ai-triage*.mjs'
+      - '.github/workflows/ai-triage.yml'
+      - '.github/workflows/test-ai-triage.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-ai-triage-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: AI triage tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - run: node --test .github/scripts/ai-triage.test.mjs

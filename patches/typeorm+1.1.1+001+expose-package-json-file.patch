@@ -1,9 +1,8 @@
 diff --git a/node_modules/typeorm/package.json b/node_modules/typeorm/package.json
-index cb64ad7..17e4941 100644
 --- a/node_modules/typeorm/package.json
 +++ b/node_modules/typeorm/package.json
 @@ -17,6 +17,7 @@
-     "email": "pleerock.me@gmail.com"
+     "email": "maintainers@typeorm.io"
    },
    "exports": {
 +    "./package.json": "./package.json",

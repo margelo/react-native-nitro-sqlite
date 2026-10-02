@@ -27,6 +27,10 @@ on:
   pull_request:
     paths: *android_paths
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
 env:
   # Build a single ABI in CI to reduce native compile time.
   TARGET_ANDROID_ARCH: x86_64
@@ -71,6 +75,16 @@ jobs:
             ${{ runner.os }}-gradle-
       - name: Test Android SQLite build flags
         run: example/android/gradlew --project-dir scripts/android-sqlite-flags testSqliteFlags --no-daemon
+
+      - name: Check Gradle configuration cache
+        if: matrix.min-sdk == '24'
+        working-directory: example/android
+        run: |
+          # React Native creates the autolinking file on the first run.
+          ./gradlew :react-native-nitro-sqlite:help --configuration-cache --no-daemon
+          ./gradlew :react-native-nitro-sqlite:help --configuration-cache --no-daemon
+          ./gradlew :react-native-nitro-sqlite:help --configuration-cache --no-daemon | tee "$RUNNER_TEMP/nitro-sqlite-configuration-cache.log"
+          grep -q 'Configuration cache entry reused' "$RUNNER_TEMP/nitro-sqlite-configuration-cache.log"
 
       - name: Run Gradle Build for example/android/
         working-directory: example/android

@@ -3,9 +3,31 @@ import { describe, it } from '@tests/TestApi'
 import { createArrayBufferTestDb, testDb } from '@tests/db'
 import { open } from 'react-native-nitro-sqlite'
 import { buildJSQueryResult } from '@nitro-sqlite/operations/execute'
+import type { ColumnType } from 'react-native-nitro-sqlite'
 import type { NitroSQLiteQueryResult } from '@nitro-sqlite/specs/NitroSQLiteQueryResult.nitro'
 
 const QUERY_RESULT_SIZES = [60, 1_000, 10_000]
+const metadataQuery = `
+  SELECT
+    boolean_value,
+    float_value,
+    integer_value,
+    text_value,
+    blob_value,
+    NULL AS null_value
+  FROM ColumnMetadata
+`
+
+function expectColumnMetadata(
+  metadata: Record<string, { type: ColumnType }> | undefined,
+) {
+  expect(metadata?.boolean_value?.type).toBe(0)
+  expect(metadata?.float_value?.type).toBe(1)
+  expect(metadata?.integer_value?.type).toBe(2)
+  expect(metadata?.text_value?.type).toBe(3)
+  expect(metadata?.blob_value?.type).toBe(4)
+  expect(metadata?.null_value?.type).toBe(5)
+}
 
 function createQueryResultTestDb(name: string) {
   const db = open({ name })
@@ -57,6 +79,20 @@ function expectQueryResultRows(
 
 export default function registerExecuteUnitTests() {
   describe('execute', () => {
+    it('creates a temporary database file', () => {
+      testDb.execute("ATTACH DATABASE '' AS temporary_probe")
+
+      try {
+        testDb.execute('CREATE TABLE temporary_probe.items (value INTEGER)')
+        testDb.execute('INSERT INTO temporary_probe.items VALUES (42)')
+        expect(
+          testDb.execute('SELECT value FROM temporary_probe.items').results,
+        ).toEqual([{ value: 42 }])
+      } finally {
+        testDb.execute('DETACH DATABASE temporary_probe')
+      }
+    })
+
     it('binds undefined positional values as SQL NULL', async () => {
       const query = 'SELECT ? AS missing, ? AS explicit_null, ? AS value'
       const params = [undefined, null, 'text']
@@ -212,6 +248,69 @@ export default function registerExecuteUnitTests() {
     })
 
     describe('Select', () => {
+      it('keeps positional columns and repeated result reads independent', () => {
+        const result = testDb.execute(
+          'SELECT 1 AS duplicate, 2 AS duplicate, 3.5 AS "café", NULL AS nullable, zeroblob(2) AS payload',
+        )
+
+        expect(result.rows.item(0)?.duplicate).toBe(2)
+        expect(result.rows.item(0)?.['café']).toBe(3.5)
+        expect(result.rows.item(0)?.nullable).toBe(null)
+        expect(
+          Array.from(
+            new Uint8Array(result.rows.item(0)?.payload as ArrayBuffer),
+          ),
+        ).toEqual([0, 0])
+        expect(result.metadata?.duplicate?.index).toBe(0)
+
+        const firstRead = result.results
+        const secondRead = result.results
+        expect(secondRead).not.toBe(firstRead)
+        expect(secondRead[0]).not.toBe(firstRead[0])
+        firstRead[0]!.duplicate = 9
+        expect(secondRead[0]?.duplicate).toBe(2)
+        expect(result.results[0]?.duplicate).toBe(2)
+        expect(result.rows.item(0)?.duplicate).toBe(2)
+      })
+
+      it('preserves column metadata for empty results', () => {
+        const result = testDb.execute('SELECT 1 AS value WHERE 0')
+        expect(result.rows._array).toEqual([])
+        expect(result.results).toEqual([])
+        expect(result.metadata?.value?.index).toBe(0)
+      })
+
+      it('preserves SQL-generated text containing embedded NULs', () => {
+        const nul = String.fromCharCode(0)
+        const expected = `${nul}é${nul}中😀${nul}`
+
+        const result = testDb.execute(
+          "SELECT char(0) || 'é' || char(0) || '中😀' || char(0) AS value, '' AS empty, NULL AS nullable",
+        )
+
+        expect(result.rows.item(0)).toEqual({
+          value: expected,
+          empty: '',
+          nullable: null,
+        })
+      })
+
+      it('preserves bound text containing leading, middle, and trailing NULs', () => {
+        const nul = String.fromCharCode(0)
+        const values = [
+          `${nul}leading`,
+          `mid${nul}dle`,
+          `trailing${nul}`,
+          `é${nul}中😀`,
+          '',
+        ]
+
+        for (const value of values) {
+          const result = testDb.execute('SELECT ? AS value', [value])
+          expect(result.rows.item(0)?.value).toBe(value)
+        }
+      })
+
       it('Query without params', () => {
         const id = chance.integer()
         const name = chance.name()
@@ -258,6 +357,139 @@ export default function registerExecuteUnitTests() {
             networth,
           },
         ])
+      })
+    })
+
+    describe('metadata', () => {
+      it('maps declared column types for execute', () => {
+        testDb.execute('DROP TABLE IF EXISTS ColumnMetadata')
+        testDb.execute(
+          'CREATE TABLE ColumnMetadata (boolean_value BOOLEAN, float_value FLOAT, integer_value INTEGER, text_value TEXT, blob_value BLOB)',
+        )
+
+        expectColumnMetadata(testDb.execute(metadataQuery).metadata)
+      })
+
+      it('maps declared column types for executeAsync', async () => {
+        await testDb.executeAsync('DROP TABLE IF EXISTS ColumnMetadata')
+        await testDb.executeAsync(
+          'CREATE TABLE ColumnMetadata (boolean_value BOOLEAN, float_value FLOAT, integer_value INTEGER, text_value TEXT, blob_value BLOB)',
+        )
+
+        expectColumnMetadata(
+          (await testDb.executeAsync(metadataQuery)).metadata,
+        )
+      })
+    })
+
+    describe('SQLite extensions', () => {
+      it('creates and queries an RTree virtual table', () => {
+        testDb.execute('DROP TABLE IF EXISTS SpatialIndex')
+
+        try {
+          testDb.execute(`
+            CREATE VIRTUAL TABLE SpatialIndex USING rtree(
+              id,
+              minX, maxX,
+              minY, maxY
+            )
+          `)
+          testDb.execute(
+            'INSERT INTO SpatialIndex (id, minX, maxX, minY, maxY) VALUES (?, ?, ?, ?, ?)',
+            [1, 10, 20, 30, 40],
+          )
+
+          const result = testDb.execute(
+            'SELECT id, minX, maxX, minY, maxY FROM SpatialIndex WHERE minX <= ? AND maxX >= ?',
+            [15, 15],
+          )
+
+          expect(result.results).toEqual([
+            { id: 1, minX: 10, maxX: 20, minY: 30, maxY: 40 },
+          ])
+        } finally {
+          testDb.execute('DROP TABLE IF EXISTS SpatialIndex')
+        }
+      })
+
+      for (const module of ['rtree', 'rtree_i32']) {
+        it(`reopens and migrates a database containing ${module}`, () => {
+          const name = `rtree-migration-${module}`
+          let db = open({ name })
+          let isOpen = true
+
+          try {
+            db.execute('CREATE TABLE Item (id INTEGER PRIMARY KEY)')
+            db.execute(
+              `CREATE VIRTUAL TABLE SpatialIndex USING ${module}(id, minX, maxX, minY, maxY)`,
+            )
+            db.execute('INSERT INTO Item VALUES (1)')
+            db.execute('INSERT INTO SpatialIndex VALUES (1, 10, 20, 30, 40)')
+            db.execute(
+              'CREATE VIEW SpatialItems AS SELECT Item.id FROM Item JOIN SpatialIndex USING (id)',
+            )
+            db.close()
+            isOpen = false
+
+            db = open({ name })
+            isOpen = true
+            db.execute('ALTER TABLE Item RENAME TO RenamedItem')
+            db.execute('ALTER TABLE SpatialIndex RENAME TO RenamedSpatialIndex')
+
+            expect(db.execute('SELECT id FROM SpatialItems').results).toEqual([
+              { id: 1 },
+            ])
+            expect(
+              db.execute(
+                'SELECT id FROM RenamedSpatialIndex WHERE minX <= ? AND maxX >= ? AND minY <= ? AND maxY >= ?',
+                [15, 15, 35, 35],
+              ).results,
+            ).toEqual([{ id: 1 }])
+          } finally {
+            if (isOpen) db.close()
+            db.delete()
+          }
+        })
+      }
+    })
+
+    describe('Bind errors', () => {
+      it('throws when execute receives an extra parameter without exposing it', () => {
+        const extraParameter = 'do-not-expose-sync-parameter'
+
+        try {
+          testDb.execute('SELECT ?', [1, extraParameter])
+          throw new Error('Expected execute to throw for the extra parameter')
+        } catch (error: unknown) {
+          if (!isNitroSQLiteError(error)) {
+            throw new Error('Should have thrown a valid NitroSQLiteError')
+          }
+
+          expect(error.message).toContain('parameter 2')
+          expect(error.message).toContain('25')
+          expect(error.message).toContain('column index out of range')
+          expect(error.message.includes(extraParameter)).toBe(false)
+        }
+      })
+
+      it('rejects when executeAsync receives an extra parameter without exposing it', async () => {
+        const extraParameter = 'do-not-expose-async-parameter'
+
+        try {
+          await testDb.executeAsync('SELECT ?', [1, extraParameter])
+          throw new Error(
+            'Expected executeAsync to reject for the extra parameter',
+          )
+        } catch (error: unknown) {
+          if (!isNitroSQLiteError(error)) {
+            throw new Error('Should have thrown a valid NitroSQLiteError')
+          }
+
+          expect(error.message).toContain('parameter 2')
+          expect(error.message).toContain('25')
+          expect(error.message).toContain('column index out of range')
+          expect(error.message.includes(extraParameter)).toBe(false)
+        }
       })
     })
 

@@ -72,6 +72,12 @@ def main
   default_flags = with_app_package({}) { flags_for(nil) }
   assert_threadsafe(default_flags, "1")
   assert_optimization_flags(default_flags)
+  assert_includes(default_flags, "-DSQLITE_ENABLE_RTREE=1")
+
+  without_rtree_flags = with_app_package("nitroSQLite" => {"enableRTree" => false}) do
+    flags_for(nil)
+  end
+  refute_includes(without_rtree_flags, "SQLITE_ENABLE_RTREE")
 
   unsafe_flags = with_app_package("nitroSQLite" => {"threadSafe" => false}) do
     flags_for(nil)
@@ -96,6 +102,7 @@ def main
   end
   assert_threadsafe(unoptimized_flags, "1")
   refute_optimization_flags(unoptimized_flags)
+  assert_includes(unoptimized_flags, "-DSQLITE_ENABLE_RTREE=1")
 
   environment_enabled_flags = with_app_package("nitroSQLite" => {"performanceMode" => false}) do
     flags_for(nil, "true")
@@ -117,10 +124,12 @@ def main
   assert_invalid_environment_value_rejected
   assert_invalid_package_performance_mode_rejected
   assert_invalid_environment_performance_mode_rejected
+  assert_invalid_package_rtree_rejected
   with_app_package({}) { assert_system_sqlite_configuration }
   compile_and_probe(unsafe_flags, "0")
   compile_and_probe(safe_flags, "1")
   compile_and_probe(unoptimized_flags, "1")
+  compile_and_probe(without_rtree_flags, "1", false)
 
   puts "SQLite pod configuration tests passed"
 end
@@ -257,13 +266,66 @@ def assert_system_sqlite_configuration
   )
 end
 
-def compile_and_probe(flags, expected)
+def assert_invalid_package_rtree_rejected
+  with_app_package("nitroSQLite" => {"enableRTree" => "false"}) do
+    evaluate_podspec("NITRO_SQLITE_THREADSAFE" => nil)
+  end
+  fail "Expected an invalid nitroSQLite.enableRTree value to fail"
+rescue RuntimeError => error
+  expected = "nitroSQLite.enableRTree in package.json must be true or false"
+  fail "Unexpected validation error: #{error.message}" unless error.message == expected
+end
+
+def compile_and_probe(flags, expected, rtree = true)
   Dir.mktmpdir("nitro-sqlite-threadsafe") do |directory|
     probe = File.join(directory, "probe.c")
     binary = File.join(directory, "probe")
     File.write(
       probe,
-      "#include <stdio.h>\n#include \"sqlite3.h\"\nint main(void) { printf(\"%d\", sqlite3_threadsafe()); return 0; }\n",
+      <<~C,
+        #include <assert.h>
+        #include <stdio.h>
+        #include <string.h>
+        #include "sqlite3.h"
+
+        int main(int argc, char **argv) {
+          assert(argc == 2);
+          sqlite3 *db = NULL;
+          assert(sqlite3_open(argv[1], &db) == SQLITE_OK);
+          int rc = sqlite3_exec(db,
+            "CREATE VIRTUAL TABLE SpatialIndex USING rtree(id,minX,maxX,minY,maxY)",
+            NULL, NULL, NULL);
+          if (#{rtree ? 1 : 0}) {
+            assert(rc == SQLITE_OK);
+            assert(sqlite3_exec(db,
+              "INSERT INTO SpatialIndex VALUES(1,10,20,30,40);"
+              "CREATE TABLE Item(id INTEGER PRIMARY KEY);"
+              "INSERT INTO Item VALUES(1);"
+              "CREATE VIEW SpatialItems AS SELECT Item.id FROM Item JOIN SpatialIndex USING(id);"
+              "CREATE VIRTUAL TABLE IntIndex USING rtree_i32(id,minX,maxX)",
+              NULL, NULL, NULL) == SQLITE_OK);
+            assert(sqlite3_close(db) == SQLITE_OK);
+            assert(sqlite3_open(argv[1], &db) == SQLITE_OK);
+            assert(sqlite3_exec(db,
+              "ALTER TABLE Item RENAME TO RenamedItem;"
+              "ALTER TABLE SpatialIndex RENAME TO RenamedSpatialIndex;",
+              NULL, NULL, NULL) == SQLITE_OK);
+            sqlite3_stmt *statement = NULL;
+            assert(sqlite3_prepare_v2(db, "SELECT id FROM SpatialItems", -1,
+              &statement, NULL) == SQLITE_OK);
+            assert(sqlite3_step(statement) == SQLITE_ROW);
+            assert(sqlite3_column_int(statement, 0) == 1);
+            assert(sqlite3_step(statement) == SQLITE_DONE);
+            assert(sqlite3_finalize(statement) == SQLITE_OK);
+          } else {
+            assert(rc == SQLITE_ERROR);
+            assert(strcmp(sqlite3_errmsg(db), "no such module: rtree") == 0);
+          }
+          assert(sqlite3_close(db) == SQLITE_OK);
+          printf("%d", sqlite3_threadsafe());
+          return 0;
+        }
+      C
     )
 
     compile_flags = Shellwords.split(flags).reject { |flag| flag == "$(inherited)" }
@@ -278,7 +340,8 @@ def compile_and_probe(flags, expected)
     ]
     fail "Failed to compile bundled SQLite with SQLITE_THREADSAFE=#{expected}" unless system(*command)
 
-    actual = IO.popen([binary], &:read)
+    actual = IO.popen([binary, File.join(directory, "rtree.sqlite")], &:read)
+    fail "SQLite configuration probe failed" unless $?.success?
     assert_equal(actual, expected)
   end
 end

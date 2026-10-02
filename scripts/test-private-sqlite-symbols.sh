@@ -7,7 +7,7 @@ vec="$root/packages/react-native-nitro-sqlite-vec/cpp"
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
-cc -O0 -c "$sqlite/sqlite3.c" -o "$tmp/private.o"
+cc -O0 -DSQLITE_ENABLE_RTREE=1 -c "$sqlite/sqlite3.c" -o "$tmp/private.o"
 cc -O0 -DSQLITE_CORE=1 -DSQLITE_VEC_STATIC=1 -I "$sqlite" -c "$vec/sqlite-vec/sqlite-vec.c" -o "$tmp/vec.o"
 c++ -std=c++20 -DSQLITE_CORE=1 -I "$sqlite" -I "$vec" -c "$vec/NitroSQLiteVecRegisterVectorExtensions.cpp" -o "$tmp/vec-register.o"
 
@@ -86,6 +86,7 @@ int main(void) {
   assert(strcmp(system_version(), system_version_data()) == 0);
   assert(private_version_data() != system_version_data());
   assert(private_compileoption("THREADSAFE=1") == 1);
+  assert(private_compileoption("ENABLE_RTREE") == 1);
   assert(private_vec_available());
   assert(!system_vec_available());
   printf("private: %s %s\n", private_version(), private_sourceid());

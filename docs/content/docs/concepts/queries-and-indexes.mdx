@@ -1,0 +1,76 @@
+---
+title: Queries and indexes
+description: Read and change rows with SQL, then inspect query plans.
+---
+
+SQL statements read or change the database. A `SELECT` can filter rows with `WHERE`, choose columns, and set an order with `ORDER BY`. Without an index that helps a query, SQLite may need to inspect many rows. An index is a separate data structure that SQLite's query planner can use to find matching rows or produce an order. It also takes storage and work to maintain when data changes. [SQLite's query planning guide](https://www.sqlite.org/queryplanner.html) explains how the planner chooses a path.
+
+## Create an index and inspect the plan
+
+Nitro SQLite sends your SQL through `execute()` or `executeAsync()`. Assuming the `notes` table from [tables and values](/docs/concepts/tables-and-values) exists, use the same methods to create an index and inspect a query plan:
+
+```ts
+import { open } from 'react-native-nitro-sqlite'
+
+const db = open({ name: 'notes.sqlite' })
+
+await db.executeAsync(
+  'CREATE INDEX IF NOT EXISTS notes_body_idx ON notes(body)',
+)
+
+const { rows } = await db.executeAsync<{ id: number; body: string }>(
+  'SELECT id, body FROM notes WHERE body = ?',
+  ['Buy milk'],
+)
+console.log(rows._array)
+
+const plan = await db.executeAsync(
+  'EXPLAIN QUERY PLAN SELECT id, body FROM notes WHERE body = ?',
+  ['Buy milk'],
+)
+console.log(plan.rows._array)
+db.close()
+```
+
+Bind application values with `?`; placeholders cannot stand in for table or column names. Add an index for a query you actually run, then inspect its plan with representative data. [Parameters and results](/docs/guides/parameters-and-results) describes returned rows, and the [performance guide](/docs/guides/performance) covers keeping large reads bounded.
+
+## Query spatial ranges
+
+An R\*Tree index stores bounding boxes and finds those that overlap a query box. Use it for queries such as finding places inside a map viewport or events that overlap a time interval. A normal B-tree index orders values by its columns; an R\*Tree can narrow a search across several independent coordinate ranges. Bounding boxes can include candidates outside an object's exact geometry, so apply an exact check when your query requires one. See [SQLite's R\*Tree documentation](https://www.sqlite.org/rtree.html).
+
+Nitro SQLite's bundled build includes `rtree` and `rtree_i32` by default. You still create the virtual table and populate it explicitly. Enabling the module does not create indexes or change queries against ordinary tables.
+
+```ts
+import { open } from 'react-native-nitro-sqlite'
+
+const db = open({ name: 'places.sqlite' })
+
+await db.executeAsync(`
+  CREATE VIRTUAL TABLE IF NOT EXISTS place_bounds USING rtree(
+    id,
+    minLongitude, maxLongitude,
+    minLatitude, maxLatitude
+  )
+`)
+await db.executeAsync(
+  'INSERT OR REPLACE INTO place_bounds VALUES (?, ?, ?, ?, ?)',
+  [1, 16.36, 16.38, 48.2, 48.22],
+)
+
+const { rows } = await db.executeAsync<{ id: number }>(
+  `SELECT id FROM place_bounds
+   WHERE minLongitude <= ? AND maxLongitude >= ?
+     AND minLatitude <= ? AND maxLatitude >= ?`,
+  [16.4, 16.35, 48.23, 48.19],
+)
+console.log(rows._array) // [{ id: 1 }]
+db.close()
+```
+
+If you store the same objects in an ordinary table, keep their bounding boxes in sync through triggers or updates in the same transaction. R\*Tree data takes storage and adds work to writes. Its storage and index maintenance apply to the tables you create, rather than every database opened by an app that includes the module.
+
+`rtree` stores coordinates as 32-bit floats and rounds lower bounds down and upper bounds up. Overlap queries can return extra candidates. Containment queries can miss an entry at an edge unless you expand the query box as described in [SQLite's roundoff guidance](https://www.sqlite.org/rtree.html#roundoff_error). Use `rtree_i32` for signed 32-bit integer coordinates. Both support one to five dimensions.
+
+A write can restructure an active R\*Tree scan and fail with `SQLITE_LOCKED`. Nitro SQLite's execution methods, including prepared statement execution, read the complete result before returning, so a completed read does not leave that scan open.
+
+For apps that do not need R\*Tree, set `nitroSQLite.enableRTree` to `false` in the app's `package.json` and rebuild the native app. See [Apple configuration](/docs/configuration/ios#rtree-support) or [Android configuration](/docs/configuration/android#rtree-support). Disabling it makes R\*Tree tables unavailable. Queries and schema migrations involving those tables can fail with `no such module: rtree`, including a rename of an ordinary table referenced by a view that also uses R\*Tree. System SQLite support depends on the operating system's build.

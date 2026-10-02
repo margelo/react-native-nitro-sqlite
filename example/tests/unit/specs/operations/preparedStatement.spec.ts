@@ -9,6 +9,30 @@ import { testDb } from '@tests/db'
 
 export default function registerPreparedStatementUnitTests() {
   describe('prepared statements', () => {
+    it('reports bind errors and remains reusable for sync and async execution', async () => {
+      const statement = testDb.prepare('SELECT ? AS value')
+      const secret = 'do-not-expose-prepared-parameter'
+      try {
+        for (const asynchronous of [false, true]) {
+          try {
+            if (asynchronous) await statement.executeAsync([1, secret])
+            else statement.execute([1, secret])
+            throw new Error('Expected prepared binding to fail')
+          } catch (error) {
+            if (!isNitroSQLiteError(error)) throw error
+            expect(error.message).toContain('parameter 2')
+            expect(error.message).toContain('25')
+            expect(error.message).toContain('column index out of range')
+            expect(error.message.includes(secret)).toBe(false)
+          }
+          expect(statement.execute([7]).rows._array).toEqual([{ value: 7 }])
+          expect(statement.execute([]).rows._array).toEqual([{ value: null }])
+        }
+      } finally {
+        statement.finalize()
+      }
+    })
+
     it('binds undefined on synchronous and asynchronous execution', async () => {
       const statement = testDb.prepare('SELECT ? AS missing, ? AS value')
 
@@ -21,6 +45,62 @@ export default function registerPreparedStatementUnitTests() {
         ).toEqual([{ missing: null, value: 'second' }])
       } finally {
         statement.finalize()
+      }
+    })
+
+    it('preserves embedded NULs across repeated execution', () => {
+      const nul = String.fromCharCode(0)
+      const firstValue = `${nul}leading`
+      const values = [
+        firstValue,
+        `mid${nul}dle`,
+        `trailing${nul}`,
+        `é${nul}中😀`,
+        '',
+      ]
+      const statement = testDb.prepare('SELECT ? AS value')
+
+      try {
+        for (const value of values) {
+          const result = statement.execute([value])
+          expect(result.rows.item(0)?.value).toBe(value)
+        }
+
+        expect(statement.execute([firstValue]).rows.item(0)?.value).toBe(
+          firstValue,
+        )
+      } finally {
+        statement.finalize()
+      }
+    })
+
+    it('uses columns from a statement reprepared after a schema change', () => {
+      testDb.execute('DROP TABLE IF EXISTS RepreparedResults')
+      testDb.execute('CREATE TABLE RepreparedResults (id INTEGER PRIMARY KEY)')
+      testDb.execute('INSERT INTO RepreparedResults (id) VALUES (1)')
+      const rowStatement = testDb.prepare(
+        'SELECT * FROM RepreparedResults WHERE id = 1',
+      )
+      const emptyStatement = testDb.prepare(
+        'SELECT * FROM RepreparedResults WHERE id = 0',
+      )
+
+      try {
+        testDb.execute(
+          "ALTER TABLE RepreparedResults ADD COLUMN label TEXT DEFAULT 'added'",
+        )
+
+        const rowResult = rowStatement.execute()
+        expect(rowResult.rows.item(0)).toEqual({ id: 1, label: 'added' })
+        expect(rowResult.metadata?.label?.index).toBe(1)
+
+        const emptyResult = emptyStatement.execute()
+        expect(emptyResult.rows._array).toEqual([])
+        expect(emptyResult.metadata?.label?.index).toBe(1)
+      } finally {
+        rowStatement.finalize()
+        emptyStatement.finalize()
+        testDb.execute('DROP TABLE RepreparedResults')
       }
     })
 

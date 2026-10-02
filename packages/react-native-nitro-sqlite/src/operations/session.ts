@@ -27,9 +27,14 @@ import type { DatabaseQueueKey } from '../DatabaseQueue'
  * Open a database and return a managed connection. The default connection is
  * addressed by its name, and opening it twice throws. Set `connection` to
  * `'independent'` to open another native handle to the same file. Async calls
- * on each connection run in call order.
- * @param options Database name, optional directory, connection mode, and read-only setting.
+ * on each connection run in call order. An optional `encryptionKey` requires
+ * a native build with SQLite SEE; it does not encrypt an existing plaintext file.
+ * @param options Database name, optional directory, connection mode, read-only setting, and SEE key.
  * @returns A connection bound to the opened native handle.
+ * @throws `NitroSQLiteError` with type `EncryptionNotEnabled` when a key is
+ * supplied without SEE, or `DatabaseCannotBeDecrypted` for an invalid key,
+ * wrong key, or existing plaintext database.
+ * @see [Encryption guide](https://sqlite.margelo.com/docs/guides/encryption)
  */
 export function open(
   options: NitroSQLiteConnectionOptions,
@@ -167,12 +172,24 @@ function openNativeConnection(options: NitroSQLiteConnectionOptions): {
   connectionId: string
   queueKey: DatabaseQueueKey
 } {
+  // Older native builds accept at most three arguments for unkeyed opens.
   if (options.connection === 'independent') {
     let connectionId: string
     try {
-      connectionId = options.readOnly
-        ? HybridNitroSQLite.openConnection(options.name, options.location, true)
-        : HybridNitroSQLite.openConnection(options.name, options.location)
+      if (options.encryptionKey !== undefined) {
+        connectionId = HybridNitroSQLite.openConnection(
+          options.name,
+          options.location,
+          options.readOnly,
+          options.encryptionKey,
+        )
+      } else {
+        connectionId = HybridNitroSQLite.openConnection(
+          options.name,
+          options.location,
+          options.readOnly,
+        )
+      }
       const queueKey = Symbol(options.name)
       openDatabaseQueue(queueKey)
       return { connectionId, queueKey }
@@ -183,10 +200,15 @@ function openNativeConnection(options: NitroSQLiteConnectionOptions): {
 
   openDatabaseQueue(options.name)
   try {
-    if (options.readOnly) {
-      HybridNitroSQLite.open(options.name, options.location, true)
+    if (options.encryptionKey !== undefined) {
+      HybridNitroSQLite.open(
+        options.name,
+        options.location,
+        options.readOnly,
+        options.encryptionKey,
+      )
     } else {
-      HybridNitroSQLite.open(options.name, options.location)
+      HybridNitroSQLite.open(options.name, options.location, options.readOnly)
     }
   } catch (error) {
     closeDatabaseQueue(options.name)

@@ -28,6 +28,10 @@ on:
       - "packages/react-native-nitro-sqlite/nitro.json"
       - "!packages/react-native-nitro-sqlite/src/__tests__/**"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
 env:
   TARGET_ANDROID_ARCH: x86_64
 
@@ -62,7 +66,7 @@ jobs:
           -PreactNativeArchitectures=${{ env.TARGET_ANDROID_ARCH }}
 
       - name: Run react-native-harness on Android
-        uses: callstackincubator/react-native-harness@v1.2.0
+        uses: callstackincubator/react-native-harness@v1.5.0
         with:
           app: android/app/build/outputs/apk/debug/app-debug.apk
           runner: android

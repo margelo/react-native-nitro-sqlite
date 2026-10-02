@@ -1,0 +1,67 @@
+---
+title: Encrypt a database
+description: Build Nitro SQLite with licensed SQLite SEE and open a database with a key.
+---
+
+SQLite database files are readable without a key by default. The [SQLite Encryption Extension](https://sqlite.org/see) (SEE) encrypts database pages when your app builds against its licensed SQLite source. Nitro SQLite does not include SEE. You need licensed source matching the bundled SQLite version, a native rebuild, and a way to store and retrieve the key outside your app source. A JavaScript-only update cannot enable encryption in an existing app binary.
+
+## Build with SEE
+
+1. In your installed `react-native-nitro-sqlite` package, replace `cpp/sqlite/sqlite3.c` with your licensed SEE amalgamation and `cpp/sqlite/sqlite3.h` with its matching header. Compare `SQLITE_VERSION` in the headers before replacing them. Reapply the replacement after dependency installation; an install can restore the package's ordinary SQLite files. Follow your SEE license when handling the source.
+2. Keep `#include "sqlite3-symbol-prefix.h"` at the start of `sqlite3.c`. Keep the following block at the start of `sqlite3.h`, before its `SQLITE3_H` guard, so the SEE functions use Nitro SQLite's private SQLite symbols:
+
+   ```c
+   #ifndef NITRO_SQLITE_USE_PHONE_VERSION
+   #include "sqlite3-symbol-prefix.h"
+   #endif
+   ```
+
+3. Define `SQLITE_ENABLE_SEE=1` for the `RNNitroSQLite` native target on every platform you ship. On Android, set this in your app's `android/gradle.properties`:
+
+   ```properties
+   nitroSqliteFlags="-DSQLITE_ENABLE_SEE=1"
+   ```
+
+   On Apple platforms, add the definition to the `RNNitroSQLite` target inside your existing Podfile `post_install` block:
+
+   ```ruby
+   installer.pods_project.targets.each do |target|
+     next unless target.name == 'RNNitroSQLite'
+
+     target.build_configurations.each do |config|
+       definitions = Array(config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] || '$(inherited)')
+       config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = definitions + ['SQLITE_ENABLE_SEE=1']
+     end
+   end
+   ```
+
+   Use the bundled SQLite build on Apple platforms. `NITRO_SQLITE_USE_PHONE_VERSION=1` links the system SQLite library, which does not include your SEE source. Install Pods again and rebuild the native app after changing the source or flags. See [iOS configuration](/docs/configuration/ios#additional-compile-flags) and [Android configuration](/docs/configuration/android#sqlite-compile-flags) for the platform build settings.
+
+## Open an encrypted database
+
+Pass a nonempty `encryptionKey` when creating a database and every time you reopen it. Supply the same key to default, independent, and read-only connections to that file. Obtain the key from your app's secure storage; do not embed it in source code.
+
+```ts
+import { open } from 'react-native-nitro-sqlite'
+
+export function openPrivateDatabase(encryptionKey: string) {
+  return open({ name: 'private.sqlite', encryptionKey })
+}
+```
+
+Use a new database name when adding encryption to an app. Passing a key to an existing plaintext database fails; it does not encrypt that file. To migrate, open the old file without a key, create a separate keyed database, copy the data, and verify the new file before removing the old one. See [database lifecycle](/docs/guides/database-lifecycle) for file and connection cleanup.
+
+The [`open()` reference](/api/react-native-nitro-sqlite/functions/open) documents the managed call, and [`NitroSQLiteConnectionOptions`](/api/react-native-nitro-sqlite/interfaces/NitroSQLiteConnectionOptions) lists its options. Raw native callers can pass the key as the fourth argument to [`NitroSQLiteNative.open()`](/api/react-native-nitro-sqlite/hybrid-objects/NitroSQLiteNative) or `openConnection()`, after `readOnly`. The [TypeORM integration](/docs/integrations/typeorm#encrypt-a-typeorm-database) passes the key through `extra`.
+
+## Handle open failures
+
+Managed `open()` throws `NitroSQLiteError`. Check its `type` when you need to tell a missing SEE build from a bad key:
+
+| `error.type`                | Cause                                                                                                | What to do                                                                         |
+| --------------------------- | ---------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `EncryptionNotEnabled`      | You supplied a key, but the native build does not include SEE.                                       | Check the source replacement and compile flag, then rebuild the app.               |
+| `DatabaseCannotBeDecrypted` | The key is empty or contains a NUL byte, the file is plaintext, or SEE cannot read it with that key. | Check the key and file. Migrate a plaintext database before opening it with a key. |
+
+A keyed open checks the database header and reads its schema before returning, so these failures surface during `open()`. Omitting the key keeps the usual unencrypted open path; an encrypted file then fails when SQLite first tries to read it. Calls through `NitroSQLite.native` throw raw native errors rather than `NitroSQLiteError`.
+
+SEE does not encrypt TEMP tables or in-memory databases. Keep sensitive data in the keyed database file rather than those locations. A keyed open adds a header read and schema query; query and write costs depend on the SEE algorithm you choose. Measure those costs on your target devices. See [SQLite's SEE documentation](https://www.sqlite.org/see/doc/trunk/www/readme.wiki) for its encryption variants and limits.

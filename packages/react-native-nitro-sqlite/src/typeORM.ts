@@ -14,7 +14,7 @@ import type {
 import * as Operations from './operations/session'
 
 /** Callback-oriented connection returned to TypeORM. */
-interface TypeOrmNitroSQLiteConnection {
+export interface TypeOrmNitroSQLiteConnection {
   /** Execute SQL asynchronously and report the result through a callback. */
   executeSql: <RowData extends QueryResultRow = never>(
     sql: string,
@@ -43,14 +43,21 @@ interface TypeOrmNitroSQLiteConnection {
  */
 export const typeORMDriver = {
   /** Open a database for TypeORM.
-   * @param options Database name and optional relative directory.
+   * @param options Database name, optional relative directory, and optional SEE key.
    * @param ok Receives the adapter connection on success.
    * @param fail Receives the opening error on failure.
    */
   openDatabase: (
     options: {
+      /** Database file name. */
       name: string
+      /** Directory relative to the platform database directory. */
       location?: string
+      /**
+       * Key for a licensed SQLite SEE build. Without SEE, a supplied key fails
+       * with `EncryptionNotEnabled`. An existing plaintext file is rejected.
+       */
+      encryptionKey?: string
     },
     ok: (db: TypeOrmNitroSQLiteConnection) => void,
     fail: (msg: string) => void,

@@ -1,0 +1,122 @@
+---
+title: Test SQLite in Node
+description: Test shared SQLite connections, statements, and transactions in Node.
+---
+
+SQLite connections are handles to a database file. Separate handles can share committed data, and a transaction can keep a consistent snapshot while another connection writes under [WAL](/docs/guides/multiple-connections).
+
+Use `react-native-nitro-sqlite/mock` to test these behaviors in Node without loading the React Native module. Install `better-sqlite3` as a development dependency in your test project. The mock creates databases in a temporary directory and supports queries, atomic batches, prepared statements, and callback transactions.
+
+## Set up Jest
+
+Add a setup file to your existing Jest `setupFilesAfterEnv` configuration:
+
+```ts
+// jest.setup.ts
+import { resetAllDatabases } from 'react-native-nitro-sqlite/mock'
+
+jest.mock('react-native-nitro-sqlite', () =>
+  require('react-native-nitro-sqlite/mock'),
+)
+
+afterEach(resetAllDatabases)
+```
+
+Tests can then import the package as they do in the app:
+
+```ts
+import { open } from 'react-native-nitro-sqlite'
+
+test('stores a note', () => {
+  const db = open({ name: 'notes.sqlite' })
+  db.execute('CREATE TABLE notes (title TEXT NOT NULL)')
+  db.execute('INSERT INTO notes (title) VALUES (?)', ['Draft'])
+
+  expect(db.execute('SELECT title FROM notes').rows._array).toEqual([
+    { title: 'Draft' },
+  ])
+
+  db.close()
+})
+```
+
+The mock returns query rows through both `results` and `rows`, and supports [atomic batches](/docs/guides/batch-operations). Bound `undefined` becomes SQL NULL. A query that fails throws from `execute()` or rejects from `executeAsync()`.
+
+## Share a database between connections
+
+Connections with the same `name` and `location` open the same temporary file. A default connection reserves its name until you close it. Set `connection: 'independent'` to open another handle, and `readOnly: true` to prevent writes. Read-only opens fail if the file does not exist.
+
+```ts
+const writer = open({ name: 'notes.sqlite' })
+writer.execute('PRAGMA journal_mode = WAL')
+writer.execute('CREATE TABLE notes (title TEXT)')
+writer.execute('INSERT INTO notes VALUES (?)', ['Draft'])
+
+const reader = open({
+  name: 'notes.sqlite',
+  connection: 'independent',
+  readOnly: true,
+})
+expect(reader.execute('SELECT title FROM notes').rows.item(0)?.title).toBe(
+  'Draft',
+)
+
+reader.close()
+writer.close()
+```
+
+`location` selects a relative directory inside the mock's temporary directory. A name must be a file name; paths that escape the temporary directory throw.
+
+Closing a connection preserves its data for reopening. `delete()` closes the connection and removes its database and sidecar files. It throws for a read-only connection or if another open connection uses the file. Close those connections before deleting it.
+
+## Reuse a prepared statement
+
+Preparing SQL once lets you execute it repeatedly with new parameter values. Each execution replaces the previous bindings. Omitted values bind as SQL NULL. Finalize statements before closing the connection.
+
+```ts
+const db = open({ name: 'notes.sqlite' })
+db.execute('CREATE TABLE notes (title TEXT)')
+const insert = db.prepare('INSERT INTO notes VALUES (?)')
+
+await insert.executeAsync(['Draft'])
+await insert.executeAsync(['Published'])
+insert.finalize()
+expect(insert.isFinalized).toBe(true)
+
+db.close()
+```
+
+`finalize()` is safe to repeat while the connection is open and idle. Executing a finalized statement or using a statement after its connection closes throws or rejects.
+
+## Commit or roll back a transaction
+
+A transaction groups operations into one commit. The mock keeps a callback transaction exclusive on its connection, including across `await`. Use the supplied `tx` for all database work inside the callback:
+
+```ts
+const db = open({ name: 'notes.sqlite' })
+db.execute('CREATE TABLE notes (title TEXT)')
+
+const count = await db.transaction(async (tx) => {
+  await tx.executeAsync('INSERT INTO notes VALUES (?)', ['Draft'])
+  return tx.execute('SELECT title FROM notes').rows.length
+})
+expect(count).toBe(1)
+
+db.close()
+```
+
+The callback's result resolves after commit. A callback error rolls back its changes. You can call `tx.commit()` or `tx.rollback()` explicitly; subsequent operations on that transaction fail. Await all `tx.executeAsync()` calls before a synchronous transaction operation or before returning from the callback.
+
+Async connection calls run in call order and wait for callback transactions. Synchronous queries, preparation, statement finalization, close, and delete throw while their connection is busy. Awaiting a queued connection call inside its transaction callback deadlocks; use `tx` instead. Independent connections have separate queues.
+
+## Clean up between tests
+
+Await all pending operations before calling `resetAllDatabases()`. It closes every handle and removes all temporary databases and sidecar files, including files whose connections you already closed. Connections and statements from before the reset cannot execute again.
+
+The reset throws if any connection is busy. Await that work and retry. No connections close when this check fails.
+
+## API reference and limits
+
+The generated [mock API reference](/api/react-native-nitro-sqlite/mock) documents `open()`, `NitroSQLite.open()`, `MockConnection`, and `resetAllDatabases()`. Connection methods use the same parameter and result types as the native API.
+
+The mock does not implement attachments, SQL file imports, or direct `NitroSQLite.native` methods. Its SQL runs synchronously on Node's thread; async methods schedule that work and return promises. It uses the SQLite version bundled with `better-sqlite3`, which can differ from the library's native SQLite build. Use device tests for native integration, thread behavior, lock contention, and performance.

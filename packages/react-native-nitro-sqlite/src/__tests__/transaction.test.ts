@@ -1,5 +1,6 @@
 jest.mock('../nitro')
 
+import Database from 'better-sqlite3'
 import { HybridNitroSQLite } from '../nitro'
 import { closeDatabaseQueue, openDatabaseQueue } from '../DatabaseQueue'
 import { transaction } from '../operations/transaction'
@@ -208,7 +209,8 @@ describe('transaction', () => {
       }),
     ).rejects.toMatchObject({
       name: 'NitroSQLiteError',
-      message: 'rollback failed',
+      message: 'callback failed\nRollback failed: rollback failed',
+      cause: expect.any(AggregateError),
     })
   })
 
@@ -238,5 +240,153 @@ describe('transaction', () => {
     firstMayFinish.resolve()
     await Promise.all([first, second])
     expect(order).toEqual(['first', 'second'])
+  })
+  it.each(['automatic', 'manual', 'caught manual'])(
+    'rolls back a real deferred constraint after a %s commit failure',
+    async (mode) => {
+      const sqlite = new Database(':memory:')
+      sqlite.exec(
+        'PRAGMA foreign_keys = ON; CREATE TABLE Parent (id INTEGER PRIMARY KEY); CREATE TABLE Child (parentId INTEGER REFERENCES Parent(id) DEFERRABLE INITIALLY DEFERRED)',
+      )
+      const execute = (_name: string, query: string) => {
+        try {
+          sqlite.exec(query)
+          return nativeResult()
+        } catch (error) {
+          // The addon creates errors outside Jest's realm. The native bridge
+          // exposes a JavaScript Error, so mirror that boundary here.
+          if (
+            typeof error === 'object' &&
+            error !== null &&
+            'message' in error &&
+            typeof error.message === 'string'
+          ) {
+            throw new Error(error.message, { cause: error })
+          }
+          throw error
+        }
+      }
+      jest.mocked(HybridNitroSQLite.execute).mockImplementation(execute)
+      jest
+        .mocked(HybridNitroSQLite.executeAsync)
+        .mockImplementation(async (name, query) => execute(name, query))
+      try {
+        await expect(
+          transaction(dbName, async (tx) => {
+            tx.execute('INSERT INTO Child VALUES (1)')
+            if (mode === 'manual') tx.commit()
+            if (mode === 'caught manual') {
+              expect(() => tx.commit()).toThrow('FOREIGN KEY constraint failed')
+              expect(() => tx.execute('SELECT 1')).toThrow(
+                'finalized transaction',
+              )
+              expect(() => tx.executeAsync('SELECT 1')).toThrow(
+                'finalized transaction',
+              )
+              expect(() => tx.commit()).toThrow('finalized transaction')
+            }
+          }),
+        ).rejects.toThrow('FOREIGN KEY constraint failed')
+        expect(sqlite.inTransaction).toBe(false)
+        expect(
+          sqlite.prepare('SELECT COUNT(*) AS count FROM Child').get(),
+        ).toEqual({ count: 0 })
+        await transaction(dbName, async (tx) => {
+          tx.execute('INSERT INTO Parent VALUES (1)')
+        })
+        expect(sqlite.inTransaction).toBe(false)
+      } finally {
+        sqlite.close()
+      }
+    },
+  )
+
+  it('allows explicit rollback to recover a caught commit failure', async () => {
+    jest
+      .mocked(HybridNitroSQLite.execute)
+      .mockImplementation((_name, query) => {
+        if (query === 'COMMIT') throw new Error('commit failed')
+        return nativeResult()
+      })
+    await expect(
+      transaction(dbName, async (tx) => {
+        expect(() => tx.commit()).toThrow('commit failed')
+        tx.rollback()
+        return 'recovered'
+      }),
+    ).resolves.toBe('recovered')
+  })
+
+  it.each([false, true])(
+    'rejects a failed manual rollback even when caught: %s',
+    async (caught) => {
+      jest.mocked(HybridNitroSQLite.execute).mockImplementation(() => {
+        throw new Error('rollback failed')
+      })
+      await expect(
+        transaction(dbName, async (tx) => {
+          if (caught) {
+            expect(() => tx.rollback()).toThrow('rollback failed')
+            return
+          }
+          tx.rollback()
+        }),
+      ).rejects.toThrow('rollback failed')
+      expect(HybridNitroSQLite.execute).toHaveBeenCalledTimes(1)
+    },
+  )
+
+  it('preserves commit and rollback errors in order', async () => {
+    jest
+      .mocked(HybridNitroSQLite.execute)
+      .mockImplementation((_name, query) => {
+        throw new Error(
+          query === 'COMMIT' ? 'commit failed' : 'rollback failed',
+        )
+      })
+    await expect(transaction(dbName, async () => {})).rejects.toMatchObject({
+      message: 'commit failed\nRollback failed: rollback failed',
+      cause: {
+        errors: [
+          expect.objectContaining({ message: 'commit failed' }),
+          expect.objectContaining({ message: 'rollback failed' }),
+        ],
+      },
+    })
+  })
+
+  it('preserves both errors when manual rollback after a failed commit also fails', async () => {
+    jest
+      .mocked(HybridNitroSQLite.execute)
+      .mockImplementation((_name, query) => {
+        throw new Error(
+          query === 'COMMIT' ? 'commit failed' : 'rollback failed',
+        )
+      })
+    await expect(
+      transaction(dbName, async (tx) => {
+        expect(() => tx.commit()).toThrow('commit failed')
+        expect(() => tx.rollback()).toThrow('rollback failed')
+      }),
+    ).rejects.toMatchObject({
+      message: 'commit failed\nRollback failed: rollback failed',
+      cause: {
+        errors: [
+          expect.objectContaining({ message: 'commit failed' }),
+          expect.objectContaining({ message: 'rollback failed' }),
+        ],
+      },
+    })
+    expect(HybridNitroSQLite.execute).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not roll back when BEGIN fails', async () => {
+    jest
+      .mocked(HybridNitroSQLite.executeAsync)
+      .mockRejectedValue(new Error('begin failed'))
+    const callback = jest.fn()
+    await expect(transaction(dbName, callback)).rejects.toThrow('begin failed')
+    expect(callback).not.toHaveBeenCalled()
+    expect(HybridNitroSQLite.execute).not.toHaveBeenCalled()
   })
 })

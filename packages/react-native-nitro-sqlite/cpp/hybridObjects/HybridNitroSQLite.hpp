@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../NitroSQLiteDatabaseConnections.hpp"
 #include "../NitroSQLiteTypes.hpp"
 #include "HybridNitroSQLitePreparedStatementSpec.hpp"
 #include "HybridNitroSQLiteQueryResultSpec.hpp"
@@ -7,7 +8,11 @@
 
 namespace margelo::nitro::rnnitrosqlite {
 
-/** Native database operations exposed to JavaScript through the Nitro hybrid object. */
+/** Native database operations exposed to JavaScript through the Nitro hybrid object.
+ * Owns its default and independent connections and closes them on destruction.
+ * Queued operations and prepared statements retain their original connection and
+ * fail after that connection closes. Other NitroSQLite roots remain usable.
+ */
 class HybridNitroSQLite : public HybridNitroSQLiteSpec {
 public:
   HybridNitroSQLite() : HybridObject(TAG) {}
@@ -19,13 +24,18 @@ public:
   // When non-empty, databases found there are resolved as they are opened, attached, or dropped.
   static std::string migrationDocPath;
 
+private:
+  DatabaseConnections _connections;
+
 public:
   // Methods
   /** Open the default connection, requiring an existing file in read-only mode. */
-  void open(const std::string& dbName, const std::optional<std::string>& location, std::optional<bool> readOnly) override;
+  void open(const std::string& dbName, const std::optional<std::string>& location, std::optional<bool> readOnly,
+            const std::optional<std::string>& encryptionKey) override;
 
   /** Open a separate native handle and return an opaque ID for later calls. */
-  std::string openConnection(const std::string& dbName, const std::optional<std::string>& location, std::optional<bool> readOnly) override;
+  std::string openConnection(const std::string& dbName, const std::optional<std::string>& location, std::optional<bool> readOnly,
+                             const std::optional<std::string>& encryptionKey) override;
 
   /** Close the named native database handle. */
   void close(const std::string& dbName) override;

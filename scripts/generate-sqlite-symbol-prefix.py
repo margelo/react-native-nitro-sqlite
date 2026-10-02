@@ -18,6 +18,15 @@ METADATA_SYMBOLS = {
     "sqlite3_column_table_name",
     "sqlite3_column_table_name16",
 }
+SEE_SYMBOLS = {
+    "sqlite3_activate_see",
+    "sqlite3_key",
+    "sqlite3_key_v2",
+    "sqlite3_key_v3",
+    "sqlite3_rekey",
+    "sqlite3_rekey_v2",
+    "sqlite3_rekey_v3",
+}
 CONDITIONAL_SYMBOLS = {
     "#ifdef SQLITE_ENABLE_COLUMN_METADATA": METADATA_SYMBOLS,
     "#if !defined(SQLITE_THREADSAFE) || SQLITE_THREADSAFE != 0": {
@@ -42,6 +51,7 @@ def main() -> None:
         match = re.search(r"\b(sqlite3_[A-Za-z0-9_]+)\s*(?=\(|\[|;)", declaration)
         if match:
             symbols.add(match.group(1))
+    symbols.update(SEE_SYMBOLS)
 
     if "sqlite3_version" not in symbols or "sqlite3_open" not in symbols:
         raise RuntimeError("Could not find the SQLite API and exported data symbols")

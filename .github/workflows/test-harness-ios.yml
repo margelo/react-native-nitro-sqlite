@@ -31,6 +31,10 @@ on:
       - "packages/react-native-nitro-sqlite/nitro.json"
       - "!packages/react-native-nitro-sqlite/src/__tests__/**"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   test:
     name: Harness Tests (iOS)
@@ -56,6 +60,25 @@ jobs:
       - name: Select Xcode 26.2
         run: sudo xcode-select -s "/Applications/Xcode_26.2.app/Contents/Developer"
 
+      - name: Start iOS simulator
+        run: |
+          set -euo pipefail
+
+          simulator="$(xcrun simctl list devices available --json | node -e '
+            const { readFileSync } = require("node:fs")
+            const runtime = `com.apple.CoreSimulator.SimRuntime.iOS-${process.env.IOS_SIMULATOR_OS.replaceAll(".", "-")}`
+            const devices = JSON.parse(readFileSync(0, "utf8")).devices[runtime] ?? []
+            const device = devices.find((candidate) => candidate.name === process.env.IOS_SIMULATOR_NAME && candidate.isAvailable)
+            if (!device) throw new Error(`Simulator ${process.env.IOS_SIMULATOR_NAME} on ${runtime} is unavailable`)
+            console.log(`${device.udid} ${device.state}`)
+          ')"
+          read -r simulator_udid simulator_state <<< "$simulator"
+          echo "IOS_SIMULATOR_UDID=$simulator_udid" >> "$GITHUB_ENV"
+
+          if [[ "$simulator_state" == "Shutdown" ]]; then
+            xcrun simctl boot "$simulator_udid"
+          fi
+
       - name: Install Pods
         working-directory: example
         run: bun pods
@@ -76,8 +99,14 @@ jobs:
             build \
             CODE_SIGNING_ALLOWED=NO
 
+      - name: Wait for iOS simulator
+        timeout-minutes: 10
+        run: xcrun simctl bootstatus "$IOS_SIMULATOR_UDID" -b
+
       - name: Run react-native-harness on iOS
-        uses: callstackincubator/react-native-harness@v1.2.0
+        uses: callstackincubator/react-native-harness@v1.5.0
+        env:
+          HARNESS_DEBUG: "1"
         with:
           app: ios/build/Build/Products/Debug-iphonesimulator/NitroSQLiteExample.app
           runner: ios

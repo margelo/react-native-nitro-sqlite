@@ -37,6 +37,10 @@ on:
       - "!packages/react-native-nitro-sqlite/src/__tests__/**"
       - "!packages/react-native-nitro-sqlite-vec/src/__tests__/**"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   test:
     name: macOS Integration Tests

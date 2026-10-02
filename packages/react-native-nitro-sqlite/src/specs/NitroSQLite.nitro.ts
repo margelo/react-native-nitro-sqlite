@@ -21,16 +21,33 @@ export interface NitroSQLite
    * @param dbName Database file name and default connection key.
    * @param location Directory relative to the platform database directory.
    * @param readOnly Open an existing database without write access.
+   * @param encryptionKey Optional key for a licensed SEE build. Without SEE, a
+   * supplied key throws `EncryptionNotEnabled`. An invalid or wrong key or an
+   * existing plaintext database throws `DatabaseCannotBeDecrypted`.
    */
-  open(dbName: string, location?: string, readOnly?: boolean): void
+  open(
+    dbName: string,
+    location?: string,
+    readOnly?: boolean,
+    encryptionKey?: string,
+  ): void
   /** Open a separate native handle, even when the database file is already open.
    * Independent connections require a thread-safe SQLite build.
    * @param dbName Database file name.
    * @param location Directory relative to the platform database directory.
    * @param readOnly Open an existing database without write access.
+   * @param encryptionKey Optional SEE key for this handle. Supply the same key
+   * on every connection to an encrypted file. Without SEE, a supplied key
+   * throws `EncryptionNotEnabled`. An invalid or wrong key or an existing
+   * plaintext database throws `DatabaseCannotBeDecrypted`.
    * @returns An opaque ID to pass to native connection operations.
    */
-  openConnection(dbName: string, location?: string, readOnly?: boolean): string
+  openConnection(
+    dbName: string,
+    location?: string,
+    readOnly?: boolean,
+    encryptionKey?: string,
+  ): string
   /** Check whether a native connection ID is still open.
    * @param connectionId ID returned by `openConnection`.
    */
@@ -113,12 +130,17 @@ export interface NitroSQLite
    * @param dbName Name of an open database.
    * @param location Path to the SQL file.
    * @returns Number of executed commands and affected rows.
+   * @throws An Error with native category CouldNotLoadFile on an import
+   * failure, including the path, failing SQL/line, and any rollback failure.
+   * Completed commands are discarded when rollback succeeds.
    */
   loadFile(dbName: string, location: string): FileLoadResult
   /** Import a SQL file on a background thread.
    * @param dbName Name of an open database.
    * @param location Path to the SQL file.
    * @returns A promise of the command and affected row counts.
+   * @throws An Error with native category CouldNotLoadFile, preserving
+   * the original import error and any rollback failure. Rejects asynchronously.
    */
   loadFileAsync(dbName: string, location: string): Promise<FileLoadResult>
 }

@@ -4,7 +4,7 @@ on:
   issues:
     types: [opened, reopened, edited]
   issue_comment:
-    types: [created]
+    types: [created, edited]
   pull_request_target:
     types: [opened, reopened, edited, synchronize]
 
@@ -12,6 +12,10 @@ permissions:
   contents: read
   issues: write
   pull-requests: write
+
+concurrency:
+  group: ai-triage-${{ github.event.issue.number || github.event.pull_request.number }}
+  cancel-in-progress: false
 
 jobs:
   triage:
@@ -22,12 +26,13 @@ jobs:
        (github.event.issue.pull_request == null &&
         github.event.comment.user.login == github.event.issue.user.login))
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       # pull_request_target runs with a write token. Never check out PR code here.
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
       - name: Label and triage

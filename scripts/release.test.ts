@@ -4,6 +4,7 @@ import {
   chmodSync,
   existsSync,
   mkdtempSync,
+  mkdirSync,
   readFileSync,
   rmSync,
   writeFileSync,
@@ -25,7 +26,7 @@ test('preflight failure stops the release before either package publishes', () =
   assert.ok(
     result.calls.includes('run release-it 9.8.3 --ci --no-git --no-github'),
   )
-  assert.ok(!result.calls.includes('release 9.8.3'))
+  assert.ok(!result.calls.some((call) => call.startsWith('release 9.8.3')))
 })
 
 test('preflight runs before package publication and the final Git release', () => {
@@ -36,23 +37,40 @@ test('preflight runs before package publication and the final Git release', () =
     'run check:lockfile',
     'run release-it --increment patch --release-version',
     'run release-it 9.8.3 --ci --no-git --no-github',
-    'release 9.8.3',
-    'release 9.8.3',
+    'release 9.8.3 --npm.tag=legacy-9',
+    'release 9.8.3 --npm.tag=legacy-9',
     'run release-it 9.8.3',
   ])
 })
 
-test('prepared release publishes both packages at the committed version', () => {
-  const version = JSON.parse(readFileSync(join(projectRoot, 'package.json'), 'utf8'))
-    .version as string
-  const result = runRelease(false, ['--publish-prepared', version])
+test('prepared v10 release publishes both packages with the latest tag', () => {
+  const version = '10.0.1'
+  const result = runRelease(false, ['--publish-prepared', version], version)
 
   assert.equal(result.status, 0)
   assert.deepEqual(result.calls, [
     'run check:lockfile',
-    `release ${version} --ci`,
-    `release ${version} --ci`,
+    `release ${version} --ci --npm.tag=latest`,
+    `release ${version} --ci --npm.tag=latest`,
   ])
+})
+
+test('prepared v9 releases preserve latest by tagging both packages as legacy-9', () => {
+  const result = runRelease(false, ['--publish-prepared', '9.8.3'], '9.8.3')
+
+  assert.equal(result.status, 0)
+  assert.deepEqual(result.calls, [
+    'run check:lockfile',
+    'release 9.8.3 --ci --npm.tag=legacy-9',
+    'release 9.8.3 --ci --npm.tag=legacy-9',
+  ])
+})
+
+test('prepared release rejects an increment before publishing', () => {
+  const result = runRelease(false, ['--publish-prepared', 'patch'])
+
+  assert.notEqual(result.status, 0)
+  assert.deepEqual(result.calls, [])
 })
 
 test('prepared release rejects an uncommitted version before publishing', () => {
@@ -65,6 +83,7 @@ test('prepared release rejects an uncommitted version before publishing', () => 
 function runRelease(
   failPreflight: boolean,
   args: string[] = ['--increment', 'patch'],
+  preparedVersion?: string,
 ): {
   status: number | null
   calls: string[]
@@ -93,11 +112,25 @@ fi
       chmodSync(gitStub, 0o755)
     }
 
+    const cwd = preparedVersion ? join(fixture, 'project') : projectRoot
+    if (preparedVersion) {
+      for (const file of [
+        'package.json',
+        'packages/react-native-nitro-sqlite/package.json',
+        'packages/react-native-nitro-sqlite-vec/package.json',
+        'example/package.json',
+      ]) {
+        const path = join(cwd, file)
+        mkdirSync(join(path, '..'), { recursive: true })
+        writeFileSync(path, JSON.stringify({ version: preparedVersion }))
+      }
+    }
+
     const result = spawnSync(
       'bash',
-      ['./scripts/release.sh', ...args],
+      [join(projectRoot, 'scripts/release.sh'), ...args],
       {
-        cwd: projectRoot,
+        cwd,
         encoding: 'utf8',
         env: {
           ...process.env,
