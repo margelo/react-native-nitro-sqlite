@@ -2,6 +2,7 @@
 #include "NitroSQLiteException.hpp"
 #include "NitroSQLiteLogs.hpp"
 #include "NitroSQLiteStatementGroup.hpp"
+#include "NitroSQLiteStatementTail.hpp"
 #include "NitroSQLiteUtils.hpp"
 #include "hybridObjects/HybridNitroSQLiteQueryResult.hpp"
 #include "sqlite/sqlite3.h"
@@ -164,7 +165,8 @@ namespace {
 
   SQLiteStatement prepareStatement(sqlite3* db, const std::string& query, const std::optional<SQLiteQueryParams>& params) {
     sqlite3_stmt* rawStatement = nullptr;
-    int statementStatus = sqlite3_prepare_v2(db, query.c_str(), -1, &rawStatement, nullptr);
+    const char* tail = nullptr;
+    int statementStatus = sqlite3_prepare_v2(db, query.c_str(), -1, &rawStatement, &tail);
     SQLiteStatement statement(rawStatement);
 
     if (statementStatus != SQLITE_OK) {
@@ -175,6 +177,11 @@ namespace {
     // such as an empty string or nothing but comments.
     if (!statement) {
       throw NitroSQLiteException::SqlExecution("Query does not contain any SQL statement");
+    }
+
+    // Only the first statement would run, so reject the query instead of silently skipping the rest.
+    if (hasTrailingStatement(db, tail)) {
+      throw NitroSQLiteException::SqlExecution("Query contains more than one SQL statement");
     }
 
     if (params) {

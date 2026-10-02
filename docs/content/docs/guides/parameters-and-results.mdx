@@ -48,7 +48,7 @@ Be especially careful with nullable columns and expressions when specifying a ro
 
 ## Errors
 
-The connection's JavaScript helpers normalize database failures to `NitroSQLiteError`. Async methods reject; sync methods throw. An empty SQL string or one containing only comments also fails with the native category `SqlExecutionError`, because SQLite produces no statement to execute. Catch the error around the operation you can recover from:
+The connection's JavaScript helpers normalize database failures to `NitroSQLiteError`. Async methods reject; sync methods throw. An empty SQL string or one containing only comments also fails with the native category `SqlExecutionError`, because SQLite produces no statement to execute. Each query runs one statement, so SQL that contains another statement after the first fails with the same category instead of running only the first one; trailing whitespace, comments, and semicolons are allowed. Use [batch operations](/docs/guides/batch-operations) to run several statements. Catch the error around the operation you can recover from:
 
 ```ts
 import { NitroSQLiteError } from 'react-native-nitro-sqlite'
