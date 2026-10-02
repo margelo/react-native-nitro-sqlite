@@ -88,7 +88,7 @@
     "nitrogen": "0.37.1",
     "react": "19.2.3",
     "react-native": "0.87.1",
-    "react-native-builder-bob": "^0.31.0",
+    "react-native-builder-bob": "^0.43.1",
     "react-native-nitro-modules": "0.37.1"
   },
   "peerDependencies": {
