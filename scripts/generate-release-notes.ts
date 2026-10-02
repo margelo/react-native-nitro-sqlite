@@ -21,7 +21,7 @@ type ChangelogFactory = (
  * The range ends at the selected commit and starts at its previous reachable release tag.
  * Throws if custom notes, the changelog configuration, or GitHub contributor detection are unavailable.
  * @param version Exact stable version being released.
- * @returns Complete Markdown announcement, changelog, and new contributor section.
+ * @returns Complete Markdown announcement and changelog, with acknowledgements when new contributors exist.
  */
 export async function generateReleaseNotes(version: string): Promise<string> {
   if (!/^\d+\.\d+\.\d+$/.test(version)) {
@@ -91,26 +91,32 @@ export async function generateReleaseNotes(version: string): Promise<string> {
     throw new Error('GitHub did not return generated release notes.')
   }
 
-  return `${announcement}\n\n---\n\n${changelog.trim()}\n\n${contributorsSection(githubNotes.body)}\n`
+  return `${[
+    announcement,
+    '---',
+    changelog.trim(),
+    contributorsSection(githubNotes.body),
+  ]
+    .filter(Boolean)
+    .join('\n\n')}\n`
 }
 
 function contributorsSection(notes: string): string {
   const lines = notes.split('\n')
   const start = lines.findIndex((line) => /^## New Contributors\s*$/.test(line))
-  if (start === -1) {
-    return '## New Contributors\n\nNo new contributors were detected for this release.'
-  }
+  if (start === -1) return ''
 
   const remaining = lines.slice(start + 1)
   const end = remaining.findIndex((line) =>
     /^#{1,2} |^\*\*Full Changelog\*\*/.test(line),
   )
-  return [
-    '## New Contributors',
-    ...remaining.slice(0, end === -1 ? undefined : end),
-  ]
+  const contributors = remaining
+    .slice(0, end === -1 ? undefined : end)
     .join('\n')
     .trim()
+  if (!contributors) return ''
+
+  return `## New Contributors\n${contributors}`
 }
 
 function git(...args: string[]): string {

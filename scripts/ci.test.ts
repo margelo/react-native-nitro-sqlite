@@ -84,6 +84,13 @@ test('dependency lockfile changes retain both mobile and desktop coverage', () =
   assert.equal(checks.macos, true)
 })
 
+test('Ruby dependency changes retain both Apple platforms', () => {
+  const checks = selectChecks(['example/Gemfile'], false)
+  assert.equal(checks.ios, true)
+  assert.equal(checks.macos, true)
+  assert.equal(checks.android, false)
+})
+
 test('a full run selects every check even without file changes', () => {
   assert.ok(Object.values(selectChecks([], true)).every(Boolean))
 })

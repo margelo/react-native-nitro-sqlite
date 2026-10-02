@@ -58,7 +58,7 @@ export function selectPodChecks(
       full ||
       nativeChanged ||
       files.some((file) =>
-        matchesPaths(file, [...shared, 'example/ios/Podfile']),
+        matchesPaths(file, [...shared, 'example/ios/Podfile*']),
       ),
     macos:
       full ||
@@ -66,7 +66,7 @@ export function selectPodChecks(
       files.some((file) =>
         matchesPaths(file, [
           ...shared,
-          'example/macos/Podfile',
+          'example/macos/Podfile*',
           'example/macos/scripts/*config*.js',
           'example/macos/scripts/resolve-react-native.js',
         ]),

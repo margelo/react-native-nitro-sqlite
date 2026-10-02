@@ -39,6 +39,22 @@ NITRO_SQLITE_USE_PHONE_VERSION=1 npx pod-install
 
 The bundled source is where the pod's compile settings apply. Changing the pod's `SQLITE_THREADSAFE` or performance flags cannot change how the system library was built.
 
+## RTree support
+
+R\*Tree indexes find bounding boxes that overlap a spatial or time range. The bundled SQLite build includes `rtree` and `rtree_i32` by default on iOS, macOS, and visionOS. See [query spatial ranges](/docs/concepts/queries-and-indexes#query-spatial-ranges) for SQL examples and limitations.
+
+To omit R\*Tree from the bundled build, set this boolean in your app's `package.json`, install Pods again, and rebuild:
+
+```json
+{
+  "nitroSQLite": {
+    "enableRTree": false
+  }
+}
+```
+
+`enableRTree` defaults to `true` independently of `performanceMode`. A non-boolean value fails Pod installation. Disabling it omits `SQLITE_ENABLE_RTREE`; defining that macro as `0` still enables SQLite's module. This setting cannot change system SQLite's capabilities when you use `NITRO_SQLITE_USE_PHONE_VERSION=1`.
+
 ## Thread safety and performance mode
 
 The bundled SQLite build defaults to `SQLITE_THREADSAFE=1` and enables the project's performance compile flags. Set either option in the app's `package.json`:

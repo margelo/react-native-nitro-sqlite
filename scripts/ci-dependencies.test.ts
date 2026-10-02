@@ -141,6 +141,23 @@ test('native dependency changes and full runs prepare both Apple lockfiles', () 
   assert.deepEqual(selectPodChecks([], false, true), { ios: true, macos: true })
 })
 
+test('direct native lockfile changes require validation before compilation', () => {
+  assert.deepEqual(
+    selectPodChecks(['example/ios/Podfile.lock'], false, false),
+    {
+      ios: true,
+      macos: false,
+    },
+  )
+  assert.deepEqual(
+    selectPodChecks(['example/macos/Podfile.lock'], false, false),
+    {
+      ios: false,
+      macos: true,
+    },
+  )
+})
+
 function packageFixture(
   name: string,
   nativeFile?: string,

@@ -10,19 +10,23 @@ tasks.register('testSqliteFlags') {
     }
 
     def defaultFlags = flagsFor([:], '')
-    assert defaultFlags.size() == 10
+    assert defaultFlags.size() == 11
     assert defaultFlags.contains('-DSQLITE_THREADSAFE=1')
     assert defaultFlags.contains('-DSQLITE_DQS=0')
     assert defaultFlags.contains('-DSQLITE_DEFAULT_WAL_SYNCHRONOUS=1')
+    assert defaultFlags.contains('-DSQLITE_ENABLE_RTREE=1')
     assert resolveNitroSqliteDefaultFlags(new File(temporaryDir, 'missing.json'), '') == defaultFlags
 
-    assert flagsFor([nitroSQLite: [performanceMode: false]], '') == ['-DSQLITE_THREADSAFE=1']
+    assert flagsFor([nitroSQLite: [performanceMode: false]], '') == ['-DSQLITE_THREADSAFE=1', '-DSQLITE_ENABLE_RTREE=1']
     assert flagsFor([nitroSQLite: [threadSafe: false]], '').contains('-DSQLITE_THREADSAFE=0')
-    assert flagsFor([nitroSQLite: [threadSafe: false, performanceMode: false]], '') == ['-DSQLITE_THREADSAFE=0']
+    assert flagsFor([nitroSQLite: [threadSafe: false, performanceMode: false]], '') == ['-DSQLITE_THREADSAFE=0', '-DSQLITE_ENABLE_RTREE=1']
+    assert !flagsFor([nitroSQLite: [enableRTree: false]], '').any { it.startsWith('-DSQLITE_ENABLE_RTREE') }
+    assert flagsFor([nitroSQLite: [threadSafe: false, performanceMode: false, enableRTree: false]], '') == ['-DSQLITE_THREADSAFE=0']
 
     def customFlags = flagsFor([:], '-DSQLITE_THREADSAFE=0 -DSQLITE_DQS=3 -DSQLITE_ENABLE_FTS5=1')
     assert !customFlags.any { it.startsWith('-DSQLITE_THREADSAFE=') || it.startsWith('-DSQLITE_DQS=') }
     assert !flagsFor([:], '-DTHREADSAFE=0').any { it.startsWith('-DSQLITE_THREADSAFE=') }
+    assert !flagsFor([:], '-DSQLITE_ENABLE_RTREE=1').any { it.startsWith('-DSQLITE_ENABLE_RTREE') }
 
     def expectInvalid = { Map appPackage, String message ->
       try {
@@ -36,5 +40,6 @@ tasks.register('testSqliteFlags') {
     expectInvalid([nitroSQLite: true], 'nitroSQLite in package.json must be an object')
     expectInvalid([nitroSQLite: [threadSafe: 1]], 'nitroSQLite.threadSafe in package.json must be true or false')
     expectInvalid([nitroSQLite: [performanceMode: 'false']], 'nitroSQLite.performanceMode in package.json must be true or false')
+    expectInvalid([nitroSQLite: [enableRTree: 'false']], 'nitroSQLite.enableRTree in package.json must be true or false')
   }
 }

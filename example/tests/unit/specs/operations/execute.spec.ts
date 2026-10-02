@@ -382,6 +382,77 @@ export default function registerExecuteUnitTests() {
       })
     })
 
+    describe('SQLite extensions', () => {
+      it('creates and queries an RTree virtual table', () => {
+        testDb.execute('DROP TABLE IF EXISTS SpatialIndex')
+
+        try {
+          testDb.execute(`
+            CREATE VIRTUAL TABLE SpatialIndex USING rtree(
+              id,
+              minX, maxX,
+              minY, maxY
+            )
+          `)
+          testDb.execute(
+            'INSERT INTO SpatialIndex (id, minX, maxX, minY, maxY) VALUES (?, ?, ?, ?, ?)',
+            [1, 10, 20, 30, 40],
+          )
+
+          const result = testDb.execute(
+            'SELECT id, minX, maxX, minY, maxY FROM SpatialIndex WHERE minX <= ? AND maxX >= ?',
+            [15, 15],
+          )
+
+          expect(result.results).toEqual([
+            { id: 1, minX: 10, maxX: 20, minY: 30, maxY: 40 },
+          ])
+        } finally {
+          testDb.execute('DROP TABLE IF EXISTS SpatialIndex')
+        }
+      })
+
+      for (const module of ['rtree', 'rtree_i32']) {
+        it(`reopens and migrates a database containing ${module}`, () => {
+          const name = `rtree-migration-${module}`
+          let db = open({ name })
+          let isOpen = true
+
+          try {
+            db.execute('CREATE TABLE Item (id INTEGER PRIMARY KEY)')
+            db.execute(
+              `CREATE VIRTUAL TABLE SpatialIndex USING ${module}(id, minX, maxX, minY, maxY)`,
+            )
+            db.execute('INSERT INTO Item VALUES (1)')
+            db.execute('INSERT INTO SpatialIndex VALUES (1, 10, 20, 30, 40)')
+            db.execute(
+              'CREATE VIEW SpatialItems AS SELECT Item.id FROM Item JOIN SpatialIndex USING (id)',
+            )
+            db.close()
+            isOpen = false
+
+            db = open({ name })
+            isOpen = true
+            db.execute('ALTER TABLE Item RENAME TO RenamedItem')
+            db.execute('ALTER TABLE SpatialIndex RENAME TO RenamedSpatialIndex')
+
+            expect(db.execute('SELECT id FROM SpatialItems').results).toEqual([
+              { id: 1 },
+            ])
+            expect(
+              db.execute(
+                'SELECT id FROM RenamedSpatialIndex WHERE minX <= ? AND maxX >= ? AND minY <= ? AND maxY >= ?',
+                [15, 15, 35, 35],
+              ).results,
+            ).toEqual([{ id: 1 }])
+          } finally {
+            if (isOpen) db.close()
+            db.delete()
+          }
+        })
+      }
+    })
+
     describe('Bind errors', () => {
       it('throws when execute receives an extra parameter without exposing it', () => {
         const extraParameter = 'do-not-expose-sync-parameter'
