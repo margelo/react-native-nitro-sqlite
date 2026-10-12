@@ -7,12 +7,26 @@ jest.mock('react-native-nitro-modules', () => ({
 }))
 
 import { NitroModules } from 'react-native-nitro-modules'
-import { NitroSQLite, open } from '../index'
+import {
+  NitroSQLite,
+  NitroSQLiteError,
+  NitroSQLiteExceptionType,
+  open,
+} from '../index'
+import {
+  NitroSQLiteError as ErrorFromErrors,
+  NitroSQLiteExceptionType as ExceptionTypeFromErrors,
+} from '../errors'
 import { HybridNitroSQLite } from '../nitro'
 import { init as androidInit } from '../OnLoad.android'
 import { init as iosInit } from '../OnLoad'
 
 describe('entrypoints', () => {
+  it('shares the error class and category constants with the errors entry point', () => {
+    expect(NitroSQLiteError).toBe(ErrorFromErrors)
+    expect(NitroSQLiteExceptionType).toBe(ExceptionTypeFromErrors)
+  })
+
   it('creates the native object and exposes its native and managed methods', () => {
     expect(NitroModules.createHybridObject).toHaveBeenCalledWith('NitroSQLite')
     expect(NitroSQLite.native).toBe(HybridNitroSQLite)

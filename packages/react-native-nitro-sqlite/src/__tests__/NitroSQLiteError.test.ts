@@ -1,4 +1,8 @@
-import NitroSQLiteError from '../NitroSQLiteError'
+jest.mock('react-native-nitro-modules', () => {
+  throw new Error('The errors entry point must not load the native runtime')
+})
+
+import { NitroSQLiteError, NitroSQLiteExceptionType } from '../errors'
 
 describe('NitroSQLiteError', () => {
   it('keeps its name, cause, and prototype', () => {
@@ -10,6 +14,16 @@ describe('NitroSQLiteError', () => {
     expect(error.name).toBe('NitroSQLiteError')
     expect(error.cause).toBe(cause)
     expect(error.type).toBeUndefined()
+  })
+
+  it('supports comparing a native failure against the exported category', () => {
+    const error = NitroSQLiteError.fromError(
+      '[NativeNitroSQLiteException][DatabaseCannotBeOpened] failed',
+    )
+    const category: NitroSQLiteExceptionType =
+      NitroSQLiteExceptionType.DatabaseCannotBeOpened
+
+    expect(error.type).toBe(category)
   })
 
   it('returns an existing NitroSQLiteError unchanged', () => {
