@@ -9,24 +9,28 @@ tasks.register('testSqliteFlags') {
       resolveNitroSqliteDefaultFlags(packageFile, customFlags)
     }
 
+    def ioFlags = ['-DHAVE_FDATASYNC=1', '-DSQLITE_ENABLE_BATCH_ATOMIC_WRITE=1']
     def defaultFlags = flagsFor([:], '')
-    assert defaultFlags.size() == 11
+    assert defaultFlags.size() == 13
     assert defaultFlags.contains('-DSQLITE_THREADSAFE=1')
     assert defaultFlags.contains('-DSQLITE_DQS=0')
     assert defaultFlags.contains('-DSQLITE_DEFAULT_WAL_SYNCHRONOUS=1')
     assert defaultFlags.contains('-DSQLITE_ENABLE_RTREE=1')
+    assert defaultFlags.containsAll(ioFlags)
     assert resolveNitroSqliteDefaultFlags(new File(temporaryDir, 'missing.json'), '') == defaultFlags
 
-    assert flagsFor([nitroSQLite: [performanceMode: false]], '') == ['-DSQLITE_THREADSAFE=1', '-DSQLITE_ENABLE_RTREE=1']
+    assert flagsFor([nitroSQLite: [performanceMode: false]], '') == ['-DSQLITE_THREADSAFE=1', '-DSQLITE_ENABLE_RTREE=1'] + ioFlags
     assert flagsFor([nitroSQLite: [threadSafe: false]], '').contains('-DSQLITE_THREADSAFE=0')
-    assert flagsFor([nitroSQLite: [threadSafe: false, performanceMode: false]], '') == ['-DSQLITE_THREADSAFE=0', '-DSQLITE_ENABLE_RTREE=1']
+    assert flagsFor([nitroSQLite: [threadSafe: false, performanceMode: false]], '') == ['-DSQLITE_THREADSAFE=0', '-DSQLITE_ENABLE_RTREE=1'] + ioFlags
     assert !flagsFor([nitroSQLite: [enableRTree: false]], '').any { it.startsWith('-DSQLITE_ENABLE_RTREE') }
-    assert flagsFor([nitroSQLite: [threadSafe: false, performanceMode: false, enableRTree: false]], '') == ['-DSQLITE_THREADSAFE=0']
+    assert !flagsFor([nitroSQLite: [enableBatchAtomicWrite: false]], '').any { it.startsWith('-DSQLITE_ENABLE_BATCH_ATOMIC_WRITE') }
+    assert flagsFor([nitroSQLite: [threadSafe: false, performanceMode: false, enableRTree: false, enableBatchAtomicWrite: false]], '') == ['-DSQLITE_THREADSAFE=0', '-DHAVE_FDATASYNC=1']
 
     def customFlags = flagsFor([:], '-DSQLITE_THREADSAFE=0 -DSQLITE_DQS=3 -DSQLITE_ENABLE_FTS5=1')
     assert !customFlags.any { it.startsWith('-DSQLITE_THREADSAFE=') || it.startsWith('-DSQLITE_DQS=') }
     assert !flagsFor([:], '-DTHREADSAFE=0').any { it.startsWith('-DSQLITE_THREADSAFE=') }
     assert !flagsFor([:], '-DSQLITE_ENABLE_RTREE=1').any { it.startsWith('-DSQLITE_ENABLE_RTREE') }
+    assert !flagsFor([:], '-DHAVE_FDATASYNC=0').any { it.startsWith('-DHAVE_FDATASYNC') }
 
     def expectInvalid = { Map appPackage, String message ->
       try {
@@ -41,5 +45,6 @@ tasks.register('testSqliteFlags') {
     expectInvalid([nitroSQLite: [threadSafe: 1]], 'nitroSQLite.threadSafe in package.json must be true or false')
     expectInvalid([nitroSQLite: [performanceMode: 'false']], 'nitroSQLite.performanceMode in package.json must be true or false')
     expectInvalid([nitroSQLite: [enableRTree: 'false']], 'nitroSQLite.enableRTree in package.json must be true or false')
+    expectInvalid([nitroSQLite: [enableBatchAtomicWrite: 0]], 'nitroSQLite.enableBatchAtomicWrite in package.json must be true or false')
   }
 }

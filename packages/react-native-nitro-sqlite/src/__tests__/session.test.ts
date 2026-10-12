@@ -81,6 +81,7 @@ describe('open', () => {
       dbName,
       'SELECT 2',
       undefined,
+      expect.any(Function),
     )
 
     db.close()
@@ -97,6 +98,7 @@ describe('open', () => {
       dbName,
       'BEGIN TRANSACTION',
       undefined,
+      expect.any(Function),
     )
     expect(HybridNitroSQLite.execute).toHaveBeenCalledWith(
       dbName,
@@ -329,11 +331,13 @@ describe('open', () => {
       'transaction-2',
       'SELECT 3',
       undefined,
+      expect.any(Function),
     )
     expect(HybridNitroSQLite.executeAsync).not.toHaveBeenCalledWith(
       'transaction-1',
       'SELECT 2',
       undefined,
+      expect.any(Function),
     )
 
     gate.resolve()

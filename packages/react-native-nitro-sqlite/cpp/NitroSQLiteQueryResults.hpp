@@ -2,6 +2,7 @@
 
 #include "NitroSQLiteTypes.hpp"
 #include <NitroModules/JSIConverter.hpp>
+#include <functional>
 #include <jsi/jsi.h>
 #include <memory>
 #include <stdexcept>
@@ -17,8 +18,8 @@ struct SQLiteQueryResultData {
   std::vector<SQLiteQueryResultRow> rows;
 };
 
-// The getter returns this small value. Its shared storage remains owned by the
-// HybridObject, so repeated reads produce independent JavaScript arrays.
+// Rows read by native code and converted to JavaScript objects on the JS thread.
+// The shared storage keeps copies of a query result cheap.
 struct SQLiteQueryResults {
   SQLiteQueryResults() : data(std::make_shared<const SQLiteQueryResultData>()) {}
   SQLiteQueryResults(std::vector<std::string> columnNames, std::vector<SQLiteQueryResultRow> rows)
@@ -26,6 +27,9 @@ struct SQLiteQueryResults {
 
   std::shared_ptr<const SQLiteQueryResultData> data;
 };
+
+/** Receives leading result rows in batches while the statement still runs. */
+using SQLiteRowBatchHandler = std::function<void(SQLiteQueryResults)>;
 
 } // namespace margelo::nitro::rnnitrosqlite
 
@@ -54,7 +58,7 @@ struct JSIConverter<rnnitrosqlite::SQLiteQueryResults> final {
     return array;
   }
 
-  // `results` is a native, read-only getter. Nitro never passes it from JS.
+  // Query results only travel from native code to JavaScript.
   static rnnitrosqlite::SQLiteQueryResults fromJSI(jsi::Runtime&, const jsi::Value&) {
     throw std::logic_error("SQLite query results cannot be passed from JavaScript");
   }

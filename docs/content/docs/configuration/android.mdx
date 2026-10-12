@@ -39,9 +39,30 @@ To omit R\*Tree from the bundled build, set this boolean in your app's `package.
 
 `enableRTree` defaults to `true` independently of `performanceMode`. A non-boolean value fails Gradle configuration. Disabling it omits the default `SQLITE_ENABLE_RTREE` definition. Do not add `-DSQLITE_ENABLE_RTREE=0` to `nitroSqliteFlags` to disable it: SQLite checks whether the macro is defined, so that value still enables the module. Custom compile definitions can enable the module even when the package setting is `false`.
 
+## Commit I/O
+
+SQLite makes a committed transaction durable by writing it to storage and asking the operating system to flush the written data. In the default rollback journal mode, a commit first copies the original pages into a journal file and flushes it, then writes the new pages to the database file and flushes again, and finally removes the journal. For small writes, these flushes take most of a commit's time.
+
+Android builds compile SQLite with two I/O options that Android's own platform SQLite also uses. Neither changes `PRAGMA synchronous`, and a commit is as durable as before:
+
+- `HAVE_FDATASYNC=1` flushes with `fdatasync()` instead of `fsync()`. On Linux, `fdatasync()` still flushes the metadata needed to read the data back, such as the file size, and skips metadata such as modification times.
+- `SQLITE_ENABLE_BATCH_ATOMIC_WRITE=1` commits a transaction through the F2FS filesystem's atomic write when the database file supports it. The filesystem then stores either all of the transaction's pages or none of them, so SQLite does not need a journal file. When the filesystem lacks the feature or the atomic write fails, SQLite commits with the rollback journal as usual.
+
+To build without batch atomic writes, set this boolean in your app's `package.json` and rebuild the native app:
+
+```json
+{
+  "nitroSQLite": {
+    "enableBatchAtomicWrite": false
+  }
+}
+```
+
+`enableBatchAtomicWrite` defaults to `true`, and a non-boolean value fails Gradle configuration. As with R\*Tree, SQLite only checks whether the macro is defined, so `-DSQLITE_ENABLE_BATCH_ATOMIC_WRITE=0` in `nitroSqliteFlags` does not disable it. To flush with `fsync()` instead, add `-DHAVE_FDATASYNC=0` to `nitroSqliteFlags`.
+
 ## Threading
 
-The native library opens each database with `SQLITE_OPEN_FULLMUTEX` and serializes calls on each handle. The JavaScript connection helper coordinates work per managed connection and rejects conflicting synchronous work. `nitroSqliteFlags` can change compile-time SQLite behavior, including `SQLITE_THREADSAFE`. Nitro SQLite rejects [independent connections](/docs/guides/multiple-connections) when SQLite was built with `SQLITE_THREADSAFE=0`; other database handles can still run concurrently, so an app disabling mutexes must serialize SQLite calls across the process.
+The native library serializes all work on each database handle with its own lock, so it opens handles with `SQLITE_OPEN_NOMUTEX` instead of also taking SQLite's per-call connection mutex. Each connection runs its async queries, batches, and file imports one at a time on a native thread of its own. The thread starts with the connection's first such call and stops once the connection is closed and its pending work has finished. The JavaScript connection helper coordinates work per managed connection and rejects conflicting synchronous work. `nitroSqliteFlags` can change compile-time SQLite behavior, including `SQLITE_THREADSAFE`. Nitro SQLite rejects [independent connections](/docs/guides/multiple-connections) when SQLite was built with `SQLITE_THREADSAFE=0`; other database handles can still run concurrently, so an app disabling mutexes must serialize SQLite calls across the process.
 
 The app's `nitroSQLite.threadSafe` and `nitroSQLite.performanceMode` settings also configure Android's SQLite defaults. Custom `nitroSqliteFlags` override individual defaults. The native build additionally applies its CMake compiler options, including `-O2`.
 

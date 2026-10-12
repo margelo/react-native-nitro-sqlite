@@ -14,10 +14,9 @@ public:
   explicit HybridNitroSQLitePreparedStatement(std::shared_ptr<SQLitePreparedStatement> statement);
 
   /** Execute with new bindings on the calling thread. */
-  std::shared_ptr<HybridNitroSQLiteQueryResultSpec> execute(const std::optional<SQLiteQueryParams>& params) override;
+  NitroSQLiteQueryResult execute(const std::optional<SQLiteQueryParams>& params) override;
   /** Execute with new bindings on a background thread. */
-  std::shared_ptr<Promise<std::shared_ptr<HybridNitroSQLiteQueryResultSpec>>>
-  executeAsync(const std::optional<SQLiteQueryParams>& params) override;
+  std::shared_ptr<Promise<NitroSQLiteQueryResult>> executeAsync(const std::optional<SQLiteQueryParams>& params) override;
   /** Release the native statement. */
   void finalize() override;
   /** Check whether the native statement has been released. */

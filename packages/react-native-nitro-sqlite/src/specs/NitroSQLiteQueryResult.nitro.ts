@@ -1,23 +1,24 @@
-import type { CustomType, HybridObject } from 'react-native-nitro-modules'
+import type { CustomType } from 'react-native-nitro-modules'
 import type { ColumnType, SQLiteValue } from '../types'
 
-/** Native result of one SQL statement. The managed API also adds a `rows` adapter. */
-export interface NitroSQLiteQueryResult
-  extends HybridObject<{
-    ios: 'c++'
-    android: 'c++'
-  }> {
+/** Result rows keyed by column name. Native rows become JavaScript objects on the JavaScript thread. */
+export type NitroSQLiteQueryRows = CustomType<
+  Record<string, SQLiteValue>[],
+  'margelo::nitro::rnnitrosqlite::SQLiteQueryResults',
+  { include: 'NitroSQLiteQueryResults.hpp' }
+>
+
+/** Native result of one SQL statement, delivered as a plain JavaScript object.
+ * The managed API also adds a `rows` adapter.
+ */
+export interface NitroSQLiteQueryResult {
   /** SQLite's latest row change count. For a read-only query it may reflect an earlier write. */
   readonly rowsAffected: number
   /** Last insert row ID for this connection. It may refer to an earlier statement. */
   readonly insertId?: number
 
   /** Rows keyed by result column names. */
-  readonly results: CustomType<
-    Record<string, SQLiteValue>[],
-    'SQLiteQueryResults',
-    { include: 'NitroSQLiteQueryResults.hpp' }
-  >
+  readonly results: NitroSQLiteQueryRows
 
   /** Column metadata keyed by result column name, when available. */
   readonly metadata?: Record<string, NitroSQLiteQueryColumnMetadata>

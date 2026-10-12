@@ -88,12 +88,21 @@ export async function executeAsyncNative<Row extends QueryResultRow = never>(
   params?: SQLiteQueryParams,
 ): Promise<QueryResult<Row>> {
   try {
+    // Large results arrive in batches, so rows are converted while SQLite reads the rest.
+    let leadingRows: Row[] | undefined
     const nativeResult = await HybridNitroSQLite.executeAsync(
       dbName,
       query,
       params,
+      (rows) => {
+        if (leadingRows === undefined) {
+          leadingRows = rows as Row[]
+        } else {
+          Array.prototype.push.apply(leadingRows, rows as Row[])
+        }
+      },
     )
-    return buildJSQueryResult<Row>(nativeResult)
+    return buildJSQueryResult<Row>(nativeResult, leadingRows)
   } catch (error) {
     throw NitroSQLiteError.fromError(error)
   }
@@ -101,9 +110,14 @@ export async function executeAsyncNative<Row extends QueryResultRow = never>(
 
 export function buildJSQueryResult<Row extends QueryResultRow = never>(
   result: NitroSQLiteQueryResult,
+  leadingRows?: Row[],
 ): QueryResult<Row> {
-  const resultWithRows = result as QueryResult<Row>
-  const results = result.results as Row[]
+  const resultWithRows = result as QueryResult<Row> & { results: Row[] }
+  if (leadingRows !== undefined) {
+    Array.prototype.push.apply(leadingRows, result.results as Row[])
+    resultWithRows.results = leadingRows
+  }
+  const results = resultWithRows.results
 
   resultWithRows.rows = {
     _array: results,

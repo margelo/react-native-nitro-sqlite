@@ -1,5 +1,4 @@
 #include "HybridNitroSQLitePreparedStatement.hpp"
-#include "HybridNitroSQLiteQueryResult.hpp"
 #include <NitroModules/ArrayBuffer.hpp>
 
 namespace margelo::nitro::rnnitrosqlite {
@@ -30,18 +29,17 @@ namespace {
 HybridNitroSQLitePreparedStatement::HybridNitroSQLitePreparedStatement(std::shared_ptr<SQLitePreparedStatement> statement)
     : HybridObject(TAG), _statement(std::move(statement)) {}
 
-std::shared_ptr<HybridNitroSQLiteQueryResultSpec>
-HybridNitroSQLitePreparedStatement::execute(const std::optional<SQLiteQueryParams>& params) {
+NitroSQLiteQueryResult HybridNitroSQLitePreparedStatement::execute(const std::optional<SQLiteQueryParams>& params) {
   return _statement->execute(params);
 }
 
-std::shared_ptr<Promise<std::shared_ptr<HybridNitroSQLiteQueryResultSpec>>>
+std::shared_ptr<Promise<NitroSQLiteQueryResult>>
 HybridNitroSQLitePreparedStatement::executeAsync(const std::optional<SQLiteQueryParams>& params) {
   const auto copiedParams = copyArrayBufferParamsForBackground(params);
   const auto statement = _statement;
 
-  return Promise<std::shared_ptr<HybridNitroSQLiteQueryResultSpec>>::async(
-      [statement, copiedParams]() -> std::shared_ptr<HybridNitroSQLiteQueryResultSpec> { return statement->execute(copiedParams); });
+  return Promise<NitroSQLiteQueryResult>::async(
+      [statement, copiedParams]() -> NitroSQLiteQueryResult { return statement->execute(copiedParams); });
 }
 
 void HybridNitroSQLitePreparedStatement::finalize() {

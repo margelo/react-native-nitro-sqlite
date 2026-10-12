@@ -101,8 +101,39 @@ describe('execute', () => {
       dbName,
       query,
       params,
+      expect.any(Function),
     )
     expect(HybridNitroSQLite.executeAsync).toHaveBeenCalledTimes(3)
+  })
+
+  it('joins rows delivered in batches before the remaining result rows', async () => {
+    jest
+      .mocked(HybridNitroSQLite.executeAsync)
+      .mockImplementationOnce(async (_dbName, _query, _params, onRows) => {
+        onRows?.([{ value: 1 }, { value: 2 }])
+        onRows?.([{ value: 3 }])
+        return nativeResult([{ value: 4 }])
+      })
+
+    const result = await executeAsync(dbName, query, params)
+    expect(result.results).toEqual([
+      { value: 1 },
+      { value: 2 },
+      { value: 3 },
+      { value: 4 },
+    ])
+    expect(result.rows._array).toBe(result.results)
+    expect(result.rows.length).toBe(4)
+    expect(result.rows.item(3)).toEqual({ value: 4 })
+  })
+
+  it('keeps the native rows when no batch was delivered', async () => {
+    const native = nativeResult([{ value: 7 }])
+    jest.mocked(HybridNitroSQLite.executeAsync).mockResolvedValueOnce(native)
+
+    const result = await executeAsync(dbName, query, params)
+    expect(result.results).toBe(native.results)
+    expect(result.rows._array).toBe(native.results)
   })
 
   it('converts native asynchronous errors and releases a managed queue', async () => {

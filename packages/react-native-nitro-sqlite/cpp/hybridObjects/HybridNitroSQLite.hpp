@@ -3,7 +3,6 @@
 #include "../NitroSQLiteDatabaseConnections.hpp"
 #include "../NitroSQLiteTypes.hpp"
 #include "HybridNitroSQLitePreparedStatementSpec.hpp"
-#include "HybridNitroSQLiteQueryResultSpec.hpp"
 #include "HybridNitroSQLiteSpec.hpp"
 
 namespace margelo::nitro::rnnitrosqlite {
@@ -64,14 +63,15 @@ public:
    * @param params Optional values bound to the placeholders.
    * @return Native rows, affected row count, insert ID, and metadata.
    */
-  std::shared_ptr<HybridNitroSQLiteQueryResultSpec> execute(const std::string& dbName, const std::string& query,
-                                                            const std::optional<SQLiteQueryParams>& params) override;
+  NitroSQLiteQueryResult execute(const std::string& dbName, const std::string& query,
+                                 const std::optional<SQLiteQueryParams>& params) override;
 
   /** Execute one SQL statement on a background thread.
    * @return A promise of the native query result.
    */
-  std::shared_ptr<Promise<std::shared_ptr<HybridNitroSQLiteQueryResultSpec>>>
-  executeAsync(const std::string& dbName, const std::string& query, const std::optional<SQLiteQueryParams>& params) override;
+  std::shared_ptr<Promise<NitroSQLiteQueryResult>> executeAsync(const std::string& dbName, const std::string& query,
+                                                                const std::optional<SQLiteQueryParams>& params,
+                                                                const std::optional<SQLiteRowBatchHandler>& onRows) override;
 
   /** Prepare one SQL statement for repeated execution on an open connection. */
   std::shared_ptr<HybridNitroSQLitePreparedStatementSpec> prepare(const std::string& dbName, const std::string& query) override;

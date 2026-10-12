@@ -13,8 +13,8 @@
 #error NitroModules cannot be found! Are you sure you installed NitroModules properly?
 #endif
 
-// Forward declaration of `HybridNitroSQLiteQueryResultSpec` to properly resolve imports.
-namespace margelo::nitro::rnnitrosqlite { class HybridNitroSQLiteQueryResultSpec; }
+// Forward declaration of `NitroSQLiteQueryResult` to properly resolve imports.
+namespace margelo::nitro::rnnitrosqlite { struct NitroSQLiteQueryResult; }
 // Forward declaration of `HybridNitroSQLitePreparedStatementSpec` to properly resolve imports.
 namespace margelo::nitro::rnnitrosqlite { class HybridNitroSQLitePreparedStatementSpec; }
 // Forward declaration of `BatchQueryResult` to properly resolve imports.
@@ -26,13 +26,15 @@ namespace margelo::nitro::rnnitrosqlite { struct FileLoadResult; }
 
 #include <string>
 #include <optional>
-#include <memory>
-#include "HybridNitroSQLiteQueryResultSpec.hpp"
+#include "NitroSQLiteQueryResult.hpp"
 #include <NitroModules/Null.hpp>
 #include <NitroModules/ArrayBuffer.hpp>
 #include <variant>
 #include <vector>
 #include <NitroModules/Promise.hpp>
+#include "NitroSQLiteQueryResults.hpp"
+#include <functional>
+#include <memory>
 #include "HybridNitroSQLitePreparedStatementSpec.hpp"
 #include "BatchQueryResult.hpp"
 #include "BatchQueryCommand.hpp"
@@ -76,8 +78,8 @@ namespace margelo::nitro::rnnitrosqlite {
       virtual void drop(const std::string& dbName, const std::optional<std::string>& location, const std::optional<std::string>& connectionId) = 0;
       virtual void attach(const std::string& mainDbName, const std::string& dbNameToAttach, const std::string& alias, const std::optional<std::string>& location) = 0;
       virtual void detach(const std::string& mainDbName, const std::string& alias) = 0;
-      virtual std::shared_ptr<HybridNitroSQLiteQueryResultSpec> execute(const std::string& dbName, const std::string& query, const std::optional<std::vector<std::optional<std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>>>& params) = 0;
-      virtual std::shared_ptr<Promise<std::shared_ptr<HybridNitroSQLiteQueryResultSpec>>> executeAsync(const std::string& dbName, const std::string& query, const std::optional<std::vector<std::optional<std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>>>& params) = 0;
+      virtual NitroSQLiteQueryResult execute(const std::string& dbName, const std::string& query, const std::optional<std::vector<std::optional<std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>>>& params) = 0;
+      virtual std::shared_ptr<Promise<NitroSQLiteQueryResult>> executeAsync(const std::string& dbName, const std::string& query, const std::optional<std::vector<std::optional<std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>>>& params, const std::optional<std::function<void(margelo::nitro::rnnitrosqlite::SQLiteQueryResults /* rows */)>>& onRows) = 0;
       virtual std::shared_ptr<HybridNitroSQLitePreparedStatementSpec> prepare(const std::string& dbName, const std::string& query) = 0;
       virtual BatchQueryResult executeBatch(const std::string& dbName, const std::vector<BatchQueryCommand>& commands) = 0;
       virtual std::shared_ptr<Promise<BatchQueryResult>> executeBatchAsync(const std::string& dbName, const std::vector<BatchQueryCommand>& commands) = 0;

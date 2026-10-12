@@ -36,7 +36,6 @@ target_sources(
   ../nitrogen/generated/shared/c++/HybridNitroSQLiteSpec.cpp
   ../nitrogen/generated/shared/c++/HybridNitroSQLiteOnLoadSpec.cpp
   ../nitrogen/generated/shared/c++/HybridNitroSQLitePreparedStatementSpec.cpp
-  ../nitrogen/generated/shared/c++/HybridNitroSQLiteQueryResultSpec.cpp
   # Android-specific Nitrogen C++ sources
   ../nitrogen/generated/android/c++/JHybridNitroSQLiteOnLoadSpec.cpp
 )

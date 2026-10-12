@@ -1,14 +1,21 @@
 #include "NitroSQLiteDatabaseConnections.hpp"
 #include "NitroSQLiteDatabaseMigration.hpp"
 #include "NitroSQLiteException.hpp"
+#include "NitroSQLiteLogs.hpp"
 #include <array>
+#include <condition_variable>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <memory>
+#include <queue>
 #include <stdexcept>
 #include <unordered_map>
 #include <vector>
+
+#ifdef ANDROID
+#include <fbjni/fbjni.h>
+#endif
 
 namespace margelo::nitro::rnnitrosqlite {
 
@@ -149,6 +156,69 @@ namespace {
 
 } // namespace
 
+// The thread owns this state, so it outlives a worker destroyed by its own last operation.
+struct SerialWorker::State {
+  explicit State(std::string workerName) : name(std::move(workerName)) {}
+
+  const std::string name;
+  std::mutex mutex;
+  std::condition_variable condition;
+  std::queue<std::function<void()>> operations;
+  bool stopping = false;
+};
+
+SerialWorker::SerialWorker(std::string name) : _state(std::make_shared<State>(std::move(name))) {
+  _thread = std::thread([state = _state] {
+#ifdef ANDROID
+    // Settling a promise posts to the JS thread through JNI, which attaches and detaches an
+    // unattached thread on every call. Stay attached for the thread's lifetime instead.
+    facebook::jni::ThreadScope jniScope;
+#endif
+    while (true) {
+      std::function<void()> operation;
+      {
+        std::unique_lock lock(state->mutex);
+        state->condition.wait(lock, [&] { return state->stopping || !state->operations.empty(); });
+        if (state->operations.empty()) {
+          return;
+        }
+        operation = std::move(state->operations.front());
+        state->operations.pop();
+      }
+      try {
+        operation();
+      } catch (const std::exception& error) {
+        LOGE("Async operation on database %s failed while settling its promise: %s", state->name.c_str(), error.what());
+      } catch (...) {
+        LOGE("Async operation on database %s failed while settling its promise", state->name.c_str());
+      }
+      // Releasing the operation may drop the last reference to the connection that owns this worker.
+      operation = nullptr;
+    }
+  });
+}
+
+SerialWorker::~SerialWorker() {
+  {
+    std::lock_guard lock(_state->mutex);
+    _state->stopping = true;
+  }
+  _state->condition.notify_one();
+  if (_thread.get_id() == std::this_thread::get_id()) {
+    _thread.detach();
+  } else {
+    _thread.join();
+  }
+}
+
+void SerialWorker::enqueue(std::function<void()> operation) {
+  {
+    std::lock_guard lock(_state->mutex);
+    _state->operations.push(std::move(operation));
+  }
+  _state->condition.notify_one();
+}
+
 SQLiteConnection::SQLiteConnection(std::string connectionName, fs::path path, bool isReadOnly, sqlite3* handle)
     : name(std::move(connectionName)), physicalPath(canonicalDatabasePath(path)), readOnly(isReadOnly), database(handle) {}
 
@@ -156,11 +226,20 @@ SQLiteConnection::~SQLiteConnection() {
   close();
 }
 
+void SQLiteConnection::enqueueAsync(std::function<void()> operation) {
+  std::lock_guard lock(asyncWorkerMutex);
+  if (!asyncWorker) {
+    asyncWorker = std::make_unique<SerialWorker>(name);
+  }
+  asyncWorker->enqueue(std::move(operation));
+}
+
 void SQLiteConnection::close() noexcept {
   std::lock_guard lock(mutex);
   if (database == nullptr) {
     return;
   }
+  statementCache.clear();
   sqlite3_close_v2(database);
   database = nullptr;
 }
@@ -206,7 +285,9 @@ void DatabaseConnections::openKey(const std::string& key, const fs::path& path, 
   validateEncryptionKey(encryptionKey);
   const auto physicalPath = canonicalDatabasePath(path);
   rejectPlaintextDatabase(physicalPath, encryptionKey);
-  const int flags = (readOnly ? SQLITE_OPEN_READONLY : SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE) | SQLITE_OPEN_FULLMUTEX;
+  // Every use of the handle and its statements holds SQLiteConnection::mutex, so SQLite's own
+  // per-call connection mutex would only add a lock and unlock to each API call.
+  const int flags = (readOnly ? SQLITE_OPEN_READONLY : SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE) | SQLITE_OPEN_NOMUTEX;
   sqlite3* rawDatabase = nullptr;
   const int result = sqlite3_open_v2(physicalPath.string().c_str(), &rawDatabase, flags, nullptr);
   std::unique_ptr<sqlite3, decltype(&sqlite3_close_v2)> database(rawDatabase, sqlite3_close_v2);
