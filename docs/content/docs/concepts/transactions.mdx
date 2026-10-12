@@ -1,26 +1,31 @@
 ---
 title: Transactions and atomicity
-description: Group related SQLite changes into one commit or rollback.
+description: Group database changes into one commit or rollback.
 ---
 
-A transaction groups statements into one unit of work. `COMMIT` makes its changes permanent; `ROLLBACK` discards them. Atomicity means a group of related changes can succeed together or be undone together. Without an explicit transaction, SQLite starts and finishes an implicit transaction around each statement. See [SQLite's transaction documentation](https://www.sqlite.org/lang_transaction.html).
+A transaction groups statements into one unit of work. `COMMIT` keeps its changes; `ROLLBACK` discards them. Atomicity means related changes succeed together or are undone together.
 
-## Run a callback transaction
+## Commit or roll back changes
 
-Nitro SQLite's `db.transaction()` starts a transaction and passes a `tx` object to an async callback. It commits when the callback resolves and rolls back when the callback throws. Assuming the `accounts` table and both account rows exist:
+<span id="run-a-callback-transaction" />
 
-```ts
-import { open } from 'react-native-nitro-sqlite'
+For example, assuming both account rows exist:
 
-const db = open({ name: 'accounts.sqlite' })
-
-await db.transaction(async (tx) => {
-  tx.execute('UPDATE accounts SET balance = balance - ? WHERE id = ?', [25, 1])
-  tx.execute('UPDATE accounts SET balance = balance + ? WHERE id = ?', [25, 2])
-})
-db.close()
+```sql
+BEGIN;
+UPDATE accounts SET balance = balance - 25 WHERE id = 1;
+UPDATE accounts SET balance = balance + 25 WHERE id = 2;
+COMMIT;
 ```
+
+Use `ROLLBACK` instead of `COMMIT` to discard both updates. Without an explicit transaction, SQLite starts transactions automatically and commits when the last active statement finishes.
 
 ## Check application rules
 
-This groups the two updates, but the example does not check whether both account IDs exist or whether the sender has enough funds. Add those application checks inside the callback, and throw if they fail. Use `tx.execute()` or `tx.executeAsync()` for all statements on this database during the callback. Await every async `tx` call before returning. For a fixed list of statements, `executeBatchAsync()` also runs them in a transaction. The [transactions guide](/docs/guides/transactions) covers callback behavior and pitfalls; the [batch guide](/docs/guides/batch-operations) covers fixed command lists.
+Atomicity does not check whether the sender has enough funds. Check application rules within the transaction or enforce them through schema constraints before committing.
+
+## Transaction modes
+
+`BEGIN` defaults to deferred mode. It can start with a read and request write access later. `BEGIN IMMEDIATE` requests write access at the start. `BEGIN EXCLUSIVE` also blocks other readers in rollback journal mode; in WAL mode it behaves like `IMMEDIATE`. See [SQLite's transaction documentation](https://www.sqlite.org/lang_transaction.html).
+
+For visibility between connections, see [isolation and concurrency](/docs/concepts/isolation-and-concurrency). For Nitro SQLite's callback API and error handling, see [transactions](/docs/guides/transactions).

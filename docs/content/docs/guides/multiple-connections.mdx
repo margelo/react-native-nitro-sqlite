@@ -5,9 +5,11 @@ description: Open independent SQLite handles for reads and writes against one da
 
 `open({ name })` creates the default connection for a database name. Opening a second default connection with that name throws until the first closes. Use `connection: 'independent'` to open another native SQLite handle to the same file. Each returned connection has its own operation queue and transactions; closing one leaves the others open.
 
+Independent connections require the shared [`threadSafe` setting](/docs/configuration#thread-safety) to remain enabled.
+
 ## One writer and one reader
 
-Create the database and finish migrations before opening a read-only connection. Enable [WAL mode](https://www.sqlite.org/wal.html) on the writer if reads should proceed while it writes:
+Create the database and finish migrations before opening a read-only connection. Enable [WAL mode](/docs/concepts/isolation-and-concurrency#journal-modes) on the writer if reads should proceed while it writes:
 
 ```ts
 import { open } from 'react-native-nitro-sqlite'
@@ -32,33 +34,13 @@ const [_, items] = await Promise.all([
 ])
 ```
 
-The read may finish before the insert commits. Await the write first if the read must include it. WAL mode persists in the file, while settings such as `busy_timeout` and `foreign_keys` belong to each connection. Nitro SQLite does not enable WAL or change SQLite's default busy timeout for you. A read-only connection requires an existing file and cannot write, delete the database, or attach another database.
+The read may finish before the insert commits. Await the write first if the read must include it. Apply [connection settings](/docs/concepts/isolation-and-concurrency#connection-settings) to each handle. Nitro SQLite does not enable WAL or change SQLite's default busy timeout for you. A read-only connection requires an existing file and cannot write, delete the database, or attach another database.
 
 Keep a small number of connections and reuse them. Route writes, migrations, and imports through the writer; route independent reads through the reader. Nitro SQLite does not inspect SQL or choose a connection for each statement. Name-based `NitroSQLite` helpers address the default connection, so keep the object returned by `open()` for an independent connection. The TypeORM driver also uses the default connection.
 
 ## Ordering and transactions
 
-Separate connections can run native work concurrently. SQLite still allows only one writer at a time for a database file, and lock contention can produce busy or locked errors. A bounded `busy_timeout` can help with temporary contention. Keep read transactions short, especially in WAL mode, where a long-lived reader can delay checkpoints.
-
-Each connection has its own queue. Native operations on one connection run in submission order, one at a time. Batches, transactions, and prepared statement executions wait for earlier work and reserve that connection until they finish. Use the callback's `tx` for every operation in a transaction, including reads that must see its uncommitted writes:
-
-```ts
-await writer.transaction(async (tx) => {
-  await tx.executeAsync('UPDATE items SET value = ? WHERE id = ?', [
-    'edited',
-    1,
-  ])
-  const updated = await tx.executeAsync('SELECT * FROM items WHERE id = ?', [1])
-  // updated sees this transaction's uncommitted change.
-})
-
-const committed = await reader.executeAsync(
-  'SELECT * FROM items WHERE id = ?',
-  [1],
-)
-```
-
-Do not await a queued operation on `writer` inside its transaction callback; it waits for the callback to finish. Work on `reader` has a separate transaction and cannot see the writer's uncommitted changes. See [connection ordering](/docs/concepts/connection-ordering) for the queue rules.
+Each connection schedules its work independently. Use a transaction callback's `tx` methods for all of its statements. See [connection ordering](/docs/guides/sync-and-async#connection-ordering) and [transaction callbacks](/docs/guides/transactions#keep-operations-inside-the-callback) for Nitro SQLite's rules, and [isolation and concurrency](/docs/concepts/isolation-and-concurrency) for SQLite's reader and writer behavior.
 
 ## Close and delete
 
@@ -70,4 +52,4 @@ writer.close()
 writer.delete()
 ```
 
-Open a new connection instead of reusing a closed object. Independent connections require SQLite mutex support and are rejected when SQLite was built with `SQLITE_THREADSAFE=0`. Keep iOS `nitroSQLite.threadSafe` enabled and do not disable SQLite thread safety through Android compile flags. Rebuild the native app after updating Nitro SQLite so it includes the new connection methods.
+Open a new connection instead of reusing a closed object. See [database lifecycle](/docs/guides/database-lifecycle) for cleanup and file locations.

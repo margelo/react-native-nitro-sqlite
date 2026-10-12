@@ -3,14 +3,15 @@ title: Sync and async
 description: Pick the query form that fits your workload and understand connection ordering.
 ---
 
-SQLite work can take time, especially when a query reads many rows or a transaction writes many of them. A synchronous JavaScript call waits for that work to finish before the app can continue on the same thread. An asynchronous call lets JavaScript continue while the database work runs elsewhere.
+Use `db.execute()` for a small query that needs an immediate result, and `await db.executeAsync()` for work that may take longer. A synchronous call blocks its JavaScript caller until SQLite finishes. An asynchronous call returns a promise and lets JavaScript continue while the database work runs in the background.
 
-NitroSQLite's connection offers synchronous `execute`, `executeBatch`, and `loadFile` methods, with matching `Async` methods. A [prepared statement](/docs/guides/prepared-statements) also has `execute()` and `executeAsync()` for repeated SQL. Synchronous calls return before JavaScript continues, so a slow query blocks that JavaScript call. Asynchronous calls run the database work off the JavaScript thread and return a promise.
+`executeBatch` and `loadFile` also have matching `Async` methods. A [prepared statement](/docs/guides/prepared-statements) has `execute()` and `executeAsync()` for repeated SQL.
 
 ```ts
 import { open } from 'react-native-nitro-sqlite'
 
 const db = open({ name: 'app.sqlite' })
+db.execute('CREATE TABLE IF NOT EXISTS notes (body TEXT NOT NULL)')
 
 const smallResult = db.execute('SELECT 1 AS value')
 const largerResult = await db.executeAsync('SELECT * FROM notes')
@@ -20,9 +21,13 @@ console.log(smallResult.results, largerResult.results)
 
 Use synchronous calls when immediate results are useful and the work is small. Prefer async calls for queries that may scan many rows, batches, or file imports. [Performance guidance](/docs/guides/performance) covers other ways to keep work bounded.
 
-An async query still delivers its rows to JavaScript, and only the JavaScript thread can turn them into objects. For a large result, `executeAsync()` hands rows over in batches while SQLite reads the rest, so building the objects overlaps with the query instead of starting after it. The promise still resolves once, with every row in order.
+`executeAsync()` resolves once with the complete result in row order. Returning many rows still costs JavaScript work, so paginate large results.
 
-An `open()` connection submits ordinary async statements in call order. Native operations on that connection run one at a time in submission order, but await a write before starting a read that depends on it so you can handle write errors. Batches and transactions wait for preceding statements and reserve the connection until complete. A synchronous operation, `close()`, or `delete()` throws a busy error if work is pending or active. Await async work before calling a synchronous method on the same connection:
+## Connection ordering
+
+<span id="ordering-on-one-connection" />
+
+Calls on one `open()` connection run one at a time in submission order. Await a write before a read that depends on it so you can handle write errors. Batches, transactions, and prepared statement executions wait for preceding work and reserve the connection until complete. A synchronous operation, `close()`, or `delete()` throws a busy error if work is pending or active. Await async work before calling a synchronous method on that connection:
 
 ```ts
 await db.executeAsync('INSERT INTO notes (body) VALUES (?)', ['Queued write'])
@@ -32,9 +37,11 @@ const total = db
 console.log(total)
 ```
 
-`db.transaction()` also occupies the connection's queue until its callback finishes. Inside that callback, use the provided `tx` methods. Awaiting `db.executeAsync()` or another queued operation on the same connection inside it leaves both operations waiting for each other. See [transactions](/docs/guides/transactions) and [multiple connections](/docs/guides/multiple-connections).
+<span id="transactions-and-independent-connections" />
 
-Prepared statement `executeAsync()` reserves the connection queue until it finishes. Await it before running a synchronous call or finalizing that statement. Inside a transaction callback, use `tx` methods instead of a prepared statement's async method on the same connection.
+Inside `db.transaction()`, use the callback's `tx` methods. Calling and awaiting another async operation on the same `db` leaves it waiting for the callback to finish. See [transactions](/docs/guides/transactions#keep-operations-inside-the-callback) for that restriction and [multiple connections](/docs/guides/multiple-connections#ordering-and-transactions) for work that can run independently.
+
+See [prepared statements](/docs/guides/prepared-statements#connection-ordering-and-cleanup) for statement cleanup.
 
 ## Global helpers and native access
 
@@ -56,4 +63,4 @@ try {
 
 Native calls bypass the JavaScript queue. If you use them alongside an `open()` connection, coordinate access yourself. A native statement can run inside an active connection transaction without joining its callback's sequence. The raw result is a plain JavaScript object with `rowsAffected`, `insertId`, `results`, and `metadata`; ordinary garbage collection reclaims it. `NitroSQLite.native` itself is a Nitro hybrid object with a `dispose()` member. Do not dispose that shared instance during normal database cleanup; `dispose()` is not a database `close()` call.
 
-The `NitroSQLite` export spreads the hybrid instance, but inherited native methods do not appear on that top-level object. Call them through `.native`. If you compile SQLite with `SQLITE_THREADSAFE=0`, also serialize access across separate database handles and native threads. See the [iOS](/docs/configuration/ios#thread-safety-and-performance-mode) and [Android](/docs/configuration/android#threading) configuration pages.
+Call raw methods through `NitroSQLite.native`. Keep the shared [`threadSafe` setting](/docs/configuration#thread-safety) enabled when work can run across multiple database connections.

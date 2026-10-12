@@ -3,7 +3,7 @@ title: Encrypt a database
 description: Build Nitro SQLite with licensed SQLite SEE and open a database with a key.
 ---
 
-SQLite database files are readable without a key by default. The [SQLite Encryption Extension](https://sqlite.org/see) (SEE) encrypts database pages when your app builds against its licensed SQLite source. Nitro SQLite does not include SEE. You need licensed source matching the bundled SQLite version, a native rebuild, and a way to store and retrieve the key outside your app source. A JavaScript-only update cannot enable encryption in an existing app binary.
+Pass `encryptionKey` to `open()` to use an encrypted database. This requires a native build with the licensed [SQLite Encryption Extension](https://sqlite.org/see), or SEE. Nitro SQLite does not include SEE; ordinary SQLite files remain readable without a key. You need licensed source matching the bundled SQLite version, a native rebuild, and a way to store and retrieve the key outside your app source. A JavaScript-only update cannot enable encryption in an existing app binary.
 
 ## Build with SEE
 

@@ -3,13 +3,11 @@ title: Performance
 description: Keep database work responsive and avoid unnecessary round trips.
 ---
 
-SQLite chooses a plan for finding the rows each query needs. Without a useful index, it may have to examine many rows. An index can make filters and joins faster, but it takes storage and adds work to writes. `EXPLAIN QUERY PLAN` shows how SQLite intends to run a query, so inspect it before adding indexes blindly.
-
-In NitroSQLite, start with the query and the amount of data it reads. Add indexes for columns you filter or join on, inspect query plans with SQLite's `EXPLAIN QUERY PLAN`, and select only the columns and rows your screen needs. Their effect depends on your schema and data.
+Use `executeAsync()` for longer queries, bind values as parameters, and fetch only the rows and columns your screen needs. See [queries and indexes](/docs/concepts/queries-and-indexes) for SQLite query plans and index tradeoffs.
 
 ## Keep long work off the JavaScript thread
 
-`execute()` and the other synchronous methods block their JavaScript caller. Use `executeAsync()`, `executeBatchAsync()`, and `loadFileAsync()` for work that may take longer. The native async implementations run database work on background threads. A connection runs native operations one at a time in submission order. See [multiple connections](/docs/guides/multiple-connections) when reads need a separate handle.
+Use `executeAsync()`, `executeBatchAsync()`, and `loadFileAsync()` for work that may take longer. See [sync and async](/docs/guides/sync-and-async) for choosing a call form and [multiple connections](/docs/guides/multiple-connections) when reads need a separate connection.
 
 ```ts
 const { rows } = await db.executeAsync<{ id: number; title: string }>(
@@ -23,9 +21,9 @@ An async call still consumes device CPU and database I/O. Paginate large result 
 
 ## Reuse SQL text
 
-Before SQLite runs a statement, it compiles the SQL text into a program for its virtual machine. Compiling one statement is quick, but the cost adds up when the same statement runs many times, such as an `INSERT` in a loop.
+Pass values as parameters to `execute()` or `executeAsync()` so repeated calls keep the same SQL text. Each connection reuses its 32 most recently used query and data-change statements. This avoids compiling the same SQL again. The cache covers statements starting with `SELECT`, `INSERT`, `UPDATE`, `DELETE`, `REPLACE`, `WITH`, or `VALUES`; other statements, such as `PRAGMA`, `ATTACH`, and `BEGIN`, compile on each call.
 
-Each connection keeps the compiled programs of its 32 most recently used queries and data changes: statements that start with `SELECT`, `INSERT`, `UPDATE`, `DELETE`, `REPLACE`, `WITH`, or `VALUES`. When `execute()` or `executeAsync()` receives the same SQL text again, it reuses the program with the new parameters. Pass values as parameters rather than formatting them into the SQL so the text stays identical between calls. Other statements, such as `PRAGMA`, `ATTACH`, and `BEGIN`, compile on every call because SQLite can apply their effect while compiling them. Use [prepared statements](/docs/guides/prepared-statements) when you want to manage a compiled statement's lifetime yourself.
+Use [prepared statements](/docs/guides/prepared-statements) when you need to control a statement's lifetime.
 
 ```ts
 for (const metric of metrics) {
@@ -52,6 +50,8 @@ await db.executeBatchAsync([
 ])
 ```
 
-Binding values avoids building a new SQL string from user data. The batch implementation executes each expanded command separately. For repeated calls on one connection, [prepared statements](/docs/guides/prepared-statements) keep one SQL command compiled between executions. Measure on your target devices and data sizes before choosing a batch size, prepared statement, or index strategy.
+Measure on your target devices and data sizes before choosing a batch size, prepared statement, or index strategy.
 
 See [sync and async](/docs/guides/sync-and-async), [batch operations](/docs/guides/batch-operations), and [transactions](/docs/guides/transactions) for the exact ordering rules.
+
+For SQLite build settings and their tradeoffs, see [Configuration](/docs/configuration#performance-mode).

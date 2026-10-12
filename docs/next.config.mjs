@@ -14,6 +14,11 @@ const config = {
         permanent: true,
       },
       {
+        source: '/docs/concepts/connection-ordering',
+        destination: '/docs/concepts/isolation-and-concurrency',
+        permanent: true,
+      },
+      {
         source: '/docs/api',
         destination: '/api',
         permanent: true,
