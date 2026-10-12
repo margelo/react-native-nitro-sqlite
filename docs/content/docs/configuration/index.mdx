@@ -1,0 +1,36 @@
+---
+title: Configuration
+description: Shared SQLite settings in package.json.
+---
+
+Add the options you want to change to your app's `package.json`. These are the defaults for bundled SQLite on iOS, Android, macOS, and visionOS:
+
+```json
+{
+  "nitroSQLite": {
+    "threadSafe": true,
+    "performanceMode": true,
+    "enableRTree": true
+  }
+}
+```
+
+All values are booleans. Rebuild your app after changes; on Apple platforms, install Pods again first.
+
+## Thread safety
+
+Keep `threadSafe` enabled. Disabling it rejects [independent connections](/docs/guides/multiple-connections) and requires serializing all SQLite calls across the process, including calls to different databases.
+
+## Performance mode
+
+`performanceMode` applies SQLite's [recommended build optimizations](https://www.sqlite.org/compile.html#recommended_compile_time_options), independently of `threadSafe` and `enableRTree`. Use single quotes for SQL strings; `LIKE` and `GLOB` do not match BLOBs.
+
+WAL databases default to `synchronous = NORMAL`, which can lose recent commits after a power failure. Set `PRAGMA synchronous = FULL` on each connection if you need that durability. See [SQLite's synchronous settings](https://www.sqlite.org/pragma.html#pragma_synchronous). Performance mode does not enable WAL.
+
+## RTree support
+
+`enableRTree` includes spatial and interval indexes. Disabling it can cause `no such module: rtree` for schemas using them. See [query examples](/docs/concepts/queries-and-indexes#query-spatial-ranges).
+
+When supplying custom flags, omit `SQLITE_ENABLE_RTREE` to disable it. Defining it as `0` still enables the module.
+
+For platform settings and alternative build flags, see [iOS](/docs/configuration/ios), [Android](/docs/configuration/android), or [macOS](/docs/configuration/macos).
