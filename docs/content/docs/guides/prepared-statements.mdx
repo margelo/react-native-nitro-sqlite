@@ -3,9 +3,7 @@ title: Prepared statements
 description: Reuse a compiled SQL statement with different bound values.
 ---
 
-A prepared statement compiles one SQL command once, then runs it with different values. Use one when the same query runs repeatedly on a connection. For a query that runs only once, `db.execute()` or `db.executeAsync()` is simpler.
-
-Call `db.prepare(query)` on an open connection. It returns a statement with `execute(params)`, `executeAsync(params)`, `isFinalized`, and `finalize()`. Preparation is synchronous, so it throws if the connection already has work pending or running.
+Call `db.prepare(query)` to reuse SQL with different parameter values. It returns a statement with `execute(params)`, `executeAsync(params)`, `isFinalized`, and `finalize()`. Preparation is synchronous and throws if the connection has work pending or running. For a query that runs only once, use `db.execute()` or `db.executeAsync()`. See [parameters and prepared statements](/docs/concepts/queries-and-indexes#parameters-and-prepared-statements) for the SQLite concept.
 
 ```ts
 import { open } from 'react-native-nitro-sqlite'
@@ -26,7 +24,7 @@ try {
 db.close()
 ```
 
-The SQL text stays fixed. Pass a positional array for its `?` placeholders on each execution. The accepted values are `boolean`, `number`, `string`, `ArrayBuffer`, `null`, and `undefined`. Both `null` and `undefined` bind as SQL NULL. Parameters bind values, not table or column names. Each run resets the statement and clears its previous bindings, so omitted values do not carry over. Pass every value your query needs each time.
+Pass a positional array for the SQL's `?` placeholders on each execution. The [parameter types and binding rules](/docs/guides/parameters-and-results) match the connection's execution methods. Each run clears previous bindings, so omitted values do not carry over. Pass every value your query needs each time.
 
 ## Read rows and run asynchronously
 
@@ -52,7 +50,7 @@ try {
 
 On a managed connection, `executeAsync()` reserves that connection's queue until it completes. It waits for earlier work and prevents later work from starting. While async work is pending, synchronous `prepare()`, `execute()`, `finalize()`, and `close()` on that connection throw a busy error. Await the last execution before finalizing, then finalize before closing the connection. `isFinalized` reports whether the statement has been finalized; executing it afterward throws.
 
-Do not await a prepared statement's `executeAsync()` from inside `db.transaction()` on the same connection. It waits behind the transaction, while the transaction waits for your callback. Use the callback's `tx.execute()` or `tx.executeAsync()` instead. See [transactions](/docs/guides/transactions) and [connection ordering](/docs/concepts/connection-ordering).
+Do not await a prepared statement's `executeAsync()` from inside `db.transaction()` on the same connection. It waits behind the transaction, while the transaction waits for your callback. Use the callback's `tx.execute()` or `tx.executeAsync()` instead. See [transactions](/docs/guides/transactions) and [connection ordering](/docs/guides/sync-and-async#connection-ordering).
 
 ## Choose the right query form
 

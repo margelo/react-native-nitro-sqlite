@@ -1,34 +1,30 @@
 ---
 title: Tables and values
-description: Define a SQLite schema and understand the values returned to JavaScript.
+description: Rows, constraints, and SQLite storage classes.
 ---
 
-A table organizes records into rows and named columns. Its schema describes those columns and can add constraints such as `PRIMARY KEY` and `NOT NULL`. SQLite has five storage classes for values: `NULL`, `INTEGER`, `REAL`, `TEXT`, and `BLOB`. In ordinary tables, a column's declared type gives it a *type affinity*, which influences conversion but does not generally enforce one storage class. See [SQLite's datatype guide](https://www.sqlite.org/datatype3.html).
+A table stores records as rows with named columns. Its schema defines those columns and constraints such as `PRIMARY KEY` and `NOT NULL`.
 
 ## Create a table and read its rows
 
-Nitro SQLite does not define tables through a separate schema API. Send SQL to the connection:
+```sql
+CREATE TABLE notes (
+  id INTEGER PRIMARY KEY,
+  body TEXT NOT NULL
+);
 
-```ts
-import { open } from 'react-native-nitro-sqlite'
-
-const db = open({ name: 'notes.sqlite' })
-
-await db.executeAsync(`
-  CREATE TABLE IF NOT EXISTS notes (
-    id INTEGER PRIMARY KEY,
-    body TEXT NOT NULL
-  )
-`)
-await db.executeAsync('INSERT INTO notes (body) VALUES (?)', ['Buy milk'])
-
-const { rows } = await db.executeAsync<{ id: number; body: string }>(
-  'SELECT id, body FROM notes',
-)
-console.log(rows._array)
-db.close()
+INSERT INTO notes (body) VALUES ('Buy milk');
+SELECT id, body FROM notes;
 ```
 
-## Values returned to JavaScript
+The primary key identifies each row. `NOT NULL` prevents a row from storing a missing value in `body`.
 
-The `?` placeholder binds a value separately from the SQL text. The TypeScript row type describes what your code expects; it does not check the schema or convert returned values. SQLite integers and real numbers arrive as JavaScript numbers, blobs as `ArrayBuffer`, and nulls as `null`. SQLite has no separate Boolean storage class, so a bound boolean is stored as an integer and read back as a number. See [parameters and results](/docs/guides/parameters-and-results) for supported values and result shapes.
+## Storage classes and type affinity
+
+<span id="values-returned-to-javascript" />
+
+SQLite values have five storage classes: `NULL`, `INTEGER`, `REAL`, `TEXT`, and `BLOB`. The storage class belongs to the value. In ordinary tables, a column's declared type gives it a _type affinity_, which influences conversion without generally enforcing one storage class. [STRICT tables](https://www.sqlite.org/stricttables.html) enforce column types.
+
+SQLite stores booleans as the integers `0` and `1`. It has no separate date storage class; applications can represent dates as text or numbers. See [SQLite's datatype guide](https://www.sqlite.org/datatype3.html).
+
+For binding values and reading JavaScript results in Nitro SQLite, see [parameters and results](/docs/guides/parameters-and-results).

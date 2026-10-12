@@ -3,9 +3,7 @@ title: Test SQLite in Node
 description: Test shared SQLite connections, statements, and transactions in Node.
 ---
 
-SQLite connections are handles to a database file. Separate handles can share committed data, and a transaction can keep a consistent snapshot while another connection writes under [WAL](/docs/guides/multiple-connections).
-
-Use `react-native-nitro-sqlite/mock` to test these behaviors in Node without loading the React Native module. Install `better-sqlite3` as a development dependency in your test project. The mock creates databases in a temporary directory and supports queries, atomic batches, prepared statements, and callback transactions.
+Import `react-native-nitro-sqlite/mock` to test SQLite connections in Node without loading the React Native module. Install `better-sqlite3` as a development dependency in your test project. The mock creates databases in a temporary directory and supports queries, atomic batches, prepared statements, and callback transactions. Separate connections share committed data and can keep consistent read snapshots under [WAL](/docs/guides/multiple-connections).
 
 ## Set up Jest
 

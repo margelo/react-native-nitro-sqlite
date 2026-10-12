@@ -1,0 +1,32 @@
+---
+title: Isolation and concurrency
+description: How SQLite connections share data and coordinate reads and writes.
+---
+
+A transaction sees its own writes before committing. Separate connections normally see only committed changes. See [SQLite's isolation guide](https://www.sqlite.org/isolation.html).
+
+## Readers and writers
+
+<span id="ordering-on-one-connection" />
+
+SQLite supports multiple readers, but only one writer at a time for a database file. Competing writes can fail with `SQLITE_BUSY`. A bounded `busy_timeout` can wait for temporary lock contention; it does not guarantee success.
+
+## Journal modes
+
+<span id="transactions-and-independent-connections" />
+
+Rollback journaling preserves original pages in a journal while changes are written to the database. Readers and writers can block each other.
+
+Write-ahead logging, or WAL, writes changes to a separate log so readers can continue while a writer works:
+
+```sql
+PRAGMA journal_mode = WAL;
+```
+
+A WAL read transaction sees a snapshot of committed data from when it began. It must end before a new transaction can see later commits. Long-lived readers can delay checkpoints and let the WAL file grow. See [SQLite's WAL documentation](https://www.sqlite.org/wal.html#concurrency).
+
+## Connection settings
+
+WAL mode persists in the database file. Settings such as `busy_timeout` and `foreign_keys` belong to each connection and need to be set again when opening another one.
+
+For Nitro SQLite APIs, see [multiple connections](/docs/guides/multiple-connections). For the order of calls on one connection, see [sync and async](/docs/guides/sync-and-async#connection-ordering).

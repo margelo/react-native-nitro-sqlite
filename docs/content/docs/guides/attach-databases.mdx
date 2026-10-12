@@ -3,7 +3,7 @@ title: Attach databases
 description: Query another database file through a named SQLite schema.
 ---
 
-SQLite's `ATTACH DATABASE` makes another database file available through an existing connection. You give it a schema name, then use that name to distinguish tables in the attached file from tables in the main database. This is useful when one query needs data from both files.
+Use `db.attach()` to query another database file through an existing connection. Its alias becomes a SQLite schema name, which distinguishes its tables from those in the main database. Use it when one query needs data from both files.
 
 ## Attach and query a database
 
@@ -30,4 +30,4 @@ db.close()
 
 The example assumes the tables and files already exist. SQLite can create the attached file when it is missing, so verify the intended path when opening prepopulated data. `attach()` and `detach()` are synchronous connection operations; they fail while the connection queue is busy. A failed attach or detach throws `NitroSQLiteError` through the connection wrapper.
 
-The native implementation inserts the attached file path and alias into SQL. Use application-controlled database names, locations, and aliases rather than arbitrary user input. Query values still belong in `?` parameters. See [database lifecycle](/docs/guides/database-lifecycle) for the location convention and the generated [`NitroSQLiteConnection` reference](/api/react-native-nitro-sqlite/interfaces/NitroSQLiteConnection) for signatures.
+Only pass database names, locations, and aliases you control. The library does not bind these as parameters. Query values still belong in `?` parameters. See [database lifecycle](/docs/guides/database-lifecycle) for the location convention and the generated [`NitroSQLiteConnection` reference](/api/react-native-nitro-sqlite/interfaces/NitroSQLiteConnection) for signatures.

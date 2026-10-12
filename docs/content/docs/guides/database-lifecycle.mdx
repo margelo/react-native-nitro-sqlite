@@ -3,9 +3,11 @@ title: Database lifecycle
 description: Open, close, delete, and place database files in an app directory.
 ---
 
-A SQLite database usually lives in a file. Your app opens a connection to read or change that file, then closes the connection when it is done. Closing a connection leaves the data on disk; deleting the file removes the database.
+Use `open({ name })` to open an existing database or create a new one. Keep the returned connection for queries, then call `close()` when done. See [databases and connections](/docs/concepts/databases-and-connections) for the difference between the file and its open handles.
 
-In NitroSQLite, `open({ name })` opens an existing SQLite file or creates a new one. A database name can have only one active default connection per native NitroSQLite root. Close it before opening another default connection with that name, or use `connection: 'independent'` for a separate handle to the same file. See [multiple connections](/docs/guides/multiple-connections).
+## Open and close a connection
+
+Keep the returned connection while you need to query the database. Only one default connection can be open for a database name at a time. Close it before opening another default connection, or use `connection: 'independent'` for a separate connection to the same file. See [multiple connections](/docs/guides/multiple-connections).
 
 ```ts
 import { open } from 'react-native-nitro-sqlite'
@@ -19,7 +21,9 @@ await db.executeAsync(
 db.close()
 ```
 
-`close()` releases the connection and its queue. It keeps the file. `delete()` removes the database file and closes that connection if it is open. Deletion fails while another connection still has the file open. You can call `delete()` on the connection after `close()`, using its remembered name and location. Do not use a closed or deleted connection for more queries.
+## Delete a database file
+
+`delete()` removes the database file and closes that connection if it is open. Deletion fails while another connection still has the file open. You can call `delete()` after `close()`; the connection remembers its name and location. Do not use a closed or deleted connection for more queries.
 
 ```ts
 const temporary = open({ name: 'temporary.sqlite' })
@@ -31,24 +35,22 @@ Both methods are synchronous. They fail if an operation on that connection is qu
 
 On iOS, when a database is being moved from Documents to Application Support, deletion also cleans up copies and SQLite sidecar files from both locations.
 
-## Runtime teardown
-
-SQLite connections are native resources. A JavaScript runtime can be destroyed while the app process stays alive, such as when an app switches between React Native hosts. Closing a connection preserves committed data on disk and rolls back any unfinished transaction.
-
-Each native NitroSQLite root owns its default and independent connections. When that root is destroyed, it closes its handles. A replacement runtime can open the same database names without restarting the process. An older root's cleanup does not close connections opened by a newer root.
-
-Queued operations and prepared statements keep their original connection. After its owner closes it, those operations fail instead of using a replacement connection with the same name. Await pending work and finalize prepared statements before an intentional runtime teardown when your app controls that transition.
-
 ## File location and prepopulated databases
 
-By default, the root is the app Documents directory on iOS, the app files directory on Android, and an app-specific Application Support directory on macOS. Use the optional `location` as a relative subdirectory under that root, not as an absolute file path:
+Pass `location` to `open()` to select a subdirectory under the platform's database root. Use a relative directory, not an absolute file path:
 
 ```ts
 const db = open({ name: 'catalog.sqlite', location: 'databases' })
 ```
 
-The native code joins the root, `location`, and `name` without checking for `..` path segments. Use application-controlled names and locations, not arbitrary user input.
+Only pass database names and locations you control. The library does not validate path segments such as `..`.
 
-To open a prepopulated database, copy the SQLite file into the intended app directory before calling `open()`. Use the same `name` and `location` when you open it. A missing file creates a new, empty database, so verify the copy if your schema must already exist. If you use WAL mode, account for the database's companion files when moving or backing up it.
+To open a prepopulated database, copy the SQLite file into the intended app directory before calling `open()`. Use the same `name` and `location` when you open it. A missing file creates a new, empty database, so verify the copy if your schema must already exist. See [file lifetimes](/docs/concepts/databases-and-connections#file-lifetimes) for WAL companion files.
 
-iOS can use Application Support or an app group instead of Documents; see [iOS configuration](/docs/configuration/ios). Android uses its app files directory; see [Android configuration](/docs/configuration/android). See [macOS configuration](/docs/configuration/macos) for its Application Support location. The generated [`NitroSQLiteConnection` reference](/api/react-native-nitro-sqlite/interfaces/NitroSQLiteConnection) lists the lifecycle methods.
+The platform pages describe the database roots and storage settings for [iOS](/docs/configuration/ios#database-location), [Android](/docs/configuration/android#database-location), and [macOS](/docs/configuration/macos). The generated [`NitroSQLiteConnection` reference](/api/react-native-nitro-sqlite/interfaces/NitroSQLiteConnection) lists the lifecycle methods.
+
+## Runtime teardown
+
+A JavaScript runtime can be destroyed while the app process stays alive. Nitro SQLite closes that runtime's connections and rolls back unfinished transactions. A replacement runtime can reopen the same databases without restarting the process; the older runtime's cleanup leaves the new connections open.
+
+Operations and prepared statements from the old connection fail after it closes. They do not use a replacement connection with the same name. Await pending work and finalize prepared statements before an intentional runtime teardown when your app controls that transition.
