@@ -109,6 +109,9 @@ jobs:
         run: |
           node --test scripts/ci-dependencies.test.ts
           bun run test:release
+      - name: Test Harness Metro cache handoff
+        if: steps.select.outputs.dependencies == 'true'
+        run: node --test scripts/ci-harness-cache.test.ts
       - name: Compile TypeScript
         if: steps.select.outputs.typescript == 'true'
         run: bun typecheck
