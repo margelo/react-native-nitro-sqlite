@@ -1,0 +1,76 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "packages": {
+    ".": {
+      "release-type": "node",
+      "include-component-in-tag": false,
+      "draft": true,
+      "force-tag-creation": true,
+      "pull-request-title-pattern": "chore: release ${version}",
+      "pull-request-header": "Publishing requires a matching version across both packages and the example. This release updates their versions together and records the changes below.",
+      "changelog-sections": [
+        {
+          "type": "chore",
+          "section": "🛠️ Dependency Upgrades",
+          "scope": "deps"
+        },
+        {
+          "type": "feat",
+          "section": "✨ Features"
+        },
+        {
+          "type": "perf",
+          "section": "💨 Performance Improvements"
+        },
+        {
+          "type": "fix",
+          "section": "🐛 Bug Fixes"
+        },
+        {
+          "type": "refactor",
+          "section": "🔄 Code Refactoring"
+        },
+        {
+          "type": "chore",
+          "section": "🏗️ Project configuration and build flow"
+        },
+        {
+          "type": "docs",
+          "section": "📚 Documentation"
+        }
+      ],
+      "extra-files": [
+        {
+          "type": "json",
+          "path": "packages/react-native-nitro-sqlite/package.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "packages/react-native-nitro-sqlite-vec/package.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "packages/react-native-nitro-sqlite-vec/package.json",
+          "jsonpath": "$.devDependencies['react-native-nitro-sqlite']"
+        },
+        {
+          "type": "json",
+          "path": "example/package.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "example/package.json",
+          "jsonpath": "$.dependencies['react-native-nitro-sqlite']"
+        },
+        {
+          "type": "json",
+          "path": "example/package.json",
+          "jsonpath": "$.dependencies['react-native-nitro-sqlite-vec']"
+        }
+      ]
+    }
+  }
+}

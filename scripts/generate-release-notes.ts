@@ -1,33 +1,18 @@
 import { execFileSync } from 'node:child_process'
 import { readFile, writeFile } from 'node:fs/promises'
-import { createRequire } from 'node:module'
 import { resolve } from 'node:path'
-import type { Readable } from 'node:stream'
 import { fileURLToPath } from 'node:url'
+import { git, parseVersion } from './release-plan.ts'
 
-type RootPackage = {
-  'release-it'?: {
-    plugins?: Record<string, Record<string, unknown>>
-  }
-}
-
-type ChangelogFactory = (
-  options: Record<string, unknown>,
-  context: Record<string, string>,
-  commits: Record<string, string>,
-) => Readable
-
-/** Build announcement text, the configured commit changelog, and contributor acknowledgements.
- * The range ends at the selected commit and starts at its previous reachable release tag.
- * Throws if custom notes, the changelog configuration, or GitHub contributor detection are unavailable.
+/** Assemble announcement text, Release Please's changelog and first-time contributor acknowledgements.
+ * Reads the current version's committed changelog without changing its sections or formatting.
+ * Contributor detection uses the previous reachable tag and the checked-out release commit.
  * @param version Exact stable version being released.
- * @returns Complete Markdown announcement and changelog, with acknowledgements when new contributors exist.
+ * @returns Markdown separated by a divider, with acknowledgements only when GitHub detects newcomers.
+ * @throws If the changelog or GitHub contributor detection is unavailable.
  */
 export async function generateReleaseNotes(version: string): Promise<string> {
-  if (!/^\d+\.\d+\.\d+$/.test(version)) {
-    throw new Error('An exact stable release version is required.')
-  }
-
+  parseVersion(version)
   const releaseCommit = git('rev-parse', 'HEAD')
   const previousTag = git(
     'describe',
@@ -38,38 +23,27 @@ export async function generateReleaseNotes(version: string): Promise<string> {
     `${releaseCommit}^`,
   )
   const currentTag = `v${version}`
-  const announcement = (
-    await readFile(`docs/releases/${currentTag}.md`, 'utf8')
-  ).trim()
-  if (!announcement) throw new Error('Custom release notes must not be empty.')
-
-  const metadata = JSON.parse(
-    await readFile('package.json', 'utf8'),
-  ) as RootPackage
-  const options =
-    metadata['release-it']?.plugins?.['@release-it/conventional-changelog']
-  if (!options?.preset) {
-    throw new Error('The release pipeline must configure a changelog preset.')
+  let announcement: string
+  try {
+    announcement = (
+      await readFile(`docs/releases/${currentTag}.md`, 'utf8')
+    ).trim()
+    if (!announcement)
+      throw new Error('Custom release notes must not be empty.')
+  } catch (error) {
+    if (
+      !(error instanceof Error) ||
+      !('code' in error) ||
+      error.code !== 'ENOENT'
+    )
+      throw error
+    announcement = `NitroSQLite ${version} is available. The changes since ${previousTag} are listed below.`
   }
-
-  const require = createRequire(import.meta.url)
-  const pluginRequire = createRequire(
-    require.resolve('@release-it/conventional-changelog/package.json'),
+  const changelog = versionChangelog(
+    await readFile('CHANGELOG.md', 'utf8'),
+    version,
   )
-  const changelogFactory = pluginRequire(
-    'conventional-changelog',
-  ) as ChangelogFactory
-  const stream = changelogFactory(
-    { ...options, releaseCount: 1, tagPrefix: 'v' },
-    { version, previousTag, currentTag },
-    { from: previousTag, to: releaseCommit },
-  )
-  let changelog = ''
-  for await (const chunk of stream) changelog += String(chunk)
-  if (!changelog.trim())
-    throw new Error('The release changelog must not be empty.')
-
-  const githubNotes = JSON.parse(
+  const notes: unknown = JSON.parse(
     execFileSync(
       'gh',
       [
@@ -86,26 +60,44 @@ export async function generateReleaseNotes(version: string): Promise<string> {
       ],
       { encoding: 'utf8' },
     ),
-  ) as { body?: string }
-  if (typeof githubNotes.body !== 'string') {
+  )
+  if (
+    !notes ||
+    typeof notes !== 'object' ||
+    !('body' in notes) ||
+    typeof notes.body !== 'string'
+  ) {
     throw new Error('GitHub did not return generated release notes.')
   }
+  return (
+    [announcement, '---', changelog, contributorsSection(notes.body)]
+      .filter(Boolean)
+      .join('\n\n') + '\n'
+  )
+}
 
-  return `${[
-    announcement,
-    '---',
-    changelog.trim(),
-    contributorsSection(githubNotes.body),
-  ]
-    .filter(Boolean)
-    .join('\n\n')}\n`
+/** Extract one release's generated changelog, preserving its Markdown and omitting older versions.
+ * @throws If the selected version has no generated entry.
+ */
+export function versionChangelog(content: string, version: string): string {
+  parseVersion(version)
+  const lines = content.split('\n')
+  const header = /^## \[?v?(\d+\.\d+\.\d+)(?:\]|\s|$)/
+  const start = lines.findIndex((line) => line.match(header)?.[1] === version)
+  if (start === -1) throw new Error(`CHANGELOG.md has no entry for ${version}.`)
+  const next = lines.findIndex(
+    (line, index) => index > start && header.test(line),
+  )
+  return lines
+    .slice(start, next === -1 ? undefined : next)
+    .join('\n')
+    .trim()
 }
 
 function contributorsSection(notes: string): string {
   const lines = notes.split('\n')
   const start = lines.findIndex((line) => /^## New Contributors\s*$/.test(line))
   if (start === -1) return ''
-
   const remaining = lines.slice(start + 1)
   const end = remaining.findIndex((line) =>
     /^#{1,2} |^\*\*Full Changelog\*\*/.test(line),
@@ -114,13 +106,8 @@ function contributorsSection(notes: string): string {
     .slice(0, end === -1 ? undefined : end)
     .join('\n')
     .trim()
-  if (!contributors) return ''
-
+  if (!/^\s*[*-] @\S+.*https:\/\/github\.com\//m.test(contributors)) return ''
   return `## New Contributors\n${contributors}`
-}
-
-function git(...args: string[]): string {
-  return execFileSync('git', args, { encoding: 'utf8' }).trim()
 }
 
 if (
@@ -128,8 +115,7 @@ if (
   resolve(process.argv[1]) === fileURLToPath(import.meta.url)
 ) {
   const [version, destination] = process.argv.slice(2)
-  if (!version || !destination) {
+  if (!version || !destination)
     throw new Error('Provide the release version and output file.')
-  }
   await writeFile(destination, await generateReleaseNotes(version))
 }

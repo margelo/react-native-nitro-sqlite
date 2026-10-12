@@ -1,0 +1,66 @@
+diff --git a/node_modules/@react-native-harness/cli/dist/ci/plan-metro-save.js b/node_modules/@react-native-harness/cli/dist/ci/plan-metro-save.js
+index 55a6fed..d20c85c 100644
+--- a/node_modules/@react-native-harness/cli/dist/ci/plan-metro-save.js
++++ b/node_modules/@react-native-harness/cli/dist/ci/plan-metro-save.js
+@@ -9,7 +9,10 @@ const parseSnapshot = (raw) => {
+         return {};
+     }
+     try {
+-        return JSON.parse(raw);
++        const json = raw.trimStart().startsWith('{')
++            ? raw
++            : getFs().readFileSync(raw, 'utf8');
++        return JSON.parse(json);
+     }
+     catch (error) {
+         console.warn('Failed to parse the metroSnapshot input. Treating the pre-run cache state as empty.', error);
+diff --git a/node_modules/@react-native-harness/cli/dist/ci/snapshot-metro.js b/node_modules/@react-native-harness/cli/dist/ci/snapshot-metro.js
+index 24965c3..6786315 100644
+--- a/node_modules/@react-native-harness/cli/dist/ci/snapshot-metro.js
++++ b/node_modules/@react-native-harness/cli/dist/ci/snapshot-metro.js
+@@ -36,7 +36,11 @@ export const runSnapshotMetro = async () => {
+         else {
+             console.info('Metro cache: no existing cache entry matched — starting cold.');
+         }
+-        const output = `metroSnapshot=${JSON.stringify(snapshotAfterRestore)}\n`;
++        // Keep large snapshots out of step environment variables. This file stays
++        // beside GITHUB_OUTPUT for the later cache-save step in the same job.
++        const snapshotPath = `${githubOutput}.metro-snapshot.json`;
++        getFs().writeFileSync(snapshotPath, JSON.stringify(snapshotAfterRestore));
++        const output = `metroSnapshot=${snapshotPath}\n`;
+         getFs().appendFileSync(githubOutput, output);
+     }
+     catch (error) {
+diff --git a/node_modules/@react-native-harness/cli/src/ci/plan-metro-save.ts b/node_modules/@react-native-harness/cli/src/ci/plan-metro-save.ts
+index 959420f..aa28677 100644
+--- a/node_modules/@react-native-harness/cli/src/ci/plan-metro-save.ts
++++ b/node_modules/@react-native-harness/cli/src/ci/plan-metro-save.ts
+@@ -16,7 +16,10 @@ const parseSnapshot = (raw: string | undefined): CacheSnapshot => {
+   }
+ 
+   try {
+-    return JSON.parse(raw) as CacheSnapshot;
++    const json = raw.trimStart().startsWith('{')
++      ? raw
++      : getFs().readFileSync(raw, 'utf8');
++    return JSON.parse(json) as CacheSnapshot;
+   } catch (error) {
+     console.warn(
+       'Failed to parse the metroSnapshot input. Treating the pre-run cache state as empty.',
+diff --git a/node_modules/@react-native-harness/cli/src/ci/snapshot-metro.ts b/node_modules/@react-native-harness/cli/src/ci/snapshot-metro.ts
+index b24379f..1faae3f 100644
+--- a/node_modules/@react-native-harness/cli/src/ci/snapshot-metro.ts
++++ b/node_modules/@react-native-harness/cli/src/ci/snapshot-metro.ts
+@@ -50,7 +50,11 @@ export const runSnapshotMetro = async (): Promise<void> => {
+       );
+     }
+ 
+-    const output = `metroSnapshot=${JSON.stringify(snapshotAfterRestore)}\n`;
++    // Keep large snapshots out of step environment variables. This file stays
++    // beside GITHUB_OUTPUT for the later cache-save step in the same job.
++    const snapshotPath = `${githubOutput}.metro-snapshot.json`;
++    getFs().writeFileSync(snapshotPath, JSON.stringify(snapshotAfterRestore));
++    const output = `metroSnapshot=${snapshotPath}\n`;
+ 
+     getFs().appendFileSync(githubOutput, output);
+   } catch (error) {

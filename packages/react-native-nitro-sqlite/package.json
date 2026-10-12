@@ -19,6 +19,17 @@
         "default": "./lib/commonjs/index.js"
       }
     },
+    "./errors": {
+      "react-native": "./src/errors.ts",
+      "import": {
+        "types": "./lib/typescript/module/errors.d.ts",
+        "default": "./lib/module/errors.js"
+      },
+      "require": {
+        "types": "./lib/typescript/commonjs/errors.d.ts",
+        "default": "./lib/commonjs/errors.js"
+      }
+    },
     "./mock": {
       "import": {
         "types": "./lib/typescript/module/mock.d.ts",
@@ -54,7 +65,6 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\" --fix",
     "test": "jest",
-    "release": "release-it",
     "prepublishOnly": "bun run build"
   },
   "keywords": [
@@ -133,23 +143,6 @@
       "<rootDir>/example/node_modules",
       "<rootDir>/lib/"
     ]
-  },
-  "release-it": {
-    "npm": {
-      "publish": true,
-      "skipChecks": true,
-      "versionArgs": [
-        "--allow-same-version"
-      ]
-    },
-    "git": false,
-    "github": {
-      "release": false
-    },
-    "hooks": {
-      "before:init": "bun typecheck && bun lint",
-      "after:bump": "bun run build"
-    }
   },
   "react-native-builder-bob": {
     "source": "src",

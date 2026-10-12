@@ -18,7 +18,6 @@
     "test": "jest",
     "typecheck": "tsc --build",
     "lint": "eslint \"**/*.{js,ts,tsx}\" --fix",
-    "release": "release-it",
     "prepublishOnly": "bun typecheck"
   },
   "keywords": [
@@ -64,33 +63,6 @@
         "functions": 100,
         "lines": 100,
         "statements": 100
-      }
-    }
-  },
-  "release-it": {
-    "npm": {
-      "publish": true,
-      "skipChecks": true,
-      "versionArgs": [
-        "--allow-same-version"
-      ]
-    },
-    "git": false,
-    "github": {
-      "release": false
-    },
-    "hooks": {
-      "before:init": "bun typecheck"
-    },
-    "plugins": {
-      "@release-it/bumper": {
-        "out": {
-          "file": "package.json",
-          "path": [
-            "version",
-            "devDependencies.react-native-nitro-sqlite"
-          ]
-        }
       }
     }
   }
