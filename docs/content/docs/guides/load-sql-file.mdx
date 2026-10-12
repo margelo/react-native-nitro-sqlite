@@ -16,7 +16,7 @@ console.log(result.commands, result.rowsAffected)
 
 ## SQL file format
 
-The file format is deliberately simple. Each nonempty line is sent to SQLite as one statement. Do not split a statement across lines, put a comment on its own line, or rely on a general SQL dump parser. For example:
+The file format is deliberately simple. Each nonempty line is sent to SQLite as one statement, and a line containing more than one statement fails the import. Do not split a statement across lines, put a comment on its own line, or rely on a general SQL dump parser. For example:
 
 ```sql
 CREATE TABLE IF NOT EXISTS tags (id INTEGER PRIMARY KEY, name TEXT NOT NULL);
