@@ -26,8 +26,7 @@ export const NitroSQLite = {
 }
 
 export { open } from './operations/session'
-export { default as NitroSQLiteError } from './NitroSQLiteError'
-export type { NitroSQLiteExceptionType } from './NitroSQLiteError'
+export { NitroSQLiteError, NitroSQLiteExceptionType } from './errors'
 export type { DatabaseQueueKey } from './DatabaseQueue'
 export type { NitroSQLite as NitroSQLiteNative } from './specs/NitroSQLite.nitro'
 export type { NitroSQLitePreparedStatement } from './specs/NitroSQLitePreparedStatement.nitro'

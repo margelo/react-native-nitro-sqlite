@@ -84,6 +84,16 @@ test('dependency lockfile changes retain both mobile and desktop coverage', () =
   assert.equal(checks.macos, true)
 })
 
+test('Harness patches retain both mobile and desktop coverage', () => {
+  const checks = selectChecks(
+    ['patches/@react-native-harness+cli+1.5.0.patch'],
+    false,
+  )
+  assert.equal(checks.android, true)
+  assert.equal(checks.ios, true)
+  assert.equal(checks.macos, true)
+})
+
 test('Ruby dependency changes retain both Apple platforms', () => {
   const checks = selectChecks(['example/Gemfile'], false)
   assert.equal(checks.ios, true)

@@ -48,7 +48,7 @@ jobs:
         run: bun pods:macos
       - name: Attach refreshed native lockfiles
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: native-lockfiles
           path: |
