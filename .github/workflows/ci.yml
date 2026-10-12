@@ -84,7 +84,7 @@ jobs:
         run: bun run sync:lockfile
       - name: Attach prepared lockfiles
         if: always() && steps.select.outputs.dependencies == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ci-lockfiles
           path: |
@@ -109,6 +109,9 @@ jobs:
         run: |
           node --test scripts/ci-dependencies.test.ts
           bun run test:release
+      - name: Test Harness Metro cache handoff
+        if: steps.select.outputs.dependencies == 'true'
+        run: node --test scripts/ci-harness-cache.test.ts
       - name: Compile TypeScript
         if: steps.select.outputs.typescript == 'true'
         run: bun typecheck

@@ -22,7 +22,7 @@ jobs:
       USE_FRAMEWORKS: static
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: ci-lockfiles
           path: .
@@ -48,7 +48,7 @@ jobs:
         run: bun pods:macos
       - name: Attach refreshed native lockfiles
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: native-lockfiles
           path: |
