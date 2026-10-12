@@ -120,6 +120,7 @@ jobs:
         run: |
           bun --cwd example lint
           bun --cwd packages/react-native-nitro-sqlite lint
+          bun --cwd packages/react-native-nitro-sqlite-vec lint
           git diff --exit-code HEAD -- . ':(exclude)bun.lock'
       - name: Test JavaScript wrappers and example runners
         if: steps.select.outputs.typescript == 'true'
