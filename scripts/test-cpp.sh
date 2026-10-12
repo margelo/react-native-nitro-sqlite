@@ -60,6 +60,21 @@ clang++ \
   -o /tmp/statementGroupTests
 /tmp/statementGroupTests
 
+clang++ \
+  -std=c++20 \
+  -Wall \
+  -Wextra \
+  -Werror \
+  -Ipackages/react-native-nitro-sqlite/cpp \
+  -Ipackages/react-native-nitro-sqlite/cpp/sqlite \
+  packages/react-native-nitro-sqlite/tests/cpp/statementTail.test.cpp \
+  /tmp/sqlite3.o \
+  -ldl \
+  -lm \
+  -pthread \
+  -o /tmp/statementTailTests
+/tmp/statementTailTests
+
 clang \
   -std=c11 \
   -DSQLITE_THREADSAFE=0 \
