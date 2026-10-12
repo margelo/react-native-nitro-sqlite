@@ -1,4 +1,5 @@
-import 'mocha'
+// The browser bundle exposes global Mocha without importing Node-only modules.
+import 'mocha/mocha.js'
 import { expect as chaiExpect } from 'chai'
 import type { TestApi, TestExpect } from './TestApi'
 
