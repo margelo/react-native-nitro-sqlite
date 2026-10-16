@@ -8,6 +8,7 @@ import type {
 import type {
   NitroSQLiteQueryResult,
   NitroSQLiteQueryRows,
+  NitroSQLiteRawQueryResult,
 } from './NitroSQLiteQueryResult.nitro'
 import type { NitroSQLitePreparedStatement } from './NitroSQLitePreparedStatement.nitro'
 
@@ -108,6 +109,28 @@ export interface NitroSQLite
     params?: SQLiteQueryParams,
     onRows?: (rows: NitroSQLiteQueryRows) => void,
   ): Promise<NitroSQLiteQueryResult>
+  /** Execute one SQL statement synchronously on the calling thread, returning rows as arrays of column values.
+   * @param dbName Name of an open database.
+   * @param query SQL statement with optional positional placeholders.
+   * @param params Positional values bound to SQL placeholders.
+   * @returns Column names, rows as value arrays, affected row count, and insert ID.
+   */
+  executeRaw(
+    dbName: string,
+    query: string,
+    params?: SQLiteQueryParams,
+  ): NitroSQLiteRawQueryResult
+  /** Execute one SQL statement on a background thread, returning rows as arrays of column values.
+   * @param dbName Name of an open database.
+   * @param query SQL statement with optional positional placeholders.
+   * @param params Positional values bound to SQL placeholders.
+   * @returns A promise of the native raw query result.
+   */
+  executeRawAsync(
+    dbName: string,
+    query: string,
+    params?: SQLiteQueryParams,
+  ): Promise<NitroSQLiteRawQueryResult>
   /** Prepare one SQL statement on an open native connection for repeated execution.
    * Finalize the returned statement before closing its connection.
    * @param dbName Name or ID of an open database connection.

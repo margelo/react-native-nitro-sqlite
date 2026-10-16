@@ -29,7 +29,7 @@ Throw from the callback when an application check fails. Use `tx` for those chec
 
 ## Commit and rollback behavior
 
-When the callback resolves, the wrapper commits unless you already called `tx.commit()` or `tx.rollback()`. When it rejects or throws, the wrapper rolls back unless the transaction has already been finalized. An explicit `tx.rollback()` does not itself reject the callback: it ends the transaction, and the callback can still resolve. Calls to `tx.execute`, `tx.executeAsync`, `tx.commit`, or `tx.rollback` after finalization throw.
+When the callback resolves, the wrapper commits unless you already called `tx.commit()` or `tx.rollback()`. When it rejects or throws, the wrapper rolls back unless the transaction has already been finalized. An explicit `tx.rollback()` does not itself reject the callback: it ends the transaction, and the callback can still resolve. Calls to `tx.execute`, `tx.executeAsync`, `tx.executeRaw`, `tx.executeRawAsync`, `tx.commit`, or `tx.rollback` after finalization throw.
 
 A failed COMMIT can leave SQLite's transaction active, for example when a deferred foreign-key constraint fails. NitroSQLite marks a commit complete only after SQLite accepts it. A failed manual or automatic commit triggers rollback and rejects with the commit error. This also happens if the callback catches a failed `tx.commit()` and returns without explicitly rolling back. After the failure, only `tx.rollback()` is allowed on that transaction handle.
 
@@ -39,7 +39,7 @@ If rollback also fails, the rejection preserves the original message and appends
 
 <span id="check-application-rules" />
 
-The connection queue is occupied for the whole callback. Use `tx.execute` or `tx.executeAsync` for every statement on this database during that callback, including statements in helpers.
+The connection queue is occupied for the whole callback. Use the `tx` methods (`execute`, `executeAsync`, `executeRaw`, or `executeRawAsync`) for every statement on this database during that callback, including statements in helpers.
 
 > [!TIP]
 > Pass `tx` to any helper that runs statements during the transaction.
@@ -57,7 +57,7 @@ await db.transaction(async (tx) => {
 
 ## Await pending statements
 
-Await every `tx.executeAsync()` before the callback returns or before manually finalizing. While an async statement is pending, `tx.execute()`, `tx.commit()`, and `tx.rollback()` throw instead of running out of order. If the callback throws, the wrapper waits for pending async statements before rolling back. A thrown error after an explicit commit or rollback cannot undo that completed transaction.
+Await every `tx.executeAsync()` and `tx.executeRawAsync()` before the callback returns or before manually finalizing. While an async statement is pending, `tx.execute()`, `tx.executeRaw()`, `tx.commit()`, and `tx.rollback()` throw instead of running out of order. If the callback throws, the wrapper waits for pending async statements before rolling back. A thrown error after an explicit commit or rollback cannot undo that completed transaction.
 
 `tx.commit()` and `tx.rollback()` are synchronous. Their declared return type exposes the native query result fields. The JavaScript helper also adds `rows` at runtime, but that field is not in their declared type. Use them to finalize the transaction, not to retrieve rows. The transaction starts with `BEGIN TRANSACTION`; the global [`NitroSQLite.transaction`](/api/react-native-nitro-sqlite/variables/NitroSQLite) helper also accepts `isExclusive` to use `BEGIN EXCLUSIVE TRANSACTION`. See [transaction modes](/docs/concepts/transactions#transaction-modes) for the SQLite differences.
 

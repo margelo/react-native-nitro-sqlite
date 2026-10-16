@@ -6,6 +6,7 @@ import type {
   QueryResultRow,
   SQLiteQueryParams,
 } from '../types'
+import type { NitroSQLiteRawQueryResult } from '../specs/NitroSQLiteQueryResult.nitro'
 import { buildJSQueryResult } from './execute'
 import { queueOperationAsync, startOperationSync } from '../DatabaseQueue'
 import type { DatabaseQueueKey } from '../DatabaseQueue'
@@ -50,6 +51,26 @@ export function prepare(
         try {
           return await queueOperationAsync(queueKey, async () =>
             buildJSQueryResult(await nativeStatement.executeAsync(params)),
+          )
+        } catch (error) {
+          throw NitroSQLiteError.fromError(error)
+        }
+      },
+      executeRaw: (params?: SQLiteQueryParams): NitroSQLiteRawQueryResult => {
+        try {
+          return startOperationSync(queueKey, () =>
+            nativeStatement.executeRaw(params),
+          )
+        } catch (error) {
+          throw NitroSQLiteError.fromError(error)
+        }
+      },
+      executeRawAsync: async (
+        params?: SQLiteQueryParams,
+      ): Promise<NitroSQLiteRawQueryResult> => {
+        try {
+          return await queueOperationAsync(queueKey, () =>
+            nativeStatement.executeRawAsync(params),
           )
         } catch (error) {
           throw NitroSQLiteError.fromError(error)

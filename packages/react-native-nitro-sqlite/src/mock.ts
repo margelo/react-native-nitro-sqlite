@@ -18,7 +18,13 @@ import {
 import NitroSQLiteError from './NitroSQLiteError'
 import type { NitroSQLiteConnectionOptions, PreparedStatement } from './types'
 import type { MockConnection } from './mock/MockConnection'
-import { executeBatch, executePrepared, executeQuery } from './mock/query'
+import {
+  executeBatch,
+  executePrepared,
+  executePreparedRaw,
+  executeQuery,
+  executeRawQuery,
+} from './mock/query'
 import { runTransaction } from './mock/transaction'
 
 export type { MockConnection } from './mock/MockConnection'
@@ -110,6 +116,10 @@ export function open(options: NitroSQLiteConnectionOptions): MockConnection {
       runSync(() => executeQuery(database, query, params)),
     executeAsync: (query, params) =>
       runAsync(() => executeQuery(database, query, params)),
+    executeRaw: (query, params) =>
+      runSync(() => executeRawQuery(database, query, params)),
+    executeRawAsync: (query, params) =>
+      runAsync(() => executeRawQuery(database, query, params)),
     executeBatch: (commands) => runSync(() => executeBatch(database, commands)),
     executeBatchAsync: (commands) =>
       runAsync(() => executeBatch(database, commands), true),
@@ -122,12 +132,19 @@ export function open(options: NitroSQLiteConnectionOptions): MockConnection {
           throw new NitroSQLiteError('Prepared statement is finalized.')
         return executePrepared(database, statement, params)
       }
+      const executeRaw: PreparedStatement['executeRaw'] = (params) => {
+        if (!statement)
+          throw new NitroSQLiteError('Prepared statement is finalized.')
+        return executePreparedRaw(database, statement, params)
+      }
       return {
         get isFinalized() {
           return statement === undefined
         },
         execute: (params) => runSync(() => execute(params)),
         executeAsync: (params) => runAsync(() => execute(params), true),
+        executeRaw: (params) => runSync(() => executeRaw(params)),
+        executeRawAsync: (params) => runAsync(() => executeRaw(params), true),
         finalize: () =>
           runSync(() => {
             // better-sqlite3 releases statement resources when the object is collected.

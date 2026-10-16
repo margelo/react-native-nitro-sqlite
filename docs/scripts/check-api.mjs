@@ -22,6 +22,7 @@ const requiredExports = {
     'NitroSQLiteNative',
     'NitroSQLiteQueryResult',
     'NitroSQLiteQueryColumnMetadata',
+    'NitroSQLiteRawQueryResult',
     'TypeOrmNitroSQLiteConnection',
     'typeORMDriver',
   ],

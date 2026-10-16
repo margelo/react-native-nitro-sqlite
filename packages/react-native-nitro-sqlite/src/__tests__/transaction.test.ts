@@ -4,7 +4,8 @@ import Database from 'better-sqlite3'
 import { HybridNitroSQLite } from '../nitro'
 import { closeDatabaseQueue, openDatabaseQueue } from '../DatabaseQueue'
 import { transaction } from '../operations/transaction'
-import { deferred, nativeResult } from './testUtils'
+import type { Transaction } from '../types'
+import { deferred, nativeRawResult, nativeResult } from './testUtils'
 
 const dbName = 'transaction-test'
 
@@ -58,6 +59,44 @@ describe('transaction', () => {
       dbName,
       'COMMIT',
       undefined,
+    )
+  })
+
+  it('runs raw queries inside the transaction with the same guards', async () => {
+    const raw = nativeRawResult(['value'], [[1]])
+    const pendingQuery = deferred<typeof raw>()
+    jest.mocked(HybridNitroSQLite.executeRaw).mockReturnValue(raw)
+    jest
+      .mocked(HybridNitroSQLite.executeRawAsync)
+      .mockReturnValue(pendingQuery.promise)
+
+    let handle: Transaction | undefined
+    await transaction(dbName, async (tx) => {
+      handle = tx
+      expect(tx.executeRaw('SELECT ?', [1])).toBe(raw)
+      const pending = tx.executeRawAsync('SELECT ?', [2])
+      expect(() => tx.executeRaw('SELECT sync')).toThrow(
+        'Await all tx.executeAsync',
+      )
+      pendingQuery.resolve(raw)
+      await expect(pending).resolves.toBe(raw)
+    })
+
+    expect(HybridNitroSQLite.executeRaw).toHaveBeenCalledWith(
+      dbName,
+      'SELECT ?',
+      [1],
+    )
+    expect(HybridNitroSQLite.executeRawAsync).toHaveBeenCalledWith(
+      dbName,
+      'SELECT ?',
+      [2],
+    )
+    expect(() => handle!.executeRaw('SELECT 1')).toThrow(
+      'finalized transaction',
+    )
+    expect(() => handle!.executeRawAsync('SELECT 1')).toThrow(
+      'finalized transaction',
     )
   })
 

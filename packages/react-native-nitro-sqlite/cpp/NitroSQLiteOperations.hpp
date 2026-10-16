@@ -2,6 +2,7 @@
 
 #include "NitroSQLiteDatabaseConnections.hpp"
 #include "NitroSQLiteQueryResult.hpp"
+#include "NitroSQLiteRawQueryResult.hpp"
 #include "sqlite/sqlite3.h"
 #include <functional>
 #include <memory>
@@ -26,6 +27,8 @@ public:
 
   /** Reset and execute with new bindings. Throws after finalization or connection closure. */
   NitroSQLiteQueryResult execute(const std::optional<SQLiteQueryParams>& params);
+  /** Reset and execute with new bindings, returning rows as arrays of column values. */
+  NitroSQLiteRawQueryResult executeRaw(const std::optional<SQLiteQueryParams>& params);
   /** Release the native statement. Repeated calls are safe. */
   void finalize();
   /** Check whether the native statement has been released. */
@@ -37,6 +40,9 @@ private:
   struct State;
 
   explicit SQLitePreparedStatement(std::shared_ptr<State> state);
+
+  template <typename Execute>
+  auto executeBound(const std::optional<SQLiteQueryParams>& params, Execute&& execute);
 
   std::shared_ptr<State> _state;
 
@@ -58,6 +64,10 @@ void sqliteDetachDb(const SQLiteConnectionPtr& connection, const std::string& al
  */
 NitroSQLiteQueryResult sqliteExecute(const SQLiteConnectionPtr& connection, const std::string& query,
                                      const std::optional<SQLiteQueryParams>& params, const SQLiteRowBatchHandler& onRows = nullptr);
+
+/** Execute one statement, returning rows as arrays of column values. */
+NitroSQLiteRawQueryResult sqliteExecuteRaw(const SQLiteConnectionPtr& connection, const std::string& query,
+                                           const std::optional<SQLiteQueryParams>& params);
 
 SQLiteOperationResult sqliteExecuteCommand(const SQLiteConnectionPtr& connection, const std::string& query,
                                            const std::optional<SQLiteQueryParams>& params = std::nullopt);

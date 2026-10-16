@@ -9,7 +9,7 @@ import {
 import type { NitroSQLitePreparedStatement } from '../specs/NitroSQLitePreparedStatement.nitro'
 import { prepare } from '../operations/prepare'
 import { open } from '../operations/session'
-import { nativeResult } from './testUtils'
+import { nativeRawResult, nativeResult } from './testUtils'
 
 const dbName = 'prepare-test'
 const query = 'SELECT ? AS value'
@@ -35,6 +35,8 @@ function mockStatement(): NitroSQLitePreparedStatement {
     },
     execute: jest.fn(() => nativeResult([{ value: 7 }])),
     executeAsync: jest.fn(async () => nativeResult([{ value: 8 }])),
+    executeRaw: jest.fn(() => nativeRawResult(['value'], [[9]])),
+    executeRawAsync: jest.fn(async () => nativeRawResult(['value'], [[10]])),
     finalize: jest.fn(() => {
       finalized = true
     }),
@@ -92,6 +94,33 @@ it('keeps synchronous calls from overtaking an asynchronous execution', async ()
   await pending
 
   expect(statement.execute().rows.length).toBe(1)
+  statement.finalize()
+})
+
+it('runs raw executions through the statement queue', async () => {
+  const native = mockStatement()
+  jest.mocked(HybridNitroSQLite.prepare).mockReturnValue(native)
+  const statement = prepare(dbName, query)
+
+  expect(statement.executeRaw([9]).rows).toEqual([[9]])
+  const pending = statement.executeRawAsync([10])
+  expect(() => statement.executeRaw()).toThrow('busy with another operation')
+  await expect(pending).resolves.toMatchObject({
+    columnNames: ['value'],
+    rows: [[10]],
+  })
+  expect(native.executeRaw).toHaveBeenCalledWith([9])
+  expect(native.executeRawAsync).toHaveBeenCalledWith([10])
+
+  jest.mocked(native.executeRaw).mockImplementationOnce(() => {
+    throw new Error('raw failed')
+  })
+  expect(() => statement.executeRaw()).toThrow('raw failed')
+  jest.mocked(native.executeRawAsync).mockRejectedValueOnce('async raw failed')
+  await expect(statement.executeRawAsync()).rejects.toMatchObject({
+    name: 'NitroSQLiteError',
+    message: 'async raw failed',
+  })
   statement.finalize()
 })
 

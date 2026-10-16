@@ -34,6 +34,8 @@ export type {
   NitroSQLiteQueryResult,
   NitroSQLiteQueryRows,
   NitroSQLiteQueryColumnMetadata,
+  NitroSQLiteRawQueryResult,
+  NitroSQLiteRawQueryRows,
 } from './specs/NitroSQLiteQueryResult.nitro'
 export type { TypeOrmNitroSQLiteConnection } from './typeORM'
 export type * from './types'

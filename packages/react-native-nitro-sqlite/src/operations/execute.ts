@@ -1,7 +1,10 @@
 import { HybridNitroSQLite } from '../nitro'
 import type { QueryResult, QueryResultRow, SQLiteQueryParams } from '../types'
 import NitroSQLiteError from '../NitroSQLiteError'
-import type { NitroSQLiteQueryResult } from '../specs/NitroSQLiteQueryResult.nitro'
+import type {
+  NitroSQLiteQueryResult,
+  NitroSQLiteRawQueryResult,
+} from '../specs/NitroSQLiteQueryResult.nitro'
 import {
   isDatabaseOpen,
   queueStatementAsync,
@@ -103,6 +106,52 @@ export async function executeAsyncNative<Row extends QueryResultRow = never>(
       },
     )
     return buildJSQueryResult<Row>(nativeResult, leadingRows)
+  } catch (error) {
+    throw NitroSQLiteError.fromError(error)
+  }
+}
+
+export function executeRawManaged(
+  dbName: string,
+  query: string,
+  params?: SQLiteQueryParams,
+  queueKey: DatabaseQueueKey = dbName,
+): NitroSQLiteRawQueryResult {
+  return startOperationSync(queueKey, () =>
+    executeRawNative(dbName, query, params),
+  )
+}
+
+export function executeRawNative(
+  dbName: string,
+  query: string,
+  params?: SQLiteQueryParams,
+): NitroSQLiteRawQueryResult {
+  try {
+    return HybridNitroSQLite.executeRaw(dbName, query, params)
+  } catch (error) {
+    throw NitroSQLiteError.fromError(error)
+  }
+}
+
+export async function executeRawAsyncManaged(
+  dbName: string,
+  query: string,
+  params?: SQLiteQueryParams,
+  queueKey: DatabaseQueueKey = dbName,
+): Promise<NitroSQLiteRawQueryResult> {
+  return queueStatementAsync(queueKey, () =>
+    executeRawAsyncNative(dbName, query, params),
+  )
+}
+
+export async function executeRawAsyncNative(
+  dbName: string,
+  query: string,
+  params?: SQLiteQueryParams,
+): Promise<NitroSQLiteRawQueryResult> {
+  try {
+    return await HybridNitroSQLite.executeRawAsync(dbName, query, params)
   } catch (error) {
     throw NitroSQLiteError.fromError(error)
   }
