@@ -1,7 +1,7 @@
 import type BetterSqlite3 from 'better-sqlite3'
 import NitroSQLiteError from '../NitroSQLiteError'
 import type { QueryResultRow, SQLiteQueryParams, Transaction } from '../types'
-import { executeQuery } from './query'
+import { executeQuery, executeRawQuery } from './query'
 
 /** @internal Run a callback while the connection's exclusive queue item owns it. */
 export async function runTransaction<Result>(
@@ -21,6 +21,14 @@ export async function runTransaction<Result>(
       )
     }
   }
+  const track = <Value>(operation: Promise<Value>): Promise<Value> => {
+    pending.add(operation)
+    operation.then(
+      () => pending.delete(operation),
+      () => pending.delete(operation),
+    )
+    return operation
+  }
   const finish = (query: 'COMMIT' | 'ROLLBACK') => {
     assertSync()
     const result = executeQuery(database, query)
@@ -37,15 +45,21 @@ export async function runTransaction<Result>(
       params?: SQLiteQueryParams,
     ) => {
       assertActive()
-      const operation = Promise.resolve().then(() =>
-        executeQuery<Row>(database, query, params),
+      return track(
+        Promise.resolve().then(() =>
+          executeQuery<Row>(database, query, params),
+        ),
       )
-      pending.add(operation)
-      operation.then(
-        () => pending.delete(operation),
-        () => pending.delete(operation),
+    },
+    executeRaw: (query, params) => {
+      assertSync()
+      return executeRawQuery(database, query, params)
+    },
+    executeRawAsync: async (query, params) => {
+      assertActive()
+      return track(
+        Promise.resolve().then(() => executeRawQuery(database, query, params)),
       )
-      return operation
     },
     commit: () => finish('COMMIT'),
     rollback: () => finish('ROLLBACK'),

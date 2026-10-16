@@ -5,7 +5,7 @@ description: Pick the query form that fits your workload and understand connecti
 
 Use `db.execute()` for a small query that needs an immediate result, and `await db.executeAsync()` for work that may take longer. A synchronous call blocks its JavaScript caller until SQLite finishes. An asynchronous call returns a promise and lets JavaScript continue while the database work runs in the background.
 
-`executeBatch` and `loadFile` also have matching `Async` methods. A [prepared statement](/docs/guides/prepared-statements) has `execute()` and `executeAsync()` for repeated SQL.
+`executeRaw`, `executeBatch`, and `loadFile` also have matching `Async` methods. A [prepared statement](/docs/guides/prepared-statements) has `execute()` and `executeAsync()` for repeated SQL.
 
 ```ts
 import { open } from 'react-native-nitro-sqlite'

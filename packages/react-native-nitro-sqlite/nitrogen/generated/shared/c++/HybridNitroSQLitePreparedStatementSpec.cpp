@@ -17,6 +17,8 @@ namespace margelo::nitro::rnnitrosqlite {
       prototype.registerHybridGetter("isFinalized", &HybridNitroSQLitePreparedStatementSpec::getIsFinalized);
       prototype.registerHybridMethod("execute", &HybridNitroSQLitePreparedStatementSpec::execute);
       prototype.registerHybridMethod("executeAsync", &HybridNitroSQLitePreparedStatementSpec::executeAsync);
+      prototype.registerHybridMethod("executeRaw", &HybridNitroSQLitePreparedStatementSpec::executeRaw);
+      prototype.registerHybridMethod("executeRawAsync", &HybridNitroSQLitePreparedStatementSpec::executeRawAsync);
       prototype.registerHybridMethod("finalize", &HybridNitroSQLitePreparedStatementSpec::finalize);
     });
   }

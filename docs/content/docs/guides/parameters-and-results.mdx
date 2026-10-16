@@ -31,6 +31,21 @@ for (const person of result.rows._array) {
 
 SQLite INTEGER and REAL result values both arrive as JavaScript numbers. BLOB values arrive as `ArrayBuffer`; NULL values arrive as `null`, even if the parameter was `undefined`. A bound boolean is stored through SQLite's integer binding, so read it as a number and convert it in application code if needed. JavaScript numbers cannot represent every 64-bit SQLite integer exactly; choose a storage representation appropriate for identifiers that exceed the safe integer range.
 
+## Rows as arrays
+
+A row object holds one value per column name, so when two result columns share a name, the later value replaces the earlier one. This happens in joins such as `SELECT users.id, pets.id ...`. `db.executeRaw()` and `db.executeRawAsync()` take the same arguments as `execute()` and `executeAsync()` but return each row as an array of values in column order, so every column is kept.
+
+```ts
+const { columnNames, rows } = db.executeRaw(
+  'SELECT users.id, users.name, pets.id, pets.name FROM users LEFT JOIN pets ON pets.owner_id = users.id',
+)
+
+// columnNames: ['id', 'name', 'id', 'name']
+// rows:        [[1, 'Ada', 7, 'Rex'], [2, 'Grace', null, null]]
+```
+
+The result has `columnNames`, `rows`, `rowsAffected`, and `insertId`. It has no `rows._array` container and no `metadata`. `columnNames` is filled even when the query returns no rows. Transactions and prepared statements have the same two methods. The exact shape is in [`NitroSQLiteRawQueryResult`](/api/react-native-nitro-sqlite/interfaces/NitroSQLiteRawQueryResult).
+
 ## Column metadata
 
 For a query with result columns, `metadata` maps column names to `{ name, type, index }`. `index` is the zero-based result column position. The [`ColumnType` values](/api/react-native-nitro-sqlite/enumerations/ColumnType) are `BOOLEAN = 0`, `NUMBER = 1`, `INT64 = 2`, `TEXT = 3`, `ARRAY_BUFFER = 4`, and `NULL_VALUE = 5`. The package exports `ColumnType` as a TypeScript type, not a runtime enum object. In the current native implementation, `metadata.type` is unreliable for detecting a column's declared SQL type. Use your schema for that decision. An expression without a declared type maps to `NULL_VALUE`, which does not mean the result itself is null. The exact shape is in [`NitroSQLiteQueryColumnMetadata`](/api/react-native-nitro-sqlite/type-aliases/NitroSQLiteQueryColumnMetadata).

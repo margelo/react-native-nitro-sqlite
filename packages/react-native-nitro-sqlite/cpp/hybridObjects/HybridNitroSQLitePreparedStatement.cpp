@@ -42,6 +42,19 @@ HybridNitroSQLitePreparedStatement::executeAsync(const std::optional<SQLiteQuery
       [statement, copiedParams]() -> NitroSQLiteQueryResult { return statement->execute(copiedParams); });
 }
 
+NitroSQLiteRawQueryResult HybridNitroSQLitePreparedStatement::executeRaw(const std::optional<SQLiteQueryParams>& params) {
+  return _statement->executeRaw(params);
+}
+
+std::shared_ptr<Promise<NitroSQLiteRawQueryResult>>
+HybridNitroSQLitePreparedStatement::executeRawAsync(const std::optional<SQLiteQueryParams>& params) {
+  const auto copiedParams = copyArrayBufferParamsForBackground(params);
+  const auto statement = _statement;
+
+  return Promise<NitroSQLiteRawQueryResult>::async(
+      [statement, copiedParams]() -> NitroSQLiteRawQueryResult { return statement->executeRaw(copiedParams); });
+}
+
 void HybridNitroSQLitePreparedStatement::finalize() {
   _statement->finalize();
 }

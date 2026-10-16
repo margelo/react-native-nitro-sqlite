@@ -1,4 +1,7 @@
-import type { NitroSQLiteQueryResult } from './specs/NitroSQLiteQueryResult.nitro'
+import type {
+  NitroSQLiteQueryResult,
+  NitroSQLiteRawQueryResult,
+} from './specs/NitroSQLiteQueryResult.nitro'
 
 /** Options for `open()` and `NitroSQLite.open()`. */
 export interface NitroSQLiteConnectionOptions {
@@ -63,6 +66,10 @@ export interface NitroSQLiteConnection {
   execute: ExecuteQuery
   /** Queue one SQL statement and resolve with its result. */
   executeAsync: ExecuteAsyncQuery
+  /** Execute one SQL statement synchronously, returning rows as arrays of column values. Throws while the connection is busy. */
+  executeRaw: ExecuteRawQuery
+  /** Queue one SQL statement and resolve with rows as arrays of column values. */
+  executeRawAsync: ExecuteRawAsyncQuery
   /**
    * Prepare one SQL statement on this connection for repeated execution.
    * Finalize the returned statement before closing the connection.
@@ -174,6 +181,25 @@ export type ExecuteAsyncQuery = <Row extends QueryResultRow = QueryResultRow>(
   params?: SQLiteQueryParams,
 ) => Promise<QueryResult<Row>>
 
+/** Execute one SQL statement synchronously and return rows as arrays of column values.
+ * Repeated column names are kept, in the order of `columnNames`.
+ * @param query SQL statement with optional positional placeholders.
+ * @param params Values bound to the placeholders.
+ */
+export type ExecuteRawQuery = (
+  query: string,
+  params?: SQLiteQueryParams,
+) => NitroSQLiteRawQueryResult
+
+/** Queue one SQL statement and resolve with rows as arrays of column values.
+ * @param query SQL statement with optional positional placeholders.
+ * @param params Values bound to the placeholders.
+ */
+export type ExecuteRawAsyncQuery = (
+  query: string,
+  params?: SQLiteQueryParams,
+) => Promise<NitroSQLiteRawQueryResult>
+
 /**
  * A reusable SQL statement bound to the connection that prepared it. Each
  * execution resets the statement and its bindings before applying new values.
@@ -186,6 +212,10 @@ export interface PreparedStatement {
   execute: ExecutePreparedStatement
   /** Queue execution on a background thread and resolve with the query result. */
   executeAsync: ExecutePreparedStatementAsync
+  /** Execute on the calling thread like `execute`, returning rows as arrays of column values. */
+  executeRaw: ExecuteRawPreparedStatement
+  /** Queue execution like `executeAsync` and resolve with rows as arrays of column values. */
+  executeRawAsync: ExecuteRawPreparedStatementAsync
   /** Release the native statement. Calling this more than once is safe. */
   finalize(): void
 }
@@ -212,6 +242,23 @@ export type ExecutePreparedStatementAsync = <
   params?: SQLiteQueryParams,
 ) => Promise<QueryResult<Row>>
 
+/**
+ * Execute a prepared statement and return rows as arrays of column values.
+ * Each call replaces the previous parameter bindings.
+ * @param params Values bound to the statement's positional placeholders.
+ */
+export type ExecuteRawPreparedStatement = (
+  params?: SQLiteQueryParams,
+) => NitroSQLiteRawQueryResult
+
+/**
+ * Queue a prepared statement execution and resolve with rows as arrays of column values.
+ * @param params Values bound to the statement's positional placeholders.
+ */
+export type ExecuteRawPreparedStatementAsync = (
+  params?: SQLiteQueryParams,
+) => Promise<NitroSQLiteRawQueryResult>
+
 /** Handle valid only while its transaction callback is active. */
 export interface Transaction {
   /** Commit now. Marks completion only after SQLite accepts COMMIT.
@@ -229,6 +276,10 @@ export interface Transaction {
   execute: ExecuteQuery
   /** Execute within this transaction on a background thread. */
   executeAsync: ExecuteAsyncQuery
+  /** Execute within this transaction on the calling thread, returning rows as arrays of column values. */
+  executeRaw: ExecuteRawQuery
+  /** Execute within this transaction on a background thread, returning rows as arrays of column values. */
+  executeRawAsync: ExecuteRawAsyncQuery
 }
 
 /** One command in a batch. A nested `params` array repeats the query for each parameter set. */

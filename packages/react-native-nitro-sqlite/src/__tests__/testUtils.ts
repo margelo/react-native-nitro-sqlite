@@ -1,10 +1,24 @@
-import type { NitroSQLiteQueryResult } from '../specs/NitroSQLiteQueryResult.nitro'
+import type {
+  NitroSQLiteQueryResult,
+  NitroSQLiteRawQueryResult,
+} from '../specs/NitroSQLiteQueryResult.nitro'
 import type { SQLiteValue } from '../types'
 
 export function nativeResult(
   results: Record<string, SQLiteValue>[] = [],
 ): NitroSQLiteQueryResult {
   return { rowsAffected: results.length, results } as NitroSQLiteQueryResult
+}
+
+export function nativeRawResult(
+  columnNames: string[] = [],
+  rows: SQLiteValue[][] = [],
+): NitroSQLiteRawQueryResult {
+  return {
+    rowsAffected: rows.length,
+    columnNames,
+    rows,
+  } as NitroSQLiteRawQueryResult
 }
 
 export function deferred<T>() {

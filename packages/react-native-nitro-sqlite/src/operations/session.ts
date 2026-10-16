@@ -9,7 +9,12 @@ import type {
   QueryResultRow,
   QueryResult,
 } from '../types'
-import { executeAsyncManaged, executeManaged } from './execute'
+import {
+  executeAsyncManaged,
+  executeManaged,
+  executeRawAsyncManaged,
+  executeRawManaged,
+} from './execute'
 import { executeBatch, executeBatchAsync } from './executeBatch'
 import { prepare } from './prepare'
 import NitroSQLiteError from '../NitroSQLiteError'
@@ -144,6 +149,14 @@ export function open(
     ): Promise<QueryResult<Row>> =>
       runOperation(() =>
         executeAsyncManaged(connectionId, query, params, queueKey),
+      ),
+    executeRaw: (query: string, params?: SQLiteQueryParams) =>
+      runOperation(() =>
+        executeRawManaged(connectionId, query, params, queueKey),
+      ),
+    executeRawAsync: async (query: string, params?: SQLiteQueryParams) =>
+      runOperation(() =>
+        executeRawAsyncManaged(connectionId, query, params, queueKey),
       ),
     prepare: (query: string) =>
       runOperation(() => prepare(connectionId, query, queueKey)),

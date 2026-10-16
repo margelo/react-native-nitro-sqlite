@@ -229,6 +229,26 @@ std::shared_ptr<Promise<NitroSQLiteQueryResult>> HybridNitroSQLite::executeAsync
       });
 };
 
+NitroSQLiteRawQueryResult HybridNitroSQLite::executeRaw(const std::string& dbName, const std::string& query,
+                                                        const std::optional<SQLiteQueryParams>& params) {
+  return sqliteExecuteRaw(_connections.get(dbName), query, params);
+}
+
+std::shared_ptr<Promise<NitroSQLiteRawQueryResult>> HybridNitroSQLite::executeRawAsync(const std::string& dbName, const std::string& query,
+                                                                                       const std::optional<SQLiteQueryParams>& params) {
+  const auto copiedParams = copyArrayBufferParamsForBackground(params);
+  SQLiteConnectionPtr connection;
+  try {
+    connection = _connections.get(dbName);
+  } catch (...) {
+    return Promise<NitroSQLiteRawQueryResult>::rejected(std::current_exception());
+  }
+
+  return enqueueConnectionOperation<NitroSQLiteRawQueryResult>(
+      connection,
+      [connection, query, copiedParams]() -> NitroSQLiteRawQueryResult { return sqliteExecuteRaw(connection, query, copiedParams); });
+}
+
 std::shared_ptr<HybridNitroSQLitePreparedStatementSpec> HybridNitroSQLite::prepare(const std::string& dbName, const std::string& query) {
   return std::make_shared<HybridNitroSQLitePreparedStatement>(sqlitePrepare(_connections.get(dbName), query));
 }
