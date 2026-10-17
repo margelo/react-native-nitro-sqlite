@@ -1,4 +1,4 @@
 {
   "title": "Integrations",
-  "pages": ["typeorm", "vector-search"]
+  "pages": ["drizzle", "typeorm", "vector-search"]
 }

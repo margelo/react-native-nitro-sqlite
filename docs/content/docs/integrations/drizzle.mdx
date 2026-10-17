@@ -1,0 +1,117 @@
+---
+title: Drizzle ORM
+description: Use Drizzle ORM with Nitro SQLite through the react-native-nitro-sqlite-drizzle driver.
+---
+
+`react-native-nitro-sqlite-drizzle` runs [Drizzle ORM](https://orm.drizzle.team) queries on a Nitro SQLite connection. Pass an open connection to `drizzle()` and query it with Drizzle's API. Every query is asynchronous.
+
+## Install
+
+Install the driver with Drizzle and Nitro SQLite. Drizzle Kit and the Babel plugin are only needed for migrations.
+
+```bash
+npm install react-native-nitro-sqlite react-native-nitro-sqlite-drizzle drizzle-orm
+npm install --save-dev drizzle-kit babel-plugin-inline-import
+```
+
+The driver supports `drizzle-orm` 0.45.4 and later 0.x releases.
+
+## Create a database
+
+```ts
+import { sqliteTable, integer, text } from 'drizzle-orm/sqlite-core'
+import { open } from 'react-native-nitro-sqlite'
+import { drizzle } from 'react-native-nitro-sqlite-drizzle'
+
+export const users = sqliteTable('users', {
+  id: integer('id').primaryKey(),
+  name: text('name').notNull(),
+})
+
+export const db = drizzle(open({ name: 'app.sqlite' }))
+
+await db.insert(users).values({ id: 1, name: 'Ada' })
+const rows = await db.select().from(users)
+```
+
+Create `db` once, outside your components. `drizzle(connection, config)` accepts Drizzle's `schema`, `logger`, and `casing` options. `db.$client` is the connection passed to `drizzle()`.
+
+## Migrations
+
+Drizzle Kit generates SQL migration files from your schema. Set `driver: 'expo'` so it also writes a `migrations.js` file that bundles them for React Native:
+
+```ts title="drizzle.config.ts"
+import { defineConfig } from 'drizzle-kit'
+
+export default defineConfig({
+  schema: './db/schema.ts',
+  out: './drizzle',
+  dialect: 'sqlite',
+  driver: 'expo',
+})
+```
+
+Run `npx drizzle-kit generate` after each schema change.
+
+`migrations.js` imports `.sql` files. Add the Babel plugin so they load as strings:
+
+```js title="babel.config.js"
+module.exports = {
+  presets: ['module:@react-native/babel-preset'],
+  plugins: [['inline-import', { extensions: ['.sql'] }]],
+}
+```
+
+Add `sql` to Metro's source extensions:
+
+```js title="metro.config.js"
+const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config')
+
+const defaultConfig = getDefaultConfig(__dirname)
+
+module.exports = mergeConfig(defaultConfig, {
+  resolver: { sourceExts: [...defaultConfig.resolver.sourceExts, 'sql'] },
+})
+```
+
+Run the migrations when the app starts with `useMigrations`. It applies the migrations this database has not run yet, in one transaction, and records them in the `__drizzle_migrations` table:
+
+```tsx
+import { Text } from 'react-native'
+import { useMigrations } from 'react-native-nitro-sqlite-drizzle'
+import migrations from './drizzle/migrations'
+import { db } from './db'
+
+export function App() {
+  const { success, error } = useMigrations(db, migrations)
+
+  if (error) return <Text>Migration failed: {error.message}</Text>
+  if (!success) return <Text>Migrating...</Text>
+  return <Text>Ready</Text>
+}
+```
+
+To run migrations outside a component, such as in startup code or a test, call `migrate` and await it:
+
+```ts
+import { migrate } from 'react-native-nitro-sqlite-drizzle'
+
+await migrate(db, migrations)
+```
+
+## Transactions
+
+Run every query inside a transaction through `tx`:
+
+```ts
+import { eq } from 'drizzle-orm'
+
+await db.transaction(async (tx) => {
+  await tx.insert(users).values({ id: 2, name: 'Grace' })
+  await tx.update(users).set({ name: 'Ada L.' }).where(eq(users.id, 1))
+})
+```
+
+A transaction holds the connection until its callback finishes. A query awaited through `db` inside the callback, including a query prepared from `db`, waits for the transaction and never completes. Nested `tx.transaction()` calls use savepoints.
+
+`tx.rollback()` rolls back the transaction and rejects it with a `NitroSQLiteError` whose message is `Rollback`, not Drizzle's `TransactionRollbackError`. The `behavior` option of `db.transaction()` is ignored: transactions start with `BEGIN`. See [transactions](/docs/guides/transactions) for how Nitro SQLite runs them.
