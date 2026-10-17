@@ -1,4 +1,5 @@
 export { drizzle, NitroSQLiteDatabase } from './driver'
+export { migrate, useMigrations } from './migrator'
 export {
   NitroSQLitePreparedQuery,
   NitroSQLiteSession,

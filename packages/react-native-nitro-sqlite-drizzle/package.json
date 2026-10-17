@@ -39,10 +39,13 @@
   },
   "peerDependencies": {
     "drizzle-orm": ">=0.45.4 <1.0.0",
+    "react": ">=17.0.0",
     "react-native-nitro-sqlite": ">=10.3.0"
   },
   "devDependencies": {
+    "drizzle-kit": "0.31.11",
     "drizzle-orm": "0.45.4",
+    "react": "19.2.3",
     "react-native-nitro-sqlite": "10.2.0",
     "typescript": "^5.8.3"
   },
