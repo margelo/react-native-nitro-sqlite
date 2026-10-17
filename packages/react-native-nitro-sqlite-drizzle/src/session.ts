@@ -24,6 +24,7 @@ import type {
   SQLiteQueryParams,
   Transaction,
 } from 'react-native-nitro-sqlite'
+import './drizzle-orm'
 
 export interface NitroSQLiteSessionOptions {
   logger?: Logger

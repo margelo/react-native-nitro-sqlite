@@ -7,7 +7,6 @@ import type {
   TablesRelationalConfig,
 } from 'drizzle-orm'
 import type {
-  PreparedQueryConfig,
   SQLiteAsyncDialect,
   SQLiteSession,
   SQLiteSyncDialect,

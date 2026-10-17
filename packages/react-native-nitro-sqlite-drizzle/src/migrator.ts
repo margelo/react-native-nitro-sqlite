@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { MigrationMeta } from 'drizzle-orm/migrator'
 import type { NitroSQLiteDatabase } from './driver'
+import './drizzle-orm'
 
 interface MigrationConfig {
   journal: {
