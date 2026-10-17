@@ -334,6 +334,7 @@ function fixture(run: (directory: string) => void): void {
       'package.json',
       'packages/react-native-nitro-sqlite/package.json',
       'packages/react-native-nitro-sqlite-vec/package.json',
+      'packages/react-native-nitro-sqlite-drizzle/package.json',
       'example/package.json',
     ]) {
       mkdirSync(join(directory, path, '..'), { recursive: true })

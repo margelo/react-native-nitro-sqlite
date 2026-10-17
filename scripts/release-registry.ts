@@ -4,6 +4,7 @@ import { compareVersions, parseVersion } from './release-plan.ts'
 export const releasePackages = [
   'react-native-nitro-sqlite',
   'react-native-nitro-sqlite-vec',
+  'react-native-nitro-sqlite-drizzle',
 ]
 
 /** Select the channel without moving latest backwards on maintenance releases.

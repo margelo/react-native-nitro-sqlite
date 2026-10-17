@@ -33,6 +33,10 @@
     "packages/react-native-nitro-sqlite-vec/**/*.jsx",
     "packages/react-native-nitro-sqlite-vec/tsconfig.json",
     "packages/react-native-nitro-sqlite-vec/package.json",
+    "packages/react-native-nitro-sqlite-drizzle/**/*.ts",
+    "packages/react-native-nitro-sqlite-drizzle/**/*.js",
+    "packages/react-native-nitro-sqlite-drizzle/tsconfig.json",
+    "packages/react-native-nitro-sqlite-drizzle/package.json",
     "scripts/**/*.ts",
     "example/jest*.js"
   ],
@@ -75,6 +79,8 @@
     "packages/react-native-nitro-sqlite/package.json",
     "packages/react-native-nitro-sqlite-vec/src/**",
     "packages/react-native-nitro-sqlite-vec/package.json",
+    "packages/react-native-nitro-sqlite-drizzle/src/**",
+    "packages/react-native-nitro-sqlite-drizzle/package.json",
     "config/tsconfig.json",
     "package.json",
     "bun.lock"

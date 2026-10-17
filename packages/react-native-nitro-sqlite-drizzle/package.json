@@ -1,0 +1,59 @@
+{
+  "name": "react-native-nitro-sqlite-drizzle",
+  "version": "10.2.0",
+  "description": "Drizzle ORM driver for react-native-nitro-sqlite.",
+  "source": "./src/index",
+  "react-native": "./src/index",
+  "main": "./src/index",
+  "types": "./src/index",
+  "files": [
+    "src",
+    "!**/__tests__",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "jest",
+    "typecheck": "tsc --build",
+    "lint": "eslint \"**/*.{js,ts,tsx}\" --fix",
+    "prepublishOnly": "bun typecheck"
+  },
+  "keywords": [
+    "react-native",
+    "sqlite",
+    "drizzle",
+    "drizzle-orm",
+    "orm",
+    "nitro-modules",
+    "ios",
+    "android"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/margelo/react-native-nitro-sqlite.git"
+  },
+  "author": "Christoph Pader",
+  "license": "MIT",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "peerDependencies": {
+    "drizzle-orm": ">=0.45.4 <1.0.0",
+    "react-native-nitro-sqlite": ">=10.3.0"
+  },
+  "devDependencies": {
+    "drizzle-orm": "0.45.4",
+    "react-native-nitro-sqlite": "10.2.0",
+    "typescript": "^5.8.3"
+  },
+  "jest": {
+    "preset": "@react-native/jest-preset",
+    "watchman": false,
+    "moduleNameMapper": {
+      "^react-native-nitro-sqlite/mock$": "<rootDir>/../react-native-nitro-sqlite/src/mock.ts"
+    },
+    "testMatch": [
+      "<rootDir>/src/__tests__/**/*.test.ts"
+    ]
+  }
+}
