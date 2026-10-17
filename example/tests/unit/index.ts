@@ -9,6 +9,7 @@ import registerPreparedStatementUnitTests from './specs/operations/preparedState
 import registerTypeORMUnitTestsSpecs from './specs/typeorm.spec'
 import registerDatabaseQueueUnitTests from './specs/DatabaseQueue.spec'
 import registerSqliteVecUnitTestsSpecs from './specs/sqlite-vec.spec'
+import registerDrizzleUnitTestsSpecs from './specs/drizzle.spec'
 import registerConnectionUnitTests from './specs/Connections.spec'
 import registerBenchmarkDatabaseUnitTests from './specs/benchmarkDatabase.spec'
 
@@ -35,4 +36,8 @@ export function registerTypeORMUnitTests() {
 
 export function registerSqliteVecUnitTests() {
   describe('sqlite-vec.spec.ts', registerSqliteVecUnitTestsSpecs)
+}
+
+export function registerDrizzleUnitTests() {
+  describe('drizzle.spec.ts', registerDrizzleUnitTestsSpecs)
 }

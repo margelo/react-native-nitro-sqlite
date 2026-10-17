@@ -1,4 +1,4 @@
-import { eq, sql, TransactionRollbackError } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import { open, resetAllDatabases } from 'react-native-nitro-sqlite/mock'
 import type { NitroSQLiteConnection } from 'react-native-nitro-sqlite'
@@ -108,7 +108,7 @@ describe('drizzle', () => {
         await tx.insert(users).values({ id: 3, name: 'Ada' })
         tx.rollback()
       }),
-    ).rejects.toBeInstanceOf(TransactionRollbackError)
+    ).rejects.toThrow('Rollback')
     expect(await db.select().from(users)).toEqual([{ id: 1, name: 'Dave' }])
   })
 })

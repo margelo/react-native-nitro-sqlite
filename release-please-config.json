@@ -79,6 +79,11 @@
           "type": "json",
           "path": "example/package.json",
           "jsonpath": "$.dependencies['react-native-nitro-sqlite-vec']"
+        },
+        {
+          "type": "json",
+          "path": "example/package.json",
+          "jsonpath": "$.dependencies['react-native-nitro-sqlite-drizzle']"
         }
       ]
     }

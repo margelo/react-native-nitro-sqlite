@@ -41,6 +41,7 @@ function createExampleBabelConfig(projectRoot, { buffer, crypto } = {}) {
       ],
       'babel-plugin-transform-typescript-metadata',
       ['@babel/plugin-proposal-decorators', { legacy: true }],
+      ['inline-import', { extensions: ['.sql'] }],
     ],
   }
 }

@@ -86,6 +86,7 @@ export function validateReleaseVersions(version: string): void {
         'version',
         'dependencies.react-native-nitro-sqlite',
         'dependencies.react-native-nitro-sqlite-vec',
+        'dependencies.react-native-nitro-sqlite-drizzle',
       ],
     ],
   ] satisfies [string, string[]][]) {

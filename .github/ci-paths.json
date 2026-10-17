@@ -116,9 +116,14 @@
     "scripts/android-sqlite-flags/**",
     "example/index.js",
     "example/babel.config*.js",
+    "example/metro.config.js",
     "example/app.json",
     "packages/react-native-nitro-sqlite-vec/src/**",
-    "!packages/react-native-nitro-sqlite-vec/src/__tests__/**"
+    "!packages/react-native-nitro-sqlite-vec/src/__tests__/**",
+    "packages/react-native-nitro-sqlite-drizzle/src/**",
+    "packages/react-native-nitro-sqlite-drizzle/package.json",
+    "!packages/react-native-nitro-sqlite-drizzle/src/__tests__/**",
+    "packages/react-native-nitro-sqlite-drizzle/src/__tests__/fixtures/**"
   ],
   "ios": [
     ".github/workflows/**",
@@ -154,9 +159,14 @@
     "scripts/test-podspec-threadsafe.rb",
     "example/index.js",
     "example/babel.config*.js",
+    "example/metro.config.js",
     "example/app.json",
     "packages/react-native-nitro-sqlite-vec/src/**",
-    "!packages/react-native-nitro-sqlite-vec/src/__tests__/**"
+    "!packages/react-native-nitro-sqlite-vec/src/__tests__/**",
+    "packages/react-native-nitro-sqlite-drizzle/src/**",
+    "packages/react-native-nitro-sqlite-drizzle/package.json",
+    "!packages/react-native-nitro-sqlite-drizzle/src/__tests__/**",
+    "packages/react-native-nitro-sqlite-drizzle/src/__tests__/fixtures/**"
   ],
   "macos": [
     ".github/workflows/**",
@@ -193,6 +203,10 @@
     "example/react-native.config.js",
     "example/macos/react-native.config.js",
     "!packages/react-native-nitro-sqlite/src/__tests__/**",
-    "!packages/react-native-nitro-sqlite-vec/src/__tests__/**"
+    "!packages/react-native-nitro-sqlite-vec/src/__tests__/**",
+    "packages/react-native-nitro-sqlite-drizzle/src/**",
+    "packages/react-native-nitro-sqlite-drizzle/package.json",
+    "!packages/react-native-nitro-sqlite-drizzle/src/__tests__/**",
+    "packages/react-native-nitro-sqlite-drizzle/src/__tests__/fixtures/**"
   ]
 }

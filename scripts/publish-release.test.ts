@@ -97,6 +97,7 @@ function runPublication(extraEnv: Record<string, string> = {}) {
           dependencies: {
             'react-native-nitro-sqlite': '1.0.0',
             'react-native-nitro-sqlite-vec': '1.0.0',
+            'react-native-nitro-sqlite-drizzle': '1.0.0',
           },
         }),
       )

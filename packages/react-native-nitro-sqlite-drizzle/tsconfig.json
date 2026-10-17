@@ -1,10 +1,14 @@
 {
   "extends": "../../config/tsconfig.json",
-  "include": ["src"],
+  "include": ["src", "src/**/*.json"],
   "references": [{ "path": "../react-native-nitro-sqlite" }],
   "compilerOptions": {
     "types": ["node", "jest"],
     "rootDir": "src",
+    "outDir": ".tsbuild",
+    "emitDeclarationOnly": true,
+    "noEmit": false,
+    "tsBuildInfoFile": ".tsbuild/tsconfig.tsbuildinfo",
     "paths": {
       "react-native-nitro-sqlite": [
         "../react-native-nitro-sqlite/src/index.ts"
