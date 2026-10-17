@@ -121,12 +121,14 @@ jobs:
           bun --cwd example lint
           bun --cwd packages/react-native-nitro-sqlite lint
           bun --cwd packages/react-native-nitro-sqlite-vec lint
+          bun --cwd packages/react-native-nitro-sqlite-drizzle lint
           git diff --exit-code HEAD -- . ':(exclude)bun.lock'
       - name: Test JavaScript wrappers and example runners
         if: steps.select.outputs.typescript == 'true'
         run: |
           (cd packages/react-native-nitro-sqlite && ../../node_modules/.bin/jest --coverage --runInBand)
           (cd packages/react-native-nitro-sqlite-vec && ../../node_modules/.bin/jest --coverage --runInBand)
+          (cd packages/react-native-nitro-sqlite-drizzle && ../../node_modules/.bin/jest --coverage --runInBand)
           (cd example && ../node_modules/.bin/jest --config jest.mocha.config.js --runInBand --watchman=false)
           node --test example/macos/scripts/test-macos.test.mjs
       - name: Format C++
