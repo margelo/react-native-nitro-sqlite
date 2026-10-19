@@ -105,7 +105,7 @@ jobs:
         run: xcrun simctl bootstatus "$IOS_SIMULATOR_UDID" -b
 
       - name: Run iOS integration tests
-        uses: callstackincubator/react-native-harness@v1.5.0
+        uses: callstackincubator/react-native-harness@v1.6.0
         env:
           HARNESS_DEBUG: "1"
         with:
