@@ -53,7 +53,7 @@
     "@react-native-community/cli": "20.2.0",
     "@react-native-community/cli-platform-android": "20.2.0",
     "@react-native-community/cli-platform-ios": "20.2.0",
-    "@react-native-harness/cli": "1.5.0",
+    "@react-native-harness/cli": "1.6.0",
     "@react-native-harness/jest": "1.5.0",
     "@react-native-harness/platform-android": "1.5.0",
     "@react-native-harness/platform-apple": "1.5.0",
