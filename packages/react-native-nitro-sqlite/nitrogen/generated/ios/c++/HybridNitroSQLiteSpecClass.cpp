@@ -31,10 +31,10 @@ namespace margelo::nitro::rnnitrosqlite {
 
   namespace {
     struct HybridNitroSQLiteSpecBindings final {
-      static std::shared_ptr<HybridNitroSQLiteSpec> constructor() {
-        static_assert(std::is_constructible_v<::margelo::nitro::rnnitrosqlite::HybridNitroSQLite>,
+      static std::shared_ptr<HybridNitroSQLiteSpec> constructor(const std::string& databaseDirectory, const std::optional<std::string>& temporaryDirectory, const std::optional<std::string>& legacyDatabaseDirectory) {
+        static_assert(std::is_constructible_v<::margelo::nitro::rnnitrosqlite::HybridNitroSQLite, decltype(databaseDirectory), decltype(temporaryDirectory), decltype(legacyDatabaseDirectory)>,
                       "NitroSQLite: ::margelo::nitro::rnnitrosqlite::HybridNitroSQLite must implement the declared public constructor.");
-        return std::make_shared<::margelo::nitro::rnnitrosqlite::HybridNitroSQLite>();
+        return std::make_shared<::margelo::nitro::rnnitrosqlite::HybridNitroSQLite>(std::forward<decltype(databaseDirectory)>(databaseDirectory), std::forward<decltype(temporaryDirectory)>(temporaryDirectory), std::forward<decltype(legacyDatabaseDirectory)>(legacyDatabaseDirectory));
       }
     };
   }
