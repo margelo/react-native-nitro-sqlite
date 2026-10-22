@@ -1,7 +1,7 @@
 const path = require('path')
 const libraryPackage = require('../packages/react-native-nitro-sqlite/package.json')
 
-function createExampleBabelConfig(projectRoot, { buffer, crypto } = {}) {
+function createExampleBabelConfig(projectRoot) {
   const sourceDirectory = path.join(projectRoot, 'src')
   const testsDirectory = path.join(projectRoot, 'tests')
   const aliases = {
@@ -18,14 +18,6 @@ function createExampleBabelConfig(projectRoot, { buffer, crypto } = {}) {
     ),
     '^@/(.+)': `${sourceDirectory}/\\1`,
     '^@tests/(.+)': `${testsDirectory}/\\1`,
-  }
-
-  if (buffer !== false) {
-    aliases.buffer = buffer ?? 'react-native-quick-crypto'
-  }
-
-  if (crypto !== false) {
-    aliases.crypto = crypto ?? 'react-native-quick-crypto'
   }
 
   return {
