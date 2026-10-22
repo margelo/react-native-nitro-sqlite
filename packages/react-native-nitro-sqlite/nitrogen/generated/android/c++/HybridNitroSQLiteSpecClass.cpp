@@ -18,7 +18,7 @@
 #include <NitroModules/Callback.hpp>
 #include <functional>
 #include <memory>
-#include <RNNitroSQLite/HybridNitroSQLitePreparedStatementSpec.hpp>
+#include <RNNitroSQLite/HybridPreparedStatementSpec.hpp>
 #include <RNNitroSQLite/BatchQueryResult.hpp>
 #include <RNNitroSQLite/BatchQueryCommand.hpp>
 #include <RNNitroSQLite/FileLoadResult.hpp>

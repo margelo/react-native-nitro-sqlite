@@ -2,24 +2,24 @@ import { Android, iOS, type HybridObject } from 'react-native-nitro-modules'
 import type { SQLiteQueryParams } from '../types'
 import type { NitroSQLiteQueryResult } from './NitroSQLiteQueryResult'
 
-export * from '#nitro/NitroSQLitePreparedStatement'
+export * from '#nitro/PreparedStatement'
 
 /** Native prepared statement returned by `NitroSQLite.native.prepare()`. */
 @iOS({
   language: 'c++',
   implementation: {
-    className: 'HybridNitroSQLitePreparedStatement',
-    include: '"hybridObjects/HybridNitroSQLitePreparedStatement.hpp"',
+    className: 'HybridPreparedStatement',
+    include: '"hybridObjects/HybridPreparedStatement.hpp"',
   },
 })
 @Android({
   language: 'c++',
   implementation: {
-    className: 'HybridNitroSQLitePreparedStatement',
-    include: '"hybridObjects/HybridNitroSQLitePreparedStatement.hpp"',
+    className: 'HybridPreparedStatement',
+    include: '"hybridObjects/HybridPreparedStatement.hpp"',
   },
 })
-export declare class NitroSQLitePreparedStatement extends HybridObject {
+export declare class PreparedStatement extends HybridObject {
   /** Whether the native statement has been finalized. */
   readonly isFinalized: boolean
 
