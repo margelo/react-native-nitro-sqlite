@@ -6,12 +6,7 @@ const branch = process.env.RELEASE_BRANCH
 const repository = process.env.GITHUB_REPOSITORY
 if (!branch || !repository)
   throw new Error('Release branch and repository are required.')
-const paths = [
-  'bun.lock',
-  'example/ios/Podfile.lock',
-  'example/macos/Podfile.lock',
-  'example/Gemfile.lock',
-]
+const paths = ['bun.lock', 'example/macos/Podfile.lock', 'example/Gemfile.lock']
 const announcement = process.env.RELEASE_ANNOUNCEMENT
 if (announcement?.trim()) {
   const metadata: unknown = JSON.parse(readFileSync('package.json', 'utf8'))

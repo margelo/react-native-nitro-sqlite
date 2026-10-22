@@ -50,7 +50,6 @@ jobs:
       android_configuration: ${{ steps.select.outputs.android_configuration }}
       ios: ${{ steps.select.outputs.ios }}
       macos: ${{ steps.select.outputs.macos }}
-      ios_pods: ${{ steps.pods.outputs.ios_pods }}
       macos_pods: ${{ steps.pods.outputs.macos_pods }}
     steps:
       - uses: actions/checkout@v7
@@ -89,7 +88,6 @@ jobs:
           name: ci-lockfiles
           path: |
             bun.lock
-            example/ios/Podfile.lock
             example/macos/Podfile.lock
           retention-days: 1
       - name: Require committed dependency resolutions
@@ -99,7 +97,7 @@ jobs:
           git diff --exit-code -- bun.lock
       - name: Select native lockfile checks
         id: pods
-        if: steps.select.outputs.dependencies == 'true' && (steps.select.outputs.ios == 'true' || steps.select.outputs.macos == 'true')
+        if: steps.select.outputs.dependencies == 'true' && steps.select.outputs.macos == 'true'
         run: node scripts/ci-dependencies.ts
         env:
           CI_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
@@ -140,10 +138,9 @@ jobs:
       - name: Test C++ database lifecycle and SQLite symbols
         if: steps.select.outputs.cpp_tests == 'true'
         run: bash scripts/test-cpp.sh
-      - name: Test SQLite thread-safety pod configuration
-        # Paused because Nitro V1 doesn't generate the CocoaPods files that the podspec loads.
-        if: false && steps.select.outputs.ios == 'true'
-        run: ruby scripts/test-podspec-threadsafe.rb
+      - name: Test SQLite Swift package configuration
+        if: steps.select.outputs.ios == 'true'
+        run: node --test scripts/sqlite-package-config.test.ts
       - name: Check documentation
         if: steps.select.outputs.docs == 'true'
         run: |
@@ -153,15 +150,12 @@ jobs:
   lockfiles:
     name: Native lockfiles
     needs: checks
-    # Paused because Nitro V1 doesn't support CocoaPods. Remove `false &&` to resume it.
+    # Paused until Nitro V1 supports React Native macOS. Remove `false &&` to resume it.
     if: >-
       false &&
       github.event_name != 'push' && !github.event.pull_request.draft &&
-      (needs.checks.outputs.ios_pods == 'true' || needs.checks.outputs.macos_pods == 'true')
+      needs.checks.outputs.macos_pods == 'true'
     uses: ./.github/workflows/update-lockfiles.yml
-    with:
-      ios: ${{ needs.checks.outputs.ios_pods == 'true' }}
-      macos: ${{ needs.checks.outputs.macos_pods == 'true' }}
 
   android:
     name: Android
@@ -179,10 +173,7 @@ jobs:
   ios:
     name: iOS
     needs: [checks, lockfiles]
-    # Paused because Nitro V1 builds iOS with Swift Package Manager, which this workflow doesn't set up yet.
-    # Remove `false &&` to resume it.
     if: >-
-      false &&
       !cancelled() && needs.checks.result == 'success' &&
       (needs.lockfiles.result == 'success' || needs.lockfiles.result == 'skipped') &&
       github.event_name != 'push' && !github.event.pull_request.draft &&
