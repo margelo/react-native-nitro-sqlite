@@ -79,6 +79,8 @@ const requiredMembers = {
       'transaction',
       'execute',
       'executeAsync',
+      'executeRaw',
+      'executeRawAsync',
       'executeBatch',
       'executeBatchAsync',
       'close',
