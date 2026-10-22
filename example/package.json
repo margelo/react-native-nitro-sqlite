@@ -26,7 +26,7 @@
     "@react-native-clipboard/clipboard": "^1.16.3",
     "@react-navigation/native": "^7.5.1",
     "@react-navigation/native-stack": "^7.21.0",
-    "chai": "^4.3.7",
+    "chai": "^6.3.0",
     "chance": "^1.1.9",
     "events": "^3.3.0",
     "expo-status-bar": "^1.12.1",
