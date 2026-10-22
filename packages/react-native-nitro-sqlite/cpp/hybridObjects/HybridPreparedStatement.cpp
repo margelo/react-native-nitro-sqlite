@@ -26,8 +26,7 @@ namespace {
 
 } // namespace
 
-HybridPreparedStatement::HybridPreparedStatement(std::shared_ptr<SQLitePreparedStatement> statement)
-    : _statement(std::move(statement)) {}
+HybridPreparedStatement::HybridPreparedStatement(std::shared_ptr<SQLitePreparedStatement> statement) : _statement(std::move(statement)) {}
 
 NitroSQLiteQueryResult HybridPreparedStatement::execute(const std::optional<SQLiteQueryParams>& params) {
   return _statement->execute(params);
