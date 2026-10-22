@@ -20,6 +20,8 @@ const config = {
   projectRoot: __dirname,
   watchFolders: [exampleRoot, root],
   resolver: {
+    // The example shares migration fixtures with the Drizzle package tests.
+    blockList: /\/__tests__\/(?!fixtures\/).*/,
     disableHierarchicalLookup: true,
     nodeModulesPaths: [
       path.join(__dirname, 'node_modules'),
