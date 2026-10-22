@@ -1,8 +1,8 @@
 #pragma once
 
-#include "NitroSQLiteDatabaseConnections.hpp"
+#include "SQLiteDatabaseConnections.hpp"
 #include "sqlite/sqlite3.h"
-#include <RNNitroSQLite/NitroSQLiteQueryResult.hpp>
+#include <RNNitroSQLite/NativeQueryResult.hpp>
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -25,7 +25,7 @@ public:
   ~SQLitePreparedStatement();
 
   /** Reset and execute with new bindings. Throws after finalization or connection closure. */
-  NitroSQLiteQueryResult execute(const std::optional<SQLiteQueryParams>& params);
+  NativeQueryResult execute(const std::optional<SQLiteQueryParams>& params);
   /** Release the native statement. Repeated calls are safe. */
   void finalize();
   /** Check whether the native statement has been released. */
@@ -57,8 +57,8 @@ void sqliteDetachDb(const SQLiteConnectionPtr& connection, const std::string& al
  * returned result holds only the rows after the last batch. Its rowBatchCount reports how many
  * batches were sent; JavaScript delivery may still be pending when this function returns.
  */
-NitroSQLiteQueryResult sqliteExecute(const SQLiteConnectionPtr& connection, const std::string& query,
-                                     const std::optional<SQLiteQueryParams>& params, const SQLiteRowBatchHandler& onRows = nullptr);
+NativeQueryResult sqliteExecute(const SQLiteConnectionPtr& connection, const std::string& query,
+                                const std::optional<SQLiteQueryParams>& params, const SQLiteRowBatchHandler& onRows = nullptr);
 
 SQLiteOperationResult sqliteExecuteCommand(const SQLiteConnectionPtr& connection, const std::string& query,
                                            const std::optional<SQLiteQueryParams>& params = std::nullopt);

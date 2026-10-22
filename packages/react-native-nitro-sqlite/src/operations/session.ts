@@ -2,8 +2,8 @@ import { HybridNitroSQLite } from '../nitro'
 import { transaction } from './transaction'
 import type {
   BatchQueryCommand,
-  NitroSQLiteConnection,
-  NitroSQLiteConnectionOptions,
+  Connection,
+  ConnectionOptions,
   Transaction,
   SQLiteQueryParams,
   QueryResultRow,
@@ -12,7 +12,7 @@ import type {
 import { executeAsyncManaged, executeManaged } from './execute'
 import { executeBatch, executeBatchAsync } from './executeBatch'
 import { prepare } from './prepare'
-import NitroSQLiteError from '../NitroSQLiteError'
+import SQLiteError from '../SQLiteError'
 import {
   closeDatabaseQueue,
   getDatabaseQueue,
@@ -31,14 +31,12 @@ import type { DatabaseQueueKey } from '../DatabaseQueue'
  * a native build with SQLite SEE; it does not encrypt an existing plaintext file.
  * @param options Database name, optional directory, connection mode, read-only setting, and SEE key.
  * @returns A connection bound to the opened native handle.
- * @throws `NitroSQLiteError` with type `EncryptionNotEnabled` when a key is
+ * @throws `SQLiteError` with type `EncryptionNotEnabled` when a key is
  * supplied without SEE, or `DatabaseCannotBeDecrypted` for an invalid key,
  * wrong key, or existing plaintext database.
  * @see [Encryption guide](https://sqlite.margelo.com/docs/guides/encryption)
  */
-export function open(
-  options: NitroSQLiteConnectionOptions,
-): NitroSQLiteConnection {
+export function open(options: ConnectionOptions): Connection {
   const { name, location: databaseLocation, connection, readOnly } = options
   const { connectionId, queueKey } = openNativeConnection(options)
   const connectionQueue = getDatabaseQueue(queueKey)
@@ -48,7 +46,7 @@ export function open(
       !isDatabaseOpen(queueKey) ||
       getDatabaseQueue(queueKey) !== connectionQueue
     ) {
-      throw new NitroSQLiteError(
+      throw new SQLiteError(
         `Database ${name} is not open. There is no connection to the database.`,
       )
     }
@@ -59,7 +57,7 @@ export function open(
       isDatabaseOpen(queueKey) &&
       getDatabaseQueue(queueKey) !== connectionQueue
     ) {
-      throw new NitroSQLiteError(
+      throw new SQLiteError(
         `Database ${name} has been reopened with another connection.`,
       )
     }
@@ -70,7 +68,7 @@ export function open(
       assertCurrentConnection()
       return startOperationSync(queueKey, callback)
     } catch (error) {
-      throw NitroSQLiteError.fromError(error)
+      throw SQLiteError.fromError(error)
     }
   }
 
@@ -86,7 +84,7 @@ export function open(
     },
     delete: () => {
       if (readOnly) {
-        throw new NitroSQLiteError(`Cannot delete read-only database ${name}.`)
+        throw new SQLiteError(`Cannot delete read-only database ${name}.`)
       }
 
       let dropFailed = false
@@ -121,7 +119,7 @@ export function open(
         ) {
           closeDatabaseQueue(queueKey)
         }
-        throw NitroSQLiteError.fromError(error)
+        throw SQLiteError.fromError(error)
       }
     },
     attach: (dbNameToAttach: string, alias: string, location?: string) =>
@@ -161,14 +159,14 @@ export function open(
           try {
             return await HybridNitroSQLite.loadFileAsync(connectionId, location)
           } catch (error) {
-            throw NitroSQLiteError.fromError(error)
+            throw SQLiteError.fromError(error)
           }
         }),
       ),
   }
 }
 
-function openNativeConnection(options: NitroSQLiteConnectionOptions): {
+function openNativeConnection(options: ConnectionOptions): {
   connectionId: string
   queueKey: DatabaseQueueKey
 } {
@@ -194,7 +192,7 @@ function openNativeConnection(options: NitroSQLiteConnectionOptions): {
       openDatabaseQueue(queueKey)
       return { connectionId, queueKey }
     } catch (error) {
-      throw NitroSQLiteError.fromError(error)
+      throw SQLiteError.fromError(error)
     }
   }
 
@@ -212,7 +210,7 @@ function openNativeConnection(options: NitroSQLiteConnectionOptions): {
     }
   } catch (error) {
     closeDatabaseQueue(options.name)
-    throw NitroSQLiteError.fromError(error)
+    throw SQLiteError.fromError(error)
   }
   return { connectionId: options.name, queueKey: options.name }
 }

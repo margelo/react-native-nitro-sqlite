@@ -1,15 +1,15 @@
 import { describe, it, beforeEach, afterAll } from '@tests/TestApi'
-import { expect, isNitroSQLiteError } from '@tests/unit/common'
+import { expect, isSQLiteError } from '@tests/unit/common'
 import { open } from 'react-native-nitro-sqlite'
-import type { NitroSQLiteConnection } from 'react-native-nitro-sqlite'
+import type { Connection } from 'react-native-nitro-sqlite'
 
 type Param = string | number | null
 type Row = Record<string, unknown>
 
 const DB_NAME = 'test_vec'
-let db: NitroSQLiteConnection
+let db: Connection
 
-function closeQuietly(connection: NitroSQLiteConnection | undefined) {
+function closeQuietly(connection: Connection | undefined) {
   if (connection == null) return
   try {
     connection.close()
@@ -538,7 +538,7 @@ export default function registerSqliteVecUnitTests() {
         )
       } catch (e) {
         threw = true
-        expect(isNitroSQLiteError(e)).toBe(true)
+        expect(isSQLiteError(e)).toBe(true)
       }
       expect(threw).toBe(true)
     })
@@ -551,7 +551,7 @@ export default function registerSqliteVecUnitTests() {
         )
       } catch (e) {
         threw = true
-        expect(isNitroSQLiteError(e)).toBe(true)
+        expect(isSQLiteError(e)).toBe(true)
       }
       expect(threw).toBe(true)
     })

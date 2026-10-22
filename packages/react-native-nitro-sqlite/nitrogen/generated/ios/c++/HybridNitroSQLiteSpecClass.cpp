@@ -8,13 +8,13 @@
 #include <RNNitroSQLite/HybridNitroSQLiteSpec.hpp>
 #include <string>
 #include <optional>
-#include <RNNitroSQLite/NitroSQLiteQueryResult.hpp>
+#include <RNNitroSQLite/NativeQueryResult.hpp>
 #include <NitroModules/ArrayBuffer.hpp>
 #include <NitroModules/Null.hpp>
 #include <variant>
 #include <vector>
 #include <NitroModules/Promise.hpp>
-#include "NitroSQLiteQueryResults.hpp"
+#include "SQLiteQueryResults.hpp"
 #include <NitroModules/Callback.hpp>
 #include <functional>
 #include <memory>

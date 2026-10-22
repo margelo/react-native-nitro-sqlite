@@ -1,7 +1,7 @@
 import { HybridNitroSQLite } from '../nitro'
 import type { QueryResult, QueryResultRow, SQLiteQueryParams } from '../types'
-import NitroSQLiteError from '../NitroSQLiteError'
-import type { NitroSQLiteQueryResult } from '../specs/NitroSQLiteQueryResult'
+import SQLiteError from '../SQLiteError'
+import type { NativeQueryResult } from '../specs/NativeQueryResult'
 import {
   isDatabaseOpen,
   queueStatementAsync,
@@ -48,7 +48,7 @@ export function executeNative<Row extends QueryResultRow = never>(
     const nativeResult = HybridNitroSQLite.execute(dbName, query, params)
     return buildJSQueryResult<Row>(nativeResult)
   } catch (error) {
-    throw NitroSQLiteError.fromError(error)
+    throw SQLiteError.fromError(error)
   }
 }
 
@@ -117,12 +117,12 @@ export async function executeAsyncNative<Row extends QueryResultRow = never>(
     }
     return buildJSQueryResult<Row>(nativeResult, leadingRows)
   } catch (error) {
-    throw NitroSQLiteError.fromError(error)
+    throw SQLiteError.fromError(error)
   }
 }
 
 export function buildJSQueryResult<Row extends QueryResultRow = never>(
-  result: NitroSQLiteQueryResult,
+  result: NativeQueryResult,
   leadingRows?: Row[],
 ): QueryResult<Row> {
   const resultWithRows = result as QueryResult<Row> & { results: Row[] }

@@ -1,4 +1,4 @@
-#import "NitroSQLiteVecRegisterVectorExtensions.hpp"
+#import "SQLiteVecRegisterVectorExtensions.hpp"
 #import <Foundation/Foundation.h>
 
 // Swift Package Manager builds this package separately from the core, so register before any database opens.

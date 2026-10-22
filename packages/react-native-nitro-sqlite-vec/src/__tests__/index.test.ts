@@ -1,4 +1,4 @@
-import type { NitroSQLiteConnection } from 'react-native-nitro-sqlite'
+import type { Connection } from 'react-native-nitro-sqlite'
 import {
   createVectorTable,
   isVecAvailable,
@@ -7,7 +7,7 @@ import {
 } from '../index'
 
 const execute = jest.fn()
-const db = { execute } as unknown as NitroSQLiteConnection
+const db = { execute } as unknown as Connection
 
 beforeEach(() => execute.mockReset())
 

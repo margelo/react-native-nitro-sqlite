@@ -13,6 +13,7 @@
     "attach-databases",
     "load-sql-file",
     "performance",
+    "migrate-to-nitro-v1",
     "migrate-from-quick-sqlite",
     "ai-agents"
   ]

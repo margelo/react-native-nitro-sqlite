@@ -3,7 +3,7 @@
 #ifdef SQLITE_ENABLE_SEE
 #define SQLITE_HAS_CODEC 1
 #endif
-#include "NitroSQLiteStatementCache.hpp"
+#include "SQLiteStatementCache.hpp"
 #include "sqlite/sqlite3.h"
 #include <filesystem>
 #include <functional>

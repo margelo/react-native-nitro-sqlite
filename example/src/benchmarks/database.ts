@@ -1,9 +1,9 @@
-import { open, type NitroSQLiteConnection } from 'react-native-nitro-sqlite'
+import { open, type Connection } from 'react-native-nitro-sqlite'
 
 export function createBenchmarkDatabase(
   name: string,
   schema: string,
-): NitroSQLiteConnection {
+): Connection {
   const db = open({ name })
   try {
     db.execute('DROP TABLE IF EXISTS Bench')
@@ -15,7 +15,7 @@ export function createBenchmarkDatabase(
   }
 }
 
-export function disposeBenchmarkDatabase(db: NitroSQLiteConnection): void {
+export function disposeBenchmarkDatabase(db: Connection): void {
   db.close()
   db.delete()
 }

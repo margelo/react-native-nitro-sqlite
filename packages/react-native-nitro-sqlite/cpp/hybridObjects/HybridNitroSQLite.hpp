@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../NitroSQLiteDatabaseConnections.hpp"
-#include "../NitroSQLiteTypes.hpp"
+#include "../SQLiteDatabaseConnections.hpp"
+#include "../SQLiteTypes.hpp"
 #include <RNNitroSQLite/HybridNitroSQLiteSpec.hpp>
 #include <RNNitroSQLite/HybridPreparedStatementSpec.hpp>
 
@@ -68,15 +68,14 @@ public:
    * @param params Optional values bound to the placeholders.
    * @return Native rows, affected row count, insert ID, and metadata.
    */
-  NitroSQLiteQueryResult execute(const std::string& dbName, const std::string& query,
-                                 const std::optional<SQLiteQueryParams>& params) override;
+  NativeQueryResult execute(const std::string& dbName, const std::string& query, const std::optional<SQLiteQueryParams>& params) override;
 
   /** Execute one SQL statement on a background thread.
    * @return A promise of the native query result.
    */
-  Promise<NitroSQLiteQueryResult> executeAsync(const std::string& dbName, const std::string& query,
-                                               const std::optional<SQLiteQueryParams>& params,
-                                               const std::optional<Callback<void(SQLiteQueryResults)>>& onRows) override;
+  Promise<NativeQueryResult> executeAsync(const std::string& dbName, const std::string& query,
+                                          const std::optional<SQLiteQueryParams>& params,
+                                          const std::optional<Callback<void(SQLiteQueryResults)>>& onRows) override;
 
   /** Prepare one SQL statement for repeated execution on an open connection. */
   std::shared_ptr<HybridPreparedStatementSpec> prepare(const std::string& dbName, const std::string& query) override;

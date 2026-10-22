@@ -1,8 +1,8 @@
-#include "NitroSQLiteOperations.hpp"
-#include "NitroSQLiteException.hpp"
-#include "NitroSQLiteStatementGroup.hpp"
-#include "NitroSQLiteStatementTail.hpp"
-#include "NitroSQLiteUtils.hpp"
+#include "SQLiteOperations.hpp"
+#include "SQLiteException.hpp"
+#include "SQLiteStatementGroup.hpp"
+#include "SQLiteStatementTail.hpp"
+#include "SQLiteUtils.hpp"
 #include "sqlite/sqlite3.h"
 #include <NitroModules/ArrayBuffer.hpp>
 #include <cmath>
@@ -18,7 +18,7 @@
 
 #ifdef NITRO_SQLITE_VEC
 // Angle-bracket so it resolves via -I (CocoaPods intercepts quoted includes).
-#include <NitroSQLiteVecRegisterVectorExtensions.hpp>
+#include <SQLiteVecRegisterVectorExtensions.hpp>
 #endif
 
 using namespace facebook;
@@ -41,8 +41,7 @@ void sqliteOpenDb(DatabaseConnections& connections, const std::string& dbName, c
 std::string sqliteOpenConnection(DatabaseConnections& connections, const std::string& dbName, const std::string& docPath, bool readOnly,
                                  const std::optional<std::string>& encryptionKey) {
   if (sqlite3_threadsafe() == 0) {
-    throw NitroSQLiteException(NitroSQLiteExceptionType::DatabaseCannotBeOpened,
-                               "Independent connections require a thread-safe SQLite build");
+    throw SQLiteException(SQLiteExceptionType::DatabaseCannotBeOpened, "Independent connections require a thread-safe SQLite build");
   }
 #ifdef NITRO_SQLITE_VEC
   margelo::rnnitrosqlitevec::registerVectorExtensions();
@@ -58,9 +57,9 @@ void sqliteAttachDb(const SQLiteConnectionPtr& connection, const std::string& do
 
   try {
     sqliteExecuteCommand(connection, statement);
-  } catch (NitroSQLiteException& e) {
-    throw NitroSQLiteException(NitroSQLiteExceptionType::UnableToAttachToDatabase,
-                               connection->name + " was unable to attach another database: " + std::string(e.what()));
+  } catch (SQLiteException& e) {
+    throw SQLiteException(SQLiteExceptionType::UnableToAttachToDatabase,
+                          connection->name + " was unable to attach another database: " + std::string(e.what()));
   }
 }
 
@@ -69,9 +68,9 @@ void sqliteDetachDb(const SQLiteConnectionPtr& connection, const std::string& al
 
   try {
     sqliteExecuteCommand(connection, statement);
-  } catch (NitroSQLiteException& e) {
-    throw NitroSQLiteException(NitroSQLiteExceptionType::UnableToAttachToDatabase,
-                               connection->name + " was unable to detach database: " + std::string(e.what()));
+  } catch (SQLiteException& e) {
+    throw SQLiteException(SQLiteExceptionType::UnableToAttachToDatabase,
+                          connection->name + " was unable to detach database: " + std::string(e.what()));
   }
 }
 
@@ -114,8 +113,8 @@ void bindStatement(sqlite3_stmt* statement, const SQLiteQueryParams& values) {
     }
 
     if (bindStatus != SQLITE_OK) {
-      throw NitroSQLiteException::SqlExecution("Failed to bind parameter " + std::to_string(sqliteIndex) + " (SQLite error " +
-                                               std::to_string(bindStatus) + "): " + sqlite3_errstr(bindStatus));
+      throw SQLiteException::SqlExecution("Failed to bind parameter " + std::to_string(sqliteIndex) + " (SQLite error " +
+                                          std::to_string(bindStatus) + "): " + sqlite3_errstr(bindStatus));
     }
   }
 }
@@ -139,18 +138,18 @@ namespace {
     SQLiteStatement statement(rawStatement);
 
     if (statementStatus != SQLITE_OK) {
-      throw NitroSQLiteException::SqlExecution(sqlite3_errmsg(db));
+      throw SQLiteException::SqlExecution(sqlite3_errmsg(db));
     }
 
     // sqlite3_prepare_v2 reports SQLITE_OK with a null statement when the query holds no SQL,
     // such as an empty string or nothing but comments.
     if (!statement) {
-      throw NitroSQLiteException::SqlExecution("Query does not contain any SQL statement");
+      throw SQLiteException::SqlExecution("Query does not contain any SQL statement");
     }
 
     // Only the first statement would run, so reject the query instead of silently skipping the rest.
     if (hasTrailingStatement(db, tail)) {
-      throw NitroSQLiteException::SqlExecution("Query contains more than one SQL statement");
+      throw SQLiteException::SqlExecution("Query contains more than one SQL statement");
     }
 
     if (params) {
@@ -212,7 +211,7 @@ namespace {
         return;
       }
 
-      throw NitroSQLiteException::SqlExecution(sqlite3_errmsg(db));
+      throw SQLiteException::SqlExecution(sqlite3_errmsg(db));
     }
   }
 
@@ -220,7 +219,7 @@ namespace {
   // and a smaller final batch shortens the conversion left after the statement completes.
   constexpr size_t kRowBatchSize = 256;
 
-  NitroSQLiteQueryResult executeStatement(sqlite3* db, sqlite3_stmt* statement, const SQLiteRowBatchHandler& onRows = nullptr) {
+  NativeQueryResult executeStatement(sqlite3* db, sqlite3_stmt* statement, const SQLiteRowBatchHandler& onRows = nullptr) {
     int columnCount = 0;
     std::vector<std::string> columnNames;
     std::vector<SQLiteQueryResultRow> rows;
@@ -233,7 +232,7 @@ namespace {
       for (int i = 0; i < columnCount; i++) {
         const char* columnName = sqlite3_column_name(statement, i);
         if (columnName == nullptr) {
-          throw NitroSQLiteException::SqlExecution(sqlite3_errmsg(db));
+          throw SQLiteException::SqlExecution(sqlite3_errmsg(db));
         }
         columnNames.emplace_back(columnName);
       }
@@ -260,7 +259,7 @@ namespace {
           case SQLITE_TEXT: {
             auto columnValue = reinterpret_cast<const char*>(sqlite3_column_text(currentStatement, i));
             if (columnValue == nullptr) {
-              throw NitroSQLiteException::SqlExecution(sqlite3_errmsg(db));
+              throw SQLiteException::SqlExecution(sqlite3_errmsg(db));
             }
             int columnBytes = sqlite3_column_bytes(currentStatement, i);
             row.emplace_back(std::string(columnValue, static_cast<size_t>(columnBytes)));
@@ -301,7 +300,7 @@ namespace {
     for (int i = 0; i < columnCount; i++) {
       const std::string& columnName = columnNames[i];
       ColumnType columnDeclaredType = mapSQLiteTypeToColumnType(sqlite3_column_decltype(statement, i));
-      auto columnMeta = NitroSQLiteQueryColumnMetadata(columnName, std::move(columnDeclaredType), i);
+      auto columnMeta = QueryColumnMetadata(columnName, std::move(columnDeclaredType), i);
 
       if (!metadata) {
         metadata = std::make_optional<SQLiteQueryTableMetadata>();
@@ -309,19 +308,19 @@ namespace {
       metadata->insert({columnName, std::move(columnMeta)});
     }
 
-    return NitroSQLiteQueryResult(sqlite3_changes(db), static_cast<double>(sqlite3_last_insert_rowid(db)),
-                                  SQLiteQueryResults(std::move(columnNames), std::move(rows)), std::move(metadata),
-                                  static_cast<double>(rowBatchCount));
+    return NativeQueryResult(sqlite3_changes(db), static_cast<double>(sqlite3_last_insert_rowid(db)),
+                             SQLiteQueryResults(std::move(columnNames), std::move(rows)), std::move(metadata),
+                             static_cast<double>(rowBatchCount));
   }
 
 } // namespace
 
-NitroSQLiteQueryResult sqliteExecute(const SQLiteConnectionPtr& connection, const std::string& query,
-                                     const std::optional<SQLiteQueryParams>& params, const SQLiteRowBatchHandler& onRows) {
+NativeQueryResult sqliteExecute(const SQLiteConnectionPtr& connection, const std::string& query,
+                                const std::optional<SQLiteQueryParams>& params, const SQLiteRowBatchHandler& onRows) {
   std::lock_guard lock(connection->mutex);
   sqlite3* db = connection->database;
   if (db == nullptr) {
-    throw NitroSQLiteException::DatabaseNotOpen(connection->name);
+    throw SQLiteException::DatabaseNotOpen(connection->name);
   }
 
   CachedStatement statement(*connection, query);
@@ -336,7 +335,7 @@ SQLiteOperationResult sqliteExecuteCommand(const SQLiteConnectionPtr& connection
   std::lock_guard lock(connection->mutex);
   sqlite3* db = connection->database;
   if (db == nullptr) {
-    throw NitroSQLiteException::DatabaseNotOpen(connection->name);
+    throw SQLiteException::DatabaseNotOpen(connection->name);
   }
 
   auto statement = prepareStatement(db, query, params);
@@ -356,14 +355,14 @@ SQLiteOperationResult sqliteExecuteCommandGroup(const SQLiteConnectionPtr& conne
   std::lock_guard lock(connection->mutex);
   sqlite3* db = connection->database;
   if (db == nullptr) {
-    throw NitroSQLiteException::DatabaseNotOpen(connection->name);
+    throw SQLiteException::DatabaseNotOpen(connection->name);
   }
 
   const auto [rowsAffected, commands] = executeStatementGroup(
       db, query, parameterSets, [](sqlite3* database, const std::string& sql) { return prepareStatement(database, sql, std::nullopt); },
       [](sqlite3_stmt* statement, const SQLiteQueryParams& params) { bindStatement(statement, params); },
       [](sqlite3* database, sqlite3_stmt* statement) { consumeStatement(database, statement, [](sqlite3_stmt*) {}); },
-      [](sqlite3* database) { throw NitroSQLiteException::SqlExecution(sqlite3_errmsg(database)); });
+      [](sqlite3* database) { throw SQLiteException::SqlExecution(sqlite3_errmsg(database)); });
   return {.rowsAffected = rowsAffected, .commands = commands};
 }
 
@@ -381,27 +380,27 @@ SQLitePreparedStatement::~SQLitePreparedStatement() {
   finalize();
 }
 
-NitroSQLiteQueryResult SQLitePreparedStatement::execute(const std::optional<SQLiteQueryParams>& params) {
+NativeQueryResult SQLitePreparedStatement::execute(const std::optional<SQLiteQueryParams>& params) {
   std::lock_guard lock(_state->mutex);
   std::lock_guard connectionLock(_state->connection->mutex);
 
   if (!_state->statement) {
-    throw NitroSQLiteException("Prepared statement has been finalized");
+    throw SQLiteException("Prepared statement has been finalized");
   }
 
   sqlite3* database = _state->connection->database;
   if (database == nullptr) {
-    throw NitroSQLiteException("Prepared statement belongs to a closed database connection");
+    throw SQLiteException("Prepared statement belongs to a closed database connection");
   }
 
   int resetStatus = sqlite3_reset(_state->statement.get());
   if (resetStatus != SQLITE_OK) {
-    throw NitroSQLiteException::SqlExecution(sqlite3_errmsg(database));
+    throw SQLiteException::SqlExecution(sqlite3_errmsg(database));
   }
 
   int clearBindingsStatus = sqlite3_clear_bindings(_state->statement.get());
   if (clearBindingsStatus != SQLITE_OK) {
-    throw NitroSQLiteException::SqlExecution(sqlite3_errmsg(database));
+    throw SQLiteException::SqlExecution(sqlite3_errmsg(database));
   }
 
   if (params) {
@@ -434,7 +433,7 @@ size_t SQLitePreparedStatement::getExternalMemorySize() const noexcept {
 std::shared_ptr<SQLitePreparedStatement> sqlitePrepare(const SQLiteConnectionPtr& connection, const std::string& query) {
   std::lock_guard lock(connection->mutex);
   if (connection->database == nullptr) {
-    throw NitroSQLiteException::DatabaseNotOpen(connection->name);
+    throw SQLiteException::DatabaseNotOpen(connection->name);
   }
 
   auto statement = prepareStatement(connection->database, query, std::nullopt);

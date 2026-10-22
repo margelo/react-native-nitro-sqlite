@@ -2,9 +2,9 @@ import { describe, it } from '@tests/TestApi'
 import { expect } from '@tests/unit/common'
 import {
   NitroSQLite,
-  NitroSQLiteError,
+  SQLiteError,
   open,
-  type NitroSQLiteConnection,
+  type Connection,
 } from 'react-native-nitro-sqlite'
 
 const TIMEOUT_MS = 5000
@@ -356,10 +356,10 @@ function expectThrows(action: () => unknown) {
   } catch (caught) {
     error = caught
   }
-  expect(error).toBeInstanceOf(NitroSQLiteError)
+  expect(error).toBeInstanceOf(SQLiteError)
 }
 
-function mainPath(connection: NitroSQLiteConnection): string {
+function mainPath(connection: Connection): string {
   const main = connection
     .execute<{ name: string; file: string }>('PRAGMA database_list')
     .results.find((row) => row.name === 'main')
@@ -368,7 +368,7 @@ function mainPath(connection: NitroSQLiteConnection): string {
   return main.file
 }
 
-function databaseNames(connection: NitroSQLiteConnection): string[] {
+function databaseNames(connection: Connection): string[] {
   return connection
     .execute<{ name: string }>('PRAGMA database_list')
     .results.map((row) => row.name)
