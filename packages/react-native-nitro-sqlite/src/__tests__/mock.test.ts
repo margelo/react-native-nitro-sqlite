@@ -86,6 +86,29 @@ describe('Node SQLite mock', () => {
     })
   })
 
+  it.each([0, 1])(
+    'refreshes raw prepared column names after a schema change, id=%s',
+    async (id) => {
+      const database = open({ name: 'raw-schema-change' })
+      database.execute('CREATE TABLE items (id INTEGER)')
+      database.execute('INSERT INTO items VALUES (1)')
+      const statement = database.prepare('SELECT * FROM items WHERE id = ?')
+      database.execute(
+        "ALTER TABLE items ADD COLUMN label TEXT DEFAULT 'added'",
+      )
+
+      const result = statement.executeRaw([id])
+      expect(result.columnNames).toEqual(['id', 'label'])
+      expect(result.rows).toEqual(id === 1 ? [[1, 'added']] : [])
+
+      database.execute('ALTER TABLE items RENAME COLUMN label TO name')
+      const asyncResult = await statement.executeRawAsync([id])
+      expect(asyncResult.columnNames).toEqual(['id', 'name'])
+      expect(asyncResult.rows).toEqual(result.rows)
+      statement.finalize()
+    },
+  )
+
   it('binds repeated named parameters in first-occurrence order', () => {
     const database = open({ name: 'named' })
     expect(
