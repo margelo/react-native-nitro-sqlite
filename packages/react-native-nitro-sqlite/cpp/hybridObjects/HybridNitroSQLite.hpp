@@ -2,8 +2,8 @@
 
 #include "../NitroSQLiteDatabaseConnections.hpp"
 #include "../NitroSQLiteTypes.hpp"
-#include <RNNitroSQLite/HybridPreparedStatementSpec.hpp>
 #include <RNNitroSQLite/HybridNitroSQLiteSpec.hpp>
+#include <RNNitroSQLite/HybridPreparedStatementSpec.hpp>
 
 namespace margelo::nitro::rnnitrosqlite {
 
