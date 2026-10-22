@@ -258,18 +258,21 @@ for (const name of deprecatedExports) {
   const target = corePackage.children.find((child) => child.id === alias.target)
   assert.ok(target, `Missing reference target: ${name}`)
   // A canonical type and value can have separate reflection IDs with the same name.
+  const canonicalExports = corePackage.children.filter(
+    (child) => child.name === target.name,
+  )
   assert.ok(
     deprecated.content.some((part) =>
-      corePackage.children.some(
-        (child) => child.id === part.target && child.name === target.name,
-      ),
+      canonicalExports.some((child) => child.id === part.target),
     ),
     `Missing canonical replacement link: ${name}`,
   )
-  assert.ok(
-    !target.comment?.blockTags?.some((tag) => tag.tag === '@deprecated'),
-    `Canonical export is deprecated: ${target.name}`,
-  )
+  for (const canonical of canonicalExports) {
+    assert.ok(
+      !canonical.comment?.blockTags?.some((tag) => tag.tag === '@deprecated'),
+      `Canonical export is deprecated: ${canonical.name}`,
+    )
+  }
   const section = corePackageHome
     .split(`### ~~${name}~~\n`)[1]
     ?.split(/\n(?:#{1,3} |\*\*\*)/)[0]
