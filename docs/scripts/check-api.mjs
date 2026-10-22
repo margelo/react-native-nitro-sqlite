@@ -43,6 +43,18 @@ const requiredExports = {
     'createVectorTable',
     'knnSearch',
   ],
+  'react-native-nitro-sqlite-drizzle': [
+    'drizzle',
+    'migrate',
+    'useMigrations',
+    'MigrationConfig',
+    'MigrationState',
+    'NitroSQLiteDatabase',
+    'NitroSQLiteSessionOptions',
+    'NitroSQLiteSession',
+    'NitroSQLiteTransaction',
+    'NitroSQLitePreparedQuery',
+  ],
 }
 
 for (const [packageName, exports] of Object.entries(requiredExports)) {

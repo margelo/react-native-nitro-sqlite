@@ -36,6 +36,8 @@ const rows = await db.select().from(users)
 
 Create `db` once, outside your components. `drizzle(connection, config)` accepts Drizzle's `schema`, `logger`, and `casing` options. `db.$client` is the connection passed to `drizzle()`.
 
+SQLite stores binary values as BLOBs. When you pass a `Buffer` or another typed-array view through Drizzle, the driver binds its bytes as an `ArrayBuffer`, preserving the view's byte range.
+
 ## Migrations
 
 Drizzle Kit generates SQL migration files from your schema. Set `driver: 'expo'` so it also writes a `migrations.js` file that bundles them for React Native:
@@ -98,6 +100,8 @@ import { migrate } from 'react-native-nitro-sqlite-drizzle'
 
 await migrate(db, migrations)
 ```
+
+Calls using the same connection wait for earlier migration calls before checking which migrations are pending. React Strict Mode can replay `useMigrations` without applying the same migration twice. If a migration fails, its transaction rolls back and a later call can retry it.
 
 ## Transactions
 

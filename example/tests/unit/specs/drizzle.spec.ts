@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, it } from '@tests/TestApi'
 import { expect } from '@tests/unit/common'
 import { eq, sql } from 'drizzle-orm'
+import { blob, sqliteTable } from 'drizzle-orm/sqlite-core'
 import { open } from 'react-native-nitro-sqlite'
 import type { NitroSQLiteConnection } from 'react-native-nitro-sqlite'
 import { drizzle, migrate } from 'react-native-nitro-sqlite-drizzle'
@@ -35,6 +36,22 @@ export default function registerDrizzleUnitTests() {
     ).toEqual(
       migrations.journal.entries.map((entry) => ({ created_at: entry.when })),
     )
+  })
+
+  it('round trips blob views and JSON through native bindings', async () => {
+    connection.execute('CREATE TABLE files (content BLOB, metadata BLOB)')
+    const files = sqliteTable('files', {
+      content: blob('content', { mode: 'buffer' }).$type<Uint8Array>(),
+      metadata: blob('metadata', { mode: 'json' }),
+    })
+    const bytes = Buffer.from([99, 1, 2, 88]).subarray(1, 3)
+    const metadata = { name: 'receipt.jpg' }
+
+    await db.insert(files).values({ content: bytes, metadata })
+
+    expect(await db.select().from(files)).toEqual([
+      { content: Buffer.from([1, 2]), metadata },
+    ])
   })
 
   it('keeps both sides of a join whose columns share names', async () => {

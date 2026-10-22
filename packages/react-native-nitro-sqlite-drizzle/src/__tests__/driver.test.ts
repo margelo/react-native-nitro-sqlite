@@ -1,5 +1,5 @@
 import { eq, sql } from 'drizzle-orm'
-import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { blob, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import { open, resetAllDatabases } from 'react-native-nitro-sqlite/mock'
 import type { NitroSQLiteConnection } from 'react-native-nitro-sqlite'
 import { drizzle } from '../index'
@@ -29,6 +29,29 @@ function createDatabase() {
 afterEach(resetAllDatabases)
 
 describe('drizzle', () => {
+  it('binds blob views as ArrayBuffers containing only their bytes', async () => {
+    const db = createDatabase()
+    db.$client.execute('CREATE TABLE files (content BLOB, metadata BLOB)')
+    const files = sqliteTable('files', {
+      content: blob('content', { mode: 'buffer' }),
+      metadata: blob('metadata', { mode: 'json' }),
+    })
+    const execute = jest.spyOn(db.$client, 'executeRawAsync')
+    const bytes = Buffer.from([99, 1, 2, 88]).subarray(1, 3)
+    const metadata = { name: 'receipt.jpg' }
+
+    await db.insert(files).values({ content: bytes, metadata })
+
+    const params = execute.mock.calls[0]?.[1]
+    expect(params?.[0]).toBeInstanceOf(ArrayBuffer)
+    expect(params?.[1]).toBeInstanceOf(ArrayBuffer)
+    expect(params?.[0]).toEqual(Uint8Array.from([1, 2]).buffer)
+    expect(await db.select().from(files)).toEqual([
+      { content: Buffer.from([1, 2]), metadata },
+    ])
+    execute.mockRestore()
+  })
+
   it('inserts and selects rows', async () => {
     const db = createDatabase()
     await db.insert(users).values([
