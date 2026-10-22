@@ -49,15 +49,15 @@ export function executePreparedRaw(
   let columnNames: string[] = []
   let rows: SQLiteValue[][] = []
   if (statement.reader) {
-    columnNames = statement.columns().map((column) => column.name)
     try {
       // better-sqlite3's types keep the object row type after raw(true).
       const rawStatement = statement.raw(true) as unknown as RawStatement
-      rows = rawStatement
-        .all(...bindings)
-        .map((row) =>
-          row.map((value, index) => normalizeValue(value, columnNames[index]!)),
-        )
+      const rawRows = rawStatement.all(...bindings)
+      // Execution may reprepare the statement after a schema change.
+      columnNames = statement.columns().map((column) => column.name)
+      rows = rawRows.map((row) =>
+        row.map((value, index) => normalizeValue(value, columnNames[index]!)),
+      )
     } finally {
       // Raw mode stays on the statement, and prepared statements also serve execute().
       statement.raw(false)
