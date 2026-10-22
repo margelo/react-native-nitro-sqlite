@@ -1,4 +1,4 @@
-import type { HybridObject } from 'react-native-nitro-modules'
+import { Android, iOS, type HybridObject } from 'react-native-nitro-modules'
 import type {
   BatchQueryCommand,
   BatchQueryResult,
@@ -8,18 +8,33 @@ import type {
 import type {
   NitroSQLiteQueryResult,
   NitroSQLiteQueryRows,
-} from './NitroSQLiteQueryResult.nitro'
+} from './NitroSQLiteQueryResult'
 import type { NitroSQLitePreparedStatement } from './NitroSQLitePreparedStatement.nitro'
+
+export * from '#nitro/NitroSQLite'
 
 /** Native database operations exposed through `NitroSQLite.native`.
  * These calls bypass the managed connection queue. Coordinate them with any
  * transaction or pending operation on the same database yourself.
  */
-export interface NitroSQLite
-  extends HybridObject<{
-    ios: 'c++'
-    android: 'c++'
-  }> {
+@iOS({
+  language: 'c++',
+  implementation: {
+    className: 'HybridNitroSQLite',
+    include: '"hybridObjects/HybridNitroSQLite.hpp"',
+  },
+})
+@Android({
+  language: 'c++',
+  implementation: {
+    className: 'HybridNitroSQLite',
+    include: '"hybridObjects/HybridNitroSQLite.hpp"',
+  },
+})
+export declare class NitroSQLite extends HybridObject {
+  /** Create a root with its own default and independent connections. */
+  constructor()
+
   /** Open a name-based default connection, creating the database unless `readOnly` is true.
    * @param dbName Database file name and default connection key.
    * @param location Directory relative to the platform database directory.

@@ -1,4 +1,4 @@
-import type { NitroSQLiteQueryResult } from './specs/NitroSQLiteQueryResult.nitro'
+import type { NitroSQLiteQueryResult } from './specs/NitroSQLiteQueryResult'
 
 /** Options for `open()` and `NitroSQLite.open()`. */
 export interface NitroSQLiteConnectionOptions {

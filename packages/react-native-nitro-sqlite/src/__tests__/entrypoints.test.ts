@@ -1,7 +1,11 @@
 jest.mock('react-native-nitro-modules', () => ({
   NitroModules: {
-    createHybridObject: jest.fn((name: string) =>
-      name === 'NitroSQLiteOnLoad' ? { init: jest.fn() } : { open: jest.fn() },
+    getHybridClass: jest.fn((name: string) =>
+      name === 'rnnitrosqlite.NitroSQLiteOnLoad'
+        ? { init: jest.fn() }
+        : class {
+            open = jest.fn()
+          },
     ),
   },
 }))
@@ -28,7 +32,9 @@ describe('entrypoints', () => {
   })
 
   it('creates the native object and exposes its native and managed methods', () => {
-    expect(NitroModules.createHybridObject).toHaveBeenCalledWith('NitroSQLite')
+    expect(NitroModules.getHybridClass).toHaveBeenCalledWith(
+      'rnnitrosqlite.NitroSQLite',
+    )
     expect(NitroSQLite.native).toBe(HybridNitroSQLite)
     expect(NitroSQLite.open).toBe(open)
     expect(NitroSQLite.open).not.toBe(HybridNitroSQLite.open)
@@ -38,12 +44,13 @@ describe('entrypoints', () => {
   it('initializes the Android native loader', () => {
     androidInit()
 
-    expect(NitroModules.createHybridObject).toHaveBeenCalledWith(
-      'NitroSQLiteOnLoad',
+    expect(NitroModules.getHybridClass).toHaveBeenCalledWith(
+      'rnnitrosqlite.NitroSQLiteOnLoad',
     )
     const onLoad = jest
-      .mocked(NitroModules.createHybridObject)
-      .mock.results.find((result) => 'init' in result.value)?.value
+      .mocked(NitroModules.getHybridClass)
+      .mock.results.map((result) => result.value as { init?: jest.Mock })
+      .find((value) => 'init' in value)
     expect(onLoad?.init).toHaveBeenCalledTimes(1)
   })
 })

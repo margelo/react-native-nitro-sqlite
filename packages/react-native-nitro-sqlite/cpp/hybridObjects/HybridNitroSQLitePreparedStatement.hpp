@@ -2,7 +2,7 @@
 
 #include "../NitroSQLiteOperations.hpp"
 #include "../NitroSQLiteTypes.hpp"
-#include "HybridNitroSQLitePreparedStatementSpec.hpp"
+#include <RNNitroSQLite/HybridNitroSQLitePreparedStatementSpec.hpp>
 #include <memory>
 
 namespace margelo::nitro::rnnitrosqlite {
@@ -16,7 +16,7 @@ public:
   /** Execute with new bindings on the calling thread. */
   NitroSQLiteQueryResult execute(const std::optional<SQLiteQueryParams>& params) override;
   /** Execute with new bindings on a background thread. */
-  std::shared_ptr<Promise<NitroSQLiteQueryResult>> executeAsync(const std::optional<SQLiteQueryParams>& params) override;
+  Promise<NitroSQLiteQueryResult> executeAsync(const std::optional<SQLiteQueryParams>& params) override;
   /** Release the native statement. */
   void finalize() override;
   /** Check whether the native statement has been released. */

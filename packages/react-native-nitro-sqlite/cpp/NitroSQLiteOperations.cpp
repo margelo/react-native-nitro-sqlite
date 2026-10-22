@@ -105,9 +105,12 @@ void bindStatement(sqlite3_stmt* statement, const SQLiteQueryParams& values) {
     } else if (std::holds_alternative<std::string>(*optionalValue)) {
       const auto& stringValue = std::get<std::string>(*optionalValue);
       bindStatus = sqlite3_bind_text(statement, sqliteIndex, stringValue.c_str(), stringValue.length(), SQLITE_TRANSIENT);
-    } else if (std::holds_alternative<std::shared_ptr<ArrayBuffer>>(*optionalValue)) {
-      const auto& arrayBufferValue = std::get<std::shared_ptr<ArrayBuffer>>(*optionalValue);
-      bindStatus = sqlite3_bind_blob(statement, sqliteIndex, arrayBufferValue->data(), arrayBufferValue->size(), SQLITE_TRANSIENT);
+    } else if (std::holds_alternative<ArrayBuffer>(*optionalValue)) {
+      const auto& arrayBufferValue = std::get<ArrayBuffer>(*optionalValue);
+      // Empty buffers may have no data pointer, which sqlite3_bind_blob would bind as NULL.
+      bindStatus = arrayBufferValue.size() == 0
+                       ? sqlite3_bind_zeroblob(statement, sqliteIndex, 0)
+                       : sqlite3_bind_blob(statement, sqliteIndex, arrayBufferValue.data(), arrayBufferValue.size(), SQLITE_TRANSIENT);
     }
 
     if (bindStatus != SQLITE_OK) {
@@ -306,13 +309,9 @@ namespace {
       metadata->insert({columnName, std::move(columnMeta)});
     }
 
-    NitroSQLiteQueryResult result;
-    result.rowsAffected = sqlite3_changes(db);
-    result.insertId = static_cast<double>(sqlite3_last_insert_rowid(db));
-    result.results = SQLiteQueryResults(std::move(columnNames), std::move(rows));
-    result.metadata = std::move(metadata);
-    result.rowBatchCount = static_cast<double>(rowBatchCount);
-    return result;
+    return NitroSQLiteQueryResult(sqlite3_changes(db), static_cast<double>(sqlite3_last_insert_rowid(db)),
+                                  SQLiteQueryResults(std::move(columnNames), std::move(rows)), std::move(metadata),
+                                  static_cast<double>(rowBatchCount));
   }
 
 } // namespace

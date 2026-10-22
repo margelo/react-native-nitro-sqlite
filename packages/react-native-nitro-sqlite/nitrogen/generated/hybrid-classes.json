@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "classes": {
+    "NitroSQLite": {
+      "android": {
+        "implementation": {
+          "className": "HybridNitroSQLite",
+          "include": "\"hybridObjects/HybridNitroSQLite.hpp\""
+        },
+        "language": "c++"
+      },
+      "ios": {
+        "implementation": {
+          "className": "HybridNitroSQLite",
+          "include": "\"hybridObjects/HybridNitroSQLite.hpp\""
+        },
+        "language": "c++"
+      }
+    },
+    "NitroSQLiteOnLoad": {
+      "android": {
+        "implementation": {
+          "className": "HybridNitroSQLiteOnLoad"
+        },
+        "language": "kotlin"
+      }
+    },
+    "NitroSQLitePreparedStatement": {
+      "android": {
+        "implementation": {
+          "className": "HybridNitroSQLitePreparedStatement",
+          "include": "\"hybridObjects/HybridNitroSQLitePreparedStatement.hpp\""
+        },
+        "language": "c++"
+      },
+      "ios": {
+        "implementation": {
+          "className": "HybridNitroSQLitePreparedStatement",
+          "include": "\"hybridObjects/HybridNitroSQLitePreparedStatement.hpp\""
+        },
+        "language": "c++"
+      }
+    }
+  }
+}

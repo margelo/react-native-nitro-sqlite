@@ -1,8 +1,9 @@
 #pragma once
 
-#include "ColumnType.hpp"
-#include "NitroSQLiteQueryColumnMetadata.hpp"
 #include <NitroModules/ArrayBuffer.hpp>
+#include <NitroModules/Null.hpp>
+#include <RNNitroSQLite/ColumnType.hpp>
+#include <RNNitroSQLite/NitroSQLiteQueryColumnMetadata.hpp>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -11,7 +12,7 @@
 
 namespace margelo::nitro::rnnitrosqlite {
 
-using SQLiteValue = std::optional<std::variant<NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>;
+using SQLiteValue = std::optional<std::variant<bool, ArrayBuffer, NullType, double, std::string>>;
 using SQLiteQueryParams = std::vector<SQLiteValue>;
 using SQLiteQueryTableMetadata = std::unordered_map<std::string, NitroSQLiteQueryColumnMetadata>;
 

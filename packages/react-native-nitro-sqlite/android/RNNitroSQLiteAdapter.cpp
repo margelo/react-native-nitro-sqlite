@@ -1,5 +1,5 @@
 #include "HybridNitroSQLite.hpp"
-#include "RNNitroSQLiteOnLoad.hpp"
+#include <RNNitroSQLite/private/RNNitroSQLiteOnLoad.hpp>
 #include <cstdlib>
 #include <fbjni/fbjni.h>
 #include <jni.h>
@@ -10,7 +10,7 @@
 using namespace margelo::nitro::rnnitrosqlite;
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*) {
-  return margelo::nitro::rnnitrosqlite::initialize(vm);
+  return facebook::jni::initialize(vm, [] { margelo::nitro::rnnitrosqlite::registerAllNatives(); });
 }
 
 extern "C" JNIEXPORT void JNICALL Java_com_margelo_rnnitrosqlite_DocPathSetter_setDocPathInJNI(JNIEnv* env, jclass clazz, jstring doc_path,

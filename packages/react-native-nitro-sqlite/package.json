@@ -41,6 +41,9 @@
       }
     }
   },
+  "imports": {
+    "#nitro/*": "./nitrogen/generated/shared/javascript/*.cjs"
+  },
   "files": [
     "THIRD_PARTY_NOTICES.md",
     "src",
@@ -96,20 +99,23 @@
     "@types/better-sqlite3": "^9.6.0",
     "better-sqlite3": "^12.11.1",
     "jest": "^30.2.0",
-    "nitrogen": "0.37.1",
+    "nitrogen": "1.0.0-alpha.nightly.86.g15e19db42041",
     "react": "19.3.1",
     "react-native": "0.88.0",
     "react-native-builder-bob": "^0.31.0",
-    "react-native-nitro-modules": "0.37.1"
+    "react-native-nitro-modules": "1.0.0-alpha.nightly.86.g15e19db42041"
   },
   "peerDependencies": {
     "better-sqlite3": "^12.11.1",
     "react": ">=17.0.0",
-    "react-native": ">=0.75.0",
-    "react-native-nitro-modules": ">=0.35.0"
+    "react-native": ">=0.88.0",
+    "react-native-nitro-modules": "*"
   },
   "peerDependenciesMeta": {
     "better-sqlite3": {
+      "optional": true
+    },
+    "react-native-nitro-modules": {
       "optional": true
     }
   },

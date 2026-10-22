@@ -4,7 +4,7 @@ import { createArrayBufferTestDb, testDb } from '@tests/db'
 import { open } from 'react-native-nitro-sqlite'
 import { buildJSQueryResult } from '@nitro-sqlite/operations/execute'
 import type { ColumnType } from 'react-native-nitro-sqlite'
-import type { NitroSQLiteQueryResult } from '@nitro-sqlite/specs/NitroSQLiteQueryResult.nitro'
+import type { NitroSQLiteQueryResult } from '@nitro-sqlite/specs/NitroSQLiteQueryResult'
 
 const QUERY_RESULT_SIZES = [60, 1_000, 10_000]
 // Asynchronous reads hand rows to JavaScript in batches of 256; cover the batch edges.

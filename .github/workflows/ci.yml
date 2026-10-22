@@ -149,7 +149,9 @@ jobs:
   lockfiles:
     name: Native lockfiles
     needs: checks
+    # Paused because Nitro V1 doesn't support CocoaPods. Remove `false &&` to resume it.
     if: >-
+      false &&
       github.event_name != 'push' && !github.event.pull_request.draft &&
       (needs.checks.outputs.ios_pods == 'true' || needs.checks.outputs.macos_pods == 'true')
     uses: ./.github/workflows/update-lockfiles.yml
@@ -173,7 +175,10 @@ jobs:
   ios:
     name: iOS
     needs: [checks, lockfiles]
+    # Paused because Nitro V1 builds iOS with Swift Package Manager, which this workflow doesn't set up yet.
+    # Remove `false &&` to resume it.
     if: >-
+      false &&
       !cancelled() && needs.checks.result == 'success' &&
       (needs.lockfiles.result == 'success' || needs.lockfiles.result == 'skipped') &&
       github.event_name != 'push' && !github.event.pull_request.draft &&
@@ -185,7 +190,9 @@ jobs:
   macos:
     name: macOS
     needs: [checks, lockfiles]
+    # Paused until Nitro V1 supports React Native macOS. Remove `false &&` to resume it.
     if: >-
+      false &&
       !cancelled() && needs.checks.result == 'success' &&
       (needs.lockfiles.result == 'success' || needs.lockfiles.result == 'skipped') &&
       github.event_name != 'push' && !github.event.pull_request.draft &&
