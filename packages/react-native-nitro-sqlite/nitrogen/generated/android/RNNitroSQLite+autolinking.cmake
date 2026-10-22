@@ -15,7 +15,7 @@ target_sources(RNNitroSQLite PRIVATE
   "${CMAKE_CURRENT_LIST_DIR}/RNNitroSQLiteOnLoad.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/../android/c++/HybridNitroSQLiteSpecClass.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/../android/c++/HybridPreparedStatementSpecClass.cpp"
-  "${CMAKE_CURRENT_LIST_DIR}/../android/c++/JHybridNitroSQLiteOnLoadSpec.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../android/c++/JHybridPlatformContextSpec.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/../shared/c++/BatchQueryCommand.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/../shared/c++/BatchQueryResult.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/../shared/c++/FileLoadResult.cpp"

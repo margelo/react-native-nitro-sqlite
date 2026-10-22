@@ -17,12 +17,19 @@
         "language": "c++"
       }
     },
-    "NitroSQLiteOnLoad": {
+    "PlatformContext": {
       "android": {
         "implementation": {
-          "className": "HybridNitroSQLiteOnLoad"
+          "className": "HybridPlatformContext"
         },
         "language": "kotlin"
+      },
+      "ios": {
+        "implementation": {
+          "className": "HybridPlatformContext",
+          "include": "\"hybridObjects/HybridPlatformContext.hpp\""
+        },
+        "language": "c++"
       }
     },
     "PreparedStatement": {

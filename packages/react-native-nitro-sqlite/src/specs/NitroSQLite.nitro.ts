@@ -32,8 +32,20 @@ export * from '#nitro/NitroSQLite'
   },
 })
 export declare class NitroSQLite extends HybridObject {
-  /** Create a root with its own default and independent connections. */
-  constructor()
+  /** Create a root with its own default and independent connections.
+   * @param databaseDirectory Directory that database names and relative
+   * locations resolve against, usually `PlatformContext.databaseDirectory`.
+   * @param temporaryDirectory Directory for SQLite's temporary files. SQLite
+   * reads it once per process, so the first root that passes one sets it.
+   * @param legacyDatabaseDirectory Directory that databases are moved out of
+   * when they are opened, attached, or dropped.
+   * @throws If SQLite's temporary directory can't be configured.
+   */
+  constructor(
+    databaseDirectory: string,
+    temporaryDirectory?: string,
+    legacyDatabaseDirectory?: string,
+  )
 
   /** Open a name-based default connection, creating the database unless `readOnly` is true.
    * @param dbName Database file name and default connection key.

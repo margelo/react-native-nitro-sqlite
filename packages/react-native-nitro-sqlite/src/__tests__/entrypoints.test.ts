@@ -1,10 +1,18 @@
 jest.mock('react-native-nitro-modules', () => ({
   NitroModules: {
     getHybridClass: jest.fn((name: string) =>
-      name === 'rnnitrosqlite.NitroSQLiteOnLoad'
-        ? { init: jest.fn() }
+      name === 'rnnitrosqlite.PlatformContext'
+        ? {
+            databaseDirectory: '/data/databases',
+            temporaryDirectory: '/data/cache',
+            legacyDatabaseDirectory: undefined,
+          }
         : class {
             open = jest.fn()
+            constructorArguments: unknown[]
+            constructor(...args: unknown[]) {
+              this.constructorArguments = args
+            }
           },
     ),
   },
@@ -24,8 +32,6 @@ import {
   NitroSQLiteExceptionType as ExceptionTypeFromErrors,
 } from '../errors'
 import { HybridNitroSQLite } from '../nitro'
-import { init as androidInit } from '../OnLoad.android'
-import { init as iosInit } from '../OnLoad'
 
 describe('entrypoints', () => {
   it('shares the error class and category constants with the errors entry point', () => {
@@ -40,20 +46,16 @@ describe('entrypoints', () => {
     expect(NitroSQLite.native).toBe(HybridNitroSQLite)
     expect(NitroSQLite.open).toBe(open)
     expect(NitroSQLite.open).not.toBe(HybridNitroSQLite.open)
-    expect(iosInit()).toBeUndefined()
   })
 
-  it('initializes the Android native loader', () => {
-    androidInit()
-
+  it('stores databases in the platform directories', () => {
     expect(NitroModules.getHybridClass).toHaveBeenCalledWith(
-      'rnnitrosqlite.NitroSQLiteOnLoad',
+      'rnnitrosqlite.PlatformContext',
     )
-    const onLoad = jest
-      .mocked(NitroModules.getHybridClass)
-      .mock.results.map((result) => result.value as { init?: jest.Mock })
-      .find((value) => 'init' in value)
-    expect(onLoad?.init).toHaveBeenCalledTimes(1)
+    expect(
+      (HybridNitroSQLite as unknown as { constructorArguments: unknown[] })
+        .constructorArguments,
+    ).toEqual(['/data/databases', '/data/cache', undefined])
   })
 
   it('publishes built entry points so apps never compile the decorated specs', () => {
