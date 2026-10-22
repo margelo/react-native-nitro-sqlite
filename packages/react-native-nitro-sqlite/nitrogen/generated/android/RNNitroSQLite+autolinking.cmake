@@ -21,8 +21,8 @@ target_sources(RNNitroSQLite PRIVATE
   "${CMAKE_CURRENT_LIST_DIR}/../shared/c++/FileLoadResult.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/../shared/c++/HybridNitroSQLiteSpec.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/../shared/c++/HybridPreparedStatementSpec.cpp"
-  "${CMAKE_CURRENT_LIST_DIR}/../shared/c++/NitroSQLiteQueryColumnMetadata.cpp"
-  "${CMAKE_CURRENT_LIST_DIR}/../shared/c++/NitroSQLiteQueryResult.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../shared/c++/NativeQueryResult.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../shared/c++/QueryColumnMetadata.cpp"
 )
 
 find_package(fbjni REQUIRED CONFIG)

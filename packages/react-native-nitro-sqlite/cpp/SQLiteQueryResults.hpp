@@ -1,6 +1,6 @@
 #pragma once
 
-#include "NitroSQLiteTypes.hpp"
+#include "SQLiteTypes.hpp"
 #include <NitroModules/JSIConverter.hpp>
 #include <functional>
 #include <jsi/jsi.h>

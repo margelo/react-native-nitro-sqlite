@@ -1,4 +1,4 @@
-import type { NitroSQLiteConnection } from 'react-native-nitro-sqlite'
+import type { Connection } from 'react-native-nitro-sqlite'
 import { open } from 'react-native-nitro-sqlite'
 
 const MAIN_DATABASE = 'migration-screen-main.sqlite'
@@ -87,10 +87,7 @@ function seedDatabase(name: string, marker: string): string {
   }
 }
 
-function getDatabasePath(
-  database: NitroSQLiteConnection,
-  schema: DatabaseSchema,
-): string {
+function getDatabasePath(database: Connection, schema: DatabaseSchema): string {
   const row = database
     .execute<DatabaseListRow>('PRAGMA database_list')
     .rows._array.find((entry) => entry.name === schema)
@@ -117,7 +114,7 @@ function expectLocation(
 }
 
 function expectMarker(
-  database: NitroSQLiteConnection,
+  database: Connection,
   schema: DatabaseSchema,
   expectedMarker: string,
 ): void {
@@ -136,10 +133,7 @@ function expectMarker(
   )
 }
 
-function expectIntegrity(
-  database: NitroSQLiteConnection,
-  schema: DatabaseSchema,
-): void {
+function expectIntegrity(database: Connection, schema: DatabaseSchema): void {
   const result = database
     .execute<IntegrityRow>(`PRAGMA ${schema}.integrity_check`)
     .rows.item(0)?.integrity_check

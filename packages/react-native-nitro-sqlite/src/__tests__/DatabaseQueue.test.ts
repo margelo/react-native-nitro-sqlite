@@ -8,7 +8,7 @@ import {
   startOperationSync,
   throwIfDatabaseIsNotOpen,
 } from '../DatabaseQueue'
-import NitroSQLiteError from '../NitroSQLiteError'
+import SQLiteError from '../SQLiteError'
 import { deferred } from './testUtils'
 
 const dbName = 'queue-test'
@@ -20,7 +20,7 @@ afterEach(() => {
 describe('DatabaseQueue', () => {
   it('tracks open connections and rejects duplicate or missing connections', () => {
     expect(isDatabaseOpen(dbName)).toBe(false)
-    expect(() => throwIfDatabaseIsNotOpen(dbName)).toThrow(NitroSQLiteError)
+    expect(() => throwIfDatabaseIsNotOpen(dbName)).toThrow(SQLiteError)
     expect(() => getDatabaseQueue(dbName)).toThrow('not open')
     expect(() => closeDatabaseQueue(dbName)).toThrow('not open')
 

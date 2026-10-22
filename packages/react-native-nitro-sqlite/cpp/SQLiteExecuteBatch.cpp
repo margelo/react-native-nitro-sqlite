@@ -1,9 +1,9 @@
 /**
  * SQL Batch execution implementation using default sqliteBridge implementation
  */
-#include "NitroSQLiteExecuteBatch.hpp"
-#include "NitroSQLiteException.hpp"
-#include "NitroSQLiteOperations.hpp"
+#include "SQLiteExecuteBatch.hpp"
+#include "SQLiteException.hpp"
+#include "SQLiteOperations.hpp"
 #include <utility>
 
 namespace margelo::nitro::rnnitrosqlite {
@@ -42,7 +42,7 @@ std::vector<BatchQuery> batchParamsToCommands(const std::vector<BatchQueryComman
 SQLiteOperationResult sqliteExecuteBatch(const SQLiteConnectionPtr& connection, const std::vector<BatchQuery>& commands) {
   std::lock_guard lock(connection->mutex);
   if (commands.empty()) {
-    throw NitroSQLiteException(NitroSQLiteExceptionType::NoBatchCommandsProvided, "No SQL batch commands provided");
+    throw SQLiteException(SQLiteExceptionType::NoBatchCommandsProvided, "No SQL batch commands provided");
   }
 
   try {

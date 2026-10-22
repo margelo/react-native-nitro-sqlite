@@ -2,7 +2,7 @@ jest.mock('../nitro')
 
 import { HybridNitroSQLite } from '../nitro'
 import { closeDatabaseQueue, openDatabaseQueue } from '../DatabaseQueue'
-import NitroSQLiteError from '../NitroSQLiteError'
+import SQLiteError from '../SQLiteError'
 import { executeBatch, executeBatchAsync } from '../operations/executeBatch'
 import { executeAsync } from '../operations/execute'
 import { deferred, nativeResult } from './testUtils'
@@ -17,7 +17,7 @@ afterEach(() => {
     closeDatabaseQueue(dbName)
   } catch (error) {
     if (
-      !(error instanceof NitroSQLiteError) ||
+      !(error instanceof SQLiteError) ||
       !error.message.includes('not open')
     ) {
       throw error
@@ -90,7 +90,7 @@ describe('executeBatch', () => {
       .mockRejectedValueOnce('async failed')
       .mockResolvedValueOnce({ rowsAffected: 1 })
 
-    expect(() => executeBatch(dbName, commands)).toThrow(NitroSQLiteError)
+    expect(() => executeBatch(dbName, commands)).toThrow(SQLiteError)
     expect(() => executeBatch(dbName, commands)).toThrow('sync failed')
     await expect(executeBatchAsync(dbName, commands)).rejects.toMatchObject({
       name: 'NitroSQLiteError',

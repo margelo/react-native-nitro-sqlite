@@ -1,7 +1,7 @@
-#include "NitroSQLiteDatabaseConnections.hpp"
-#include "NitroSQLiteDatabaseMigration.hpp"
-#include "NitroSQLiteException.hpp"
-#include "NitroSQLiteLogs.hpp"
+#include "SQLiteDatabaseConnections.hpp"
+#include "SQLiteDatabaseMigration.hpp"
+#include "SQLiteException.hpp"
+#include "SQLiteLogs.hpp"
 #include <array>
 #include <condition_variable>
 #include <cstring>
@@ -76,7 +76,7 @@ namespace {
     const int prepared = sqlite3_prepare_v2(database, "PRAGMA database_list", -1, &rawStatement, nullptr);
     std::unique_ptr<sqlite3_stmt, decltype(&sqlite3_finalize)> statement(rawStatement, sqlite3_finalize);
     if (prepared != SQLITE_OK) {
-      throw NitroSQLiteException::SqlExecution(sqlite3_errmsg(database));
+      throw SQLiteException::SqlExecution(sqlite3_errmsg(database));
     }
     int result;
     while ((result = sqlite3_step(statement.get())) == SQLITE_ROW) {
@@ -86,7 +86,7 @@ namespace {
       }
     }
     if (result != SQLITE_DONE) {
-      throw NitroSQLiteException::SqlExecution(sqlite3_errmsg(database));
+      throw SQLiteException::SqlExecution(sqlite3_errmsg(database));
     }
     return false;
   }
@@ -105,13 +105,13 @@ namespace {
     }
 #ifdef SQLITE_ENABLE_SEE
     if (encryptionKey->empty()) {
-      throw NitroSQLiteException(NitroSQLiteExceptionType::DatabaseCannotBeDecrypted, "Encryption key must not be empty");
+      throw SQLiteException(SQLiteExceptionType::DatabaseCannotBeDecrypted, "Encryption key must not be empty");
     }
     if (encryptionKey->find('\0') != std::string::npos) {
-      throw NitroSQLiteException(NitroSQLiteExceptionType::DatabaseCannotBeDecrypted, "Encryption key must not contain a NUL byte");
+      throw SQLiteException(SQLiteExceptionType::DatabaseCannotBeDecrypted, "Encryption key must not contain a NUL byte");
     }
 #else
-    throw NitroSQLiteException(NitroSQLiteExceptionType::EncryptionNotEnabled, "SQLite Encryption Extension is not enabled in this build");
+    throw SQLiteException(SQLiteExceptionType::EncryptionNotEnabled, "SQLite Encryption Extension is not enabled in this build");
 #endif
   }
 
@@ -123,8 +123,8 @@ namespace {
     std::ifstream file(path, std::ios::binary);
     std::array<char, 16> header{};
     if (file.read(header.data(), header.size()) && std::memcmp(header.data(), "SQLite format 3", header.size()) == 0) {
-      throw NitroSQLiteException(NitroSQLiteExceptionType::DatabaseCannotBeDecrypted,
-                                 "Existing database is unencrypted; migrate it before opening with an encryption key");
+      throw SQLiteException(SQLiteExceptionType::DatabaseCannotBeDecrypted,
+                            "Existing database is unencrypted; migrate it before opening with an encryption key");
     }
 #else
     (void)path;
@@ -139,7 +139,7 @@ namespace {
 #ifdef SQLITE_ENABLE_SEE
     const int keyResult = sqlite3_key_v2(database, "main", encryptionKey->c_str(), -1);
     if (keyResult != SQLITE_OK) {
-      throw NitroSQLiteException(NitroSQLiteExceptionType::DatabaseCannotBeDecrypted, sqlite3_errmsg(database));
+      throw SQLiteException(SQLiteExceptionType::DatabaseCannotBeDecrypted, sqlite3_errmsg(database));
     }
 
     // SEE checks the key when SQLite first reads the file, not when the key is set.
@@ -147,7 +147,7 @@ namespace {
     const int prepared = sqlite3_prepare_v2(database, "SELECT count(*) FROM sqlite_schema", -1, &rawStatement, nullptr);
     std::unique_ptr<sqlite3_stmt, decltype(&sqlite3_finalize)> statement(rawStatement, sqlite3_finalize);
     if (prepared != SQLITE_OK || sqlite3_step(statement.get()) != SQLITE_ROW) {
-      throw NitroSQLiteException(NitroSQLiteExceptionType::DatabaseCannotBeDecrypted, sqlite3_errmsg(database));
+      throw SQLiteException(SQLiteExceptionType::DatabaseCannotBeDecrypted, sqlite3_errmsg(database));
     }
 #else
     (void)database;
@@ -255,7 +255,7 @@ void DatabaseConnections::open(const std::string& key, const fs::path& path, boo
   std::lock_guard lock(lifecycleMutex);
   validateDatabaseName(key);
   if (connections.contains(key)) {
-    throw NitroSQLiteException::DatabaseAlreadyOpen(key);
+    throw SQLiteException::DatabaseAlreadyOpen(key);
   }
   openKey(key, path, readOnly, encryptionKey);
 }
@@ -263,11 +263,10 @@ void DatabaseConnections::open(const std::string& key, const fs::path& path, boo
 std::string DatabaseConnections::openIndependent(const fs::path& path, bool readOnly, const std::optional<std::string>& encryptionKey) {
   std::lock_guard lock(lifecycleMutex);
   if (path.string().find('\0') != std::string::npos) {
-    throw NitroSQLiteException(NitroSQLiteExceptionType::DatabaseCannotBeOpened, "Database path contains a NUL byte");
+    throw SQLiteException(SQLiteExceptionType::DatabaseCannotBeOpened, "Database path contains a NUL byte");
   }
   if (sqlite3_threadsafe() == 0) {
-    throw NitroSQLiteException(NitroSQLiteExceptionType::DatabaseCannotBeOpened,
-                               "Independent connections require a thread-safe SQLite build");
+    throw SQLiteException(SQLiteExceptionType::DatabaseCannotBeOpened, "Independent connections require a thread-safe SQLite build");
   }
   // NUL cannot occur in a filesystem name. The ID cannot collide with a legacy database key.
   const auto physicalPath = canonicalDatabasePath(path);
@@ -280,7 +279,7 @@ std::string DatabaseConnections::openIndependent(const fs::path& path, bool read
 void DatabaseConnections::openKey(const std::string& key, const fs::path& path, bool readOnly,
                                   const std::optional<std::string>& encryptionKey) {
   if (path.string().find('\0') != std::string::npos) {
-    throw NitroSQLiteException(NitroSQLiteExceptionType::DatabaseCannotBeOpened, "Database path contains a NUL byte");
+    throw SQLiteException(SQLiteExceptionType::DatabaseCannotBeOpened, "Database path contains a NUL byte");
   }
   validateEncryptionKey(encryptionKey);
   const auto physicalPath = canonicalDatabasePath(path);
@@ -293,7 +292,7 @@ void DatabaseConnections::openKey(const std::string& key, const fs::path& path, 
   std::unique_ptr<sqlite3, decltype(&sqlite3_close_v2)> database(rawDatabase, sqlite3_close_v2);
   if (result != SQLITE_OK) {
     const std::string message = rawDatabase == nullptr ? sqlite3_errstr(result) : sqlite3_errmsg(rawDatabase);
-    throw NitroSQLiteException(NitroSQLiteExceptionType::DatabaseCannotBeOpened, message);
+    throw SQLiteException(SQLiteExceptionType::DatabaseCannotBeOpened, message);
   }
   applyEncryptionKey(database.get(), encryptionKey);
   if (readOnly) {
@@ -311,7 +310,7 @@ void DatabaseConnections::close(const std::string& key) {
   std::lock_guard lock(lifecycleMutex);
   const auto found = connections.find(key);
   if (found == connections.end()) {
-    throw NitroSQLiteException::DatabaseNotOpen(connectionLabel(key));
+    throw SQLiteException::DatabaseNotOpen(connectionLabel(key));
   }
   auto connection = std::move(found->second);
   connections.erase(found);
@@ -330,7 +329,7 @@ SQLiteConnectionPtr DatabaseConnections::get(const std::string& key) {
   std::lock_guard lock(lifecycleMutex);
   const auto found = connections.find(key);
   if (found == connections.end()) {
-    throw NitroSQLiteException::DatabaseNotOpen(connectionLabel(key));
+    throw SQLiteException::DatabaseNotOpen(connectionLabel(key));
   }
   return found->second;
 }
@@ -399,41 +398,40 @@ void DatabaseConnections::drop(const std::string& dbName, const fs::path& path, 
   validateDatabaseName(dbName);
   const auto target = canonicalDatabasePath(path);
   if (!fs::exists(target)) {
-    throw NitroSQLiteException::DatabaseFileNotFound(target.string());
+    throw SQLiteException::DatabaseFileNotFound(target.string());
   }
   const auto key = connectionId.value_or(dbName);
   const auto live = connections.find(key);
   const auto independent = connectionId ? parseIndependentId(*connectionId) : std::nullopt;
   if (connectionId && !independent) {
-    throw NitroSQLiteException::DatabaseNotOpen(connectionLabel(key));
+    throw SQLiteException::DatabaseNotOpen(connectionLabel(key));
   }
   if (independent && (!sameFile(independent->physicalPath, target) || independent->readOnly)) {
-    throw NitroSQLiteException(NitroSQLiteExceptionType::SqlExecutionError, independent->readOnly
-                                                                                ? "A read-only connection cannot delete a database"
-                                                                                : "Connection targets a different database file");
+    throw SQLiteException(SQLiteExceptionType::SqlExecutionError, independent->readOnly ? "A read-only connection cannot delete a database"
+                                                                                        : "Connection targets a different database file");
   }
   if (live != connections.end()) {
     if (!sameFile(live->second->physicalPath, target)) {
-      throw NitroSQLiteException(NitroSQLiteExceptionType::SqlExecutionError, "Connection targets a different database file");
+      throw SQLiteException(SQLiteExceptionType::SqlExecutionError, "Connection targets a different database file");
     }
     if (live->second->readOnly) {
-      throw NitroSQLiteException(NitroSQLiteExceptionType::SqlExecutionError, "A read-only connection cannot delete a database");
+      throw SQLiteException(SQLiteExceptionType::SqlExecutionError, "A read-only connection cannot delete a database");
     }
   }
 
   const SQLiteConnectionPtr connectionToClose = live == connections.end() ? nullptr : live->second;
   withConnectionsLocked([&]() {
     if (isPathInUse(target, connectionToClose) || (otherPath && isPathInUse(*otherPath, connectionToClose))) {
-      throw NitroSQLiteException(NitroSQLiteExceptionType::SqlExecutionError, "Database is in use by another connection");
+      throw SQLiteException(SQLiteExceptionType::SqlExecutionError, "Database is in use by another connection");
     }
     if (!fs::exists(target)) {
-      throw NitroSQLiteException::DatabaseFileNotFound(target.string());
+      throw SQLiteException::DatabaseFileNotFound(target.string());
     }
     if (connectionToClose) {
       close(key);
     }
     if (!removeDatabaseFiles(target.filename().string(), target.parent_path())) {
-      throw NitroSQLiteException(NitroSQLiteExceptionType::SqlExecutionError, "Could not remove database files");
+      throw SQLiteException(SQLiteExceptionType::SqlExecutionError, "Could not remove database files");
     }
     if (otherPath) {
       removeDatabaseFiles(otherPath->filename().string(), otherPath->parent_path());
@@ -459,7 +457,7 @@ bool DatabaseConnections::isPathInUse(const fs::path& path, const SQLiteConnecti
 
 void validateDatabaseName(const std::string& dbName) {
   if (dbName.find('\0') != std::string::npos) {
-    throw NitroSQLiteException(NitroSQLiteExceptionType::DatabaseCannotBeOpened, "Database name contains a NUL byte");
+    throw SQLiteException(SQLiteExceptionType::DatabaseCannotBeOpened, "Database name contains a NUL byte");
   }
 }
 

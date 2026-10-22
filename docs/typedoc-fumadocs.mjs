@@ -2,9 +2,12 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import ts from 'typescript'
+import { Application, Converter } from 'typedoc'
 import {
   MarkdownPageEvent,
   MarkdownRendererEvent,
+  MarkdownTheme,
   MemberRouter,
 } from 'typedoc-plugin-markdown'
 import { addPackageIntro } from './api-package-intros.mjs'
@@ -18,6 +21,31 @@ const gitRevision =
 
 export function load(app) {
   app.renderer.defineRouter('nitro-member', NitroMemberRouter)
+  app.renderer.defineTheme('nitro-markdown', NitroMarkdownTheme)
+  app.on(Application.EVENT_BOOTSTRAP_END, () => {
+    app.options.setValue('theme', 'nitro-markdown')
+  })
+
+  app.converter.on(
+    Converter.EVENT_CREATE_DECLARATION,
+    (context, reflection) => {
+      if (!reflection.isReference() || reflection.comment) return
+
+      // Follow barrel re-exports without inheriting the canonical declaration's docs.
+      let symbol = context.getSymbolFromReflection(reflection)
+      while (symbol?.flags & ts.SymbolFlags.Alias) {
+        for (const declaration of symbol.declarations ?? []) {
+          const comment = context.getNodeComment(declaration, false)
+          if (comment) {
+            reflection.comment = comment
+            return
+          }
+        }
+        symbol = context.checker.getImmediateAliasedSymbol(symbol)
+      }
+    },
+    100, // Recover comments before TypeDoc processes their tags.
+  )
 
   app.renderer.on(MarkdownPageEvent.BEGIN, (page) => {
     page.frontmatter = { ...page.frontmatter, title: page.model.name }
@@ -51,23 +79,26 @@ export function load(app) {
     const withSourceLinks = addMissingSourceLinks(page, withSignatures)
     const withDefinitionSection = addDefinitionSection(withSourceLinks)
 
-    page.contents = withDefinitionSection.replace(/\]\(([^)]+)\)/g, (link, href) => {
-      if (
-        href.startsWith('#') ||
-        href.startsWith('/') ||
-        /^[a-z][a-z\d+.-]*:/i.test(href)
-      ) {
-        return link
-      }
+    page.contents = withDefinitionSection.replace(
+      /\]\(([^)]+)\)/g,
+      (link, href) => {
+        if (
+          href.startsWith('#') ||
+          href.startsWith('/') ||
+          /^[a-z][a-z\d+.-]*:/i.test(href)
+        ) {
+          return link
+        }
 
-      const url = new URL(href, `https://docs.example/api/${page.url}`)
-      const pathname = url.pathname
-        .replace(/\/index\.mdx$/, '')
-        .replace(/\.mdx$/, '')
-        .replace(/\/$/, '')
+        const url = new URL(href, `https://docs.example/api/${page.url}`)
+        const pathname = url.pathname
+          .replace(/\/index\.mdx$/, '')
+          .replace(/\.mdx$/, '')
+          .replace(/\/$/, '')
 
-      return `](${pathname || '/api'}${url.search}${url.hash})`
-    })
+        return `](${pathname || '/api'}${url.search}${url.hash})`
+      },
+    )
   })
 
   app.renderer.on(MarkdownRendererEvent.END, (event) => {
@@ -105,6 +136,20 @@ export function load(app) {
       }
     }
   })
+}
+
+class NitroMarkdownTheme extends MarkdownTheme {
+  getRenderContext(page) {
+    const context = super.getRenderContext(page)
+    const referenceMember = context.partials.referenceMember
+    context.partials.referenceMember = (model) => {
+      const contents = referenceMember(model)
+      return model.comment
+        ? `${contents}\n\n${context.partials.comment(model.comment)}`
+        : contents
+    }
+    return context
+  }
 }
 
 class NitroMemberRouter extends MemberRouter {

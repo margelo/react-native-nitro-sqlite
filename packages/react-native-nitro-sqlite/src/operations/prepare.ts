@@ -1,5 +1,5 @@
 import { HybridNitroSQLite } from '../nitro'
-import NitroSQLiteError from '../NitroSQLiteError'
+import SQLiteError from '../SQLiteError'
 import type {
   PreparedStatement,
   QueryResult,
@@ -41,7 +41,7 @@ export function prepare(
             buildJSQueryResult(nativeStatement.execute(params)),
           )
         } catch (error) {
-          throw NitroSQLiteError.fromError(error)
+          throw SQLiteError.fromError(error)
         }
       },
       executeAsync: async <Row extends QueryResultRow = QueryResultRow>(
@@ -52,18 +52,18 @@ export function prepare(
             buildJSQueryResult(await nativeStatement.executeAsync(params)),
           )
         } catch (error) {
-          throw NitroSQLiteError.fromError(error)
+          throw SQLiteError.fromError(error)
         }
       },
       finalize: () => {
         try {
           startOperationSync(queueKey, () => nativeStatement.finalize())
         } catch (error) {
-          throw NitroSQLiteError.fromError(error)
+          throw SQLiteError.fromError(error)
         }
       },
     }
   } catch (error) {
-    throw NitroSQLiteError.fromError(error)
+    throw SQLiteError.fromError(error)
   }
 }

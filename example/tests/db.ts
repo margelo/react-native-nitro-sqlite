@@ -1,4 +1,4 @@
-import type { NitroSQLiteConnection } from 'react-native-nitro-sqlite'
+import type { Connection } from 'react-native-nitro-sqlite'
 import { open } from 'react-native-nitro-sqlite'
 import {
   getDatabaseQueue,
@@ -7,7 +7,7 @@ import {
 
 export const TEST_DB_NAME = 'test'
 
-export let testDb: NitroSQLiteConnection
+export let testDb: Connection
 export let testDbQueue: DatabaseQueue
 export function resetTestDb() {
   if (testDb != null) {

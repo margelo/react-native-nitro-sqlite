@@ -4,7 +4,7 @@ import {
   startOperationSync,
   throwIfDatabaseIsNotOpen,
 } from '../DatabaseQueue'
-import NitroSQLiteError from '../NitroSQLiteError'
+import SQLiteError from '../SQLiteError'
 import type { BatchQueryCommand, BatchQueryResult } from '../types'
 import type { DatabaseQueueKey } from '../DatabaseQueue'
 
@@ -26,7 +26,7 @@ export function executeBatch(
       HybridNitroSQLite.executeBatch(dbName, commands),
     )
   } catch (error) {
-    throw NitroSQLiteError.fromError(error)
+    throw SQLiteError.fromError(error)
   }
 }
 
@@ -47,7 +47,7 @@ export async function executeBatchAsync(
     try {
       return await HybridNitroSQLite.executeBatchAsync(dbName, commands)
     } catch (error) {
-      throw NitroSQLiteError.fromError(error)
+      throw SQLiteError.fromError(error)
     }
   })
 }

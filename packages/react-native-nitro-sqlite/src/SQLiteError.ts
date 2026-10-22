@@ -1,14 +1,14 @@
-const NITRO_SQLITE_ERROR_NAME = 'NitroSQLiteError' as const
+const SQLITE_ERROR_NAME = 'NitroSQLiteError' as const
 const NATIVE_EXCEPTION_PREFIX = '[NativeNitroSQLiteException]['
 
 /**
- * Native error categories exposed by {@linkcode NitroSQLiteError.type}.
+ * Native error categories exposed by {@linkcode SQLiteError.type}.
  * Compare against these constants when handling a specific failure. The values
  * are categories, not SQLite's numeric result codes. Import them from
  * `react-native-nitro-sqlite/errors` to avoid initializing the native module.
- * @see {@linkcode NitroSQLiteError}
+ * @see {@linkcode SQLiteError}
  */
-export const NitroSQLiteExceptionType = {
+export const SQLiteExceptionType = {
   /** Native failure without a more specific category. */
   UnknownError: 'UnknownError',
   /** Open failure, including invalid paths and an already-open default connection. */
@@ -30,59 +30,59 @@ export const NitroSQLiteExceptionType = {
 } as const
 
 /**
- * Category attached to {@linkcode NitroSQLiteError.type} for a recognized native
- * failure. The corresponding {@linkcode NitroSQLiteExceptionType} object exposes
+ * Category attached to {@linkcode SQLiteError.type} for a recognized native
+ * failure. The corresponding {@linkcode SQLiteExceptionType} object exposes
  * the same values at runtime.
- * @see {@linkcode NitroSQLiteError.type}
+ * @see {@linkcode SQLiteError.type}
  */
-export type NitroSQLiteExceptionType =
-  (typeof NitroSQLiteExceptionType)[keyof typeof NitroSQLiteExceptionType]
+export type SQLiteExceptionType =
+  (typeof SQLiteExceptionType)[keyof typeof SQLiteExceptionType]
 
 /** Error thrown by managed NitroSQLite operations. Native errors are wrapped with this class. */
-export default class NitroSQLiteError extends Error {
+export default class SQLiteError extends Error {
   /**
-   * Recognized native category from {@linkcode NitroSQLiteExceptionType}, or
+   * Recognized native category from {@linkcode SQLiteExceptionType}, or
    * `undefined` for JavaScript failures and unrecognized native categories.
    */
-  readonly type: NitroSQLiteExceptionType | undefined
+  readonly type: SQLiteExceptionType | undefined
 
   /** Create an error with a message and optional cause. */
   constructor(message: string, options?: ErrorOptions) {
     super(message, options)
-    this.name = NITRO_SQLITE_ERROR_NAME
+    this.name = SQLITE_ERROR_NAME
     this.type = getNativeExceptionType(message)
 
     // Maintains proper prototype chain for instanceof checks
-    Object.setPrototypeOf(this, NitroSQLiteError.prototype)
+    Object.setPrototypeOf(this, SQLiteError.prototype)
   }
 
-  /** Convert an unknown thrown value to `NitroSQLiteError`.
+  /** Convert an unknown thrown value to `SQLiteError`.
    * Existing instances pass through; `Error` values keep their stack and cause.
    * @param error Value to normalize.
-   * @returns A NitroSQLiteError instance.
+   * @returns A SQLiteError instance.
    */
-  static fromError(error: unknown): NitroSQLiteError {
-    if (error instanceof NitroSQLiteError) {
+  static fromError(error: unknown): SQLiteError {
+    if (error instanceof SQLiteError) {
       return error
     }
 
     if (error instanceof Error) {
-      const nitroSQLiteError = new NitroSQLiteError(error.message, {
+      const sqliteError = new SQLiteError(error.message, {
         cause: error.cause,
       })
 
       // Preserve original stack trace if available
       if (error.stack) {
-        nitroSQLiteError.stack = error.stack
+        sqliteError.stack = error.stack
       }
-      return nitroSQLiteError
+      return sqliteError
     }
 
     if (typeof error === 'string') {
-      return new NitroSQLiteError(error)
+      return new SQLiteError(error)
     }
 
-    return new NitroSQLiteError('Unknown error occurred', {
+    return new SQLiteError('Unknown error occurred', {
       cause: error,
     })
   }
@@ -90,7 +90,7 @@ export default class NitroSQLiteError extends Error {
 
 function getNativeExceptionType(
   message: string,
-): NitroSQLiteExceptionType | undefined {
+): SQLiteExceptionType | undefined {
   const prefixStart = message.indexOf(NATIVE_EXCEPTION_PREFIX)
   if (prefixStart === -1) return undefined
 
@@ -99,5 +99,5 @@ function getNativeExceptionType(
   if (typeEnd === -1) return undefined
 
   const type = message.slice(typeStart, typeEnd)
-  return Object.values(NitroSQLiteExceptionType).find((value) => value === type)
+  return Object.values(SQLiteExceptionType).find((value) => value === type)
 }

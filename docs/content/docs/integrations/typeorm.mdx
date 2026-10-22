@@ -74,17 +74,17 @@ This small example uses `synchronize: true` to create the table. Choose your app
 
 ## Driver export
 
-`typeORMDriver` has one public method, `openDatabase(options, ok, fail)`. The connection passed to `ok` and returned on success has the exported [`TypeOrmNitroSQLiteConnection`](/api/react-native-nitro-sqlite/interfaces/TypeOrmNitroSQLiteConnection) type. The `TypeORMDriver` alias below is used only on this page.
+`typeORMDriver` has one public method, `openDatabase(options, ok, fail)`. The connection passed to `ok` and returned on success has the exported [`TypeOrmConnection`](/api/react-native-nitro-sqlite/interfaces/TypeOrmConnection) type. The `TypeORMDriver` alias below is used only on this page.
 
 ```ts
-import type { TypeOrmNitroSQLiteConnection } from 'react-native-nitro-sqlite'
+import type { TypeOrmConnection } from 'react-native-nitro-sqlite'
 
 type TypeORMDriver = {
   openDatabase(
     options: { name: string; location?: string; encryptionKey?: string },
-    ok: (connection: TypeOrmNitroSQLiteConnection) => void,
+    ok: (connection: TypeOrmConnection) => void,
     fail: (message: string) => void,
-  ): TypeOrmNitroSQLiteConnection | null
+  ): TypeOrmConnection | null
 }
 ```
 

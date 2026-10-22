@@ -1,5 +1,5 @@
 import type {
-  NitroSQLiteConnection,
+  Connection,
   PreparedStatement,
   SQLiteQueryParams,
 } from 'react-native-nitro-sqlite'
@@ -74,7 +74,7 @@ function setupWriteCase(method: WriteMethod): BenchmarkFixture {
 
 function runWriteCase(
   method: WriteMethod,
-  db: NitroSQLiteConnection,
+  db: Connection,
   rows: SQLiteQueryParams[],
   statement?: PreparedStatement,
 ): void | Promise<void> {
@@ -103,21 +103,21 @@ function runWriteCase(
 }
 
 async function runSequentialAsync(
-  db: NitroSQLiteConnection,
+  db: Connection,
   rows: SQLiteQueryParams[],
 ): Promise<void> {
   for (const params of rows) await db.executeAsync(INSERT_SQL, params)
 }
 
 async function runQueuedAsync(
-  db: NitroSQLiteConnection,
+  db: Connection,
   rows: SQLiteQueryParams[],
 ): Promise<void> {
   await Promise.all(rows.map((params) => db.executeAsync(INSERT_SQL, params)))
 }
 
 async function runTransaction(
-  db: NitroSQLiteConnection,
+  db: Connection,
   rows: SQLiteQueryParams[],
 ): Promise<void> {
   await db.transaction(async (tx) => {

@@ -47,7 +47,7 @@ Only pass database names and locations you control. The library does not validat
 
 To open a prepopulated database, copy the SQLite file into the intended app directory before calling `open()`. Use the same `name` and `location` when you open it. A missing file creates a new, empty database, so verify the copy if your schema must already exist. See [file lifetimes](/docs/concepts/databases-and-connections#file-lifetimes) for WAL companion files.
 
-The platform pages describe the database roots and storage settings for [iOS](/docs/configuration/ios#database-location), [Android](/docs/configuration/android#database-location), and [macOS](/docs/configuration/macos). The generated [`NitroSQLiteConnection` reference](/api/react-native-nitro-sqlite/interfaces/NitroSQLiteConnection) lists the lifecycle methods.
+The platform pages describe the database roots and storage settings for [iOS](/docs/configuration/ios#database-location), [Android](/docs/configuration/android#database-location), and [macOS](/docs/configuration/macos). The generated [`Connection` reference](/api/react-native-nitro-sqlite/interfaces/Connection) lists the lifecycle methods.
 
 ## Runtime teardown
 

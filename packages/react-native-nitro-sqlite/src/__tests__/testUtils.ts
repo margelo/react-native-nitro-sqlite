@@ -1,10 +1,10 @@
-import type { NitroSQLiteQueryResult } from '../specs/NitroSQLiteQueryResult'
+import type { NativeQueryResult } from '../specs/NativeQueryResult'
 import type { SQLiteValue } from '../types'
 
 export function nativeResult(
   results: Record<string, SQLiteValue>[] = [],
-): NitroSQLiteQueryResult {
-  return { rowsAffected: results.length, results } as NitroSQLiteQueryResult
+): NativeQueryResult {
+  return { rowsAffected: results.length, results } as NativeQueryResult
 }
 
 export function deferred<T>() {

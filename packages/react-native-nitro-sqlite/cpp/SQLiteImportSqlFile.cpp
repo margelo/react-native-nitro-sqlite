@@ -2,9 +2,9 @@
  * SQL File Loader implementation
  */
 
-#include "NitroSQLiteImportSqlFile.hpp"
-#include "NitroSQLiteException.hpp"
-#include "NitroSQLiteOperations.hpp"
+#include "SQLiteImportSqlFile.hpp"
+#include "SQLiteException.hpp"
+#include "SQLiteOperations.hpp"
 #include <fstream>
 #include <iostream>
 #include <optional>
@@ -15,7 +15,7 @@ SQLiteOperationResult importSqlFile(const SQLiteConnectionPtr& connection, const
   std::lock_guard lock(connection->mutex);
   std::ifstream sqFile(fileLocation);
   if (!sqFile.is_open()) {
-    throw NitroSQLiteException::CouldNotLoadFile(fileLocation);
+    throw SQLiteException::CouldNotLoadFile(fileLocation);
   }
 
   int rowsAffected = 0;
@@ -62,7 +62,7 @@ SQLiteOperationResult importSqlFile(const SQLiteConnectionPtr& connection, const
       }
     }
 
-    throw NitroSQLiteException::CouldNotLoadFile(fileLocation, errorContext);
+    throw SQLiteException::CouldNotLoadFile(fileLocation, errorContext);
   }
 }
 

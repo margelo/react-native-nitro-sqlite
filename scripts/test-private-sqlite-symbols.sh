@@ -9,7 +9,7 @@ trap 'rm -rf "$tmp"' EXIT
 
 cc -O0 -DSQLITE_ENABLE_RTREE=1 -c "$sqlite/sqlite3.c" -o "$tmp/private.o"
 cc -O0 -DSQLITE_CORE=1 -DSQLITE_VEC_STATIC=1 -I "$sqlite" -c "$vec/sqlite-vec/sqlite-vec.c" -o "$tmp/vec.o"
-c++ -std=c++20 -DSQLITE_CORE=1 -I "$sqlite" -I "$vec" -c "$vec/NitroSQLiteVecRegisterVectorExtensions.cpp" -o "$tmp/vec-register.o"
+c++ -std=c++20 -DSQLITE_CORE=1 -I "$sqlite" -I "$vec" -c "$vec/SQLiteVecRegisterVectorExtensions.cpp" -o "$tmp/vec-register.o"
 
 nm -g "$tmp/private.o" "$tmp/vec.o" "$tmp/vec-register.o" > "$tmp/symbols"
 if grep -E '[[:space:]](U|T|D|B|S|R|C) _?sqlite3_' "$tmp/symbols"; then
@@ -104,7 +104,7 @@ c++ "$tmp/main.o" "$tmp/private-calls.o" "$tmp/system-calls.o" "$tmp/private.o" 
 "$tmp/coexistence"
 
 # The Apple system-SQLite option must keep its original, unprefixed imports.
-c++ -std=c++20 -DSQLITE_CORE=1 -DNITRO_SQLITE_USE_PHONE_VERSION=1 -I "$sqlite" -I "$vec" -c "$vec/NitroSQLiteVecRegisterVectorExtensions.cpp" -o "$tmp/vec-register-system.o"
+c++ -std=c++20 -DSQLITE_CORE=1 -DNITRO_SQLITE_USE_PHONE_VERSION=1 -I "$sqlite" -I "$vec" -c "$vec/SQLiteVecRegisterVectorExtensions.cpp" -o "$tmp/vec-register-system.o"
 nm -g "$tmp/vec-register-system.o" > "$tmp/system-symbols"
 if ! grep -Eq '[[:space:]]U _?sqlite3_auto_extension$' "$tmp/system-symbols"; then
   echo 'The system-SQLite vector pod did not import system SQLite' >&2

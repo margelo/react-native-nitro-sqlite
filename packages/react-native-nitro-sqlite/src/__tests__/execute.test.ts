@@ -2,7 +2,7 @@ jest.mock('../nitro')
 
 import { HybridNitroSQLite } from '../nitro'
 import { closeDatabaseQueue, openDatabaseQueue } from '../DatabaseQueue'
-import NitroSQLiteError from '../NitroSQLiteError'
+import SQLiteError from '../SQLiteError'
 import {
   buildJSQueryResult,
   execute,
@@ -23,7 +23,7 @@ afterEach(() => {
     closeDatabaseQueue(dbName)
   } catch (error) {
     if (
-      !(error instanceof NitroSQLiteError) ||
+      !(error instanceof SQLiteError) ||
       !error.message.includes('not open')
     ) {
       throw error
@@ -81,7 +81,7 @@ describe('execute', () => {
       throw new Error('SQL failed')
     })
 
-    expect(() => execute(dbName, query)).toThrow(NitroSQLiteError)
+    expect(() => execute(dbName, query)).toThrow(SQLiteError)
     expect(() => execute(dbName, query)).toThrow('SQL failed')
   })
 

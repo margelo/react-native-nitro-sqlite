@@ -1,4 +1,4 @@
-import { open, type NitroSQLiteConnection } from 'react-native-nitro-sqlite'
+import { open, type Connection } from 'react-native-nitro-sqlite'
 import type { SQLiteQueryParams } from 'react-native-nitro-sqlite'
 import type { BenchmarkCase, BenchmarkFixture } from './runner'
 import {
@@ -48,7 +48,7 @@ export const readCases: BenchmarkCase[] = [
   },
 ]
 
-export function resetLargeDbSchema(db: NitroSQLiteConnection): void {
+export function resetLargeDbSchema(db: Connection): void {
   db.executeBatch([
     { query: 'DROP TABLE IF EXISTS Test' },
     { query: WIDE_SCHEMA },
@@ -202,7 +202,7 @@ async function setupWideRead(): Promise<BenchmarkFixture> {
   }
 }
 
-async function seedNarrowRows(db: NitroSQLiteConnection): Promise<void> {
+async function seedNarrowRows(db: Connection): Promise<void> {
   const params: SQLiteQueryParams[] = Array.from(
     { length: NARROW_ROWS },
     (_, i) => [i, `name_${i}`, i],
