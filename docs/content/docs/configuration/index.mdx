@@ -15,7 +15,7 @@ Add the options you want to change to your app's `package.json`. These are the d
 }
 ```
 
-All values are booleans. Rebuild your app after changes; on Apple platforms, install Pods again first.
+All values are booleans. Rebuild your app after changes. On iOS, Swift Package Manager caches the package manifest that reads these settings, so delete `~/Library/Caches/org.swift.swiftpm/manifests` before rebuilding. On macOS, install Pods again first.
 
 ## Thread safety
 
