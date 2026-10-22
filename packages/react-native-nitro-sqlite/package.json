@@ -96,11 +96,11 @@
     "@types/better-sqlite3": "^9.6.0",
     "better-sqlite3": "^12.11.1",
     "jest": "^30.2.0",
-    "nitrogen": "0.37.1",
+    "nitrogen": "0.37.2-nightly.62.gfb894f673ff0",
     "react": "19.2.3",
     "react-native": "0.87.1",
     "react-native-builder-bob": "^0.31.0",
-    "react-native-nitro-modules": "0.37.1"
+    "react-native-nitro-modules": "0.37.2-nightly.62.gfb894f673ff0"
   },
   "peerDependencies": {
     "better-sqlite3": "^12.11.1",

@@ -41,7 +41,7 @@
     "patch-package": "^8.0.0",
     "react": "19.2.3",
     "react-native": "0.87.1",
-    "react-native-nitro-modules": "0.37.1"
+    "react-native-nitro-modules": "0.37.2-nightly.62.gfb894f673ff0"
   },
   "devDependencies": {
     "@babel/core": "^7.28.5",
@@ -67,7 +67,7 @@
     "eslint-plugin-prettier": "^5.5.4",
     "jest": "^30.2.0",
     "jsonc-parser": "^3.3.1",
-    "nitrogen": "0.37.1",
+    "nitrogen": "0.37.2-nightly.62.gfb894f673ff0",
     "prettier": "^3.6.2",
     "typeorm": "1.1.1",
     "typescript": "^6.0.3",

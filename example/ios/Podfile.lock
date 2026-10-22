@@ -14,7 +14,7 @@ PODS:
   - hermes-engine (250829098.0.17):
     - hermes-engine/Pre-built (= 250829098.0.17)
   - hermes-engine/Pre-built (250829098.0.17)
-  - NitroModules (0.37.1):
+  - NitroModules (0.37.2-nightly.62.gfb894f673ff0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2140,7 +2140,7 @@ SPEC CHECKSUMS:
   fmt: ba0886e864ebb21d14c98b2e12e164b8002f5b93
   glog: 3cf7cb46f743c4bc758ae3e6d9c15bd1b4cfd6d4
   hermes-engine: 35975068890c71d4609534b47111140882468c3a
-  NitroModules: d7b6cfed1591a4f067ccfd834c031945763bebc9
+  NitroModules: 1a06c21384fc6773ffa51dbe523e2dd36efe6b38
   OpenSSL-Universal: ecee7b138fa75a74ecf00d7ffd248fb584739b9e
   QuickCrypto: 80267cce9b90b3c136cc3e1d4dc58cd711b8e5ef
   RCT-Folly: 82921e585c0400eda46fac1068297aa9dfb035e4
@@ -2222,8 +2222,8 @@ SPEC CHECKSUMS:
   ReactCommon: 749169e12aa3461a3df3656a00e48dbe0456b2d6
   ReactNativeDependencies: 94c922c39e0e6150ee9ad05e2ca1946e0ef55783
   RNCClipboard: e706ef7ccbbfd69f829c1b683f893bc7668c9fdb
-  RNNitroSQLite: dc6b7ede85f596a34192a2d2717547c022274e12
-  RNNitroSqliteVec: 2ad86d0717e2eecd168a02fda178af760d6bf45b
+  RNNitroSQLite: d9cd50f5e4d0b21c61eff8b2b31b1129bb7903b3
+  RNNitroSqliteVec: c7721b9206122048ff1c562c33f264a658d82114
   RNScreens: 3c977859fd13e67dc4ebfc24afb4d7c2e894db61
   SocketRocket: 37aec555668fb852ec12e3c0de59a86ca58f0871
   Yoga: d1c536142c5ff8ec8cd856ab2a7c227a1d875c8e

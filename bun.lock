@@ -7,7 +7,7 @@
         "patch-package": "^8.0.0",
         "react": "19.2.3",
         "react-native": "0.87.1",
-        "react-native-nitro-modules": "0.37.1",
+        "react-native-nitro-modules": "0.37.2-nightly.62.gfb894f673ff0",
       },
       "devDependencies": {
         "@babel/core": "^7.28.5",
@@ -33,7 +33,7 @@
         "eslint-plugin-prettier": "^5.5.4",
         "jest": "^30.2.0",
         "jsonc-parser": "^3.3.1",
-        "nitrogen": "0.37.1",
+        "nitrogen": "0.37.2-nightly.62.gfb894f673ff0",
         "prettier": "^3.6.2",
         "release-please": "17.6.0",
         "typeorm": "1.1.1",
@@ -81,7 +81,7 @@
         "expo-status-bar": "^1.12.1",
         "react": "19.2.3",
         "react-native": "0.87.1",
-        "react-native-nitro-modules": "*",
+        "react-native-nitro-modules": "0.37.2-nightly.62.gfb894f673ff0",
         "react-native-nitro-sqlite": "10.2.0",
         "react-native-nitro-sqlite-vec": "10.2.0",
         "react-native-quick-base64": "^3.0.0",
@@ -137,7 +137,7 @@
         "react-native": "0.81.6",
         "react-native-get-random-values": "^2.0.0",
         "react-native-macos-local": "npm:react-native-macos@0.81.9",
-        "react-native-nitro-modules": "0.37.1",
+        "react-native-nitro-modules": "0.37.2-nightly.62.gfb894f673ff0",
         "react-native-nitro-sqlite": "workspace:*",
         "react-native-nitro-sqlite-vec": "workspace:*",
         "readable-stream": "^4.7.0",
@@ -167,11 +167,11 @@
         "@types/better-sqlite3": "^9.6.0",
         "better-sqlite3": "^12.11.1",
         "jest": "^30.2.0",
-        "nitrogen": "0.37.1",
+        "nitrogen": "0.37.2-nightly.62.gfb894f673ff0",
         "react": "19.2.3",
         "react-native": "0.87.1",
         "react-native-builder-bob": "^0.31.0",
-        "react-native-nitro-modules": "0.37.1",
+        "react-native-nitro-modules": "0.37.2-nightly.62.gfb894f673ff0",
       },
       "peerDependencies": {
         "better-sqlite3": "^12.11.1",
@@ -2392,7 +2392,9 @@
 
     "next-themes": ["next-themes@0.4.6", "", { "peerDependencies": { "react": "^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc", "react-dom": "^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc" } }, "sha512-pZvgD5L0IEvX5/9GWyHMf3m8BKiVQwsCMHfoFosXtXBMnaS0ZnIJ9ST4b4NqLVKDEm8QBxoNNGNaBv2JNF6XNA=="],
 
-    "nitrogen": ["nitrogen@0.37.1", "", { "dependencies": { "chalk": "^5.3.0", "react-native-nitro-modules": "^0.37.1", "ts-morph": "^28.0.0", "yargs": "^18.0.0", "zod": "^4.4.3" }, "bin": { "nitrogen": "lib/index.js" } }, "sha512-RMK1n8xV7B38JorfLCFexgPEDp7/4CnM/AR0R3UfikufXo8qB8TecgtY+sW0xjOjZJYwW5bJJI/kyZjusYk4JA=="],
+    "nitro-core": ["nitro-core@0.37.2-nightly.62.gfb894f673ff0", "", {}, "sha512-6BmkZnBj9UlXgCbcZAKnNLGI0IUc9G60YTemb0lVjs53qZVKvuHVo4zze3wJrvCvUIm6oe1aafiNkUQCtHj6eg=="],
+
+    "nitrogen": ["nitrogen@0.37.2-nightly.62.gfb894f673ff0", "", { "dependencies": { "chalk": "^5.3.0", "nitro-core": "0.37.2-nightly.62.gfb894f673ff0", "ts-morph": "^28.0.0", "yargs": "^18.0.0", "zod": "^4.4.3" }, "bin": { "nitrogen": "lib/index.js" } }, "sha512-JRocebaR2qjmUebcpsgqz48I0wcy+m/b+mEgUaMaaWXL/lqqnugLB6lf9Us1UgrAjm7nfiUSy5OSCY3JvHu7FQ=="],
 
     "nocache": ["nocache@3.0.4", "", {}, "sha512-WDD0bdg9mbq6F4mRxEYcPWwfA1vxd0mrvKOyxI7Xj/atfRHVeutzuWByG//jfm4uPzp0y4Kj051EORCBSQMycw=="],
 
@@ -2586,7 +2588,7 @@
 
     "react-native-macos-local": ["react-native-macos@0.81.9", "", { "dependencies": { "@jest/create-cache-key-function": "^29.7.0", "@react-native-macos/virtualized-lists": "0.81.9", "@react-native/assets-registry": "0.81.6", "@react-native/codegen": "0.81.6", "@react-native/community-cli-plugin": "0.81.6", "@react-native/gradle-plugin": "0.81.6", "@react-native/js-polyfills": "0.81.6", "@react-native/normalize-colors": "0.81.6", "abort-controller": "^3.0.0", "anser": "^1.4.9", "ansi-regex": "^5.0.0", "babel-jest": "^29.7.0", "babel-plugin-syntax-hermes-parser": "0.29.1", "base64-js": "^1.5.1", "commander": "^12.0.0", "flow-enums-runtime": "^0.0.6", "glob": "^7.1.1", "invariant": "^2.2.4", "jest-environment-node": "^29.7.0", "memoize-one": "^5.0.0", "metro-runtime": "^0.83.1", "metro-source-map": "^0.83.1", "nullthrows": "^1.1.1", "pretty-format": "^29.7.0", "promise": "^8.3.0", "react-devtools-core": "^6.1.5", "react-refresh": "^0.14.0", "regenerator-runtime": "^0.13.2", "scheduler": "0.26.0", "semver": "^7.1.3", "stacktrace-parser": "^0.1.10", "whatwg-fetch": "^3.0.0", "ws": "^6.2.3", "yargs": "^17.6.2" }, "peerDependencies": { "@types/react": "^19.1.4", "react": "^19.1.4", "react-native": "0.81.6" }, "optionalPeers": ["@types/react"], "bin": { "react-native": "cli.js", "react-native-macos": "cli.js" } }, "sha512-MG120BR4dFzH6v4IBhd4TZILTPvf4oUJHEM0y4ZedXUcGJqUYPIvBzLjPZddl/J3TMZzPaF0heLO3wXJoxqDLw=="],
 
-    "react-native-nitro-modules": ["react-native-nitro-modules@0.37.1", "", { "peerDependencies": { "react": "*", "react-native": "*" } }, "sha512-KpW6EQVQ/bfegpCGxN9Be+ndvsfj56t4IESEvCASu9gWpJa/NDfHpIeIwCOvZQ3eXmLEj6YD4wCLqcC1FJPr2w=="],
+    "react-native-nitro-modules": ["react-native-nitro-modules@0.37.2-nightly.62.gfb894f673ff0", "", { "dependencies": { "nitro-core": "0.37.2-nightly.62.gfb894f673ff0" }, "peerDependencies": { "react": "*", "react-native": "*" } }, "sha512-poLdmH8nU86TKotNxuXn310G8ItDZCXMAhIAThTELJF+7XrvKR0H+kwO7HYPoAr7btk00DMPibkNXJszvvHnAA=="],
 
     "react-native-nitro-sqlite": ["react-native-nitro-sqlite@workspace:packages/react-native-nitro-sqlite"],
 

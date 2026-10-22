@@ -8,7 +8,7 @@ PODS:
   - hermes-engine (0.81.6):
     - hermes-engine/Pre-built (= 0.81.6)
   - hermes-engine/Pre-built (0.81.6)
-  - NitroModules (0.37.1):
+  - NitroModules (0.37.2-nightly.62.gfb894f673ff0):
     - boost
     - DoubleConversion
     - fast_float
@@ -2592,7 +2592,7 @@ SPEC CHECKSUMS:
   fmt: 4cf0c5ec5864511c96d8d4bd7b03c3c69040af06
   glog: 0b31c25149b9d350b2666c7d459229861a00ec07
   hermes-engine: 7219f6e751ad6ec7f3d7ec121830ee34dae40749
-  NitroModules: 26a0c2e28da5674c89f3bce1e78c2e6e05d4bf35
+  NitroModules: d9faa091a708d96c777ae93da6c5624c2fd1d48f
   RCT-Folly: a3d9b23289a456c318f4814703664bdc33c771cc
   RCTDeprecation: ae9e1391708bf992a2a94fb724b0923015be995b
   RCTRequired: eb7a65dfaf816b64d40e1c96e4fc597bfa28bedc
@@ -2658,8 +2658,8 @@ SPEC CHECKSUMS:
   ReactCodegen: 4dff081e9dbb8acd8b15a8acc9374b4ac1a9869d
   ReactCommon: bc273d1cfc32a36ea662e81293e0961de8c21c77
   RNCClipboard: 4b58c780f63676367640f23c8e114e9bd0cf86ac
-  RNNitroSQLite: 2ae5e37bd04820a7f3c0de69f0cc2affdb2eedd8
-  RNNitroSqliteVec: 2ad86d0717e2eecd168a02fda178af760d6bf45b
+  RNNitroSQLite: 523429b38d49b89b64a5719de2531b617aa993fa
+  RNNitroSqliteVec: c7721b9206122048ff1c562c33f264a658d82114
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: a88f30ac6f89fded00f9840e7d043315e5ab4fe0
 
