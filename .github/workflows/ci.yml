@@ -129,6 +129,9 @@ jobs:
           (cd packages/react-native-nitro-sqlite-vec && ../../node_modules/.bin/jest --coverage --runInBand)
           (cd example && ../node_modules/.bin/jest --config jest.mocha.config.js --runInBand --watchman=false)
           node --test example/macos/scripts/test-macos.test.mjs
+      - name: Build the library package
+        if: steps.select.outputs.typescript == 'true'
+        run: bun --cwd packages/react-native-nitro-sqlite run build
       - name: Format C++
         if: steps.select.outputs.cpp_format == 'true'
         run: |

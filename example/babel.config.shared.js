@@ -7,8 +7,7 @@ function createExampleBabelConfig(projectRoot) {
   const aliases = {
     [libraryPackage.name]: path.join(
       __dirname,
-      '../packages/react-native-nitro-sqlite',
-      libraryPackage.source,
+      '../packages/react-native-nitro-sqlite/src/index',
     ),
     'stream': 'readable-stream',
     'react-native-sqlite-storage': libraryPackage.name,
