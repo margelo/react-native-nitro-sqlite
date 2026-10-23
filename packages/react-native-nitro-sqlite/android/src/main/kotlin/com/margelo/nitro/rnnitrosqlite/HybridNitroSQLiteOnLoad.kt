@@ -8,11 +8,13 @@ import com.margelo.rnnitrosqlite.DocPathSetter
 @Keep
 @DoNotStrip
 class HybridNitroSQLiteOnLoad : HybridNitroSQLiteOnLoadSpec() {
-  @Keep
-  @DoNotStrip
-  override fun init() {
-    NitroModules.applicationContext?.let { context ->
-      DocPathSetter.setDocPath(context)
+  companion object : HybridNitroSQLiteOnLoadSpec.Companion {
+    @Keep
+    @DoNotStrip
+    override fun init() {
+      NitroModules.applicationContext?.let { context ->
+        DocPathSetter.setDocPath(context)
+      }
     }
   }
 }

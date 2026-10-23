@@ -26,7 +26,6 @@ afterEach(() => {
 function mockStatement(): NitroSQLitePreparedStatement {
   let finalized = false
   return {
-    name: 'PreparedStatement',
     toString: () => 'PreparedStatement',
     equals: () => false,
     dispose: jest.fn(),

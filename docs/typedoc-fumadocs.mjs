@@ -117,8 +117,11 @@ class NitroMemberRouter extends MemberRouter {
 }
 
 function isHybridObject(reflection) {
+  // Nitro V1 exports the HybridObject base class through a NativeHybridObject constant.
   return reflection.extendedTypes?.some(
-    (type) => type.type === 'reference' && type.name === 'HybridObject',
+    (type) =>
+      type.type === 'reference' &&
+      ['HybridObject', 'NativeHybridObject'].includes(type.name),
   )
 }
 

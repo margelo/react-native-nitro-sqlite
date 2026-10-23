@@ -94,14 +94,18 @@ jobs:
           bun run sync:lockfile
           bun run check:lockfile
           bun install --frozen-lockfile
+      # The CocoaPods steps are paused because Nitro V1 doesn't support CocoaPods.
       - uses: ruby/setup-ruby@v1
+        if: false
         with:
           ruby-version: 3.3.0
           bundler-cache: true
           working-directory: example
       - name: Select Xcode
+        if: false
         run: sudo xcode-select -s "/Applications/Xcode_26.5.app/Contents/Developer"
       - name: Update iOS and macOS lockfiles
+        if: false
         run: |
           bun example pods
           bun example pods:macos

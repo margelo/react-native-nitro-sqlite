@@ -14,8 +14,8 @@ namespace {
     copiedParams.reserve(params->size());
 
     for (const auto& value : *params) {
-      if (value && std::holds_alternative<std::shared_ptr<ArrayBuffer>>(*value)) {
-        copiedParams.push_back(ArrayBuffer::copy(std::get<std::shared_ptr<ArrayBuffer>>(*value)));
+      if (value && std::holds_alternative<ArrayBuffer>(*value)) {
+        copiedParams.push_back(ArrayBuffer::copy(std::get<ArrayBuffer>(*value)));
       } else {
         copiedParams.push_back(value);
       }
@@ -27,14 +27,13 @@ namespace {
 } // namespace
 
 HybridNitroSQLitePreparedStatement::HybridNitroSQLitePreparedStatement(std::shared_ptr<SQLitePreparedStatement> statement)
-    : HybridObject(TAG), _statement(std::move(statement)) {}
+    : _statement(std::move(statement)) {}
 
 NitroSQLiteQueryResult HybridNitroSQLitePreparedStatement::execute(const std::optional<SQLiteQueryParams>& params) {
   return _statement->execute(params);
 }
 
-std::shared_ptr<Promise<NitroSQLiteQueryResult>>
-HybridNitroSQLitePreparedStatement::executeAsync(const std::optional<SQLiteQueryParams>& params) {
+Promise<NitroSQLiteQueryResult> HybridNitroSQLitePreparedStatement::executeAsync(const std::optional<SQLiteQueryParams>& params) {
   const auto copiedParams = copyArrayBufferParamsForBackground(params);
   const auto statement = _statement;
 

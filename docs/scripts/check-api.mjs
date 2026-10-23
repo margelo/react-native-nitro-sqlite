@@ -68,12 +68,6 @@ const requiredMembers = {
       'executeAsync',
       'executeBatch',
       'executeBatchAsync',
-      'close',
-      'drop',
-      'attach',
-      'detach',
-      'loadFile',
-      'loadFileAsync',
     ],
     NitroSQLiteConnection: [
       'close',

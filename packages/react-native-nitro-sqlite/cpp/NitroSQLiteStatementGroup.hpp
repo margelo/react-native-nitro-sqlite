@@ -1,7 +1,7 @@
 #pragma once
 
+#include "sqlite/sqlite3.h"
 #include <cstddef>
-#include <sqlite3.h>
 #include <string>
 #include <utility>
 #include <vector>

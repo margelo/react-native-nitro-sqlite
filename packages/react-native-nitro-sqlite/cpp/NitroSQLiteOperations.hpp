@@ -1,8 +1,8 @@
 #pragma once
 
 #include "NitroSQLiteDatabaseConnections.hpp"
-#include "NitroSQLiteQueryResult.hpp"
 #include "sqlite/sqlite3.h"
+#include <RNNitroSQLite/NitroSQLiteQueryResult.hpp>
 #include <functional>
 #include <memory>
 #include <mutex>

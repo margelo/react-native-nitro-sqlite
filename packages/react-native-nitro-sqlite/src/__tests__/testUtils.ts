@@ -1,4 +1,4 @@
-import type { NitroSQLiteQueryResult } from '../specs/NitroSQLiteQueryResult.nitro'
+import type { NitroSQLiteQueryResult } from '../specs/NitroSQLiteQueryResult'
 import type { SQLiteValue } from '../types'
 
 export function nativeResult(

@@ -1,7 +1,7 @@
 import { HybridNitroSQLite } from '../nitro'
 import type { QueryResult, QueryResultRow, SQLiteQueryParams } from '../types'
 import NitroSQLiteError from '../NitroSQLiteError'
-import type { NitroSQLiteQueryResult } from '../specs/NitroSQLiteQueryResult.nitro'
+import type { NitroSQLiteQueryResult } from '../specs/NitroSQLiteQueryResult'
 import {
   isDatabaseOpen,
   queueStatementAsync,

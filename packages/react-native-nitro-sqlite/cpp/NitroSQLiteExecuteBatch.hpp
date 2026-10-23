@@ -3,8 +3,8 @@
  */
 #pragma once
 
-#include "BatchQueryCommand.hpp"
 #include "NitroSQLiteTypes.hpp"
+#include <RNNitroSQLite/BatchQueryCommand.hpp>
 #include <memory>
 
 namespace margelo::nitro::rnnitrosqlite {
