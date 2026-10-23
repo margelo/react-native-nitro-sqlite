@@ -334,6 +334,7 @@ function fixture(run: (directory: string) => void): void {
       'package.json',
       'packages/react-native-nitro-sqlite/package.json',
       'packages/react-native-nitro-sqlite-vec/package.json',
+      'packages/react-native-nitro-sqlite-drizzle/package.json',
       'example/package.json',
     ]) {
       mkdirSync(join(directory, path, '..'), { recursive: true })
@@ -344,6 +345,7 @@ function fixture(run: (directory: string) => void): void {
           dependencies: {
             'react-native-nitro-sqlite': '1.0.0',
             'react-native-nitro-sqlite-vec': '1.0.0',
+            'react-native-nitro-sqlite-drizzle': '1.0.0',
           },
           devDependencies: { 'react-native-nitro-sqlite': '1.0.0' },
         }),

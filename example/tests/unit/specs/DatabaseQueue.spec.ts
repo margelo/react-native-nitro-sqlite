@@ -106,50 +106,49 @@ export default function registerDatabaseQueueUnitTests() {
       expect(testDbQueue.inProgress).toBe(false)
     })
 
-    it('mixed transactions and executeBatchAsync operations are queued', async () => {
+    it('runs mixed transactions and async batches in submission order', async () => {
+      testDb.execute('CREATE TABLE MixedQueueOrder (value INTEGER)')
       const transaction1Promise = testDb.transaction(async (tx) => {
-        tx.execute('SELECT * FROM [User];')
+        tx.execute('INSERT INTO MixedQueueOrder VALUES (1)')
       })
 
       expect(testDbQueue.queue.length).toBe(0)
       expect(testDbQueue.inProgress).toBe(true)
 
-      const executeBatch1Promise = testDb.executeBatchAsync(TEST_BATCH_COMMANDS)
+      const executeBatch1Promise = testDb.executeBatchAsync([
+        { query: 'INSERT INTO MixedQueueOrder VALUES (2)' },
+      ])
 
       expect(testDbQueue.queue.length).toBe(1)
       expect(testDbQueue.inProgress).toBe(true)
 
       const transaction2Promise = testDb.transaction(async (tx) => {
-        tx.execute(TEST_QUERY)
+        tx.execute('INSERT INTO MixedQueueOrder VALUES (3)')
       })
 
       expect(testDbQueue.queue.length).toBe(2)
       expect(testDbQueue.inProgress).toBe(true)
 
-      const executeBatch2Promise = testDb.executeBatchAsync(TEST_BATCH_COMMANDS)
+      const executeBatch2Promise = testDb.executeBatchAsync([
+        { query: 'INSERT INTO MixedQueueOrder VALUES (4)' },
+      ])
 
       expect(testDbQueue.queue.length).toBe(3)
       expect(testDbQueue.inProgress).toBe(true)
 
-      await transaction1Promise
-
-      expect(testDbQueue.queue.length).toBe(2)
-      expect(testDbQueue.inProgress).toBe(true)
-
-      await executeBatch1Promise
-
-      expect(testDbQueue.queue.length).toBe(1)
-      expect(testDbQueue.inProgress).toBe(true)
-
-      await transaction2Promise
-
-      expect(testDbQueue.queue.length).toBe(0)
-      expect(testDbQueue.inProgress).toBe(true)
-
-      await executeBatch2Promise
+      await Promise.all([
+        transaction1Promise,
+        executeBatch1Promise,
+        transaction2Promise,
+        executeBatch2Promise,
+      ])
 
       expect(testDbQueue.queue.length).toBe(0)
       expect(testDbQueue.inProgress).toBe(false)
+      expect(
+        testDb.execute('SELECT value FROM MixedQueueOrder ORDER BY rowid')
+          .results,
+      ).toEqual([{ value: 1 }, { value: 2 }, { value: 3 }, { value: 4 }])
     })
 
     it('errors are thrown through DatabaseQueue', async () => {

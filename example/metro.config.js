@@ -4,6 +4,7 @@ const pak = require('../package.json')
 
 const root = path.resolve(__dirname, '..')
 const modules = Object.keys({ ...pak.peerDependencies })
+const defaultConfig = getDefaultConfig(__dirname)
 
 const config = {
   projectRoot: __dirname,
@@ -16,6 +17,7 @@ const config = {
       acc[name] = path.join(__dirname, 'node_modules', name)
       return acc
     }, {}),
+    sourceExts: [...defaultConfig.resolver.sourceExts, 'sql'],
   },
 
   transformer: {
@@ -28,4 +30,4 @@ const config = {
   },
 }
 
-module.exports = mergeConfig(getDefaultConfig(__dirname), config)
+module.exports = mergeConfig(defaultConfig, config)

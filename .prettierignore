@@ -7,6 +7,7 @@
 *.markdown
 
 packages/react-native-nitro-sqlite/lib
+packages/react-native-nitro-sqlite-drizzle/src/__tests__/fixtures/drizzle
 
 .well-known
 android

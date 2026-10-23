@@ -65,6 +65,11 @@ test('times out when the app does not report results', async () => {
     result.output,
     /Timed out waiting for macOS test results after 100ms/,
   )
+  assert.match(
+    result.output,
+    /App output:[\s\S]*fake app did not report results/,
+  )
+  assert.match(result.output, /Metro output:[\s\S]*fake Metro is ready/)
 })
 
 test('fails promptly when Metro exits during startup', async () => {
@@ -136,11 +141,15 @@ const server = createServer((_request, response) => {
   response.end('packager-status:running')
 })
 
-server.listen(port, '127.0.0.1')
+server.listen(port, '127.0.0.1', () => console.log('fake Metro is ready'))
 process.on('SIGTERM', () => server.close(() => process.exit(0)))
 `
 
 const fakeAppSource = `#!/usr/bin/env node
+if (process.env.FAKE_APP_SCENARIO === 'no-report') {
+  console.error('fake app did not report results')
+}
+
 if (process.env.FAKE_APP_SCENARIO === 'early-exit') {
   console.error('fake app failed')
   process.exit(23)

@@ -14,17 +14,21 @@ const extraNodeModules = Object.keys(libraryPackage.peerDependencies).reduce(
   },
   {},
 )
+const defaultConfig = getDefaultConfig(__dirname)
 
 const config = {
   projectRoot: __dirname,
   watchFolders: [exampleRoot, root],
   resolver: {
+    // The example shares migration fixtures with the Drizzle package tests.
+    blockList: /\/__tests__\/(?!fixtures\/).*/,
     disableHierarchicalLookup: true,
     nodeModulesPaths: [
       path.join(__dirname, 'node_modules'),
       path.join(root, 'node_modules'),
     ],
     platforms: ['macos', 'ios', 'android'],
+    sourceExts: [...defaultConfig.resolver.sourceExts, 'sql'],
     extraNodeModules,
     resolveRequest: (context, moduleName, platform) => {
       // TypeORM imports the workspace package without going through Babel.
@@ -78,4 +82,4 @@ const config = {
   },
 }
 
-module.exports = mergeConfig(getDefaultConfig(__dirname), config)
+module.exports = mergeConfig(defaultConfig, config)
