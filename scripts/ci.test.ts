@@ -86,7 +86,7 @@ test('dependency lockfile changes retain both mobile and desktop coverage', () =
 
 test('Harness patches retain both mobile and desktop coverage', () => {
   const checks = selectChecks(
-    ['patches/@react-native-harness+cli+1.5.0.patch'],
+    ['patches/@react-native-harness+cli+1.6.0.patch'],
     false,
   )
   assert.equal(checks.android, true)
