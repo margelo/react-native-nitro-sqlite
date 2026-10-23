@@ -18,10 +18,11 @@ If you use a coding agent, give it the [NitroSQLite skill](https://github.com/ma
 
 ## Installation
 
-Requires React Native 0.75 or newer and `react-native-nitro-modules` 0.37.1 or newer.
+Requires React Native 0.88 or newer and Nitro V1. iOS builds use Swift Package Manager and require Xcode with Swift 6.4 or newer.
 
 ```sh
-npm install react-native-nitro-sqlite react-native-nitro-modules
+npm install react-native-nitro-sqlite react-native-nitro-modules@1.0.0-alpha.nightly.86.g15e19db42041
+npx react-native spm
 ```
 
 Rebuild the native app after installing. Expo projects need a development build; Expo Go cannot load this native module. See [Getting Started](https://sqlite.margelo.com/docs) for details.

@@ -7,21 +7,21 @@ Nitro SQLite gives React Native apps a local SQLite database on iOS, macOS, visi
 
 ## 1. Install the packages
 
-Nitro SQLite requires React Native 0.75 or newer, React 17 or newer, and `react-native-nitro-modules` 0.37.1 or newer.
+Nitro SQLite is built with Nitro V1, which requires React Native 0.88 or newer with the New Architecture. iOS builds require Xcode with Swift 6.4 or newer. Install the Nitro version that Nitro SQLite was built with, because the generated native bindings must match it:
 
 ```sh
-npm install react-native-nitro-sqlite react-native-nitro-modules
+npm install react-native-nitro-sqlite react-native-nitro-modules@1.0.0-alpha.nightly.86.g15e19db42041
 ```
 
 ## 2. Set up the native project
 
-The default database location needs no custom SQLite settings. If your project has an `ios` directory, install the native pods after adding the packages:
+The default database location needs no custom SQLite settings. Nitro V1 builds iOS dependencies with Swift Package Manager. If your project has an `ios` directory, set up or refresh the Swift packages from your app directory after adding the packages:
 
 ```sh
-npx pod-install
+npx react-native spm
 ```
 
-Android needs no additional Nitro SQLite configuration for the default setup. For a React Native macOS project, install CocoaPods from its `macos` directory. Use [Configuration](/docs/configuration) for the shared `package.json` options. The [iOS](/docs/configuration/ios), [Android](/docs/configuration/android), and [macOS](/docs/configuration/macos) pages cover platform settings and build alternatives.
+If your iOS project still uses CocoaPods, convert it first with `npx react-native spm add --deintegrate`. Android needs no additional Nitro SQLite configuration for the default setup. For a React Native macOS project, install CocoaPods from its `macos` directory. Use [Configuration](/docs/configuration) for the shared `package.json` options. The [iOS](/docs/configuration/ios), [Android](/docs/configuration/android), and [macOS](/docs/configuration/macos) pages cover platform settings and build alternatives.
 
 ## 3. Rebuild the app
 
