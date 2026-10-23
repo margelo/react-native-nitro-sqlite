@@ -1,7 +1,6 @@
 #import <Foundation/Foundation.h>
 #import <TargetConditionals.h>
-#import "RNNitroSQLite-Swift-Cxx-Umbrella.hpp"
-#import "HybridNitroSQLite.hpp"
+#import "hybridObjects/HybridNitroSQLite.hpp"
 
 #if TARGET_OS_OSX
 static NSString *macOSDatabaseDirectory(void) {

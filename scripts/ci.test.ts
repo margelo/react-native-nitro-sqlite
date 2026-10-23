@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { execFileSync, spawnSync } from 'node:child_process'
+import { execFileSync } from 'node:child_process'
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -94,11 +94,23 @@ test('Harness patches retain both mobile and desktop coverage', () => {
   assert.equal(checks.macos, true)
 })
 
-test('Ruby dependency changes retain both Apple platforms', () => {
+test('Ruby dependency changes only select macOS', () => {
   const checks = selectChecks(['example/Gemfile'], false)
-  assert.equal(checks.ios, true)
   assert.equal(checks.macos, true)
+  assert.equal(checks.ios, false)
   assert.equal(checks.android, false)
+})
+
+test('Swift package changes select iOS without Android', () => {
+  for (const file of [
+    'packages/react-native-nitro-sqlite/Package.swift',
+    'packages/react-native-nitro-sqlite-vec/Package.swift',
+    'patches/react-native-screens+4.30.0.patch',
+  ]) {
+    const checks = selectChecks([file], false)
+    assert.equal(checks.ios, true)
+    assert.equal(checks.android, false)
+  }
 })
 
 test('a full run selects every check even without file changes', () => {
@@ -185,56 +197,7 @@ test('the CLI routes real Git commits', () => {
   }
 })
 
-test('the real iOS Podfile honors both CI matrix modes and retains the local default', () => {
-  const script = `
-    module Pod
-      class Config
-        def self.instance = new
-        def installation_root = '/stub'
-      end
-      module Executable
-        def self.execute_command(*) = '/stub/react_native_pods.rb'
-      end
-      module UI
-        def self.puts(*) = nil
-      end
-    end
-    class String
-      def green = self
-    end
-    def require(*) = true
-    def min_ios_version_supported = '15.1'
-    def platform(*) = nil
-    def prepare_react_native_project! = nil
-    def use_frameworks!(linkage:) = STDOUT.puts("frameworks=#{linkage}")
-    def target(*) = yield
-    def use_native_modules! = { reactNativePath: '/stub' }
-    def use_react_native!(**) = nil
-    def post_install(*) = nil
-    load ARGV.fetch(0)
-  `
-  for (const [mode, expected] of [
-    ['static', 'frameworks=static'],
-    ['', ''],
-    [undefined, 'frameworks=static'],
-  ]) {
-    const env = { ...process.env }
-    if (mode === undefined) {
-      delete env.USE_FRAMEWORKS
-    } else {
-      env.USE_FRAMEWORKS = mode
-    }
-    const result = spawnSync(
-      'ruby',
-      ['-e', script, join(root, 'example/ios/Podfile')],
-      { env, encoding: 'utf8' },
-    )
-    assert.equal(result.status, 0, result.stderr)
-    assert.equal(result.stdout.trim(), expected)
-  }
-})
-
-test('the routine iOS matrix retains both framework configurations', () => {
+test('the routine iOS matrix uses Xcode 27', () => {
   const workflow = readFileSync(
     join(root, '.github/workflows/test-harness-ios.yml'),
     'utf8',
@@ -244,10 +207,7 @@ test('the routine iOS matrix retains both framework configurations', () => {
   )
   assert.ok(match?.[2])
   const matrix: unknown = JSON.parse(match[2])
-  assert.deepEqual(matrix, [
-    { name: 'static_frameworks', frameworks: 'static', xcode: '26.5' },
-    { name: 'no_frameworks', frameworks: '', xcode: '26.5' },
-  ])
+  assert.deepEqual(matrix, [{ xcode: '27.0' }])
 })
 
 function enabled(checks: ReturnType<typeof selectChecks>): string[] {
