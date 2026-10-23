@@ -100,7 +100,8 @@ export interface NitroSQLite
    * @param onRows Receives leading rows in batches, in order, while SQLite still reads the rest, so
    * JavaScript can convert a batch while the next one is read. Batched rows are not repeated in the
    * result's `results`, which then holds only the rows after the last batch.
-   * @returns A promise of the native query result.
+   * @returns A promise of the native query result. Row callbacks may still be queued when it
+   * resolves. Wait for `rowBatchCount` callbacks before combining their rows with `results`.
    */
   executeAsync(
     dbName: string,

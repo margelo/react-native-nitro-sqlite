@@ -221,6 +221,7 @@ namespace {
     int columnCount = 0;
     std::vector<std::string> columnNames;
     std::vector<SQLiteQueryResultRow> rows;
+    size_t rowBatchCount = 0;
     bool columnsCaptured = false;
 
     const auto captureColumns = [&] {
@@ -283,6 +284,7 @@ namespace {
       rows.push_back(std::move(row));
       if (onRows && rows.size() == kRowBatchSize) {
         onRows(SQLiteQueryResults(columnNames, std::move(rows)));
+        rowBatchCount++;
         rows = {};
       }
     });
@@ -309,6 +311,7 @@ namespace {
     result.insertId = static_cast<double>(sqlite3_last_insert_rowid(db));
     result.results = SQLiteQueryResults(std::move(columnNames), std::move(rows));
     result.metadata = std::move(metadata);
+    result.rowBatchCount = static_cast<double>(rowBatchCount);
     return result;
   }
 

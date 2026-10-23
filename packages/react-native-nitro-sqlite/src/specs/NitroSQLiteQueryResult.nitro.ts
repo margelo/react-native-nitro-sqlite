@@ -22,6 +22,13 @@ export interface NitroSQLiteQueryResult {
 
   /** Column metadata keyed by result column name, when available. */
   readonly metadata?: Record<string, NitroSQLiteQueryColumnMetadata>
+
+  /** Number of row batches sent through the native `onRows` callback, or zero when none were sent.
+   * Callbacks may arrive after the native promise resolves. Wait for this many batches before
+   * combining them with `results`. The managed async API waits for them automatically.
+   * An omitted count is treated as zero. Batch tracking requires an updated native build.
+   */
+  readonly rowBatchCount?: number
 }
 
 // TODO: Investigate why this cannot be represented in Nitro

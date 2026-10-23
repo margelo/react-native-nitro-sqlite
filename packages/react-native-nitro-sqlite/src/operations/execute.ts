@@ -57,7 +57,7 @@ export function executeNative<Row extends QueryResultRow = never>(
  * @param dbName Name of an open native database.
  * @param query SQL statement with optional positional placeholders.
  * @param params Values bound to the placeholders.
- * @returns A promise of the query result with typed rows.
+ * @returns A promise of the complete query result after all row batches arrive.
  */
 export async function executeAsync<Row extends QueryResultRow = never>(
   dbName: string,
@@ -90,6 +90,8 @@ export async function executeAsyncNative<Row extends QueryResultRow = never>(
   try {
     // Large results arrive in batches, so rows are converted while SQLite reads the rest.
     let leadingRows: Row[] | undefined
+    let receivedBatchCount = 0
+    let onBatchReceived: (() => void) | undefined
     const nativeResult = await HybridNitroSQLite.executeAsync(
       dbName,
       query,
@@ -100,8 +102,19 @@ export async function executeAsyncNative<Row extends QueryResultRow = never>(
         } else {
           Array.prototype.push.apply(leadingRows, rows as Row[])
         }
+        receivedBatchCount++
+        onBatchReceived?.()
       },
     )
+    // Native computation can finish before its queued JavaScript callbacks run.
+    const expectedBatchCount = nativeResult.rowBatchCount ?? 0
+    if (receivedBatchCount < expectedBatchCount) {
+      await new Promise<void>((resolve) => {
+        onBatchReceived = () => {
+          if (receivedBatchCount >= expectedBatchCount) resolve()
+        }
+      })
+    }
     return buildJSQueryResult<Row>(nativeResult, leadingRows)
   } catch (error) {
     throw NitroSQLiteError.fromError(error)
