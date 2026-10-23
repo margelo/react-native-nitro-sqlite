@@ -1,7 +1,12 @@
 import { transaction } from './operations/transaction'
 import { HybridNitroSQLite } from './nitro'
 import { open } from './operations/session'
-import { execute, executeAsync } from './operations/execute'
+import {
+  execute,
+  executeAsync,
+  executeRaw,
+  executeRawAsync,
+} from './operations/execute'
 import { prepare } from './operations/prepare'
 import { init } from './OnLoad'
 import { executeBatch, executeBatchAsync } from './operations/executeBatch'
@@ -20,6 +25,8 @@ export const NitroSQLite = {
   transaction,
   execute,
   executeAsync,
+  executeRaw,
+  executeRawAsync,
   prepare,
   executeBatch,
   executeBatchAsync,
@@ -34,6 +41,8 @@ export type {
   NitroSQLiteQueryResult,
   NitroSQLiteQueryRows,
   NitroSQLiteQueryColumnMetadata,
+  NitroSQLiteRawQueryResult,
+  NitroSQLiteRawQueryRows,
 } from './specs/NitroSQLiteQueryResult.nitro'
 export type { TypeOrmNitroSQLiteConnection } from './typeORM'
 export type * from './types'

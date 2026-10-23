@@ -73,6 +73,14 @@ public:
                                                                 const std::optional<SQLiteQueryParams>& params,
                                                                 const std::optional<SQLiteRowBatchHandler>& onRows) override;
 
+  /** Execute one SQL statement on the calling thread, returning rows as arrays of column values. */
+  NitroSQLiteRawQueryResult executeRaw(const std::string& dbName, const std::string& query,
+                                       const std::optional<SQLiteQueryParams>& params) override;
+
+  /** Execute one SQL statement on a background thread, returning rows as arrays of column values. */
+  std::shared_ptr<Promise<NitroSQLiteRawQueryResult>> executeRawAsync(const std::string& dbName, const std::string& query,
+                                                                      const std::optional<SQLiteQueryParams>& params) override;
+
   /** Prepare one SQL statement for repeated execution on an open connection. */
   std::shared_ptr<HybridNitroSQLitePreparedStatementSpec> prepare(const std::string& dbName, const std::string& query) override;
 

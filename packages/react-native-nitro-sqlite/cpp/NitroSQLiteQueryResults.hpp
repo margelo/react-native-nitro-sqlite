@@ -28,6 +28,14 @@ struct SQLiteQueryResults {
   std::shared_ptr<const SQLiteQueryResultData> data;
 };
 
+// Rows converted to JavaScript arrays of column values, which keep repeated column names apart.
+struct SQLiteRawQueryResults {
+  SQLiteRawQueryResults() : data(std::make_shared<const SQLiteQueryResultData>()) {}
+  explicit SQLiteRawQueryResults(SQLiteQueryResults results) : data(std::move(results.data)) {}
+
+  std::shared_ptr<const SQLiteQueryResultData> data;
+};
+
 /** Receives leading result rows in batches while the statement still runs. */
 using SQLiteRowBatchHandler = std::function<void(SQLiteQueryResults)>;
 
@@ -60,6 +68,32 @@ struct JSIConverter<rnnitrosqlite::SQLiteQueryResults> final {
 
   // Query results only travel from native code to JavaScript.
   static rnnitrosqlite::SQLiteQueryResults fromJSI(jsi::Runtime&, const jsi::Value&) {
+    throw std::logic_error("SQLite query results cannot be passed from JavaScript");
+  }
+
+  static bool canConvert(jsi::Runtime&, const jsi::Value&) {
+    return false;
+  }
+};
+
+template <>
+struct JSIConverter<rnnitrosqlite::SQLiteRawQueryResults> final {
+  static jsi::Value toJSI(jsi::Runtime& runtime, const rnnitrosqlite::SQLiteRawQueryResults& results) {
+    const auto& data = *results.data;
+    jsi::Array array(runtime, data.rows.size());
+    for (size_t rowIndex = 0; rowIndex < data.rows.size(); rowIndex++) {
+      const auto& row = data.rows[rowIndex];
+      jsi::Array values(runtime, row.size());
+      for (size_t columnIndex = 0; columnIndex < row.size(); columnIndex++) {
+        values.setValueAtIndex(runtime, columnIndex, JSIConverter<rnnitrosqlite::SQLiteValue>::toJSI(runtime, row[columnIndex]));
+      }
+      array.setValueAtIndex(runtime, rowIndex, std::move(values));
+    }
+    return array;
+  }
+
+  // Query results only travel from native code to JavaScript.
+  static rnnitrosqlite::SQLiteRawQueryResults fromJSI(jsi::Runtime&, const jsi::Value&) {
     throw std::logic_error("SQLite query results cannot be passed from JavaScript");
   }
 

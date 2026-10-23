@@ -3,7 +3,7 @@ title: Prepared statements
 description: Reuse a compiled SQL statement with different bound values.
 ---
 
-Call `db.prepare(query)` to reuse SQL with different parameter values. It returns a statement with `execute(params)`, `executeAsync(params)`, `isFinalized`, and `finalize()`. Preparation is synchronous and throws if the connection has work pending or running. For a query that runs only once, use `db.execute()` or `db.executeAsync()`. See [parameters and prepared statements](/docs/concepts/queries-and-indexes#parameters-and-prepared-statements) for the SQLite concept.
+Call `db.prepare(query)` to reuse SQL with different parameter values. It returns a statement with `execute(params)`, `executeAsync(params)`, `isFinalized`, and `finalize()`, plus `executeRaw(params)` and `executeRawAsync(params)` for [rows as arrays](/docs/guides/parameters-and-results#rows-as-arrays). Preparation is synchronous and throws if the connection has work pending or running. For a query that runs only once, use `db.execute()` or `db.executeAsync()`. See [parameters and prepared statements](/docs/concepts/queries-and-indexes#parameters-and-prepared-statements) for the SQLite concept.
 
 ```ts
 import { open } from 'react-native-nitro-sqlite'

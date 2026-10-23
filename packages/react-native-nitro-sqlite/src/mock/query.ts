@@ -1,4 +1,5 @@
 import type BetterSqlite3 from 'better-sqlite3'
+import type { NitroSQLiteRawQueryResult } from '../specs/NitroSQLiteQueryResult.nitro'
 import type {
   BatchQueryCommand,
   QueryResult,
@@ -9,6 +10,7 @@ import type {
 
 type Database = InstanceType<typeof BetterSqlite3>
 type Statement = BetterSqlite3.Statement<unknown[], Record<string, unknown>>
+type RawStatement = BetterSqlite3.Statement<unknown[], unknown[]>
 type BoundValue = string | number | Buffer | null
 type ExpandedBatchCommand = { query: string; params?: SQLiteQueryParams }
 
@@ -35,6 +37,48 @@ export function executePrepared<Row extends QueryResultRow = QueryResultRow>(
       item: (index: number) => results[index],
     },
   } as QueryResult<Row>
+}
+
+/** @internal Execute an already prepared statement, returning rows as arrays of column values. */
+export function executePreparedRaw(
+  database: Database,
+  statement: Statement,
+  params?: SQLiteQueryParams,
+): NitroSQLiteRawQueryResult {
+  const bindings = getBindings(statement.source, params)
+  let columnNames: string[] = []
+  let rows: SQLiteValue[][] = []
+  if (statement.reader) {
+    try {
+      // better-sqlite3's types keep the object row type after raw(true).
+      const rawStatement = statement.raw(true) as unknown as RawStatement
+      const rawRows = rawStatement.all(...bindings)
+      // Execution may reprepare the statement after a schema change.
+      columnNames = statement.columns().map((column) => column.name)
+      rows = rawRows.map((row) =>
+        row.map((value, index) => normalizeValue(value, columnNames[index]!)),
+      )
+    } finally {
+      // Raw mode stays on the statement, and prepared statements also serve execute().
+      statement.raw(false)
+    }
+  } else statement.run(...bindings)
+  const { rowsAffected, insertId } = getDatabaseChanges(database)
+  return {
+    rowsAffected,
+    insertId,
+    columnNames,
+    rows,
+  } as NitroSQLiteRawQueryResult
+}
+
+/** @internal Execute one SQL statement and return rows as arrays of column values. */
+export function executeRawQuery(
+  database: Database,
+  query: string,
+  params?: SQLiteQueryParams,
+): NitroSQLiteRawQueryResult {
+  return executePreparedRaw(database, database.prepare(query), params)
 }
 
 /** @internal Execute one SQL statement and return Nitro-shaped data. */
@@ -178,22 +222,26 @@ function toBoundValue(value: SQLiteValue): BoundValue {
 function normalizeRow(row: Record<string, unknown>): QueryResultRow {
   const result: QueryResultRow = {}
   for (const [key, value] of Object.entries(row)) {
-    if (Buffer.isBuffer(value)) {
-      const bytes = new ArrayBuffer(value.byteLength)
-      new Uint8Array(bytes).set(value)
-      result[key] = bytes
-    } else if (
-      value === null ||
-      typeof value === 'string' ||
-      typeof value === 'number' ||
-      typeof value === 'boolean'
-    ) {
-      result[key] = value
-    } else {
-      throw new Error(`Unsupported SQLite value in column ${key}.`)
-    }
+    result[key] = normalizeValue(value, key)
   }
   return result
+}
+
+function normalizeValue(value: unknown, column: string): SQLiteValue {
+  if (Buffer.isBuffer(value)) {
+    const bytes = new ArrayBuffer(value.byteLength)
+    new Uint8Array(bytes).set(value)
+    return bytes
+  }
+  if (
+    value === null ||
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean'
+  ) {
+    return value
+  }
+  throw new Error(`Unsupported SQLite value in column ${column}.`)
 }
 
 function getChangeCount(database: Database): number {

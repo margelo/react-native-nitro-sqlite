@@ -24,6 +24,27 @@ export interface NitroSQLiteQueryResult {
   readonly metadata?: Record<string, NitroSQLiteQueryColumnMetadata>
 }
 
+/** Result rows as arrays of column values, in column order. */
+export type NitroSQLiteRawQueryRows = CustomType<
+  SQLiteValue[][],
+  'margelo::nitro::rnnitrosqlite::SQLiteRawQueryResults',
+  { include: 'NitroSQLiteQueryResults.hpp' }
+>
+
+/** Native result of one SQL statement, with rows as arrays of column values. */
+export interface NitroSQLiteRawQueryResult {
+  /** SQLite's latest row change count. For a read-only query it may reflect an earlier write. */
+  readonly rowsAffected: number
+  /** Last insert row ID for this connection. It may refer to an earlier statement. */
+  readonly insertId?: number
+
+  /** Result column names in column order. Repeated names are kept. */
+  readonly columnNames: string[]
+
+  /** Rows as arrays of column values, in the order of `columnNames`. */
+  readonly rows: NitroSQLiteRawQueryRows
+}
+
 // TODO: Investigate why this cannot be represented in Nitro
 // export type NitroQueryResultRow = {
 //   [key: string]: SQLiteValue

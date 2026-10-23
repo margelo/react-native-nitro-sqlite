@@ -13,6 +13,8 @@ export type MockConnection = Pick<
   | 'delete'
   | 'execute'
   | 'executeAsync'
+  | 'executeRaw'
+  | 'executeRawAsync'
   | 'executeBatch'
   | 'executeBatchAsync'
   | 'prepare'

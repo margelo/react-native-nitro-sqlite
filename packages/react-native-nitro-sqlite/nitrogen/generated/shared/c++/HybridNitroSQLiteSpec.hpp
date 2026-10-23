@@ -15,6 +15,8 @@
 
 // Forward declaration of `NitroSQLiteQueryResult` to properly resolve imports.
 namespace margelo::nitro::rnnitrosqlite { struct NitroSQLiteQueryResult; }
+// Forward declaration of `NitroSQLiteRawQueryResult` to properly resolve imports.
+namespace margelo::nitro::rnnitrosqlite { struct NitroSQLiteRawQueryResult; }
 // Forward declaration of `HybridNitroSQLitePreparedStatementSpec` to properly resolve imports.
 namespace margelo::nitro::rnnitrosqlite { class HybridNitroSQLitePreparedStatementSpec; }
 // Forward declaration of `BatchQueryResult` to properly resolve imports.
@@ -34,6 +36,7 @@ namespace margelo::nitro::rnnitrosqlite { struct FileLoadResult; }
 #include <NitroModules/Promise.hpp>
 #include "NitroSQLiteQueryResults.hpp"
 #include <functional>
+#include "NitroSQLiteRawQueryResult.hpp"
 #include <memory>
 #include "HybridNitroSQLitePreparedStatementSpec.hpp"
 #include "BatchQueryResult.hpp"
@@ -80,6 +83,8 @@ namespace margelo::nitro::rnnitrosqlite {
       virtual void detach(const std::string& mainDbName, const std::string& alias) = 0;
       virtual NitroSQLiteQueryResult execute(const std::string& dbName, const std::string& query, const std::optional<std::vector<std::optional<std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>>>& params) = 0;
       virtual std::shared_ptr<Promise<NitroSQLiteQueryResult>> executeAsync(const std::string& dbName, const std::string& query, const std::optional<std::vector<std::optional<std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>>>& params, const std::optional<std::function<void(margelo::nitro::rnnitrosqlite::SQLiteQueryResults /* rows */)>>& onRows) = 0;
+      virtual NitroSQLiteRawQueryResult executeRaw(const std::string& dbName, const std::string& query, const std::optional<std::vector<std::optional<std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>>>& params) = 0;
+      virtual std::shared_ptr<Promise<NitroSQLiteRawQueryResult>> executeRawAsync(const std::string& dbName, const std::string& query, const std::optional<std::vector<std::optional<std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>>>& params) = 0;
       virtual std::shared_ptr<HybridNitroSQLitePreparedStatementSpec> prepare(const std::string& dbName, const std::string& query) = 0;
       virtual BatchQueryResult executeBatch(const std::string& dbName, const std::vector<BatchQueryCommand>& commands) = 0;
       virtual std::shared_ptr<Promise<BatchQueryResult>> executeBatchAsync(const std::string& dbName, const std::vector<BatchQueryCommand>& commands) = 0;

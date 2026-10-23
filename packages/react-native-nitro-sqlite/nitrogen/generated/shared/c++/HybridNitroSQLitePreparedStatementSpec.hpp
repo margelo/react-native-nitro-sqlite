@@ -15,6 +15,8 @@
 
 // Forward declaration of `NitroSQLiteQueryResult` to properly resolve imports.
 namespace margelo::nitro::rnnitrosqlite { struct NitroSQLiteQueryResult; }
+// Forward declaration of `NitroSQLiteRawQueryResult` to properly resolve imports.
+namespace margelo::nitro::rnnitrosqlite { struct NitroSQLiteRawQueryResult; }
 
 #include "NitroSQLiteQueryResult.hpp"
 #include <NitroModules/Null.hpp>
@@ -24,6 +26,7 @@ namespace margelo::nitro::rnnitrosqlite { struct NitroSQLiteQueryResult; }
 #include <optional>
 #include <vector>
 #include <NitroModules/Promise.hpp>
+#include "NitroSQLiteRawQueryResult.hpp"
 
 namespace margelo::nitro::rnnitrosqlite {
 
@@ -58,6 +61,8 @@ namespace margelo::nitro::rnnitrosqlite {
       // Methods
       virtual NitroSQLiteQueryResult execute(const std::optional<std::vector<std::optional<std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>>>& params) = 0;
       virtual std::shared_ptr<Promise<NitroSQLiteQueryResult>> executeAsync(const std::optional<std::vector<std::optional<std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>>>& params) = 0;
+      virtual NitroSQLiteRawQueryResult executeRaw(const std::optional<std::vector<std::optional<std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>>>& params) = 0;
+      virtual std::shared_ptr<Promise<NitroSQLiteRawQueryResult>> executeRawAsync(const std::optional<std::vector<std::optional<std::variant<nitro::NullType, bool, std::shared_ptr<ArrayBuffer>, std::string, double>>>>& params) = 0;
       virtual void finalize() = 0;
 
     protected:

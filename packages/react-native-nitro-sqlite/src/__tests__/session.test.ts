@@ -5,7 +5,7 @@ import { closeDatabaseQueue, isDatabaseOpen } from '../DatabaseQueue'
 import { open } from '../operations/session'
 import { execute } from '../operations/execute'
 
-import { deferred, nativeResult } from './testUtils'
+import { deferred, nativeRawResult, nativeResult } from './testUtils'
 
 const dbName = 'session-test'
 const options = { name: dbName, location: 'data' }
@@ -87,6 +87,45 @@ describe('open', () => {
     db.close()
     expect(HybridNitroSQLite.close).toHaveBeenCalledWith(dbName)
     expect(isDatabaseOpen(dbName)).toBe(false)
+  })
+
+  it('routes raw queries through the connection queue', async () => {
+    const db = open(options)
+    const raw = nativeRawResult(['id', 'id'], [[1, 7]])
+    jest.mocked(HybridNitroSQLite.executeRaw).mockReturnValue(raw)
+    jest.mocked(HybridNitroSQLite.executeRawAsync).mockResolvedValue(raw)
+
+    expect(db.executeRaw('SELECT 1', [1])).toBe(raw)
+    await expect(db.executeRawAsync('SELECT 2')).resolves.toBe(raw)
+    expect(HybridNitroSQLite.executeRaw).toHaveBeenCalledWith(
+      dbName,
+      'SELECT 1',
+      [1],
+    )
+    expect(HybridNitroSQLite.executeRawAsync).toHaveBeenCalledWith(
+      dbName,
+      'SELECT 2',
+      undefined,
+    )
+
+    const pending = db.executeRawAsync('SELECT 3')
+    expect(() => db.executeRaw('SELECT 4')).toThrow(
+      'busy with another operation',
+    )
+    await pending
+
+    jest.mocked(HybridNitroSQLite.executeRaw).mockImplementationOnce(() => {
+      throw new Error('raw failed')
+    })
+    expect(() => db.executeRaw('SELECT 5')).toThrow('raw failed')
+    jest
+      .mocked(HybridNitroSQLite.executeRawAsync)
+      .mockRejectedValueOnce('async raw failed')
+    await expect(db.executeRawAsync('SELECT 6')).rejects.toMatchObject({
+      name: 'NitroSQLiteError',
+      message: 'async raw failed',
+    })
+    db.close()
   })
 
   it('delegates transactions through the connection', async () => {
