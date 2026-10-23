@@ -54,7 +54,8 @@ void sqliteAttachDb(const SQLiteConnectionPtr& connection, const std::string& do
 void sqliteDetachDb(const SQLiteConnectionPtr& connection, const std::string& alias);
 
 /** Execute one statement. With @p onRows, full batches of rows go to it as they are read and the
- * returned result holds only the rows after the last batch.
+ * returned result holds only the rows after the last batch. Its rowBatchCount reports how many
+ * batches were sent; JavaScript delivery may still be pending when this function returns.
  */
 NitroSQLiteQueryResult sqliteExecute(const SQLiteConnectionPtr& connection, const std::string& query,
                                      const std::optional<SQLiteQueryParams>& params, const SQLiteRowBatchHandler& onRows = nullptr);

@@ -168,6 +168,7 @@ export default function registerExecuteUnitTests() {
           )
 
           expectQueryResultRows(result, size)
+          expect(result.rowBatchCount).toBe(0)
         }
       } finally {
         db.close()
@@ -186,6 +187,7 @@ export default function registerExecuteUnitTests() {
           )
 
           expectQueryResultRows(result, size)
+          expect(result.rowBatchCount).toBe(Math.floor(size / 256))
           expect(result.results).toBe(result.rows._array)
           expect(
             result.rows._array.every((row, index) => row.id === index + 1),
@@ -198,6 +200,7 @@ export default function registerExecuteUnitTests() {
             [1_000],
           )
           expectQueryResultRows(result, 1_000)
+          expect(result.rowBatchCount).toBe(3)
           expect(
             result.rows._array.every((row, index) => row.id === index + 1),
           ).toBe(true)

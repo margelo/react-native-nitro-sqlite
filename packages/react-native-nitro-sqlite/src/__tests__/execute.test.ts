@@ -10,7 +10,7 @@ import {
   executeAsyncManaged,
   executeManaged,
 } from '../operations/execute'
-import { nativeResult } from './testUtils'
+import { deferred, nativeResult } from './testUtils'
 
 const dbName = 'execute-test'
 const query = 'SELECT ? AS value'
@@ -127,6 +127,65 @@ describe('execute', () => {
     expect(result.rows.item(3)).toEqual({ value: 4 })
   })
 
+  it.each([
+    { size: 256, earlyBatches: 0, pendingNative: false },
+    { size: 257, earlyBatches: 0, pendingNative: true },
+    { size: 512, earlyBatches: 0, pendingNative: false },
+    { size: 1_000, earlyBatches: 0, pendingNative: false },
+    { size: 1_000, earlyBatches: 1, pendingNative: false },
+    { size: 1_000, earlyBatches: 3, pendingNative: false },
+  ])(
+    'waits for all batches with $size rows, $earlyBatches early batches, and pendingNative=$pendingNative',
+    async ({ size, earlyBatches, pendingNative }) => {
+      const rows = Array.from({ length: size }, (_, value) => ({ value }))
+      const rowBatchCount = Math.floor(size / 256)
+      const native = {
+        ...nativeResult(rows.slice(rowBatchCount * 256)),
+        rowBatchCount,
+      }
+      const completion = deferred<typeof native>()
+      const deliveries: (() => void)[] = []
+      jest
+        .mocked(HybridNitroSQLite.executeAsync)
+        .mockImplementationOnce((_dbName, _query, _params, onRows) => {
+          for (let batch = 0; batch < rowBatchCount; batch++) {
+            deliveries.push(() =>
+              onRows?.(rows.slice(batch * 256, (batch + 1) * 256)),
+            )
+          }
+          deliveries.splice(0, earlyBatches).forEach((deliver) => deliver())
+          return pendingNative ? completion.promise : Promise.resolve(native)
+        })
+
+      const completed = jest.fn()
+      const pending = executeAsync<{ value: number }>(
+        dbName,
+        query,
+        params,
+      ).then((result) => {
+        completed()
+        return result
+      })
+      completion.resolve(native)
+      await new Promise<void>((resolve) => setImmediate(resolve))
+      expect(completed).toHaveBeenCalledTimes(deliveries.length === 0 ? 1 : 0)
+
+      while (deliveries.length > 0) {
+        deliveries.shift()?.()
+        if (deliveries.length > 0) {
+          await new Promise<void>((resolve) => setImmediate(resolve))
+          expect(completed).not.toHaveBeenCalled()
+        }
+      }
+
+      const result = await pending
+      expect(result.results).toEqual(rows)
+      expect(result.rows._array).toBe(result.results)
+      expect(result.rows.length).toBe(size)
+      expect(result.rows.item(size - 1)).toEqual(rows[size - 1])
+    },
+  )
+
   it('keeps the native rows when no batch was delivered', async () => {
     const native = nativeResult([{ value: 7 }])
     jest.mocked(HybridNitroSQLite.executeAsync).mockResolvedValueOnce(native)
@@ -134,6 +193,26 @@ describe('execute', () => {
     const result = await executeAsync(dbName, query, params)
     expect(result.results).toBe(native.results)
     expect(result.rows._array).toBe(native.results)
+  })
+
+  it('keeps a managed connection busy until row delivery completes', async () => {
+    openDatabaseQueue(dbName)
+    const delivery = deferred<() => void>()
+    jest
+      .mocked(HybridNitroSQLite.executeAsync)
+      .mockImplementationOnce(async (_dbName, _query, _params, onRows) => {
+        delivery.resolve(() => onRows?.([{ value: 1 }]))
+        return { ...nativeResult([{ value: 2 }]), rowBatchCount: 1 }
+      })
+
+    const pending = executeAsync(dbName, query)
+    const deliver = await delivery.promise
+    await new Promise<void>((resolve) => setImmediate(resolve))
+    expect(() => execute(dbName, query)).toThrow('busy')
+
+    deliver()
+    await expect(pending).resolves.toMatchObject({ rows: { length: 2 } })
+    expect(() => closeDatabaseQueue(dbName)).not.toThrow()
   })
 
   it('converts native asynchronous errors and releases a managed queue', async () => {

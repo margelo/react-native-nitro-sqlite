@@ -49,6 +49,8 @@ The [`NitroSQLite` export](/api/react-native-nitro-sqlite/variables/NitroSQLite)
 
 `NitroSQLite.native` exposes the underlying [`NitroSQLiteNative` hybrid object](/api/react-native-nitro-sqlite/hybrid-objects/NitroSQLiteNative). Its methods take a database name and return raw results without the connection helper's `rows` container. They also throw native errors without converting them to `NitroSQLiteError`. Its `executeAsync()` accepts an optional `onRows` callback that receives leading rows in batches, in order; the resolved `results` then holds only the rows after the last batch.
 
+The native promise can resolve before those callbacks run. Its `rowBatchCount` reports how many batches to expect. Wait for all of them before appending `results` to the collected rows. Without `onRows`, the count is zero and `results` contains every row. The managed `executeAsync()` API handles this waiting and assembly for you.
+
 ```ts
 import { NitroSQLite } from 'react-native-nitro-sqlite'
 

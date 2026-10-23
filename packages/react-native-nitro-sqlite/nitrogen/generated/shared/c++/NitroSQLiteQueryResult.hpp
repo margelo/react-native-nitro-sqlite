@@ -48,10 +48,11 @@ namespace margelo::nitro::rnnitrosqlite {
     std::optional<double> insertId     SWIFT_PRIVATE;
     margelo::nitro::rnnitrosqlite::SQLiteQueryResults results     SWIFT_PRIVATE;
     std::optional<std::unordered_map<std::string, NitroSQLiteQueryColumnMetadata>> metadata     SWIFT_PRIVATE;
+    std::optional<double> rowBatchCount     SWIFT_PRIVATE;
 
   public:
     NitroSQLiteQueryResult() = default;
-    explicit NitroSQLiteQueryResult(double rowsAffected, std::optional<double> insertId, margelo::nitro::rnnitrosqlite::SQLiteQueryResults results, std::optional<std::unordered_map<std::string, NitroSQLiteQueryColumnMetadata>> metadata): rowsAffected(rowsAffected), insertId(insertId), results(results), metadata(metadata) {}
+    explicit NitroSQLiteQueryResult(double rowsAffected, std::optional<double> insertId, margelo::nitro::rnnitrosqlite::SQLiteQueryResults results, std::optional<std::unordered_map<std::string, NitroSQLiteQueryColumnMetadata>> metadata, std::optional<double> rowBatchCount): rowsAffected(rowsAffected), insertId(insertId), results(results), metadata(metadata), rowBatchCount(rowBatchCount) {}
 
   public:
     // NitroSQLiteQueryResult is not equatable because these properties are not equatable: results
@@ -70,7 +71,8 @@ namespace margelo::nitro {
         JSIConverter<double>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "rowsAffected"))),
         JSIConverter<std::optional<double>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "insertId"))),
         JSIConverter<margelo::nitro::rnnitrosqlite::SQLiteQueryResults>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "results"))),
-        JSIConverter<std::optional<std::unordered_map<std::string, margelo::nitro::rnnitrosqlite::NitroSQLiteQueryColumnMetadata>>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "metadata")))
+        JSIConverter<std::optional<std::unordered_map<std::string, margelo::nitro::rnnitrosqlite::NitroSQLiteQueryColumnMetadata>>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "metadata"))),
+        JSIConverter<std::optional<double>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "rowBatchCount")))
       );
     }
     static inline jsi::Value toJSI(jsi::Runtime& runtime, const margelo::nitro::rnnitrosqlite::NitroSQLiteQueryResult& arg) {
@@ -79,6 +81,7 @@ namespace margelo::nitro {
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "insertId"), JSIConverter<std::optional<double>>::toJSI(runtime, arg.insertId));
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "results"), JSIConverter<margelo::nitro::rnnitrosqlite::SQLiteQueryResults>::toJSI(runtime, arg.results));
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "metadata"), JSIConverter<std::optional<std::unordered_map<std::string, margelo::nitro::rnnitrosqlite::NitroSQLiteQueryColumnMetadata>>>::toJSI(runtime, arg.metadata));
+      obj.setProperty(runtime, PropNameIDCache::get(runtime, "rowBatchCount"), JSIConverter<std::optional<double>>::toJSI(runtime, arg.rowBatchCount));
       return obj;
     }
     static inline bool canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
@@ -93,6 +96,7 @@ namespace margelo::nitro {
       if (!JSIConverter<std::optional<double>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "insertId")))) return false;
       if (!JSIConverter<margelo::nitro::rnnitrosqlite::SQLiteQueryResults>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "results")))) return false;
       if (!JSIConverter<std::optional<std::unordered_map<std::string, margelo::nitro::rnnitrosqlite::NitroSQLiteQueryColumnMetadata>>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "metadata")))) return false;
+      if (!JSIConverter<std::optional<double>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "rowBatchCount")))) return false;
       return true;
     }
   };
