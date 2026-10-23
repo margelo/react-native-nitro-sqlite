@@ -14,17 +14,22 @@ namespace margelo::nitro::rnnitrosqlite {
  */
 class HybridNitroSQLite : public HybridNitroSQLiteSpec {
 public:
-  HybridNitroSQLite() = default;
-
-public:
-  static std::string docPath;
-  // Directory databases were stored in by previous app versions, when the platform layer has
-  // relocated docPath (e.g. iOS with RNNitroSQLite_DatabaseLocation set to "ApplicationSupport").
-  // When non-empty, databases found there are resolved as they are opened, attached, or dropped.
-  static std::string migrationDocPath;
+  /** Create a root that stores its databases in @p databaseDirectory.
+   * @param temporaryDirectory SQLite's temporary directory. SQLite reads it once per process,
+   * so the first root that passes one sets it.
+   * @param legacyDatabaseDirectory Directory that previous app versions stored databases in,
+   * for example Documents when iOS moves them to Application Support. Databases found there
+   * are moved as they are opened, attached, or dropped.
+   * @throws std::runtime_error If SQLite's temporary directory can't be configured.
+   */
+  HybridNitroSQLite(std::string databaseDirectory, const std::optional<std::string>& temporaryDirectory,
+                    const std::optional<std::string>& legacyDatabaseDirectory);
 
 private:
   DatabaseConnections _connections;
+  std::string _databaseDirectory;
+  // Empty when databases have never been stored anywhere else.
+  std::string _legacyDatabaseDirectory;
 
 public:
   // Methods
@@ -98,8 +103,5 @@ public:
    */
   Promise<FileLoadResult> loadFileAsync(const std::string& dbName, const std::string& location) override;
 };
-
-inline std::string HybridNitroSQLite::docPath = "";
-inline std::string HybridNitroSQLite::migrationDocPath = "";
 
 } // namespace margelo::nitro::rnnitrosqlite

@@ -3,10 +3,7 @@ import { HybridNitroSQLite } from './nitro'
 import { open } from './operations/session'
 import { execute, executeAsync } from './operations/execute'
 import { prepare } from './operations/prepare'
-import { init } from './OnLoad'
 import { executeBatch, executeBatchAsync } from './operations/executeBatch'
-
-init()
 
 /** Database entry point. Prefer {@link open} for a managed connection.
  * `native` exposes the Nitro object directly and bypasses the JavaScript queue.

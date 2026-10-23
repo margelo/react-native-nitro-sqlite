@@ -9,6 +9,7 @@
 #include <NitroModules/HybridClassRegistry.hpp>
 
 #include <RNNitroSQLite/HybridNitroSQLiteSpec.hpp>
+#include <RNNitroSQLite/HybridPlatformContextSpec.hpp>
 #include <RNNitroSQLite/HybridPreparedStatementSpec.hpp>
 
 namespace margelo::nitro::rnnitrosqlite {
@@ -17,6 +18,7 @@ namespace margelo::nitro::rnnitrosqlite {
     using namespace margelo::nitro::rnnitrosqlite;
 
     HybridClassRegistry::registerHybridClass("rnnitrosqlite.NitroSQLite", HybridNitroSQLiteSpec::Class::get());
+    HybridClassRegistry::registerHybridClass("rnnitrosqlite.PlatformContext", HybridPlatformContextSpec::Class::get());
     HybridClassRegistry::registerHybridClass("rnnitrosqlite.PreparedStatement", HybridPreparedStatementSpec::Class::get());
   }
 } // namespace margelo::nitro::rnnitrosqlite
