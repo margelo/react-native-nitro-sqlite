@@ -1,8 +1,5 @@
-import { chance, expect, isNitroSQLiteError } from '@tests/unit/common'
-import {
-  NitroSQLiteError,
-  type BatchQueryCommand,
-} from 'react-native-nitro-sqlite'
+import { chance, expect, isSQLiteError } from '@tests/unit/common'
+import { SQLiteError, type BatchQueryCommand } from 'react-native-nitro-sqlite'
 import { describe, it } from '@tests/TestApi'
 import { testDb } from '@tests/db'
 
@@ -208,7 +205,7 @@ export default function registerExecuteBatchUnitTests() {
         batchError = error
       }
 
-      expect(batchError).toBeInstanceOf(NitroSQLiteError)
+      expect(batchError).toBeInstanceOf(SQLiteError)
       expect((batchError as Error).message).toContain(
         'No SQL batch commands provided',
       )
@@ -249,7 +246,7 @@ export default function registerExecuteBatchUnitTests() {
         batchError = error
       }
 
-      expect(batchError).toBeInstanceOf(NitroSQLiteError)
+      expect(batchError).toBeInstanceOf(SQLiteError)
       expect(testDb.execute('SELECT id FROM User').results).toEqual([])
       expect(
         testDb.executeBatch([
@@ -277,7 +274,7 @@ export default function registerExecuteBatchUnitTests() {
         batchError = error
       }
 
-      expect(batchError).toBeInstanceOf(NitroSQLiteError)
+      expect(batchError).toBeInstanceOf(SQLiteError)
       expect(
         testDb.execute(
           "SELECT name FROM sqlite_master WHERE name = 'repeated_schema'",
@@ -300,7 +297,7 @@ export default function registerExecuteBatchUnitTests() {
         batchError = error
       }
 
-      expect(batchError).toBeInstanceOf(NitroSQLiteError)
+      expect(batchError).toBeInstanceOf(SQLiteError)
       expect(testDb.execute('SELECT id FROM User').results).toEqual([])
       expect(
         testDb.executeBatch([
@@ -327,7 +324,7 @@ export default function registerExecuteBatchUnitTests() {
         batchError = error
       }
 
-      expect(batchError).toBeInstanceOf(NitroSQLiteError)
+      expect(batchError).toBeInstanceOf(SQLiteError)
       expect(testDb.execute('SELECT id FROM User').results).toEqual([])
       expect(
         (
@@ -356,8 +353,8 @@ export default function registerExecuteBatchUnitTests() {
         asyncError = error
       }
 
-      expect(syncError).toBeInstanceOf(NitroSQLiteError)
-      expect(asyncError).toBeInstanceOf(NitroSQLiteError)
+      expect(syncError).toBeInstanceOf(SQLiteError)
+      expect(asyncError).toBeInstanceOf(SQLiteError)
       expect(testDb.execute('SELECT 1 AS value').results).toEqual([
         { value: 1 },
       ])
@@ -376,8 +373,8 @@ export default function registerExecuteBatchUnitTests() {
           'Expected executeBatch to throw for the extra parameter',
         )
       } catch (error: unknown) {
-        if (!isNitroSQLiteError(error)) {
-          throw new Error('Should have thrown a valid NitroSQLiteError')
+        if (!isSQLiteError(error)) {
+          throw new Error('Should have thrown a valid SQLiteError')
         }
 
         expect(error.message).toContain('parameter 2')
@@ -401,8 +398,8 @@ export default function registerExecuteBatchUnitTests() {
           'Expected executeBatchAsync to reject for the extra parameter',
         )
       } catch (error: unknown) {
-        if (!isNitroSQLiteError(error)) {
-          throw new Error('Should have thrown a valid NitroSQLiteError')
+        if (!isSQLiteError(error)) {
+          throw new Error('Should have thrown a valid SQLiteError')
         }
 
         expect(error.message).toContain('parameter 2')
@@ -426,7 +423,7 @@ export default function registerExecuteBatchUnitTests() {
           else testDb.executeBatch(commands)
           throw new Error('Expected grouped binding to fail')
         } catch (error) {
-          if (!isNitroSQLiteError(error)) throw error
+          if (!isSQLiteError(error)) throw error
           expect(error.message).toContain('parameter 2')
           expect(error.message).toContain('25')
           expect(error.message.includes(secret)).toBe(false)

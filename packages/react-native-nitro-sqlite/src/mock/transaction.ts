@@ -1,5 +1,5 @@
 import type BetterSqlite3 from 'better-sqlite3'
-import NitroSQLiteError from '../NitroSQLiteError'
+import SQLiteError from '../SQLiteError'
 import type { QueryResultRow, SQLiteQueryParams, Transaction } from '../types'
 import { executeQuery } from './query'
 
@@ -11,12 +11,12 @@ export async function runTransaction<Result>(
   let finished = false
   const pending = new Set<Promise<unknown>>()
   const assertActive = () => {
-    if (finished) throw new NitroSQLiteError('Transaction is finalized.')
+    if (finished) throw new SQLiteError('Transaction is finalized.')
   }
   const assertSync = () => {
     assertActive()
     if (pending.size > 0) {
-      throw new NitroSQLiteError(
+      throw new SQLiteError(
         'Await all tx.executeAsync calls before a synchronous transaction operation.',
       )
     }

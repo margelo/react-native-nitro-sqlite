@@ -14,7 +14,7 @@ import {
 import { useFocusEffect } from '@react-navigation/native'
 import Clipboard from '@react-native-clipboard/clipboard'
 import type {
-  NitroSQLiteConnection,
+  Connection,
   QueryResult,
   SQLiteValue,
 } from 'react-native-nitro-sqlite'
@@ -36,7 +36,7 @@ type QueryHistoryEntry = {
   durationMs: number
 }
 
-function initializeDatabase(db: NitroSQLiteConnection) {
+function initializeDatabase(db: Connection) {
   db.execute('DROP TABLE IF EXISTS products;')
   db.execute('DROP TABLE IF EXISTS users;')
 
@@ -216,7 +216,7 @@ function ResultCard({ entry }: { entry: QueryHistoryEntry }) {
 }
 
 export function SqlConsoleScreen() {
-  const dbRef = useRef<NitroSQLiteConnection | null>(null)
+  const dbRef = useRef<Connection | null>(null)
   const queryInputRef = useRef<TextInputInstance>(null)
   const [query, setQuery] = useState('')
   const [history, setHistory] = useState<QueryHistoryEntry[]>([])

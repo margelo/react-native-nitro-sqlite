@@ -1,10 +1,10 @@
-import { chance, expect, isNitroSQLiteError } from '@tests/unit/common'
+import { chance, expect, isSQLiteError } from '@tests/unit/common'
 import { describe, it } from '@tests/TestApi'
 import { createArrayBufferTestDb, testDb } from '@tests/db'
 import { open } from 'react-native-nitro-sqlite'
 import { buildJSQueryResult } from '@nitro-sqlite/operations/execute'
 import type { ColumnType } from 'react-native-nitro-sqlite'
-import type { NitroSQLiteQueryResult } from '@nitro-sqlite/specs/NitroSQLiteQueryResult'
+import type { NativeQueryResult } from '@nitro-sqlite/specs/NativeQueryResult'
 
 const QUERY_RESULT_SIZES = [60, 1_000, 10_000]
 // Asynchronous reads hand rows to JavaScript in batches of 256; cover the batch edges.
@@ -119,7 +119,7 @@ export default function registerExecuteUnitTests() {
           await run()
           throw new Error('Expected a multi-statement query to fail')
         } catch (error) {
-          if (!isNitroSQLiteError(error)) throw error
+          if (!isSQLiteError(error)) throw error
           expect(error.message).toContain(
             'Query contains more than one SQL statement',
           )
@@ -145,7 +145,7 @@ export default function registerExecuteUnitTests() {
           resultsReads += 1
           return [...sourceRows]
         },
-      } as unknown as NitroSQLiteQueryResult
+      } as unknown as NativeQueryResult
 
       const result = buildJSQueryResult(nativeResult)
 
@@ -268,7 +268,7 @@ export default function registerExecuteUnitTests() {
             [id, name, age, networth],
           )
         } catch (e: unknown) {
-          if (isNitroSQLiteError(e)) {
+          if (isSQLiteError(e)) {
             expect(e.message).toContain(
               'cannot store TEXT value in REAL column User.age',
             )
@@ -503,8 +503,8 @@ export default function registerExecuteUnitTests() {
           testDb.execute('SELECT ?', [1, extraParameter])
           throw new Error('Expected execute to throw for the extra parameter')
         } catch (error: unknown) {
-          if (!isNitroSQLiteError(error)) {
-            throw new Error('Should have thrown a valid NitroSQLiteError')
+          if (!isSQLiteError(error)) {
+            throw new Error('Should have thrown a valid SQLiteError')
           }
 
           expect(error.message).toContain('parameter 2')
@@ -523,8 +523,8 @@ export default function registerExecuteUnitTests() {
             'Expected executeAsync to reject for the extra parameter',
           )
         } catch (error: unknown) {
-          if (!isNitroSQLiteError(error)) {
-            throw new Error('Should have thrown a valid NitroSQLiteError')
+          if (!isSQLiteError(error)) {
+            throw new Error('Should have thrown a valid SQLiteError')
           }
 
           expect(error.message).toContain('parameter 2')

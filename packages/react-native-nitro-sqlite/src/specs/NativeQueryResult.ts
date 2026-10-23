@@ -2,26 +2,26 @@ import type { CustomType } from 'react-native-nitro-modules'
 import type { ColumnType, SQLiteValue } from '../types'
 
 /** Result rows keyed by column name. Native rows become JavaScript objects on the JavaScript thread. */
-export type NitroSQLiteQueryRows = CustomType<
+export type NativeQueryRows = CustomType<
   Record<string, SQLiteValue>[],
   'margelo::nitro::rnnitrosqlite::SQLiteQueryResults',
-  { include: 'NitroSQLiteQueryResults.hpp' }
+  { include: 'SQLiteQueryResults.hpp' }
 >
 
 /** Native result of one SQL statement, delivered as a plain JavaScript object.
  * The managed API also adds a `rows` adapter.
  */
-export interface NitroSQLiteQueryResult {
+export interface NativeQueryResult {
   /** SQLite's latest row change count. For a read-only query it may reflect an earlier write. */
   readonly rowsAffected: number
   /** Last insert row ID for this connection. It may refer to an earlier statement. */
   readonly insertId?: number
 
   /** Rows keyed by result column names. */
-  readonly results: NitroSQLiteQueryRows
+  readonly results: NativeQueryRows
 
   /** Column metadata keyed by result column name, when available. */
-  readonly metadata?: Record<string, NitroSQLiteQueryColumnMetadata>
+  readonly metadata?: Record<string, QueryColumnMetadata>
 
   /** Number of row batches sent through the native `onRows` callback, or zero when none were sent.
    * Callbacks may arrive after the native promise resolves. Wait for this many batches before
@@ -39,7 +39,7 @@ export interface NitroSQLiteQueryResult {
 // type NitroQueryResultRow = Record<string, SQLiteValue>
 
 /** Name, declared type, and position of a result column. */
-export type NitroSQLiteQueryColumnMetadata = {
+export type QueryColumnMetadata = {
   /** Name used for this column in the result set. */
   name: string
 

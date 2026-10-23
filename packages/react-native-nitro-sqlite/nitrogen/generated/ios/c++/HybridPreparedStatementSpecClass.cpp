@@ -6,7 +6,7 @@
 ///
 
 #include <RNNitroSQLite/HybridPreparedStatementSpec.hpp>
-#include <RNNitroSQLite/NitroSQLiteQueryResult.hpp>
+#include <RNNitroSQLite/NativeQueryResult.hpp>
 #include <NitroModules/ArrayBuffer.hpp>
 #include <NitroModules/Null.hpp>
 #include <string>

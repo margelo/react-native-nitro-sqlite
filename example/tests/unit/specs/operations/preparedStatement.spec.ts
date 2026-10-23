@@ -1,7 +1,7 @@
 import {
   chance,
   expect,
-  isNitroSQLiteError,
+  isSQLiteError,
   TEST_ERROR_CODES,
 } from '@tests/unit/common'
 import { describe, it } from '@tests/TestApi'
@@ -19,7 +19,7 @@ export default function registerPreparedStatementUnitTests() {
             else statement.execute([1, secret])
             throw new Error('Expected prepared binding to fail')
           } catch (error) {
-            if (!isNitroSQLiteError(error)) throw error
+            if (!isSQLiteError(error)) throw error
             expect(error.message).toContain('parameter 2')
             expect(error.message).toContain('25')
             expect(error.message).toContain('column index out of range')
@@ -179,7 +179,7 @@ export default function registerPreparedStatementUnitTests() {
         statement.execute([42, 'Duplicate', 37, 1])
         throw new Error('Expected duplicate key to fail')
       } catch (error) {
-        expect(isNitroSQLiteError(error)).toBe(true)
+        expect(isSQLiteError(error)).toBe(true)
       }
 
       expect(statement.execute([43, 'Grace', 38, 2]).rowsAffected).toBe(1)
@@ -194,8 +194,8 @@ export default function registerPreparedStatementUnitTests() {
         statement.execute()
         throw new Error('Expected execution to throw after finalization')
       } catch (error) {
-        expect(isNitroSQLiteError(error)).toBe(true)
-        if (isNitroSQLiteError(error)) {
+        expect(isSQLiteError(error)).toBe(true)
+        if (isSQLiteError(error)) {
           expect(error.message).toContain(
             'Prepared statement has been finalized',
           )
@@ -209,7 +209,7 @@ export default function registerPreparedStatementUnitTests() {
           testDb.prepare(query)
           throw new Error(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
         } catch (error) {
-          if (!isNitroSQLiteError(error)) throw error
+          if (!isSQLiteError(error)) throw error
           expect(error.message).toContain(
             'Query does not contain any SQL statement',
           )

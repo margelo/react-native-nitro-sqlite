@@ -6,7 +6,7 @@ import type {
   QueryResultRow,
 } from '../types'
 import { executeAsyncNative, executeNative } from './execute'
-import NitroSQLiteError from '../NitroSQLiteError'
+import SQLiteError from '../SQLiteError'
 import type { DatabaseQueueKey } from '../DatabaseQueue'
 
 /** Queue a transaction for an open managed connection.
@@ -20,7 +20,7 @@ import type { DatabaseQueueKey } from '../DatabaseQueue'
  * @param isExclusive Begin an exclusive transaction when true.
  * @param queueKey Managed connection queue identifier; defaults to the database name.
  * @returns The callback's result after the transaction finishes.
- * @throws NitroSQLiteError if BEGIN, the callback, COMMIT, or ROLLBACK fails.
+ * @throws SQLiteError if BEGIN, the callback, COMMIT, or ROLLBACK fails.
  */
 export const transaction = async <Result = void>(
   dbName: string,
@@ -38,7 +38,7 @@ export const transaction = async <Result = void>(
 
   const throwIfAsyncPending = () => {
     if (pendingAsyncStatements.size > 0) {
-      throw new NitroSQLiteError(
+      throw new SQLiteError(
         `Cannot run synchronous operation on transaction ${dbName} while async queries are pending. Await all tx.executeAsync calls first.`,
       )
     }
@@ -49,7 +49,7 @@ export const transaction = async <Result = void>(
     params?: SQLiteQueryParams,
   ): QueryResult<Row> => {
     if (state.current.kind !== 'active') {
-      throw new NitroSQLiteError(
+      throw new SQLiteError(
         `Cannot execute query on finalized transaction: ${dbName}`,
       )
     }
@@ -62,7 +62,7 @@ export const transaction = async <Result = void>(
     params?: SQLiteQueryParams,
   ): Promise<QueryResult<Row>> => {
     if (state.current.kind !== 'active') {
-      throw new NitroSQLiteError(
+      throw new SQLiteError(
         `Cannot execute query on finalized transaction: ${dbName}`,
       )
     }
@@ -77,7 +77,7 @@ export const transaction = async <Result = void>(
 
   const commit = () => {
     if (state.current.kind !== 'active') {
-      throw new NitroSQLiteError(
+      throw new SQLiteError(
         `Cannot execute commit on finalized transaction: ${dbName}`,
       )
     }
@@ -97,7 +97,7 @@ export const transaction = async <Result = void>(
       state.current.kind !== 'active' &&
       state.current.kind !== 'commitFailed'
     ) {
-      throw new NitroSQLiteError(
+      throw new SQLiteError(
         `Cannot execute rollback on finalized transaction: ${dbName}`,
       )
     }
@@ -161,7 +161,7 @@ export const transaction = async <Result = void>(
         }
       }
 
-      throw NitroSQLiteError.fromError(executionError)
+      throw SQLiteError.fromError(executionError)
     }
   })
 }
@@ -175,10 +175,10 @@ type TransactionState =
 function transactionFinalizationError(
   primary: unknown,
   rollback: unknown,
-): NitroSQLiteError {
-  const primaryError = NitroSQLiteError.fromError(primary)
-  const rollbackError = NitroSQLiteError.fromError(rollback)
-  return new NitroSQLiteError(
+): SQLiteError {
+  const primaryError = SQLiteError.fromError(primary)
+  const rollbackError = SQLiteError.fromError(rollback)
+  return new SQLiteError(
     `${primaryError.message}\nRollback failed: ${rollbackError.message}`,
     {
       cause: new AggregateError(

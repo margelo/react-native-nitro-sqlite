@@ -11,13 +11,13 @@
 #include <NitroModules/HybridClass.hpp>
 #include <string>
 #include <optional>
-#include <RNNitroSQLite/NitroSQLiteQueryResult.hpp>
+#include <RNNitroSQLite/NativeQueryResult.hpp>
 #include <NitroModules/ArrayBuffer.hpp>
 #include <NitroModules/Null.hpp>
 #include <variant>
 #include <vector>
 #include <NitroModules/Promise.hpp>
-#include "NitroSQLiteQueryResults.hpp"
+#include "SQLiteQueryResults.hpp"
 #include <NitroModules/Callback.hpp>
 #include <functional>
 #include <memory>
@@ -71,8 +71,8 @@ namespace margelo::nitro::rnnitrosqlite {
       virtual void drop(const std::string& dbName, const std::optional<std::string>& location, const std::optional<std::string>& connectionId) = 0;
       virtual void attach(const std::string& mainDbName, const std::string& dbNameToAttach, const std::string& alias, const std::optional<std::string>& location) = 0;
       virtual void detach(const std::string& mainDbName, const std::string& alias) = 0;
-      virtual NitroSQLiteQueryResult execute(const std::string& dbName, const std::string& query, const std::optional<std::vector<std::optional<std::variant<bool, ArrayBuffer, nitro::NullType, double, std::string>>>>& params) = 0;
-      virtual Promise<NitroSQLiteQueryResult> executeAsync(const std::string& dbName, const std::string& query, const std::optional<std::vector<std::optional<std::variant<bool, ArrayBuffer, nitro::NullType, double, std::string>>>>& params, const std::optional<Callback<void(margelo::nitro::rnnitrosqlite::SQLiteQueryResults /* rows */)>>& onRows) = 0;
+      virtual NativeQueryResult execute(const std::string& dbName, const std::string& query, const std::optional<std::vector<std::optional<std::variant<bool, ArrayBuffer, nitro::NullType, double, std::string>>>>& params) = 0;
+      virtual Promise<NativeQueryResult> executeAsync(const std::string& dbName, const std::string& query, const std::optional<std::vector<std::optional<std::variant<bool, ArrayBuffer, nitro::NullType, double, std::string>>>>& params, const std::optional<Callback<void(margelo::nitro::rnnitrosqlite::SQLiteQueryResults /* rows */)>>& onRows) = 0;
       virtual std::shared_ptr<HybridPreparedStatementSpec> prepare(const std::string& dbName, const std::string& query) = 0;
       virtual BatchQueryResult executeBatch(const std::string& dbName, const std::vector<BatchQueryCommand>& commands) = 0;
       virtual Promise<BatchQueryResult> executeBatchAsync(const std::string& dbName, const std::vector<BatchQueryCommand>& commands) = 0;

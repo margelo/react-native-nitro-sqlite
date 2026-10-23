@@ -1,0 +1,51 @@
+---
+title: Migrate to Nitro V1
+description: Update type imports for the Nitro V1 migration.
+---
+
+A SQLite connection owns a database handle. A prepared statement belongs to that connection, and a query result contains the rows and metadata returned by a statement. Nitro SQLite uses shorter names for these types with Nitro V1.
+
+Update your type imports using the table below. The old names remain available as deprecated aliases.
+
+| Previous name                    | Replacement               |
+| -------------------------------- | ------------------------- |
+| `NitroSQLiteConnection`          | `Connection`              |
+| `NitroSQLiteConnectionOptions`   | `ConnectionOptions`       |
+| `NitroSQLiteQueryResultRows`     | `QueryResultRows`         |
+| `NitroSQLiteQueryColumnMetadata` | `QueryColumnMetadata`     |
+| `NitroSQLiteQueryResult`         | `NativeQueryResult`       |
+| `NitroSQLiteQueryRows`           | `NativeQueryRows`         |
+| `NitroSQLitePreparedStatement`   | `NativePreparedStatement` |
+| `NitroSQLiteNative`              | `NativeSQLite`            |
+| `NitroSQLiteError`               | `SQLiteError`             |
+| `NitroSQLiteExceptionType`       | `SQLiteExceptionType`     |
+| `TypeOrmNitroSQLiteConnection`   | `TypeOrmConnection`       |
+
+`NativeQueryResult`, `NativePreparedStatement`, and `NativeSQLite` describe values exposed through `NitroSQLite.native`. The managed API keeps its `QueryResult` and `PreparedStatement` names.
+
+```ts
+import { open, SQLiteError } from 'react-native-nitro-sqlite'
+import type { ConnectionOptions } from 'react-native-nitro-sqlite'
+
+const options: ConnectionOptions = { name: 'app.sqlite' }
+const db = open(options)
+
+try {
+  const { results } = db.execute('SELECT sqlite_version() AS version')
+  console.log(results[0]?.version)
+} catch (error) {
+  if (error instanceof SQLiteError) {
+    console.error(error.type, error.message)
+  } else {
+    throw error
+  }
+} finally {
+  db.close()
+}
+```
+
+`SQLiteError` and `NitroSQLiteError` refer to the same constructor, and both exception-category exports refer to the same object. The error's `name` remains `NitroSQLiteError`.
+
+If your native code includes helper headers, replace their `NitroSQLite` filename prefix with `SQLite`, for example `NitroSQLiteOperations.hpp` becomes `SQLiteOperations.hpp`. The package name, `NitroSQLite` entry point, and native module names stay the same.
+
+See [Getting Started](/docs) for Nitro V1's platform requirements and Swift Package Manager setup.

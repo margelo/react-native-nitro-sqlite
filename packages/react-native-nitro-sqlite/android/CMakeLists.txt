@@ -35,7 +35,7 @@ if(NITRO_SQLITE_VEC)
   message(STATUS "[react-native-nitro-sqlite] vector search ENABLED (sqlite-vec from ${NITRO_SQLITE_VEC_CPP_DIR})")
   set(NITRO_SQLITE_VEC_SOURCES
     "${NITRO_SQLITE_VEC_CPP_DIR}/sqlite-vec/sqlite-vec.c"
-    "${NITRO_SQLITE_VEC_CPP_DIR}/NitroSQLiteVecRegisterVectorExtensions.cpp"
+    "${NITRO_SQLITE_VEC_CPP_DIR}/SQLiteVecRegisterVectorExtensions.cpp"
   )
   target_sources(${CMAKE_PROJECT_NAME} PRIVATE ${NITRO_SQLITE_VEC_SOURCES})
   # SQLITE_CORE: link against our bundled sqlite3; SQLITE_VEC_STATIC: drop Windows dllexport.

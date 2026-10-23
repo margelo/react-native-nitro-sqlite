@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../NitroSQLiteOperations.hpp"
-#include "../NitroSQLiteTypes.hpp"
+#include "../SQLiteOperations.hpp"
+#include "../SQLiteTypes.hpp"
 #include <RNNitroSQLite/HybridPreparedStatementSpec.hpp>
 #include <memory>
 
@@ -14,9 +14,9 @@ public:
   explicit HybridPreparedStatement(std::shared_ptr<SQLitePreparedStatement> statement);
 
   /** Execute with new bindings on the calling thread. */
-  NitroSQLiteQueryResult execute(const std::optional<SQLiteQueryParams>& params) override;
+  NativeQueryResult execute(const std::optional<SQLiteQueryParams>& params) override;
   /** Execute with new bindings on a background thread. */
-  Promise<NitroSQLiteQueryResult> executeAsync(const std::optional<SQLiteQueryParams>& params) override;
+  Promise<NativeQueryResult> executeAsync(const std::optional<SQLiteQueryParams>& params) override;
   /** Release the native statement. */
   void finalize() override;
   /** Check whether the native statement has been released. */

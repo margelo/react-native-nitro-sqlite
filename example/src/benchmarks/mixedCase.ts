@@ -1,4 +1,4 @@
-import { open, type NitroSQLiteConnection } from 'react-native-nitro-sqlite'
+import { open, type Connection } from 'react-native-nitro-sqlite'
 import type { SQLiteQueryParams } from 'react-native-nitro-sqlite'
 import type { BenchmarkCase, BenchmarkFixture } from './runner'
 import { assertBenchmark, disposeBenchmarkDatabase } from './database'
@@ -15,7 +15,7 @@ export const mixedCase: BenchmarkCase = {
 
 async function setupMixedCase(): Promise<BenchmarkFixture> {
   const writer = open({ name: 'benchmark_mixed' })
-  let reader: NitroSQLiteConnection | undefined
+  let reader: Connection | undefined
 
   try {
     const mode = writer
