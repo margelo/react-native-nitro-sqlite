@@ -1,4 +1,4 @@
-#include "HybridNitroSQLitePreparedStatement.hpp"
+#include "HybridPreparedStatement.hpp"
 #include <NitroModules/ArrayBuffer.hpp>
 
 namespace margelo::nitro::rnnitrosqlite {
@@ -26,14 +26,13 @@ namespace {
 
 } // namespace
 
-HybridNitroSQLitePreparedStatement::HybridNitroSQLitePreparedStatement(std::shared_ptr<SQLitePreparedStatement> statement)
-    : _statement(std::move(statement)) {}
+HybridPreparedStatement::HybridPreparedStatement(std::shared_ptr<SQLitePreparedStatement> statement) : _statement(std::move(statement)) {}
 
-NitroSQLiteQueryResult HybridNitroSQLitePreparedStatement::execute(const std::optional<SQLiteQueryParams>& params) {
+NitroSQLiteQueryResult HybridPreparedStatement::execute(const std::optional<SQLiteQueryParams>& params) {
   return _statement->execute(params);
 }
 
-Promise<NitroSQLiteQueryResult> HybridNitroSQLitePreparedStatement::executeAsync(const std::optional<SQLiteQueryParams>& params) {
+Promise<NitroSQLiteQueryResult> HybridPreparedStatement::executeAsync(const std::optional<SQLiteQueryParams>& params) {
   const auto copiedParams = copyArrayBufferParamsForBackground(params);
   const auto statement = _statement;
 
@@ -41,15 +40,15 @@ Promise<NitroSQLiteQueryResult> HybridNitroSQLitePreparedStatement::executeAsync
       [statement, copiedParams]() -> NitroSQLiteQueryResult { return statement->execute(copiedParams); });
 }
 
-void HybridNitroSQLitePreparedStatement::finalize() {
+void HybridPreparedStatement::finalize() {
   _statement->finalize();
 }
 
-bool HybridNitroSQLitePreparedStatement::getIsFinalized() {
+bool HybridPreparedStatement::getIsFinalized() {
   return _statement->isFinalized();
 }
 
-size_t HybridNitroSQLitePreparedStatement::getExternalMemorySize() noexcept {
+size_t HybridPreparedStatement::getExternalMemorySize() noexcept {
   return sizeof(*this) + _statement->getExternalMemorySize();
 }
 

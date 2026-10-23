@@ -2,16 +2,16 @@
 
 #include "../NitroSQLiteOperations.hpp"
 #include "../NitroSQLiteTypes.hpp"
-#include <RNNitroSQLite/HybridNitroSQLitePreparedStatementSpec.hpp>
+#include <RNNitroSQLite/HybridPreparedStatementSpec.hpp>
 #include <memory>
 
 namespace margelo::nitro::rnnitrosqlite {
 
 /** Nitro hybrid object for a reusable native SQLite statement. */
-class HybridNitroSQLitePreparedStatement : public HybridNitroSQLitePreparedStatementSpec {
+class HybridPreparedStatement : public HybridPreparedStatementSpec {
 public:
   /** Wrap a prepared statement for calls from JavaScript. */
-  explicit HybridNitroSQLitePreparedStatement(std::shared_ptr<SQLitePreparedStatement> statement);
+  explicit HybridPreparedStatement(std::shared_ptr<SQLitePreparedStatement> statement);
 
   /** Execute with new bindings on the calling thread. */
   NitroSQLiteQueryResult execute(const std::optional<SQLiteQueryParams>& params) override;

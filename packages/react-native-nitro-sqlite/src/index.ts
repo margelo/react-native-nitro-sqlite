@@ -29,7 +29,7 @@ export { open } from './operations/session'
 export { NitroSQLiteError, NitroSQLiteExceptionType } from './errors'
 export type { DatabaseQueueKey } from './DatabaseQueue'
 export type { NitroSQLite as NitroSQLiteNative } from './specs/NitroSQLite.nitro'
-export type { NitroSQLitePreparedStatement } from './specs/NitroSQLitePreparedStatement.nitro'
+export type { PreparedStatement as NitroSQLitePreparedStatement } from './specs/PreparedStatement.nitro'
 export type {
   NitroSQLiteQueryResult,
   NitroSQLiteQueryRows,

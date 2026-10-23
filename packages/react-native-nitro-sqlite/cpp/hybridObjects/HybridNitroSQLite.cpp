@@ -6,7 +6,7 @@
 #include "../NitroSQLiteLogs.hpp"
 #include "../NitroSQLiteMacros.hpp"
 #include "../NitroSQLiteOperations.hpp"
-#include "HybridNitroSQLitePreparedStatement.hpp"
+#include "HybridPreparedStatement.hpp"
 #include <exception>
 #include <filesystem>
 #include <iostream>
@@ -234,8 +234,8 @@ Promise<NitroSQLiteQueryResult> HybridNitroSQLite::executeAsync(const std::strin
                                                             });
 };
 
-std::shared_ptr<HybridNitroSQLitePreparedStatementSpec> HybridNitroSQLite::prepare(const std::string& dbName, const std::string& query) {
-  return std::make_shared<HybridNitroSQLitePreparedStatement>(sqlitePrepare(_connections.get(dbName), query));
+std::shared_ptr<HybridPreparedStatementSpec> HybridNitroSQLite::prepare(const std::string& dbName, const std::string& query) {
+  return std::make_shared<HybridPreparedStatement>(sqlitePrepare(_connections.get(dbName), query));
 }
 
 BatchQueryResult HybridNitroSQLite::executeBatch(const std::string& dbName, const std::vector<BatchQueryCommand>& batchParams) {

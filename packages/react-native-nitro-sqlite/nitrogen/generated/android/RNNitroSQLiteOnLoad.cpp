@@ -9,7 +9,7 @@
 #include <NitroModules/HybridClassRegistry.hpp>
 #include <RNNitroSQLite/private/JHybridNitroSQLiteOnLoadSpec.hpp>
 #include <RNNitroSQLite/HybridNitroSQLiteSpec.hpp>
-#include <RNNitroSQLite/HybridNitroSQLitePreparedStatementSpec.hpp>
+#include <RNNitroSQLite/HybridPreparedStatementSpec.hpp>
 
 namespace margelo::nitro::rnnitrosqlite {
   void registerAllNatives() {
@@ -17,6 +17,6 @@ namespace margelo::nitro::rnnitrosqlite {
 
     HybridClassRegistry::registerHybridClass("rnnitrosqlite.NitroSQLite", HybridNitroSQLiteSpec::Class::get());
     HybridClassRegistry::registerHybridClass("rnnitrosqlite.NitroSQLiteOnLoad", JHybridNitroSQLiteOnLoadSpec::Class::get());
-    HybridClassRegistry::registerHybridClass("rnnitrosqlite.NitroSQLitePreparedStatement", HybridNitroSQLitePreparedStatementSpec::Class::get());
+    HybridClassRegistry::registerHybridClass("rnnitrosqlite.PreparedStatement", HybridPreparedStatementSpec::Class::get());
   }
 }
