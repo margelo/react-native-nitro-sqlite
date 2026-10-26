@@ -29,6 +29,86 @@ describe('Node SQLite mock', () => {
     expect(NitroSQLite.open).toBe(open)
   })
 
+  it('returns raw rows that keep repeated column names', async () => {
+    const database = open({ name: 'raw' })
+    database.execute('CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT)')
+    database.execute(
+      'CREATE TABLE pets (id INTEGER PRIMARY KEY, name TEXT, owner_id INTEGER, photo BLOB)',
+    )
+    database.execute(
+      "INSERT INTO users (id, name) VALUES (1, 'Dave'), (2, 'Ritesh')",
+    )
+    database.execute(
+      'INSERT INTO pets (id, name, owner_id, photo) VALUES (?, ?, ?, ?)',
+      [7, 'Rex', 1, new Uint8Array([1, 2]).buffer],
+    )
+    const query =
+      'SELECT users.id, users.name, pets.id, pets.name, pets.photo FROM users LEFT JOIN pets ON pets.owner_id = users.id ORDER BY users.id'
+
+    const result = database.executeRaw(query)
+    expect(result.columnNames).toEqual(['id', 'name', 'id', 'name', 'photo'])
+    expect(result.rows).toEqual([
+      [1, 'Dave', 7, 'Rex', expect.any(ArrayBuffer)],
+      [2, 'Ritesh', null, null, null],
+    ])
+    expect(new Uint8Array(result.rows[0]![4] as ArrayBuffer)).toEqual(
+      new Uint8Array([1, 2]),
+    )
+    await expect(database.executeRawAsync(query)).resolves.toEqual(result)
+
+    expect(
+      database.executeRaw("INSERT INTO users (name) VALUES ('Ada')"),
+    ).toMatchObject({ rowsAffected: 1, insertId: 3, columnNames: [], rows: [] })
+  })
+
+  it('switches a prepared statement between raw and object rows', async () => {
+    const database = open({ name: 'raw-prepared' })
+    const statement = database.prepare('SELECT ? AS a, ? AS b')
+
+    expect(statement.executeRaw([1, 2]).rows).toEqual([[1, 2]])
+    expect(statement.execute([3, 4]).results).toEqual([{ a: 3, b: 4 }])
+    await expect(statement.executeRawAsync([5, 6])).resolves.toMatchObject({
+      columnNames: ['a', 'b'],
+      rows: [[5, 6]],
+    })
+    statement.finalize()
+  })
+
+  it('runs raw queries inside transactions', async () => {
+    const database = open({ name: 'raw-transaction' })
+    database.execute('CREATE TABLE items (value INTEGER)')
+
+    await database.transaction(async (tx) => {
+      tx.executeRaw('INSERT INTO items (value) VALUES (?)', [1])
+      expect(
+        (await tx.executeRawAsync('SELECT value FROM items')).rows,
+      ).toEqual([[1]])
+    })
+  })
+
+  it.each([0, 1])(
+    'refreshes raw prepared column names after a schema change, id=%s',
+    async (id) => {
+      const database = open({ name: 'raw-schema-change' })
+      database.execute('CREATE TABLE items (id INTEGER)')
+      database.execute('INSERT INTO items VALUES (1)')
+      const statement = database.prepare('SELECT * FROM items WHERE id = ?')
+      database.execute(
+        "ALTER TABLE items ADD COLUMN label TEXT DEFAULT 'added'",
+      )
+
+      const result = statement.executeRaw([id])
+      expect(result.columnNames).toEqual(['id', 'label'])
+      expect(result.rows).toEqual(id === 1 ? [[1, 'added']] : [])
+
+      database.execute('ALTER TABLE items RENAME COLUMN label TO name')
+      const asyncResult = await statement.executeRawAsync([id])
+      expect(asyncResult.columnNames).toEqual(['id', 'name'])
+      expect(asyncResult.rows).toEqual(result.rows)
+      statement.finalize()
+    },
+  )
+
   it('binds repeated named parameters in first-occurrence order', () => {
     const database = open({ name: 'named' })
     expect(

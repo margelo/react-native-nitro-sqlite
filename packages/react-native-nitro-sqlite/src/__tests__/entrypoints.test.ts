@@ -18,6 +18,7 @@ import {
   NitroSQLiteExceptionType as ExceptionTypeFromErrors,
 } from '../errors'
 import { HybridNitroSQLite } from '../nitro'
+import { executeRaw, executeRawAsync } from '../operations/execute'
 import { init as androidInit } from '../OnLoad.android'
 import { init as iosInit } from '../OnLoad'
 
@@ -32,6 +33,8 @@ describe('entrypoints', () => {
     expect(NitroSQLite.native).toBe(HybridNitroSQLite)
     expect(NitroSQLite.open).toBe(open)
     expect(NitroSQLite.open).not.toBe(HybridNitroSQLite.open)
+    expect(NitroSQLite.executeRaw).toBe(executeRaw)
+    expect(NitroSQLite.executeRawAsync).toBe(executeRawAsync)
     expect(iosInit()).toBeUndefined()
   })
 

@@ -5,7 +5,13 @@ import type {
   QueryResult,
   QueryResultRow,
 } from '../types'
-import { executeAsyncNative, executeNative } from './execute'
+import {
+  executeAsyncNative,
+  executeNative,
+  executeRawAsyncNative,
+  executeRawNative,
+} from './execute'
+import type { NitroSQLiteRawQueryResult } from '../specs/NitroSQLiteQueryResult.nitro'
 import NitroSQLiteError from '../NitroSQLiteError'
 import type { DatabaseQueueKey } from '../DatabaseQueue'
 
@@ -44,29 +50,25 @@ export const transaction = async <Result = void>(
     }
   }
 
-  const executeOnTransaction = <Row extends QueryResultRow = never>(
-    query: string,
-    params?: SQLiteQueryParams,
-  ): QueryResult<Row> => {
+  const throwIfNotActive = () => {
     if (state.current.kind !== 'active') {
       throw new NitroSQLiteError(
         `Cannot execute query on finalized transaction: ${dbName}`,
       )
     }
-    throwIfAsyncPending()
-    return executeNative(dbName, query, params)
   }
 
-  const executeAsyncOnTransaction = <Row extends QueryResultRow = never>(
-    query: string,
-    params?: SQLiteQueryParams,
-  ): Promise<QueryResult<Row>> => {
-    if (state.current.kind !== 'active') {
-      throw new NitroSQLiteError(
-        `Cannot execute query on finalized transaction: ${dbName}`,
-      )
-    }
-    const pending = executeAsyncNative<Row>(dbName, query, params)
+  const runOnTransaction = <Value>(run: () => Value): Value => {
+    throwIfNotActive()
+    throwIfAsyncPending()
+    return run()
+  }
+
+  const runAsyncOnTransaction = <Value>(
+    run: () => Promise<Value>,
+  ): Promise<Value> => {
+    throwIfNotActive()
+    const pending = run()
     pendingAsyncStatements.add(pending)
     pending.then(
       () => pendingAsyncStatements.delete(pending),
@@ -74,6 +76,30 @@ export const transaction = async <Result = void>(
     )
     return pending
   }
+
+  const executeOnTransaction = <Row extends QueryResultRow = never>(
+    query: string,
+    params?: SQLiteQueryParams,
+  ): QueryResult<Row> =>
+    runOnTransaction(() => executeNative<Row>(dbName, query, params))
+
+  const executeAsyncOnTransaction = <Row extends QueryResultRow = never>(
+    query: string,
+    params?: SQLiteQueryParams,
+  ): Promise<QueryResult<Row>> =>
+    runAsyncOnTransaction(() => executeAsyncNative<Row>(dbName, query, params))
+
+  const executeRawOnTransaction = (
+    query: string,
+    params?: SQLiteQueryParams,
+  ): NitroSQLiteRawQueryResult =>
+    runOnTransaction(() => executeRawNative(dbName, query, params))
+
+  const executeRawAsyncOnTransaction = (
+    query: string,
+    params?: SQLiteQueryParams,
+  ): Promise<NitroSQLiteRawQueryResult> =>
+    runAsyncOnTransaction(() => executeRawAsyncNative(dbName, query, params))
 
   const commit = () => {
     if (state.current.kind !== 'active') {
@@ -130,6 +156,8 @@ export const transaction = async <Result = void>(
         commit,
         execute: executeOnTransaction,
         executeAsync: executeAsyncOnTransaction,
+        executeRaw: executeRawOnTransaction,
+        executeRawAsync: executeRawAsyncOnTransaction,
         rollback,
       })
 

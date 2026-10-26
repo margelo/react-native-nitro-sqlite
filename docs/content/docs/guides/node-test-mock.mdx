@@ -38,7 +38,7 @@ test('stores a note', () => {
 })
 ```
 
-The mock returns query rows through both `results` and `rows`, and supports [atomic batches](/docs/guides/batch-operations). Bound `undefined` becomes SQL NULL. A query that fails throws from `execute()` or rejects from `executeAsync()`.
+The mock returns query rows through both `results` and `rows`, supports [rows as arrays](/docs/guides/parameters-and-results#rows-as-arrays) through `executeRaw()` and `executeRawAsync()`, and supports [atomic batches](/docs/guides/batch-operations). Bound `undefined` becomes SQL NULL. A query that fails throws from `execute()` or rejects from `executeAsync()`.
 
 ## Share a database between connections
 
