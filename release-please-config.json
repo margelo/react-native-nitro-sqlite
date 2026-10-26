@@ -7,7 +7,7 @@
       "draft": true,
       "force-tag-creation": true,
       "pull-request-title-pattern": "chore: release ${version}",
-      "pull-request-header": "Publishing requires a matching version across both packages and the example. This release updates their versions together and records the changes below.",
+      "pull-request-header": "Publishing requires a matching version across all packages and the example. This release updates their versions together and records the changes below.",
       "changelog-sections": [
         {
           "type": "chore",
@@ -57,6 +57,16 @@
         },
         {
           "type": "json",
+          "path": "packages/react-native-nitro-sqlite-drizzle/package.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "packages/react-native-nitro-sqlite-drizzle/package.json",
+          "jsonpath": "$.devDependencies['react-native-nitro-sqlite']"
+        },
+        {
+          "type": "json",
           "path": "example/package.json",
           "jsonpath": "$.version"
         },
@@ -69,6 +79,11 @@
           "type": "json",
           "path": "example/package.json",
           "jsonpath": "$.dependencies['react-native-nitro-sqlite-vec']"
+        },
+        {
+          "type": "json",
+          "path": "example/package.json",
+          "jsonpath": "$.dependencies['react-native-nitro-sqlite-drizzle']"
         }
       ]
     }

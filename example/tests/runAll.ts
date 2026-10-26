@@ -1,6 +1,7 @@
 import type { MochaTestResult } from './MochaSetup'
 import { runTests } from './MochaSetup'
 import {
+  registerDrizzleUnitTests,
   registerSqliteVecUnitTests,
   registerTypeORMUnitTests,
   registerUnitTests,
@@ -14,6 +15,7 @@ export async function runAllTests(): Promise<MochaTestResult[]> {
     registerUnitTests,
     registerTypeORMUnitTests,
     registerSqliteVecUnitTests,
+    registerDrizzleUnitTests,
   )
 
   return results

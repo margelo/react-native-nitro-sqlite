@@ -183,22 +183,23 @@ function watchProcessFailure(child, name, getOutput) {
   }
 }
 
-async function waitForReport(report, failures) {
+async function waitForReport(report, failures, getOutput) {
   let timeout
   try {
     return await Promise.race([
       report,
       ...failures,
       new Promise((_, reject) => {
-        timeout = setTimeout(
-          () =>
-            reject(
-              new Error(
-                `Timed out waiting for macOS test results after ${testTimeoutMs}ms`,
-              ),
+        timeout = setTimeout(() => {
+          const output = getOutput()
+          reject(
+            new Error(
+              `Timed out waiting for macOS test results after ${testTimeoutMs}ms${
+                output.length > 0 ? `\n${output}` : ''
+              }`,
             ),
-          testTimeoutMs,
-        )
+          )
+        }, testTimeoutMs)
       }),
     ])
   } finally {
@@ -325,10 +326,11 @@ async function main() {
         .join('\n\n')
     }
     appFailure = watchProcessFailure(app, 'The macOS app', getAppAndMetroOutput)
-    const result = await waitForReport(resultServer.report, [
-      appFailure.failure,
-      metroFailure.failure,
-    ])
+    const result = await waitForReport(
+      resultServer.report,
+      [appFailure.failure, metroFailure.failure],
+      getAppAndMetroOutput,
+    )
     appFailure.stopWatching()
     appFailure = undefined
     metroFailure.stopWatching()
