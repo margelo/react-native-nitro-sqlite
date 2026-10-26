@@ -1,7 +1,10 @@
 import type { CustomType } from 'react-native-nitro-modules'
 import type { ColumnType, SQLiteValue } from '../types'
 
-/** Result rows keyed by column name. Native rows become JavaScript objects on the JavaScript thread. */
+/** Result rows keyed by column name, decoded through Nitro's `AnyJSON` converter.
+ * BLOBs remain `ArrayBuffer` values, and non-finite numbers retain their numeric values.
+ * Duplicate column names use the last column's value.
+ */
 export type NativeQueryRows = CustomType<
   Record<string, SQLiteValue>[],
   'margelo::nitro::rnnitrosqlite::SQLiteQueryResults',
