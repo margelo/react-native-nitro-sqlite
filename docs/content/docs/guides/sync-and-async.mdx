@@ -23,6 +23,8 @@ Use synchronous calls when immediate results are useful and the work is small. P
 
 `executeAsync()` resolves once with the complete result in row order. Returning many rows still costs JavaScript work, so paginate large results.
 
+SQLite stores binary data as BLOBs. Query results return those values as `ArrayBuffer` objects, including empty BLOBs. Text keeps embedded NULs and other control characters, SQL `NULL` becomes JavaScript `null`, and infinite numbers remain numeric values. These rules also apply to prepared statements and raw native queries.
+
 ## Connection ordering
 
 <span id="ordering-on-one-connection" />

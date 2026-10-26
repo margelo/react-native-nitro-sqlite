@@ -222,7 +222,7 @@ namespace {
   NativeQueryResult executeStatement(sqlite3* db, sqlite3_stmt* statement, const SQLiteRowBatchHandler& onRows = nullptr) {
     int columnCount = 0;
     std::vector<std::string> columnNames;
-    std::vector<SQLiteQueryResultRow> rows;
+    std::optional<SQLiteQueryResultBuilder> rows;
     size_t rowBatchCount = 0;
     bool columnsCaptured = false;
 
@@ -236,6 +236,7 @@ namespace {
         }
         columnNames.emplace_back(columnName);
       }
+      rows.emplace(columnNames);
       columnsCaptured = true;
     };
 
@@ -245,49 +246,10 @@ namespace {
         captureColumns();
       }
 
-      SQLiteQueryResultRow row;
-      row.reserve(columnNames.size());
-
-      for (int i = 0; i < columnCount; i++) {
-        int columnType = sqlite3_column_type(currentStatement, i);
-
-        switch (columnType) {
-          case SQLITE_INTEGER:
-          case SQLITE_FLOAT:
-            row.emplace_back(sqlite3_column_double(currentStatement, i));
-            break;
-          case SQLITE_TEXT: {
-            auto columnValue = reinterpret_cast<const char*>(sqlite3_column_text(currentStatement, i));
-            if (columnValue == nullptr) {
-              throw SQLiteException::SqlExecution(sqlite3_errmsg(db));
-            }
-            int columnBytes = sqlite3_column_bytes(currentStatement, i);
-            row.emplace_back(std::string(columnValue, static_cast<size_t>(columnBytes)));
-            break;
-          }
-          case SQLITE_BLOB: {
-            int blobSize = sqlite3_column_bytes(currentStatement, i);
-            const void* blob = sqlite3_column_blob(currentStatement, i);
-            if (blobSize > 0) {
-              const auto* blobData = reinterpret_cast<const uint8_t*>(blob);
-              row.emplace_back(ArrayBuffer::copy(blobData, static_cast<size_t>(blobSize)));
-            } else {
-              row.emplace_back(ArrayBuffer::allocate(0));
-            }
-            break;
-          }
-          case SQLITE_NULL:
-          default:
-            row.emplace_back(NullType::null);
-            break;
-        }
-      }
-
-      rows.push_back(std::move(row));
-      if (onRows && rows.size() == kRowBatchSize) {
-        onRows(SQLiteQueryResults(columnNames, std::move(rows)));
+      rows->appendRow(currentStatement);
+      if (onRows && rows->size() == kRowBatchSize) {
+        onRows(rows->takeRows());
         rowBatchCount++;
-        rows = {};
       }
     });
 
@@ -308,8 +270,7 @@ namespace {
       metadata->insert({columnName, std::move(columnMeta)});
     }
 
-    return NativeQueryResult(sqlite3_changes(db), static_cast<double>(sqlite3_last_insert_rowid(db)),
-                             SQLiteQueryResults(std::move(columnNames), std::move(rows)), std::move(metadata),
+    return NativeQueryResult(sqlite3_changes(db), static_cast<double>(sqlite3_last_insert_rowid(db)), rows->takeRows(), std::move(metadata),
                              static_cast<double>(rowBatchCount));
   }
 

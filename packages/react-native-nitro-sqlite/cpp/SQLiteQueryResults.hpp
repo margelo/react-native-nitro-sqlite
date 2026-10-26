@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SQLiteTypes.hpp"
+#include <NitroModules/AnyJSON.hpp>
 #include <NitroModules/JSIConverter.hpp>
 #include <functional>
 #include <jsi/jsi.h>
@@ -9,23 +10,59 @@
 #include <utility>
 #include <vector>
 
+struct sqlite3_stmt;
+
 namespace margelo::nitro::rnnitrosqlite {
 
 using SQLiteQueryResultRow = std::vector<SQLiteValue>;
 
-struct SQLiteQueryResultData {
+struct SQLiteQueryResultPatch {
+  size_t rowIndex;
+  std::string columnName;
+  SQLiteValue value;
+};
+
+struct SQLiteJSONQueryResults {
+  AnyJSON json{"[]"};
+  std::vector<SQLiteQueryResultPatch> patches;
+};
+
+struct SQLiteNativeQueryResults {
   std::vector<std::string> columnNames;
   std::vector<SQLiteQueryResultRow> rows;
 };
 
-// Rows read by native code and converted to JavaScript objects on the JS thread.
-// The shared storage keeps copies of a query result cheap.
+using SQLiteQueryResultData = std::variant<SQLiteJSONQueryResults, SQLiteNativeQueryResults>;
+
+// JSON is encoded on the SQLite thread. BLOBs and non-finite numbers retain their native values.
 struct SQLiteQueryResults {
-  SQLiteQueryResults() : data(std::make_shared<const SQLiteQueryResultData>()) {}
-  SQLiteQueryResults(std::vector<std::string> columnNames, std::vector<SQLiteQueryResultRow> rows)
-      : data(std::make_shared<const SQLiteQueryResultData>(std::move(columnNames), std::move(rows))) {}
+  SQLiteQueryResults();
+  explicit SQLiteQueryResults(SQLiteQueryResultData result);
 
   std::shared_ptr<const SQLiteQueryResultData> data;
+};
+
+/** Encodes SQLite rows as they are read, keeping only values JSON cannot represent in native storage. */
+class SQLiteQueryResultBuilder final {
+public:
+  /** Capture the statement's column names after SQLite has performed any automatic reprepare. */
+  explicit SQLiteQueryResultBuilder(std::vector<std::string> columnNames);
+  /** Copy the current row before SQLite advances the statement or releases its column buffers. */
+  void appendRow(sqlite3_stmt* statement);
+  /** Number of rows in the batch that has not yet been handed to JavaScript. */
+  size_t size() const {
+    return _rowCount;
+  }
+  /** Finish this batch and start an empty batch with the same columns. */
+  SQLiteQueryResults takeRows();
+
+private:
+  void appendPatch(size_t columnIndex, SQLiteValue value);
+
+  std::vector<std::string> _columnNames;
+  std::vector<std::string> _keys;
+  SQLiteQueryResultData _data;
+  size_t _rowCount = 0;
 };
 
 /** Receives leading result rows in batches while the statement still runs. */
@@ -37,26 +74,7 @@ namespace margelo::nitro {
 
 template <>
 struct JSIConverter<rnnitrosqlite::SQLiteQueryResults> final {
-  static jsi::Value toJSI(jsi::Runtime& runtime, const rnnitrosqlite::SQLiteQueryResults& results) {
-    const auto& data = *results.data;
-    std::vector<jsi::PropNameID> names;
-    names.reserve(data.columnNames.size());
-    for (const auto& name : data.columnNames) {
-      names.emplace_back(jsi::PropNameID::forUtf8(runtime, reinterpret_cast<const uint8_t*>(name.data()), name.size()));
-    }
-
-    jsi::Array array(runtime, data.rows.size());
-    for (size_t rowIndex = 0; rowIndex < data.rows.size(); rowIndex++) {
-      jsi::Object object(runtime);
-      const auto& row = data.rows[rowIndex];
-      for (size_t columnIndex = 0; columnIndex < names.size(); columnIndex++) {
-        // Repeated aliases overwrite earlier values, as the former row map did.
-        object.setProperty(runtime, names[columnIndex], JSIConverter<rnnitrosqlite::SQLiteValue>::toJSI(runtime, row[columnIndex]));
-      }
-      array.setValueAtIndex(runtime, rowIndex, std::move(object));
-    }
-    return array;
-  }
+  static jsi::Value toJSI(jsi::Runtime& runtime, const rnnitrosqlite::SQLiteQueryResults& results);
 
   // Query results only travel from native code to JavaScript.
   static rnnitrosqlite::SQLiteQueryResults fromJSI(jsi::Runtime&, const jsi::Value&) {
