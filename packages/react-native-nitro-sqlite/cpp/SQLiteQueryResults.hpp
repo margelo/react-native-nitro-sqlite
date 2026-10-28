@@ -6,6 +6,7 @@
 #include <functional>
 #include <jsi/jsi.h>
 #include <memory>
+#include <optional>
 #include <stdexcept>
 #include <utility>
 #include <vector>
@@ -32,9 +33,10 @@ struct SQLiteNativeQueryResults {
   std::vector<SQLiteQueryResultRow> rows;
 };
 
-using SQLiteQueryResultData = std::variant<SQLiteJSONQueryResults, SQLiteNativeQueryResults>;
+using SQLiteQueryResultData = std::variant<SQLiteNativeQueryResults, SQLiteJSONQueryResults>;
 
-// JSON is encoded on the SQLite thread. BLOBs and non-finite numbers retain their native values.
+// Small batches keep native values. Larger batches are encoded as JSON on the SQLite thread, where BLOBs and
+// non-finite numbers retain their native values.
 struct SQLiteQueryResults {
   SQLiteQueryResults();
   explicit SQLiteQueryResults(SQLiteQueryResultData result);
@@ -42,7 +44,11 @@ struct SQLiteQueryResults {
   std::shared_ptr<const SQLiteQueryResultData> data;
 };
 
-/** Encodes SQLite rows as they are read, keeping only values JSON cannot represent in native storage. */
+/** Collects SQLite rows in batches for JavaScript.
+ * A batch keeps native values while it is small, because parsing JSON has a fixed cost that only pays off for
+ * larger results. Once it grows, the batch is encoded as JSON as rows are read, keeping only values JSON cannot
+ * represent in native storage.
+ */
 class SQLiteQueryResultBuilder final {
 public:
   /** Capture the statement's column names after SQLite has performed any automatic reprepare. */
@@ -57,11 +63,19 @@ public:
   SQLiteQueryResults takeRows();
 
 private:
-  void appendPatch(size_t columnIndex, SQLiteValue value);
+  bool startJSON();
+  void appendNativeRow(sqlite3_stmt* statement);
+  void appendJSONRow(sqlite3_stmt* statement);
+  void appendBufferedValue(size_t rowIndex, size_t columnIndex, SQLiteValue value);
+  void appendPatch(size_t rowIndex, size_t columnIndex, SQLiteValue value);
 
   std::vector<std::string> _columnNames;
+  // Quoted column names followed by ':', built when the first batch switches to JSON.
   std::vector<std::string> _keys;
-  SQLiteQueryResultData _data;
+  bool _hasMalformedColumnName = false;
+  std::vector<SQLiteQueryResultRow> _nativeRows;
+  std::optional<SQLiteJSONQueryResults> _json;
+  size_t _jsonCapacity = 0;
   size_t _rowCount = 0;
 };
 
