@@ -41,7 +41,7 @@ Every result went through `JSON.parse`, including the empty result of each write
 ### 5. Benchmark async reads and fractional REAL values
 
 - Commit: `chore(example): benchmark async reads and fractional REAL values`
-- Target: a separate PR against `main`, so `main` builds have the same cases to compare against. The stack renamed the types these files import, so the imports need adjusting there.
+- Target: #469 (`chore/benchmark-read-cases`) against `main`, so `main` builds have the same cases to compare against. The stack picks it up when it is rebased onto `main`.
 
 Adds `10k narrow rows · async read + access`, `300k wide rows · async read + access`, and `100k fractional REAL rows · full read + access`. Synchronous reads encode and parse results on the JavaScript thread, while asynchronous reads encode them on the connection's worker thread, which is where AnyJSON should help most. The existing cases keep their order and labels.
 
