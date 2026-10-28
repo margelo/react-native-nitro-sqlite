@@ -33,10 +33,10 @@ NativeQueryResult HybridPreparedStatement::execute(const std::optional<SQLiteQue
 }
 
 Promise<NativeQueryResult> HybridPreparedStatement::executeAsync(const std::optional<SQLiteQueryParams>& params) {
-  const auto copiedParams = copyArrayBufferParamsForBackground(params);
-  const auto statement = _statement;
+  auto copiedParams = copyArrayBufferParamsForBackground(params);
 
-  return Promise<NativeQueryResult>::async([statement, copiedParams]() -> NativeQueryResult { return statement->execute(copiedParams); });
+  return Promise<NativeQueryResult>::async(
+      [statement = _statement, copiedParams = std::move(copiedParams)]() -> NativeQueryResult { return statement->execute(copiedParams); });
 }
 
 void HybridPreparedStatement::finalize() {

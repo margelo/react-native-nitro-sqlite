@@ -63,22 +63,17 @@ static std::optional<SQLiteQueryParams> copyArrayBufferParamsForBackground(const
   return copiedParams;
 }
 
-// Copy ArrayBuffer params inside each grouped batch command.
-static std::vector<BatchQuery> copyArrayBufferParamsForBackground(const std::vector<BatchQuery>& commands) {
-  std::vector<BatchQuery> copiedCommands;
-  copiedCommands.reserve(commands.size());
-
-  for (const auto& command : commands) {
-    BatchQuery copiedCommand{command.sql, {}};
-    copiedCommand.parameterSets.reserve(command.parameterSets.size());
-    for (const auto& params : command.parameterSets) {
-      copiedCommand.parameterSets.push_back(*copyArrayBufferParamsForBackground(params));
+// Replace JS-backed ArrayBuffers inside each grouped batch command with native copies, in place.
+static void copyArrayBuffersForBackground(std::vector<BatchQuery>& commands) {
+  for (auto& command : commands) {
+    for (auto& params : command.parameterSets) {
+      for (auto& value : params) {
+        if (value && std::holds_alternative<ArrayBuffer>(*value)) {
+          *value = ArrayBuffer::copy(std::get<ArrayBuffer>(*value));
+        }
+      }
     }
-
-    copiedCommands.push_back(std::move(copiedCommand));
   }
-
-  return copiedCommands;
 }
 
 template <typename Result, typename Operation>
@@ -238,7 +233,7 @@ NativeQueryResult HybridNitroSQLite::execute(const std::string& dbName, const st
 Promise<NativeQueryResult> HybridNitroSQLite::executeAsync(const std::string& dbName, const std::string& query,
                                                            const std::optional<SQLiteQueryParams>& params,
                                                            const std::optional<Callback<void(SQLiteQueryResults)>>& onRows) {
-  const auto copiedParams = copyArrayBufferParamsForBackground(params);
+  auto copiedParams = copyArrayBufferParamsForBackground(params);
   SQLiteConnectionPtr connection;
   try {
     connection = _connections.get(dbName);
@@ -251,10 +246,11 @@ Promise<NativeQueryResult> HybridNitroSQLite::executeAsync(const std::string& db
     rowBatchHandler = [onRows = *onRows](SQLiteQueryResults rows) { onRows(std::move(rows)); };
   }
 
-  return enqueueConnectionOperation<NativeQueryResult>(connection,
-                                                       [connection, query, copiedParams, rowBatchHandler]() -> NativeQueryResult {
-                                                         return sqliteExecute(connection, query, copiedParams, rowBatchHandler);
-                                                       });
+  return enqueueConnectionOperation<NativeQueryResult>(
+      connection,
+      [connection, query, copiedParams = std::move(copiedParams), rowBatchHandler = std::move(rowBatchHandler)]() -> NativeQueryResult {
+        return sqliteExecute(connection, query, copiedParams, rowBatchHandler);
+      });
 };
 
 std::shared_ptr<HybridPreparedStatementSpec> HybridNitroSQLite::prepare(const std::string& dbName, const std::string& query) {
@@ -272,8 +268,8 @@ Promise<BatchQueryResult> HybridNitroSQLite::executeBatchAsync(const std::string
                                                                const std::vector<BatchQueryCommand>& batchParams) {
   // Convert BatchQueryCommand objects on the JS thread and copy any JS-backed
   // ArrayBuffers into native buffers before going off-thread.
-  const auto commands = batchParamsToCommands(batchParams);
-  const auto copiedCommands = copyArrayBufferParamsForBackground(commands);
+  auto commands = batchParamsToCommands(batchParams);
+  copyArrayBuffersForBackground(commands);
   SQLiteConnectionPtr connection;
   try {
     connection = _connections.get(dbName);
@@ -281,8 +277,8 @@ Promise<BatchQueryResult> HybridNitroSQLite::executeBatchAsync(const std::string
     return Promise<BatchQueryResult>::rejected(std::current_exception());
   }
 
-  return enqueueConnectionOperation<BatchQueryResult>(connection, [connection, copiedCommands]() -> BatchQueryResult {
-    auto result = sqliteExecuteBatch(connection, copiedCommands);
+  return enqueueConnectionOperation<BatchQueryResult>(connection, [connection, commands = std::move(commands)]() -> BatchQueryResult {
+    auto result = sqliteExecuteBatch(connection, commands);
     return BatchQueryResult(result.rowsAffected);
   });
 };
