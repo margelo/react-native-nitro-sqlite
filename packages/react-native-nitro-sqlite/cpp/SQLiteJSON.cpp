@@ -61,10 +61,17 @@ bool appendJSONNumber(std::string& json, double value) {
   if (!std::isfinite(value))
     return false;
 
+  const bool negativeZero = value == 0 && std::signbit(value);
+  // REAL columns often hold whole numbers, which print several times faster as integers.
+  if (!negativeZero && std::fabs(value) < 0x1p53 && std::trunc(value) == value) {
+    appendJSONInteger(json, static_cast<int64_t>(value));
+    return true;
+  }
+
   char buffer[32];
 #if defined(__APPLE__)
   // Apple marks floating-point to_chars unavailable when targeting the supported iOS 16.0 minimum.
-  if (value == 0 && std::signbit(value)) {
+  if (negativeZero) {
     json.append("-0");
   } else {
     sqlite3_snprintf(sizeof(buffer), buffer, "%!.17g", value);

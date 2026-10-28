@@ -9,6 +9,7 @@
 #include <limits>
 #include <random>
 #include <string>
+#include <utility>
 #include <vector>
 
 using namespace margelo::nitro::rnnitrosqlite;
@@ -64,6 +65,14 @@ int main() {
     if (std::isfinite(value))
       checkNumber(value);
   }
+  const std::vector<std::pair<double, std::string>> integers = {{0.0, "0"},   {-0.0, "-0"},       {1.0, "1"},
+                                                                {-1.0, "-1"}, {12345.0, "12345"}, {9007199254740991.0, "9007199254740991"}};
+  for (const auto& [value, expected] : integers) {
+    std::string json;
+    assert(appendJSONNumber(json, value));
+    assert(json == expected);
+  }
+
   for (const double value :
        {std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), std::numeric_limits<double>::quiet_NaN()}) {
     std::string json = "prefix";
