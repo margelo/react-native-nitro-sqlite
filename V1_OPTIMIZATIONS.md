@@ -41,9 +41,16 @@ Every result went through `JSON.parse`, including the empty result of each write
 ### 5. Benchmark async reads and fractional REAL values
 
 - Commit: `chore(example): benchmark async reads and fractional REAL values`
-- Target: #469 (`chore/benchmark-read-cases`) against `main`, so `main` builds have the same cases to compare against. The stack picks it up when it is rebased onto `main`.
+- Target: #469 (`chore/benchmark-read-cases`), merged into `main`. The stack picks it up when it is rebased onto `main`.
 
 Adds `10k narrow rows · async read + access`, `300k wide rows · async read + access`, and `100k fractional REAL rows · full read + access`. Synchronous reads encode and parse results on the JavaScript thread, while asynchronous reads encode them on the connection's worker thread, which is where AnyJSON should help most. The existing cases keep their order and labels.
+
+### 6. Benchmark app workloads
+
+- Commit: `chore(example): benchmark app workloads`
+- Target: #470 (`chore/benchmark-real-world`) against `main`. Drop this commit when the stack is rebased onto `main`, because #470 brings the same cases.
+
+Adds WAL-mode cases modeled on apps: a chat app that stores 500 synced messages in a transaction, opens its inbox and 10 conversations, and launches 20 times, plus key-value storage, a response cache with 200 JSON documents of 9 KB, and a thumbnail cache with 120 BLOBs of 32 KB. It also adds async point lookups and synchronous inserts inside one transaction. On `main`, #470 also runs the chat cases through Drizzle and reads rows as arrays with `executeRaw`. This branch has neither API yet, so those cases are missing here. The response cache and thumbnail cases test two weak spots of the JSON encoding in #467: JSON documents stored as text are full of quotes the encoder must escape, and every BLOB is patched in after parsing.
 
 ## Not changed
 
