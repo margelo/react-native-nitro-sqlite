@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../NitroSQLiteDatabaseConnections.hpp"
-#include "../NitroSQLiteTypes.hpp"
-#include "HybridNitroSQLitePreparedStatementSpec.hpp"
-#include "HybridNitroSQLiteSpec.hpp"
+#include "../SQLiteDatabaseConnections.hpp"
+#include "../SQLiteTypes.hpp"
+#include <RNNitroSQLite/HybridNitroSQLiteSpec.hpp>
+#include <RNNitroSQLite/HybridPreparedStatementSpec.hpp>
 
 namespace margelo::nitro::rnnitrosqlite {
 
@@ -14,26 +14,31 @@ namespace margelo::nitro::rnnitrosqlite {
  */
 class HybridNitroSQLite : public HybridNitroSQLiteSpec {
 public:
-  HybridNitroSQLite() : HybridObject(TAG) {}
-
-public:
-  static std::string docPath;
-  // Directory databases were stored in by previous app versions, when the platform layer has
-  // relocated docPath (e.g. iOS with RNNitroSQLite_DatabaseLocation set to "ApplicationSupport").
-  // When non-empty, databases found there are resolved as they are opened, attached, or dropped.
-  static std::string migrationDocPath;
+  /** Create a root that stores its databases in @p databaseDirectory.
+   * @param temporaryDirectory SQLite's temporary directory. SQLite reads it once per process,
+   * so the first root that passes one sets it.
+   * @param legacyDatabaseDirectory Directory that previous app versions stored databases in,
+   * for example Documents when iOS moves them to Application Support. Databases found there
+   * are moved as they are opened, attached, or dropped.
+   * @throws std::runtime_error If SQLite's temporary directory can't be configured.
+   */
+  HybridNitroSQLite(std::string databaseDirectory, const std::optional<std::string>& temporaryDirectory,
+                    const std::optional<std::string>& legacyDatabaseDirectory);
 
 private:
   DatabaseConnections _connections;
+  std::string _databaseDirectory;
+  // Empty when databases have never been stored anywhere else.
+  std::string _legacyDatabaseDirectory;
 
 public:
   // Methods
   /** Open the default connection, requiring an existing file in read-only mode. */
-  void open(const std::string& dbName, const std::optional<std::string>& location, std::optional<bool> readOnly,
+  void open(const std::string& dbName, const std::optional<std::string>& location, const std::optional<bool>& readOnly,
             const std::optional<std::string>& encryptionKey) override;
 
   /** Open a separate native handle and return an opaque ID for later calls. */
-  std::string openConnection(const std::string& dbName, const std::optional<std::string>& location, std::optional<bool> readOnly,
+  std::string openConnection(const std::string& dbName, const std::optional<std::string>& location, const std::optional<bool>& readOnly,
                              const std::optional<std::string>& encryptionKey) override;
 
   /** Close the named native database handle. */
@@ -63,18 +68,17 @@ public:
    * @param params Optional values bound to the placeholders.
    * @return Native rows, affected row count, insert ID, and metadata.
    */
-  NitroSQLiteQueryResult execute(const std::string& dbName, const std::string& query,
-                                 const std::optional<SQLiteQueryParams>& params) override;
+  NativeQueryResult execute(const std::string& dbName, const std::string& query, const std::optional<SQLiteQueryParams>& params) override;
 
   /** Execute one SQL statement on a background thread.
    * @return A promise of the native query result.
    */
-  std::shared_ptr<Promise<NitroSQLiteQueryResult>> executeAsync(const std::string& dbName, const std::string& query,
-                                                                const std::optional<SQLiteQueryParams>& params,
-                                                                const std::optional<SQLiteRowBatchHandler>& onRows) override;
+  Promise<NativeQueryResult> executeAsync(const std::string& dbName, const std::string& query,
+                                          const std::optional<SQLiteQueryParams>& params,
+                                          const std::optional<Callback<void(SQLiteQueryResults)>>& onRows) override;
 
   /** Prepare one SQL statement for repeated execution on an open connection. */
-  std::shared_ptr<HybridNitroSQLitePreparedStatementSpec> prepare(const std::string& dbName, const std::string& query) override;
+  std::shared_ptr<HybridPreparedStatementSpec> prepare(const std::string& dbName, const std::string& query) override;
 
   /** Run a nonempty batch in one exclusive transaction on the calling thread.
    * A failed command rolls back the batch.
@@ -84,8 +88,7 @@ public:
   /** Run a nonempty batch in one exclusive transaction on a background thread.
    * @return A promise of the total affected row count.
    */
-  std::shared_ptr<Promise<BatchQueryResult>> executeBatchAsync(const std::string& dbName,
-                                                               const std::vector<BatchQueryCommand>& commands) override;
+  Promise<BatchQueryResult> executeBatchAsync(const std::string& dbName, const std::vector<BatchQueryCommand>& commands) override;
 
   /** Import a SQL file in one exclusive transaction on the calling thread.
    * Each nonempty line is interpreted as one statement.
@@ -97,10 +100,7 @@ public:
    * @param location Path to the SQL file.
    * @return A promise of the command and affected row counts.
    */
-  std::shared_ptr<Promise<FileLoadResult>> loadFileAsync(const std::string& dbName, const std::string& location) override;
+  Promise<FileLoadResult> loadFileAsync(const std::string& dbName, const std::string& location) override;
 };
-
-inline std::string HybridNitroSQLite::docPath = "";
-inline std::string HybridNitroSQLite::migrationDocPath = "";
 
 } // namespace margelo::nitro::rnnitrosqlite

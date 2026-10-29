@@ -8,22 +8,40 @@ const api = JSON.parse(
   ),
 )
 
+const deprecatedExports = [
+  'NitroSQLiteConnection',
+  'NitroSQLiteConnectionOptions',
+  'NitroSQLiteQueryResultRows',
+  'NitroSQLiteQueryColumnMetadata',
+  'NitroSQLiteQueryResult',
+  'NitroSQLiteQueryRows',
+  'NitroSQLitePreparedStatement',
+  'NitroSQLiteNative',
+  'NitroSQLiteError',
+  'NitroSQLiteExceptionType',
+  'TypeOrmNitroSQLiteConnection',
+]
+
 const requiredExports = {
   'react-native-nitro-sqlite': [
     'open',
     'NitroSQLite',
-    'NitroSQLiteConnection',
-    'NitroSQLiteConnectionOptions',
+    'Connection',
+    'ConnectionOptions',
     'QueryResult',
     'Transaction',
     'BatchQueryCommand',
-    'NitroSQLiteError',
-    'NitroSQLiteExceptionType',
-    'NitroSQLiteNative',
-    'NitroSQLiteQueryResult',
-    'NitroSQLiteQueryColumnMetadata',
-    'TypeOrmNitroSQLiteConnection',
+    'SQLiteError',
+    'SQLiteExceptionType',
+    'NativeSQLite',
+    'NativePreparedStatement',
+    'NativeQueryResult',
+    'NativeQueryRows',
+    'QueryResultRows',
+    'QueryColumnMetadata',
+    'TypeOrmConnection',
     'typeORMDriver',
+    ...deprecatedExports,
   ],
   'react-native-nitro-sqlite/mock': [
     'open',
@@ -68,14 +86,8 @@ const requiredMembers = {
       'executeAsync',
       'executeBatch',
       'executeBatchAsync',
-      'close',
-      'drop',
-      'attach',
-      'detach',
-      'loadFile',
-      'loadFileAsync',
     ],
-    NitroSQLiteConnection: [
+    Connection: [
       'close',
       'delete',
       'attach',
@@ -88,10 +100,10 @@ const requiredMembers = {
       'loadFile',
       'loadFileAsync',
     ],
-    NitroSQLiteConnectionOptions: ['encryptionKey'],
+    ConnectionOptions: ['encryptionKey'],
     Transaction: ['commit', 'rollback', 'execute', 'executeAsync'],
-    NitroSQLiteError: ['type', 'fromError'],
-    NitroSQLiteNative: [
+    SQLiteError: ['type', 'fromError'],
+    NativeSQLite: [
       'open',
       'openConnection',
       'close',
@@ -105,9 +117,9 @@ const requiredMembers = {
       'loadFile',
       'loadFileAsync',
     ],
-    NitroSQLiteQueryResult: ['rowsAffected', 'insertId', 'results', 'metadata'],
-    NitroSQLiteQueryColumnMetadata: ['name', 'type', 'index'],
-    TypeOrmNitroSQLiteConnection: [
+    NativeQueryResult: ['rowsAffected', 'insertId', 'results', 'metadata'],
+    QueryColumnMetadata: ['name', 'type', 'index'],
+    TypeOrmConnection: [
       'executeSql',
       'transaction',
       'close',
@@ -234,12 +246,55 @@ const corePackageHome = readFileSync(
   new URL('react-native-nitro-sqlite/index.mdx', output),
   'utf8',
 )
+const corePackage = api.children.find(
+  (child) => child.name === 'react-native-nitro-sqlite',
+)
+for (const name of deprecatedExports) {
+  const alias = corePackage.children.find((child) => child.name === name)
+  const deprecated = alias.comment?.blockTags?.find(
+    (tag) => tag.tag === '@deprecated',
+  )
+  assert.ok(deprecated, `Missing deprecation comment: ${name}`)
+  const target = corePackage.children.find((child) => child.id === alias.target)
+  assert.ok(target, `Missing reference target: ${name}`)
+  // A canonical type and value can have separate reflection IDs with the same name.
+  const canonicalExports = corePackage.children.filter(
+    (child) => child.name === target.name,
+  )
+  assert.ok(
+    deprecated.content.some((part) =>
+      canonicalExports.some((child) => child.id === part.target),
+    ),
+    `Missing canonical replacement link: ${name}`,
+  )
+  for (const canonical of canonicalExports) {
+    assert.ok(
+      !canonical.comment?.blockTags?.some((tag) => tag.tag === '@deprecated'),
+      `Canonical export is deprecated: ${canonical.name}`,
+    )
+  }
+  const section = corePackageHome
+    .split(`### ~~${name}~~\n`)[1]
+    ?.split(/\n(?:#{1,3} |\*\*\*)/)[0]
+  assert.ok(section, `Missing reference section: ${name}`)
+  assert.match(
+    section,
+    /\*\*Deprecated\*\*/,
+    `Missing rendered deprecation: ${name}`,
+  )
+  assert.ok(
+    section.includes(
+      `Use [\`${target.name}\`](/api/react-native-nitro-sqlite/`,
+    ),
+    `Missing rendered replacement link: ${name}`,
+  )
+}
 assert.ok(
   corePackageHome.indexOf('## Hybrid Objects') <
     corePackageHome.indexOf('## Classes'),
   'Hybrid Objects must appear before other API groups',
 )
-for (const name of ['NitroSQLiteNative']) {
+for (const name of ['NativeSQLite']) {
   assert.ok(
     pagePaths.has(`react-native-nitro-sqlite/hybrid-objects/${name}.mdx`),
     `Missing Hybrid Object page: ${name}`,

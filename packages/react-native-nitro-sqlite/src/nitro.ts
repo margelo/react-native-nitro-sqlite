@@ -1,5 +1,8 @@
-import { NitroModules } from 'react-native-nitro-modules'
-import type { NitroSQLite as NitroSQLiteSpec } from './specs/NitroSQLite.nitro'
+import { NitroSQLite } from './specs/NitroSQLite.nitro'
+import { PlatformContext } from './specs/PlatformContext.nitro'
 
-export const HybridNitroSQLite =
-  NitroModules.createHybridObject<NitroSQLiteSpec>('NitroSQLite')
+export const HybridNitroSQLite = new NitroSQLite(
+  PlatformContext.databaseDirectory,
+  PlatformContext.temporaryDirectory,
+  PlatformContext.legacyDatabaseDirectory,
+)

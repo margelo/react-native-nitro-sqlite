@@ -1,14 +1,14 @@
 import {
   chance,
   expect,
-  isNitroSQLiteError,
+  isSQLiteError,
   TEST_ERROR,
   TEST_ERROR_MESSAGE,
   TEST_ERROR_CODES,
 } from '@tests/unit/common'
 import { describe, it } from '@tests/TestApi'
 import type { User } from '@/model/User'
-import { NitroSQLiteError } from 'react-native-nitro-sqlite'
+import { SQLiteError } from 'react-native-nitro-sqlite'
 import { testDb } from '@tests/db'
 
 const FOREIGN_KEY_COMMIT_ERROR = 'FOREIGN KEY constraint failed'
@@ -28,7 +28,7 @@ export default function registerTransactionUnitTests() {
         try {
           tx.commit()
         } catch (error) {
-          if (!isNitroSQLiteError(error)) throw error
+          if (!isSQLiteError(error)) throw error
           expect(error.message).toContain(FOREIGN_KEY_COMMIT_ERROR)
         }
       })
@@ -173,7 +173,7 @@ export default function registerTransactionUnitTests() {
         } catch (e) {
           queryError = e
         }
-        expect(queryError).toBeInstanceOf(NitroSQLiteError)
+        expect(queryError).toBeInstanceOf(SQLiteError)
 
         let asyncQueryError: unknown
         try {
@@ -181,7 +181,7 @@ export default function registerTransactionUnitTests() {
         } catch (e) {
           asyncQueryError = e
         }
-        expect(asyncQueryError).toBeInstanceOf(NitroSQLiteError)
+        expect(asyncQueryError).toBeInstanceOf(SQLiteError)
       })
 
       const res = testDb.execute('SELECT * FROM User')
@@ -247,8 +247,7 @@ export default function registerTransactionUnitTests() {
         await promised
         throw new Error(TEST_ERROR_CODES.EXPECT_PROMISE_REJECTION)
       } catch (e) {
-        if (isNitroSQLiteError(e))
-          expect(e.message).toContain(TEST_ERROR_MESSAGE)
+        if (isSQLiteError(e)) expect(e.message).toContain(TEST_ERROR_MESSAGE)
         else throw new Error(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
       }
     })
@@ -265,7 +264,7 @@ export default function registerTransactionUnitTests() {
         await promised
         throw new Error(TEST_ERROR_CODES.EXPECT_PROMISE_REJECTION)
       } catch (e) {
-        if (isNitroSQLiteError(e))
+        if (isSQLiteError(e))
           expect(e.message).toContain('no such table: tableThatDoesNotExist')
         else throw new Error(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
       }
@@ -333,7 +332,7 @@ export default function registerTransactionUnitTests() {
           )
         })
       } catch (e) {
-        if (isNitroSQLiteError(e)) {
+        if (isSQLiteError(e)) {
           expect(e.message).toContain('SqlExecutionError')
           expect(e.message).toContain(
             'cannot store TEXT value in REAL column User.id',
@@ -454,8 +453,7 @@ export default function registerTransactionUnitTests() {
         await promised
         throw new Error(TEST_ERROR_CODES.EXPECT_PROMISE_REJECTION)
       } catch (e) {
-        if (isNitroSQLiteError(e))
-          expect(e.message).toContain(TEST_ERROR_MESSAGE)
+        if (isSQLiteError(e)) expect(e.message).toContain(TEST_ERROR_MESSAGE)
         else throw new Error(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
       }
     })
@@ -473,7 +471,7 @@ export default function registerTransactionUnitTests() {
         await promised
         throw new Error(TEST_ERROR_CODES.EXPECT_PROMISE_REJECTION)
       } catch (e) {
-        if (isNitroSQLiteError(e))
+        if (isSQLiteError(e))
           expect(e.message).toContain('no such table: tableThatDoesNotExist')
         else throw new Error(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
       }
@@ -501,7 +499,7 @@ async function expectDeferredForeignKeyCommitFailure(
     })
     throw new Error(TEST_ERROR_CODES.EXPECT_PROMISE_REJECTION)
   } catch (error) {
-    if (isNitroSQLiteError(error)) {
+    if (isSQLiteError(error)) {
       expect(error.message).toContain(FOREIGN_KEY_COMMIT_ERROR)
     } else {
       throw new Error(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)

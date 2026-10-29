@@ -50,7 +50,6 @@ jobs:
       android_configuration: ${{ steps.select.outputs.android_configuration }}
       ios: ${{ steps.select.outputs.ios }}
       macos: ${{ steps.select.outputs.macos }}
-      ios_pods: ${{ steps.pods.outputs.ios_pods }}
       macos_pods: ${{ steps.pods.outputs.macos_pods }}
     steps:
       - uses: actions/checkout@v7
@@ -89,7 +88,6 @@ jobs:
           name: ci-lockfiles
           path: |
             bun.lock
-            example/ios/Podfile.lock
             example/macos/Podfile.lock
           retention-days: 1
       - name: Require committed dependency resolutions
@@ -99,7 +97,7 @@ jobs:
           git diff --exit-code -- bun.lock
       - name: Select native lockfile checks
         id: pods
-        if: steps.select.outputs.dependencies == 'true' && (steps.select.outputs.ios == 'true' || steps.select.outputs.macos == 'true')
+        if: steps.select.outputs.dependencies == 'true' && steps.select.outputs.macos == 'true'
         run: node scripts/ci-dependencies.ts
         env:
           CI_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
@@ -129,6 +127,9 @@ jobs:
           (cd packages/react-native-nitro-sqlite-vec && ../../node_modules/.bin/jest --coverage --runInBand)
           (cd example && ../node_modules/.bin/jest --config jest.mocha.config.js --runInBand --watchman=false)
           node --test example/macos/scripts/test-macos.test.mjs
+      - name: Build the library package
+        if: steps.select.outputs.typescript == 'true'
+        run: bun --cwd packages/react-native-nitro-sqlite run build
       - name: Format C++
         if: steps.select.outputs.cpp_format == 'true'
         run: |
@@ -137,9 +138,9 @@ jobs:
       - name: Test C++ database lifecycle and SQLite symbols
         if: steps.select.outputs.cpp_tests == 'true'
         run: bash scripts/test-cpp.sh
-      - name: Test SQLite thread-safety pod configuration
+      - name: Test SQLite Swift package configuration
         if: steps.select.outputs.ios == 'true'
-        run: ruby scripts/test-podspec-threadsafe.rb
+        run: node --test scripts/sqlite-package-config.test.ts
       - name: Check documentation
         if: steps.select.outputs.docs == 'true'
         run: |
@@ -149,13 +150,12 @@ jobs:
   lockfiles:
     name: Native lockfiles
     needs: checks
+    # Paused until Nitro V1 supports React Native macOS. Remove `false &&` to resume it.
     if: >-
+      false &&
       github.event_name != 'push' && !github.event.pull_request.draft &&
-      (needs.checks.outputs.ios_pods == 'true' || needs.checks.outputs.macos_pods == 'true')
+      needs.checks.outputs.macos_pods == 'true'
     uses: ./.github/workflows/update-lockfiles.yml
-    with:
-      ios: ${{ needs.checks.outputs.ios_pods == 'true' }}
-      macos: ${{ needs.checks.outputs.macos_pods == 'true' }}
 
   android:
     name: Android
@@ -185,7 +185,9 @@ jobs:
   macos:
     name: macOS
     needs: [checks, lockfiles]
+    # Paused until Nitro V1 supports React Native macOS. Remove `false &&` to resume it.
     if: >-
+      false &&
       !cancelled() && needs.checks.result == 'success' &&
       (needs.lockfiles.result == 'success' || needs.lockfiles.result == 'skipped') &&
       github.event_name != 'push' && !github.event.pull_request.draft &&

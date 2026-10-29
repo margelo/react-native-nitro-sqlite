@@ -1,7 +1,7 @@
-import type { NitroSQLiteQueryResult } from './specs/NitroSQLiteQueryResult.nitro'
+import type { NativeQueryResult } from './specs/NativeQueryResult'
 
 /** Options for `open()` and `NitroSQLite.open()`. */
-export interface NitroSQLiteConnectionOptions {
+export interface ConnectionOptions {
   /** Database file name. Only one managed connection may use a name at a time. */
   name: string
   /** Directory relative to the platform's database directory. */
@@ -30,7 +30,7 @@ export interface NitroSQLiteConnectionOptions {
 }
 
 /** A managed connection bound to one database name. Do not use it after closing or deleting it. */
-export interface NitroSQLiteConnection {
+export interface Connection {
   /** Close the connection. Throws if a queued operation is running or pending. */
   close(): void
   /** Delete the database file and end this connection. Throws if the connection is busy.
@@ -83,7 +83,7 @@ export interface NitroSQLiteConnection {
    * `location` is a path to the SQL file; multi-line statements are unsupported.
    * @param location Path to the SQL file.
    * @returns Number of executed commands and affected rows.
-   * @throws NitroSQLiteError with native category CouldNotLoadFile on an import
+   * @throws SQLiteError with native category CouldNotLoadFile on an import
    * failure, including the path, failing SQL/line, and any rollback failure.
    * Completed commands are discarded when rollback succeeds.
    */
@@ -91,7 +91,7 @@ export interface NitroSQLiteConnection {
   /** Queue the file import and resolve with its command and row counts.
    * @param location Path to the SQL file.
    * @returns A promise of the command and affected row counts.
-   * @throws NitroSQLiteError with native category CouldNotLoadFile, preserving
+   * @throws SQLiteError with native category CouldNotLoadFile, preserving
    * the original import error and any rollback failure. Rejects asynchronously.
    */
   loadFileAsync(location: string): Promise<FileLoadResult>
@@ -135,13 +135,13 @@ export type QueryResultRow = Record<string, SQLiteValue>
 
 /** Query result with a row adapter for TypeORM-style consumers. */
 export type QueryResult<Row extends QueryResultRow = QueryResultRow> =
-  NitroSQLiteQueryResult & {
+  NativeQueryResult & {
     /** Query rows in a TypeORM-compatible collection. */
-    rows: NitroSQLiteQueryResultRows<Row>
+    rows: QueryResultRows<Row>
   }
 
 /** Indexable view of query rows. */
-export type NitroSQLiteQueryResultRows<
+export type QueryResultRows<
   Row extends Record<string, SQLiteValue> = Record<string, SQLiteValue>,
 > = {
   /** All returned rows. */
@@ -218,13 +218,13 @@ export interface Transaction {
    * On failure, only rollback remains available and the wrapper rejects unless
    * the callback explicitly rolls back. Throws while async queries are pending.
    */
-  commit(): NitroSQLiteQueryResult
+  commit(): NativeQueryResult
   /** Roll back now, including after a failed commit.
    * Marks completion only after SQLite accepts ROLLBACK. A failed rollback
    * rejects the transaction promise even if caught by the callback.
    * Throws while async queries are pending or after successful finalization.
    */
-  rollback(): NitroSQLiteQueryResult
+  rollback(): NativeQueryResult
   /** Execute within this transaction on the calling thread. */
   execute: ExecuteQuery
   /** Execute within this transaction on a background thread. */

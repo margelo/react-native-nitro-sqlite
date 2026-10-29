@@ -1,6 +1,6 @@
 ---
 title: iOS
-description: Database storage, app groups, and CocoaPods overrides.
+description: Database storage, app groups, and Swift Package Manager build options.
 ---
 
 <span id="rtree-support" />
@@ -29,35 +29,38 @@ Enable the App Groups capability for your app and extension, then add the group 
 
 The group container takes precedence over the database location setting. An invalid or inaccessible container causes initialization to throw.
 
+## Build settings
+
+Swift Package Manager reads the SQLite build settings when it resolves Nitro SQLite's package, and it caches the result. Changed environment variables are picked up automatically, but changes to [`package.json` settings](/docs/configuration) are not. After changing them, delete `~/Library/Caches/org.swift.swiftpm/manifests` and rebuild.
+
 ## Bundled or system SQLite
 
-To use system SQLite instead of the bundled library, install Pods with `NITRO_SQLITE_USE_PHONE_VERSION=1`. The shared build settings cannot change system SQLite's capabilities.
+To use system SQLite instead of the bundled library, set `NITRO_SQLITE_USE_PHONE_VERSION=1` in the environment of the command that builds the app, for example `NITRO_SQLITE_USE_PHONE_VERSION=1 npx react-native run-ios`. Builds started from the Xcode app do not read your shell environment. The shared build settings cannot change system SQLite's capabilities.
 
 ## Thread safety and performance mode
 
-For one Pod installation, `NITRO_SQLITE_THREADSAFE` and `NITRO_SQLITE_PERFORMANCE_MODE` override the corresponding [`package.json` settings](/docs/configuration). Both accept `true`, `false`, `1`, or `0`.
+When set in the environment of the command that builds the app, `NITRO_SQLITE_THREADSAFE` and `NITRO_SQLITE_PERFORMANCE_MODE` override the corresponding [`package.json` settings](/docs/configuration). Both accept `true`, `false`, `1`, or `0`.
 
 ## Additional compile flags
 
-To enable FTS5 full-text search, add this inside your existing `post_install` block in `ios/Podfile`:
+Use `iosSqliteFlags` in your app's `package.json` for additional SQLite features or to override individual build defaults. For example, to enable FTS5 full-text search:
 
-```ruby
-installer.pods_project.targets.each do |target|
-  next unless target.name == 'RNNitroSQLite'
-
-  target.build_configurations.each do |config|
-    definitions = Array(config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] || '$(inherited)')
-    config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = definitions + ['SQLITE_ENABLE_FTS5=1']
-  end
-end
+```json
+{
+  "nitroSQLite": {
+    "iosSqliteFlags": "-DSQLITE_ENABLE_FTS5=1"
+  }
+}
 ```
+
+The value accepts only `-DNAME` and `-DNAME=VALUE` definitions, separated by spaces. Custom definitions take precedence over the defaults from your other `package.json` settings.
 
 ## Vector search
 
-Install `react-native-nitro-sqlite-vec`, then run:
+Install `react-native-nitro-sqlite-vec`, then refresh the Swift packages from your app directory:
 
 ```sh
-NITRO_SQLITE_VEC=1 npx pod-install
+npx react-native spm
 ```
 
 Rebuild and follow the [vector search guide](/docs/integrations/vector-search). For SEE build settings, see [encryption](/docs/guides/encryption).

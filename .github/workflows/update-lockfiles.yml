@@ -2,13 +2,6 @@ name: Check native lockfiles
 
 on:
   workflow_call:
-    inputs:
-      ios:
-        type: boolean
-        default: false
-      macos:
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -38,12 +31,7 @@ jobs:
           working-directory: example
       - name: Select Xcode 26.5
         run: sudo xcode-select -s '/Applications/Xcode_26.5.app/Contents/Developer'
-      - name: Refresh iOS lockfile
-        if: inputs.ios
-        working-directory: example
-        run: bun pods
       - name: Refresh macOS lockfile
-        if: inputs.macos
         working-directory: example
         run: bun pods:macos
       - name: Attach refreshed native lockfiles
@@ -52,17 +40,10 @@ jobs:
         with:
           name: native-lockfiles
           path: |
-            example/ios/Podfile.lock
             example/macos/Podfile.lock
             example/Gemfile.lock
           retention-days: 1
       - name: Require committed native dependency resolutions
-        env:
-          CHECK_IOS: ${{ inputs.ios }}
-          CHECK_MACOS: ${{ inputs.macos }}
         run: |
-          lockfiles=()
-          if [[ "$CHECK_IOS" == true ]]; then lockfiles+=(example/ios/Podfile.lock); fi
-          if [[ "$CHECK_MACOS" == true ]]; then lockfiles+=(example/macos/Podfile.lock); fi
-          ruby scripts/ci-pod-lockfiles.rb "${lockfiles[@]}"
+          ruby scripts/ci-pod-lockfiles.rb example/macos/Podfile.lock
           git diff --exit-code -- example/Gemfile.lock

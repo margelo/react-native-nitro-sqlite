@@ -11,6 +11,7 @@
     "!**/__tests__",
     "cpp",
     "RNNitroSqliteVec.podspec",
+    "Package.swift",
     "react-native.config.js",
     "README.md"
   ],
@@ -65,5 +66,8 @@
         "statements": 100
       }
     }
+  },
+  "swiftpmConfig": {
+    "name": "RNNitroSqliteVec"
   }
 }

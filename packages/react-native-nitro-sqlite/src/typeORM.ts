@@ -14,7 +14,7 @@ import type {
 import * as Operations from './operations/session'
 
 /** Callback-oriented connection returned to TypeORM. */
-export interface TypeOrmNitroSQLiteConnection {
+export interface TypeOrmConnection {
   /** Execute SQL asynchronously and report the result through a callback. */
   executeSql: <RowData extends QueryResultRow = never>(
     sql: string,
@@ -59,13 +59,13 @@ export const typeORMDriver = {
        */
       encryptionKey?: string
     },
-    ok: (db: TypeOrmNitroSQLiteConnection) => void,
+    ok: (db: TypeOrmConnection) => void,
     fail: (msg: string) => void,
-  ): TypeOrmNitroSQLiteConnection | null => {
+  ): TypeOrmConnection | null => {
     try {
       const db = Operations.open(options)
 
-      const connection: TypeOrmNitroSQLiteConnection = {
+      const connection: TypeOrmConnection = {
         executeSql: async <RowData extends QueryResultRow = never>(
           sql: string,
           params: SQLiteQueryParams | undefined,

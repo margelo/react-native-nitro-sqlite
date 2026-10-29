@@ -33,7 +33,7 @@ SQLite INTEGER and REAL result values both arrive as JavaScript numbers. BLOB va
 
 ## Column metadata
 
-For a query with result columns, `metadata` maps column names to `{ name, type, index }`. `index` is the zero-based result column position. The [`ColumnType` values](/api/react-native-nitro-sqlite/enumerations/ColumnType) are `BOOLEAN = 0`, `NUMBER = 1`, `INT64 = 2`, `TEXT = 3`, `ARRAY_BUFFER = 4`, and `NULL_VALUE = 5`. The package exports `ColumnType` as a TypeScript type, not a runtime enum object. In the current native implementation, `metadata.type` is unreliable for detecting a column's declared SQL type. Use your schema for that decision. An expression without a declared type maps to `NULL_VALUE`, which does not mean the result itself is null. The exact shape is in [`NitroSQLiteQueryColumnMetadata`](/api/react-native-nitro-sqlite/type-aliases/NitroSQLiteQueryColumnMetadata).
+For a query with result columns, `metadata` maps column names to `{ name, type, index }`. `index` is the zero-based result column position. The [`ColumnType` values](/api/react-native-nitro-sqlite/enumerations/ColumnType) are `BOOLEAN = 0`, `NUMBER = 1`, `INT64 = 2`, `TEXT = 3`, `ARRAY_BUFFER = 4`, and `NULL_VALUE = 5`. The package exports `ColumnType` as a TypeScript type, not a runtime enum object. In the current native implementation, `metadata.type` is unreliable for detecting a column's declared SQL type. Use your schema for that decision. An expression without a declared type maps to `NULL_VALUE`, which does not mean the result itself is null. The exact shape is in [`QueryColumnMetadata`](/api/react-native-nitro-sqlite/type-aliases/QueryColumnMetadata).
 
 ```ts
 const result = db.execute('SELECT name FROM people LIMIT 1')
@@ -48,20 +48,20 @@ Be especially careful with nullable columns and expressions when specifying a ro
 
 ## Errors
 
-The connection's JavaScript helpers normalize database failures to `NitroSQLiteError`. Async methods reject; sync methods throw. An empty SQL string or one containing only comments also fails with the native category `SqlExecutionError`, because SQLite produces no statement to execute. Each query runs one statement, so SQL that contains another statement after the first fails with the same category instead of running only the first one; trailing whitespace, comments, and semicolons are allowed. Use [batch operations](/docs/guides/batch-operations) to run several statements. Catch the error around the operation you can recover from:
+The connection's JavaScript helpers normalize database failures to `SQLiteError`. Async methods reject; sync methods throw. An empty SQL string or one containing only comments also fails with the native category `SqlExecutionError`, because SQLite produces no statement to execute. Each query runs one statement, so SQL that contains another statement after the first fails with the same category instead of running only the first one; trailing whitespace, comments, and semicolons are allowed. Use [batch operations](/docs/guides/batch-operations) to run several statements. Catch the error around the operation you can recover from:
 
 ```ts
 import {
-  NitroSQLiteError,
-  NitroSQLiteExceptionType,
+  SQLiteError,
+  SQLiteExceptionType,
 } from 'react-native-nitro-sqlite/errors'
 
 try {
   await db.executeAsync('SELECT * FROM missing_table')
 } catch (error) {
   if (
-    error instanceof NitroSQLiteError &&
-    error.type === NitroSQLiteExceptionType.SqlExecutionError
+    error instanceof SQLiteError &&
+    error.type === SQLiteExceptionType.SqlExecutionError
   ) {
     console.error(error.message)
   } else {
@@ -70,12 +70,12 @@ try {
 }
 ```
 
-[`NitroSQLiteError`](/api/react-native-nitro-sqlite/classes/NitroSQLiteError) extends `Error`. `NitroSQLiteError.fromError(error)` returns an existing instance unchanged, copies an `Error`'s message, cause, and stack, or uses a string as its message. For other values, it sets the message to `'Unknown error occurred'` and keeps the original value as `cause`.
+[`SQLiteError`](/api/react-native-nitro-sqlite/classes/SQLiteError) extends `Error`. `SQLiteError.fromError(error)` returns an existing instance unchanged, copies an `Error`'s message, cause, and stack, or uses a string as its message. For other values, it sets the message to `'Unknown error occurred'` and keeps the original value as `cause`.
 
-When a native `NitroSQLiteException` reaches a managed helper, `error.type` holds a [`NitroSQLiteExceptionType`](/api/react-native-nitro-sqlite/type-aliases/NitroSQLiteExceptionType) such as `SqlExecutionError`. It is `undefined` for JavaScript errors, including connection queue errors, and unrecognized native categories. These categories are not SQLite's numeric error codes. The native categories are `UnknownError`, `DatabaseCannotBeOpened`, `EncryptionNotEnabled`, `DatabaseCannotBeDecrypted`, `DatabaseNotOpen`, `UnableToAttachToDatabase`, `SqlExecutionError`, `CouldNotLoadFile`, and `NoBatchCommandsProvided`. See [encrypt a database](/docs/guides/encryption#handle-open-failures) for the encryption errors. The current native `DatabaseNotOpen` helper emits `UnableToAttachToDatabase`, and a missing database file emits `SqlExecutionError`. Calls through `NitroSQLite.native` throw raw native errors.
+When a native `NitroSQLiteException` reaches a managed helper, `error.type` holds a [`SQLiteExceptionType`](/api/react-native-nitro-sqlite/type-aliases/SQLiteExceptionType) such as `SqlExecutionError`. It is `undefined` for JavaScript errors, including connection queue errors, and unrecognized native categories. These categories are not SQLite's numeric error codes. The native categories are `UnknownError`, `DatabaseCannotBeOpened`, `EncryptionNotEnabled`, `DatabaseCannotBeDecrypted`, `DatabaseNotOpen`, `UnableToAttachToDatabase`, `SqlExecutionError`, `CouldNotLoadFile`, and `NoBatchCommandsProvided`. See [encrypt a database](/docs/guides/encryption#handle-open-failures) for the encryption errors. The current native `DatabaseNotOpen` helper emits `UnableToAttachToDatabase`, and a missing database file emits `SqlExecutionError`. Calls through `NitroSQLite.native` throw raw native errors.
 
-The [`NitroSQLiteExceptionType` constants](/api/react-native-nitro-sqlite/variables/NitroSQLiteExceptionType) expose these categories as runtime strings. The object and the TypeScript union share the same name, so existing type-only imports still work. Both the constants and `NitroSQLiteError` are available from the package root and `react-native-nitro-sqlite/errors`. The `/errors` entry point does not import React Native or initialize Nitro's native module, so shared classifiers and Node tests can use it without a native runtime. `error.name` remains `NitroSQLiteError` for every managed failure; use `error.type` to distinguish categories.
+The [`SQLiteExceptionType` constants](/api/react-native-nitro-sqlite/variables/SQLiteExceptionType) expose these categories as runtime strings. The object and the TypeScript union share the same name, so existing type-only imports still work. Both the constants and `SQLiteError` are available from the package root and `react-native-nitro-sqlite/errors`. The `/errors` entry point does not import React Native or initialize Nitro's native module, so shared classifiers and Node tests can use it without a native runtime. `error.name` remains `NitroSQLiteError` for every managed failure; use `error.type` to distinguish categories.
 
 `DatabaseCannotBeOpened` covers several causes, including invalid paths, an already-open default connection, and filesystem failures. It does not by itself establish that the device is low on storage.
 
-For exact types, see [`QueryResult`](/api/react-native-nitro-sqlite/type-aliases/QueryResult), [`NitroSQLiteQueryResult`](/api/react-native-nitro-sqlite/interfaces/NitroSQLiteQueryResult), and [`NitroSQLiteQueryResultRows`](/api/react-native-nitro-sqlite/type-aliases/NitroSQLiteQueryResultRows). The row generic narrows `rows._array` and `rows.item()`, but not the raw `results` array. Query results are plain JavaScript objects; see [native access](/docs/guides/sync-and-async#global-helpers-and-native-access) for results returned without the connection helper.
+For exact types, see [`QueryResult`](/api/react-native-nitro-sqlite/type-aliases/QueryResult), [`NativeQueryResult`](/api/react-native-nitro-sqlite/interfaces/NativeQueryResult), and [`QueryResultRows`](/api/react-native-nitro-sqlite/type-aliases/QueryResultRows). The row generic narrows `rows._array` and `rows.item()`, but not the raw `results` array. Query results are plain JavaScript objects; see [native access](/docs/guides/sync-and-async#global-helpers-and-native-access) for results returned without the connection helper.

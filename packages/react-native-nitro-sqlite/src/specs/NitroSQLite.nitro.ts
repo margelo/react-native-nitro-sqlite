@@ -1,25 +1,49 @@
-import type { HybridObject } from 'react-native-nitro-modules'
+import { Android, iOS, type HybridObject } from 'react-native-nitro-modules'
 import type {
   BatchQueryCommand,
   BatchQueryResult,
   FileLoadResult,
   SQLiteQueryParams,
 } from '../types'
-import type {
-  NitroSQLiteQueryResult,
-  NitroSQLiteQueryRows,
-} from './NitroSQLiteQueryResult.nitro'
-import type { NitroSQLitePreparedStatement } from './NitroSQLitePreparedStatement.nitro'
+import type { NativeQueryResult, NativeQueryRows } from './NativeQueryResult'
+import type { PreparedStatement } from './PreparedStatement.nitro'
+
+export * from '#nitro/NitroSQLite'
 
 /** Native database operations exposed through `NitroSQLite.native`.
  * These calls bypass the managed connection queue. Coordinate them with any
  * transaction or pending operation on the same database yourself.
  */
-export interface NitroSQLite
-  extends HybridObject<{
-    ios: 'c++'
-    android: 'c++'
-  }> {
+@iOS({
+  language: 'c++',
+  implementation: {
+    className: 'HybridNitroSQLite',
+    include: '"hybridObjects/HybridNitroSQLite.hpp"',
+  },
+})
+@Android({
+  language: 'c++',
+  implementation: {
+    className: 'HybridNitroSQLite',
+    include: '"hybridObjects/HybridNitroSQLite.hpp"',
+  },
+})
+export declare class NitroSQLite extends HybridObject {
+  /** Create a root with its own default and independent connections.
+   * @param databaseDirectory Directory that database names and relative
+   * locations resolve against, usually `PlatformContext.databaseDirectory`.
+   * @param temporaryDirectory Directory for SQLite's temporary files. SQLite
+   * reads it once per process, so the first root that passes one sets it.
+   * @param legacyDatabaseDirectory Directory that databases are moved out of
+   * when they are opened, attached, or dropped.
+   * @throws If SQLite's temporary directory can't be configured.
+   */
+  constructor(
+    databaseDirectory: string,
+    temporaryDirectory?: string,
+    legacyDatabaseDirectory?: string,
+  )
+
   /** Open a name-based default connection, creating the database unless `readOnly` is true.
    * @param dbName Database file name and default connection key.
    * @param location Directory relative to the platform database directory.
@@ -92,7 +116,7 @@ export interface NitroSQLite
     dbName: string,
     query: string,
     params?: SQLiteQueryParams,
-  ): NitroSQLiteQueryResult
+  ): NativeQueryResult
   /** Execute one SQL statement on a background thread.
    * @param dbName Name of an open database.
    * @param query SQL statement with optional positional placeholders.
@@ -100,21 +124,22 @@ export interface NitroSQLite
    * @param onRows Receives leading rows in batches, in order, while SQLite still reads the rest, so
    * JavaScript can convert a batch while the next one is read. Batched rows are not repeated in the
    * result's `results`, which then holds only the rows after the last batch.
-   * @returns A promise of the native query result.
+   * @returns A promise of the native query result. Row callbacks may still be queued when it
+   * resolves. Wait for `rowBatchCount` callbacks before combining their rows with `results`.
    */
   executeAsync(
     dbName: string,
     query: string,
     params?: SQLiteQueryParams,
-    onRows?: (rows: NitroSQLiteQueryRows) => void,
-  ): Promise<NitroSQLiteQueryResult>
+    onRows?: (rows: NativeQueryRows) => void,
+  ): Promise<NativeQueryResult>
   /** Prepare one SQL statement on an open native connection for repeated execution.
    * Finalize the returned statement before closing its connection.
    * @param dbName Name or ID of an open database connection.
    * @param query SQL statement with optional positional placeholders.
    * @returns A native statement with synchronous and asynchronous execution methods.
    */
-  prepare(dbName: string, query: string): NitroSQLitePreparedStatement
+  prepare(dbName: string, query: string): PreparedStatement
   /** Execute commands in one exclusive transaction on the calling thread.
    * An empty batch throws; a failed command rolls back the batch.
    * @param dbName Name of an open database.

@@ -15,8 +15,8 @@ import {
   queueStatementAsync,
   startOperationSync,
 } from './DatabaseQueue'
-import NitroSQLiteError from './NitroSQLiteError'
-import type { NitroSQLiteConnectionOptions, PreparedStatement } from './types'
+import SQLiteError from './SQLiteError'
+import type { ConnectionOptions, PreparedStatement } from './types'
 import type { MockConnection } from './mock/MockConnection'
 import { executeBatch, executePrepared, executeQuery } from './mock/query'
 import { runTransaction } from './mock/transaction'
@@ -47,10 +47,10 @@ let databaseDirectory: string | undefined
  * cannot be opened, or a default connection already uses the name.
  * @see {@linkcode MockConnection}
  */
-export function open(options: NitroSQLiteConnectionOptions): MockConnection {
+export function open(options: ConnectionOptions): MockConnection {
   const { name, connection, readOnly = false } = options
   if (connection !== 'independent' && defaultConnections.has(name)) {
-    throw new NitroSQLiteError(`Database ${name} is already open.`)
+    throw new SQLiteError(`Database ${name} is already open.`)
   }
   const path = getDatabasePath(options)
   if (!readOnly) mkdirSync(dirname(path), { recursive: true })
@@ -89,18 +89,18 @@ export function open(options: NitroSQLiteConnectionOptions): MockConnection {
         replacement &&
         replacement !== record
       ) {
-        throw new NitroSQLiteError(
+        throw new SQLiteError(
           'Database has been reopened with another connection.',
         )
       }
       if (readOnly)
-        throw new NitroSQLiteError(`Cannot delete read-only database ${name}.`)
+        throw new SQLiteError(`Cannot delete read-only database ${name}.`)
       if (
         [...connections].some(
           (other) => other !== record && other.path === path,
         )
       ) {
-        throw new NitroSQLiteError('Database is in use by another connection.')
+        throw new SQLiteError('Database is in use by another connection.')
       }
       if (connections.has(record)) close()
       for (const suffix of ['', '-wal', '-shm', '-journal'])
@@ -119,7 +119,7 @@ export function open(options: NitroSQLiteConnectionOptions): MockConnection {
       )
       const execute: PreparedStatement['execute'] = (params) => {
         if (!statement)
-          throw new NitroSQLiteError('Prepared statement is finalized.')
+          throw new SQLiteError('Prepared statement is finalized.')
         return executePrepared(database, statement, params)
       }
       return {
@@ -155,7 +155,7 @@ export function resetAllDatabases(): void {
   for (const { queueKey } of connections) {
     const queue = getDatabaseQueue(queueKey)
     if (queue.inProgress || queue.queue.length > 0) {
-      throw new NitroSQLiteError(
+      throw new SQLiteError(
         'Cannot reset mock databases while a connection is busy.',
       )
     }
@@ -166,10 +166,7 @@ export function resetAllDatabases(): void {
   databaseDirectory = undefined
 }
 
-function getDatabasePath({
-  name,
-  location = '',
-}: NitroSQLiteConnectionOptions): string {
+function getDatabasePath({ name, location = '' }: ConnectionOptions): string {
   if (
     !name ||
     name === '.' ||
@@ -177,14 +174,14 @@ function getDatabasePath({
     name.includes('/') ||
     name.includes('\\')
   ) {
-    throw new NitroSQLiteError('Database name must be a file name.')
+    throw new SQLiteError('Database name must be a file name.')
   }
   if (!databaseDirectory)
     databaseDirectory = mkdtempSync(join(tmpdir(), 'nitro-sqlite-test-'))
   const directory = resolve(databaseDirectory, location)
   const relativeDirectory = relative(databaseDirectory, directory)
   if (relativeDirectory === '..' || relativeDirectory.startsWith(`..${sep}`)) {
-    throw new NitroSQLiteError(
+    throw new SQLiteError(
       'Database location must stay inside the temporary directory.',
     )
   }

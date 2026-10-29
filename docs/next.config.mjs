@@ -52,16 +52,52 @@ const config = {
       {
         source: '/api/react-native-nitro-sqlite/interfaces/NitroSQLiteNative',
         destination:
-          '/api/react-native-nitro-sqlite/hybrid-objects/NitroSQLiteNative',
+          '/api/react-native-nitro-sqlite/hybrid-objects/NativeSQLite',
         permanent: true,
       },
       {
         source:
           '/api/react-native-nitro-sqlite/hybrid-objects/NitroSQLiteQueryResult',
         destination:
-          '/api/react-native-nitro-sqlite/interfaces/NitroSQLiteQueryResult',
+          '/api/react-native-nitro-sqlite/interfaces/NativeQueryResult',
         permanent: true,
       },
+      ...[
+        ['interfaces/NitroSQLiteConnection', 'interfaces/Connection'],
+        [
+          'interfaces/NitroSQLiteConnectionOptions',
+          'interfaces/ConnectionOptions',
+        ],
+        ['classes/NitroSQLiteError', 'classes/SQLiteError'],
+        ['hybrid-objects/NitroSQLiteNative', 'hybrid-objects/NativeSQLite'],
+        [
+          'hybrid-objects/NitroSQLitePreparedStatement',
+          'hybrid-objects/NativePreparedStatement',
+        ],
+        ['interfaces/NitroSQLiteQueryResult', 'interfaces/NativeQueryResult'],
+        [
+          'interfaces/TypeOrmNitroSQLiteConnection',
+          'interfaces/TypeOrmConnection',
+        ],
+        [
+          'type-aliases/NitroSQLiteQueryColumnMetadata',
+          'type-aliases/QueryColumnMetadata',
+        ],
+        [
+          'type-aliases/NitroSQLiteQueryResultRows',
+          'type-aliases/QueryResultRows',
+        ],
+        ['type-aliases/NitroSQLiteQueryRows', 'type-aliases/NativeQueryRows'],
+        ['variables/NitroSQLiteExceptionType', 'variables/SQLiteExceptionType'],
+        [
+          'type-aliases/NitroSQLiteExceptionType',
+          'type-aliases/SQLiteExceptionType',
+        ],
+      ].map(([source, destination]) => ({
+        source: `/api/react-native-nitro-sqlite/${source}`,
+        destination: `/api/react-native-nitro-sqlite/${destination}`,
+        permanent: true,
+      })),
     ]
   },
 }

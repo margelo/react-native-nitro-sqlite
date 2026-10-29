@@ -1,0 +1,30 @@
+/**
+ * SQL Batch execution implementation using default sqliteBridge implementation
+ */
+#pragma once
+
+#include "SQLiteTypes.hpp"
+#include <RNNitroSQLite/BatchQueryCommand.hpp>
+#include <memory>
+
+namespace margelo::nitro::rnnitrosqlite {
+
+struct SQLiteConnection;
+
+struct BatchQuery {
+  std::string sql;
+  std::vector<SQLiteQueryParams> parameterSets;
+};
+
+/**
+ * Local Helper method to translate JSI objects BatchQuery datastructure
+ * MUST be called in the JavaScript Thread
+ */
+std::vector<BatchQuery> batchParamsToCommands(const std::vector<BatchQueryCommand>& batchParams);
+
+/**
+ * Execute a batch of commands in a exclusive transaction
+ */
+SQLiteOperationResult sqliteExecuteBatch(const std::shared_ptr<SQLiteConnection>& connection, const std::vector<BatchQuery>& commands);
+
+} // namespace margelo::nitro::rnnitrosqlite
