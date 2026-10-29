@@ -58,12 +58,12 @@ export const readCases: BenchmarkCase[] = [
   {
     id: 'read-point-execute',
     label: '1k indexed lookups · execute',
-    setup: () => setupPointReads(false),
+    setup: () => setupPointReads('execute'),
   },
   {
     id: 'read-point-prepared',
     label: '1k indexed lookups · prepared',
-    setup: () => setupPointReads(true),
+    setup: () => setupPointReads('prepared'),
   },
   {
     id: 'read-narrow',
@@ -92,6 +92,11 @@ export const readCases: BenchmarkCase[] = [
     label: '100k fractional REAL rows · full read + access',
     setup: setupFractionalRead,
   },
+  {
+    id: 'read-point-async',
+    label: '1k indexed lookups · async',
+    setup: () => setupPointReads('async'),
+  },
 ]
 
 export function resetLargeDbSchema(db: Connection): void {
@@ -101,34 +106,49 @@ export function resetLargeDbSchema(db: Connection): void {
   ])
 }
 
-async function setupPointReads(prepared: boolean): Promise<BenchmarkFixture> {
-  const db = createBenchmarkDatabase(
-    `benchmark_point_${prepared ? 'prepared' : 'execute'}`,
-    NARROW_SCHEMA,
-  )
+async function setupPointReads(
+  mode: 'execute' | 'prepared' | 'async',
+): Promise<BenchmarkFixture> {
+  const db = createBenchmarkDatabase(`benchmark_point_${mode}`, NARROW_SCHEMA)
   try {
     await seedNarrowRows(db)
+    const prepared = mode === 'prepared'
     const statement = prepared
       ? db.prepare('SELECT value FROM Bench WHERE id = ?')
       : undefined
     let checksum = 0
+    const runAsync = async () => {
+      checksum = 0
+      for (const id of lookupIds) {
+        const row = (
+          await db.executeAsync<{
+            value: number
+          }>('SELECT value FROM Bench WHERE id = ?', [id])
+        ).rows.item(0)
+        assertBenchmark(row?.value === id, `Wrong value for row ${id}`)
+        checksum += row.value
+      }
+    }
 
     return {
       database: db,
-      run: () => {
-        checksum = 0
-        for (const id of lookupIds) {
-          const row = prepared
-            ? statement?.execute<{ value: number }>([id]).rows.item(0)
-            : db
-                .execute<{
-                  value: number
-                }>('SELECT value FROM Bench WHERE id = ?', [id])
-                .rows.item(0)
-          assertBenchmark(row?.value === id, `Wrong value for row ${id}`)
-          checksum += row.value
-        }
-      },
+      run:
+        mode === 'async'
+          ? runAsync
+          : () => {
+              checksum = 0
+              for (const id of lookupIds) {
+                const row = prepared
+                  ? statement?.execute<{ value: number }>([id]).rows.item(0)
+                  : db
+                      .execute<{
+                        value: number
+                      }>('SELECT value FROM Bench WHERE id = ?', [id])
+                      .rows.item(0)
+                assertBenchmark(row?.value === id, `Wrong value for row ${id}`)
+                checksum += row.value
+              }
+            },
       verify: () => {
         const expected = lookupIds.reduce((sum, id) => sum + id, 0)
         assertBenchmark(checksum === expected, 'Wrong lookup checksum')
