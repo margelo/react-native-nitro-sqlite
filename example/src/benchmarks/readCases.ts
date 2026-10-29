@@ -58,12 +58,12 @@ export const readCases: BenchmarkCase[] = [
   {
     id: 'read-point-execute',
     label: '1k indexed lookups · execute',
-    setup: () => setupPointReads(false),
+    setup: () => setupPointReads('execute'),
   },
   {
     id: 'read-point-prepared',
     label: '1k indexed lookups · prepared',
-    setup: () => setupPointReads(true),
+    setup: () => setupPointReads('prepared'),
   },
   {
     id: 'read-narrow',
@@ -92,6 +92,16 @@ export const readCases: BenchmarkCase[] = [
     label: '100k fractional REAL rows · full read + access',
     setup: setupFractionalRead,
   },
+  {
+    id: 'read-point-async',
+    label: '1k indexed lookups · async',
+    setup: () => setupPointReads('async'),
+  },
+  {
+    id: 'read-narrow-raw',
+    label: '10k narrow rows · raw arrays read + access',
+    setup: setupNarrowRawRead,
+  },
 ]
 
 export function resetLargeDbSchema(db: NitroSQLiteConnection): void {
@@ -101,34 +111,49 @@ export function resetLargeDbSchema(db: NitroSQLiteConnection): void {
   ])
 }
 
-async function setupPointReads(prepared: boolean): Promise<BenchmarkFixture> {
-  const db = createBenchmarkDatabase(
-    `benchmark_point_${prepared ? 'prepared' : 'execute'}`,
-    NARROW_SCHEMA,
-  )
+async function setupPointReads(
+  mode: 'execute' | 'prepared' | 'async',
+): Promise<BenchmarkFixture> {
+  const db = createBenchmarkDatabase(`benchmark_point_${mode}`, NARROW_SCHEMA)
   try {
     await seedNarrowRows(db)
+    const prepared = mode === 'prepared'
     const statement = prepared
       ? db.prepare('SELECT value FROM Bench WHERE id = ?')
       : undefined
     let checksum = 0
+    const runAsync = async () => {
+      checksum = 0
+      for (const id of lookupIds) {
+        const row = (
+          await db.executeAsync<{
+            value: number
+          }>('SELECT value FROM Bench WHERE id = ?', [id])
+        ).rows.item(0)
+        assertBenchmark(row?.value === id, `Wrong value for row ${id}`)
+        checksum += row.value
+      }
+    }
 
     return {
       database: db,
-      run: () => {
-        checksum = 0
-        for (const id of lookupIds) {
-          const row = prepared
-            ? statement?.execute<{ value: number }>([id]).rows.item(0)
-            : db
-                .execute<{
-                  value: number
-                }>('SELECT value FROM Bench WHERE id = ?', [id])
-                .rows.item(0)
-          assertBenchmark(row?.value === id, `Wrong value for row ${id}`)
-          checksum += row.value
-        }
-      },
+      run:
+        mode === 'async'
+          ? runAsync
+          : () => {
+              checksum = 0
+              for (const id of lookupIds) {
+                const row = prepared
+                  ? statement?.execute<{ value: number }>([id]).rows.item(0)
+                  : db
+                      .execute<{
+                        value: number
+                      }>('SELECT value FROM Bench WHERE id = ?', [id])
+                      .rows.item(0)
+                assertBenchmark(row?.value === id, `Wrong value for row ${id}`)
+                checksum += row.value
+              }
+            },
       verify: () => {
         const expected = lookupIds.reduce((sum, id) => sum + id, 0)
         assertBenchmark(checksum === expected, 'Wrong lookup checksum')
@@ -176,6 +201,40 @@ async function setupNarrowRead(
         assertBenchmark(
           checksum === narrowChecksum(),
           'Wrong narrow read checksum',
+        )
+      },
+      dispose: () => disposeBenchmarkDatabase(db),
+    }
+  } catch (error) {
+    disposeBenchmarkDatabase(db)
+    throw error
+  }
+}
+
+async function setupNarrowRawRead(): Promise<BenchmarkFixture> {
+  const db = createBenchmarkDatabase('benchmark_narrow_raw', NARROW_SCHEMA)
+  try {
+    await seedNarrowRows(db)
+    let count = 0
+    let checksum = 0
+
+    return {
+      database: db,
+      run: () => {
+        const rows = db.executeRaw('SELECT * FROM Bench').rows as [
+          number,
+          string,
+          number,
+        ][]
+        count = rows.length
+        checksum = 0
+        for (const row of rows) checksum += row[0] + row[2] + row[1].length
+      },
+      verify: () => {
+        assertBenchmark(count === NARROW_ROWS, 'Wrong raw read row count')
+        assertBenchmark(
+          checksum === narrowChecksum(),
+          'Wrong raw read checksum',
         )
       },
       dispose: () => disposeBenchmarkDatabase(db),
