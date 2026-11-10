@@ -273,4 +273,4 @@ jobs:
           RELEASE_TAG: ${{ needs.publish.outputs.tag }}
           RELEASE_LATEST: ${{ needs.publish.outputs.latest }}
         run: |
-          gh release edit "$RELEASE_TAG" --draft=false --title "NitroSQLite ${RELEASE_TAG#v}" --latest="$RELEASE_LATEST" --notes-file release-notes.md
+          gh release edit "$RELEASE_TAG" --draft=false --latest="$RELEASE_LATEST" --notes-file release-notes.md
