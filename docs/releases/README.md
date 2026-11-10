@@ -1,6 +1,6 @@
 # Releasing NitroSQLite
 
-Every push to `main` keeps a Release Please PR open with the next version and changelog. Conventional commits since the last release choose the version. `fix` and `perf` commits make a patch release, `feat` commits make a minor release, and breaking changes (`!` or a `BREAKING CHANGE:` footer) make a major release. The workflow also commits the regenerated workspace and CocoaPods lockfiles to that PR. Merging the PR creates the draft release and tag, then runs the release checks and publishes as described below.
+Every push to `main` keeps a Release Please PR open with the next version and changelog. Conventional commits since the last release choose the version. `fix` and `perf` commits make a patch release. `feat` commits and breaking changes (`!` or a `BREAKING CHANGE:` footer) make a minor release, and breaking changes still appear under a breaking changes heading in the changelog. To release a new major version, merge a commit to `main` whose body contains `Release-As: X.0.0`. The same footer sets any other exact version for the next release. The workflow also commits the regenerated workspace and CocoaPods lockfiles to that PR. Merging the PR creates the draft release and tag, then runs the release checks and publishes as described below.
 
 To choose the version yourself, release a maintenance branch, or release without waiting for a merge, start the workflow manually:
 

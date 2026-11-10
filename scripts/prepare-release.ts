@@ -1,4 +1,5 @@
 import { GitHub, Manifest } from 'release-please'
+import './release-versioning.ts'
 import { Version } from 'release-please/build/src/version.js'
 import { releasePlan, output } from './release-plan.ts'
 

@@ -3,6 +3,7 @@
   "packages": {
     ".": {
       "release-type": "node",
+      "versioning": "breaking-as-minor",
       "include-component-in-tag": false,
       "draft": true,
       "force-tag-creation": true,

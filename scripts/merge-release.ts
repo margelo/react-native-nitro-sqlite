@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process'
 import { GitHub, Manifest } from 'release-please'
+import './release-versioning.ts'
 import {
   github,
   output,

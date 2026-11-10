@@ -1,4 +1,5 @@
 import { GitHub, Manifest } from 'release-please'
+import './release-versioning.ts'
 import { output } from './release-plan.ts'
 
 const { GH_TOKEN, GITHUB_REPOSITORY, GITHUB_REF_NAME } = process.env

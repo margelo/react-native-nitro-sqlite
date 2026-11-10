@@ -31,6 +31,7 @@ import {
   checkTrustedPublishers,
   verifyPublication,
 } from './release-registry.ts'
+import { BreakingAsMinorVersioningStrategy } from './release-versioning.ts'
 
 test('patch/minor/major resolve from the selected maintenance branch', () => {
   fixture(() => {
@@ -364,3 +365,35 @@ function fixture(run: (directory: string) => void): void {
 function git(...args: string[]): void {
   execFileSync('git', args, { stdio: 'pipe' })
 }
+
+test('proposed releases bump minor for breaking changes and features, and patch for fixes', () => {
+  const config: { packages: Record<string, { versioning?: string }> } =
+    JSON.parse(
+      readFileSync(
+        new URL('../release-please-config.json', import.meta.url),
+        'utf8',
+      ),
+    )
+  assert.equal(config.packages['.']?.versioning, 'breaking-as-minor')
+  const strategy = new BreakingAsMinorVersioningStrategy()
+  const next = (...messages: string[]) =>
+    strategy
+      .bump(
+        Version.parse('10.2.0'),
+        parseConventionalCommits(
+          messages.map((message, index) => ({
+            message,
+            sha: String(index + 1).repeat(40),
+          })),
+        ),
+      )
+      .toString()
+  assert.equal(next('fix: close statements'), '10.2.1')
+  assert.equal(next('feat: add executeRaw'), '10.3.0')
+  assert.equal(next('chore!: ship ESM only', 'fix: close statements'), '10.3.0')
+  assert.equal(
+    next('feat: add API\n\nBREAKING CHANGE: removes CommonJS'),
+    '10.3.0',
+  )
+  assert.equal(next('chore: release 11\n\nRelease-As: 11.0.0'), '11.0.0')
+})
