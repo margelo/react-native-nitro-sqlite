@@ -103,14 +103,15 @@ export async function checkTrustedPublishers(
 }
 
 /** Confirm the published version records the selected commit, allowing registry propagation.
- * @throws After one minute if the version is missing or its commit differs.
+ * @throws After five minutes if the version is missing or its commit differs.
  */
 export async function verifyPublication(
   name: string,
   version: string,
   commit: string,
 ): Promise<void> {
-  for (let attempt = 0; attempt < 12; attempt++) {
+  // npm can take several minutes to serve a new version. 10.3.0 took more than one.
+  for (let attempt = 0; attempt < 60; attempt++) {
     const metadata = await registry(`${name}/${version}`, true)
     if (metadata?.gitHead === commit) return
     if (metadata)
