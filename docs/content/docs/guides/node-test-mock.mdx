@@ -7,7 +7,20 @@ Import `react-native-nitro-sqlite/mock` to test SQLite connections in Node witho
 
 ## Set up Jest
 
-Add a setup file to your existing Jest `setupFilesAfterEnv` configuration:
+The package ships ES modules. Jest runs tests as CommonJS and skips transforming files in `node_modules` by default, so add `react-native-nitro-sqlite` to the packages your `transformIgnorePatterns` lets Jest transform. If your pattern already lists other packages, add it to that list:
+
+```js
+// jest.config.js
+module.exports = {
+  // ...your existing configuration
+  transformIgnorePatterns: [
+    'node_modules/(?!((jest-)?react-native|@react-native(-community)?|react-native-nitro-sqlite)/)',
+  ],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+}
+```
+
+Then reset the mock databases in that setup file:
 
 ```ts
 // jest.setup.ts
