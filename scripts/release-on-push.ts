@@ -32,4 +32,13 @@ if (release) output('tag', release.tagName)
 const [pr] = (await (await manifest()).createPullRequests()).filter(
   (pr) => pr !== undefined,
 )
-if (pr) output('branch', pr.headBranchName)
+// Release Please returns nothing when the open PR is already current, but its lockfiles may still need a commit.
+const branch = pr?.headBranchName ?? (await openReleaseBranch(GITHUB_REF_NAME))
+if (branch) output('branch', branch)
+
+/** Find the branch of the open release PR, which Release Please labels as pending. */
+async function openReleaseBranch(target: string): Promise<string | undefined> {
+  for await (const open of github.pullRequestIterator(target, 'OPEN')) {
+    if (open.labels.includes('autorelease: pending')) return open.headBranchName
+  }
+}
