@@ -1,5 +1,5 @@
 import { GitHub, Manifest } from 'release-please'
-import { output } from './release-plan.ts'
+import { nameRelease, output } from './release-plan.ts'
 
 const { GH_TOKEN, GITHUB_REPOSITORY, GITHUB_REF_NAME } = process.env
 if (!GH_TOKEN || !GITHUB_REPOSITORY || !GITHUB_REF_NAME) {
@@ -26,7 +26,10 @@ const manifest = () =>
 const [release] = (await (await manifest()).createReleases()).filter(
   (release) => release !== undefined,
 )
-if (release) output('tag', release.tagName)
+if (release) {
+  nameRelease(release.tagName)
+  output('tag', release.tagName)
+}
 
 // Conventional commits since the last release decide the patch, minor or major bump.
 const [pr] = (await (await manifest()).createPullRequests()).filter(

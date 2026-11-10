@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process'
 import { GitHub, Manifest } from 'release-please'
 import {
   github,
+  nameRelease,
   output,
   parseVersion,
   releaseChecksReady,
@@ -88,6 +89,7 @@ if (releases.length !== 1)
   throw new Error(
     'Release Please did not create the expected draft. Retry publication with release_tag if it already exists.',
   )
+nameRelease(`v${RELEASE_VERSION}`)
 output('tag', `v${RELEASE_VERSION}`)
 
 function prField(field: string): string {

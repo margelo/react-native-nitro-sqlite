@@ -178,6 +178,15 @@ export function releaseChecksReady(checks: unknown): boolean {
     .every(Boolean)
 }
 
+/** Name a release like earlier ones, such as "NitroSQLite 10.3.0", since Release Please names it after the tag. */
+export function nameRelease(tag: string): void {
+  execFileSync(
+    'gh',
+    ['release', 'edit', tag, '--title', `NitroSQLite ${tag.replace(/^v/, '')}`],
+    { stdio: 'inherit' },
+  )
+}
+
 /** Run Git without a shell and return trimmed output. */
 export function git(...args: string[]): string {
   return execFileSync('git', args, { encoding: 'utf8' }).trim()
