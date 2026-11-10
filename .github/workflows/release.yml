@@ -131,6 +131,8 @@ jobs:
           token: ${{ env.GH_TOKEN }}
           fetch-depth: 0
           persist-credentials: false
+          # Keep node_modules from the install above. The lockfile scripts need it, and installing on this branch would fail on its changed versions.
+          clean: false
       - name: Synchronize workspace lockfile
         run: |
           bun install --lockfile-only --ignore-scripts
