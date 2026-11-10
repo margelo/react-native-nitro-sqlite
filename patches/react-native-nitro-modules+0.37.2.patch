@@ -65,12 +65,12 @@ index 8fb5065..8304c91 100644
 +
 +#endif
 diff --git a/node_modules/react-native-nitro-modules/cpp/views/ViewPropsHolderState.hpp b/node_modules/react-native-nitro-modules/cpp/views/ViewPropsHolderState.hpp
-index 798ca9a..81923b0 100644
+index 798ca9a..e224251 100644
 --- a/node_modules/react-native-nitro-modules/cpp/views/ViewPropsHolderState.hpp
 +++ b/node_modules/react-native-nitro-modules/cpp/views/ViewPropsHolderState.hpp
-@@ -6,6 +6,13 @@
+@@ -4,6 +4,13 @@
  
- #include "ReactNativeCore.hpp"
+ #pragma once
  
 +#include "NitroDefines.hpp"
 +
@@ -79,9 +79,9 @@ index 798ca9a..81923b0 100644
 +// be included textually, from C++.
 +#if !NITRO_BUILDING_MODULE(NitroModules)
 +
- #include <memory>
- #include <utility>
+ #include "ReactNativeCore.hpp"
  
+ #include <memory>
 @@ -49,3 +56,5 @@ private:
  };
  
