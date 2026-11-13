@@ -1,5 +1,7 @@
 require "json"
 
+Pod::UI.warn "[react-native-quick-sqlite] DEPRECATED: QuickSQLite is no longer maintained. Switch to NitroSQLite.\nInstall: npm install react-native-nitro-sqlite react-native-nitro-modules\nMigration guide: https://sqlite.margelo.com/docs/guides/migrate-from-quick-sqlite"
+
 package = JSON.parse(File.read(File.join(__dir__, "package.json")))
 
 Pod::Spec.new do |s|
