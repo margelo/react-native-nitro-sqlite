@@ -51,7 +51,7 @@ test('rejects a release increment before generating notes', () => {
   withFixture('', (directory) => {
     assert.throws(
       () => generate(directory, 'patch'),
-      /An exact stable release version is required/,
+      /An exact release version is required/,
     )
   })
 })

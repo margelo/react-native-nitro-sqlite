@@ -13,7 +13,7 @@ import {
 /** Build and validate both packages before publishing either package from the selected tag.
  * Checks internal versions, lockfiles, source cleanliness, existing publications and both trusted publishers.
  * Retries skip packages whose registry metadata records the same release commit.
- * @param version Exact stable version already committed and tagged by Release Please.
+ * @param version Exact version already committed and tagged by Release Please.
  * @throws Before publication on failed validation, or after publication if registry verification fails.
  */
 export async function publishRelease(version: string): Promise<void> {

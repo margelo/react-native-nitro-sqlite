@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "patch, minor, major, or an exact stable version"
+        description: "patch, minor, major, prerelease, or an exact version such as 11.0.0 or 11.0.0-beta.0"
         required: true
         default: "patch"
         type: string
@@ -202,6 +202,7 @@ jobs:
     outputs:
       tag: ${{ steps.validate.outputs.tag }}
       latest: ${{ steps.validate.outputs.latest }}
+      prerelease: ${{ steps.validate.outputs.prerelease }}
     env:
       GH_TOKEN: ${{ github.token }}
       RELEASE_TAG: ${{ needs.merge.outputs.tag || needs.release-please.outputs.tag || inputs.release_tag }}
@@ -209,8 +210,8 @@ jobs:
     steps:
       - name: Validate tag input
         run: |
-          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "An existing stable release tag is required." >&2
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "An existing release tag is required." >&2
             exit 1
           fi
       - uses: actions/checkout@v7
@@ -272,5 +273,6 @@ jobs:
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ needs.publish.outputs.tag }}
           RELEASE_LATEST: ${{ needs.publish.outputs.latest }}
+          RELEASE_PRERELEASE: ${{ needs.publish.outputs.prerelease }}
         run: |
-          gh release edit "$RELEASE_TAG" --draft=false --latest="$RELEASE_LATEST" --notes-file release-notes.md
+          gh release edit "$RELEASE_TAG" --draft=false --latest="$RELEASE_LATEST" --prerelease="$RELEASE_PRERELEASE" --notes-file release-notes.md
