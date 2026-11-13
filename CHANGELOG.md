@@ -1,5 +1,12 @@
 # Changelog
 
+## [10.3.1](https://github.com/margelo/react-native-nitro-sqlite/compare/v10.3.0...v10.3.1) (2026-11-13)
+
+
+### 🏗️ Project configuration and build flow
+
+* **example:** bundle Drizzle fixtures in release builds ([#489](https://github.com/margelo/react-native-nitro-sqlite/issues/489)) ([b9b4cb8](https://github.com/margelo/react-native-nitro-sqlite/commit/b9b4cb80de309457ed09b0c702a574f51aafdcf9))
+
 ## [10.3.0](https://github.com/margelo/react-native-nitro-sqlite/compare/v10.2.0...v10.3.0) (2026-11-10)
 
 
