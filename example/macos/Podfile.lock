@@ -2311,7 +2311,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - RNNitroSQLite (10.3.0):
+  - RNNitroSQLite (10.3.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -2340,7 +2340,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - RNNitroSqliteVec (10.3.0):
+  - RNNitroSqliteVec (10.3.1):
     - RNNitroSQLite
   - SocketRocket (0.7.1)
   - Yoga (0.0.0)
@@ -2658,8 +2658,8 @@ SPEC CHECKSUMS:
   ReactCodegen: 4dff081e9dbb8acd8b15a8acc9374b4ac1a9869d
   ReactCommon: bc273d1cfc32a36ea662e81293e0961de8c21c77
   RNCClipboard: 4b58c780f63676367640f23c8e114e9bd0cf86ac
-  RNNitroSQLite: 91c1d2ac13f97d0b0535ef2e62fc24a5c834808e
-  RNNitroSqliteVec: 48fd71b8239c30e5b38a2784f086eb05152052d1
+  RNNitroSQLite: 18186c43fe86312da2dc90171c73c7affc23da8c
+  RNNitroSqliteVec: 9d450aafa8dbf6036f64170ad3b5fed5834332c2
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: a88f30ac6f89fded00f9840e7d043315e5ab4fe0
 
