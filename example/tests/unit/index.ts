@@ -2,6 +2,7 @@ import { beforeEach, describe } from '../TestApi'
 import { setupTestDb } from './common'
 import registerLoadFileUnitTests from './specs/operations/loadFile.spec'
 import registerExecuteUnitTests from './specs/operations/execute.spec'
+import registerQueryResultUnitTests from './specs/operations/queryResults.spec'
 import registerTransactionUnitTests from './specs/operations/transaction.spec'
 import registerExecuteBatchUnitTests from './specs/operations/executeBatch.spec'
 import registerPreparedStatementUnitTests from './specs/operations/preparedStatement.spec'
@@ -15,6 +16,7 @@ export function registerUnitTests() {
   beforeEach(setupTestDb)
 
   describe('operations/execute.spec.ts', registerExecuteUnitTests)
+  describe('operations/queryResults.spec.ts', registerQueryResultUnitTests)
   describe('operations/transaction.spec.ts', registerTransactionUnitTests)
   describe('operations/executeBatch.spec.ts', registerExecuteBatchUnitTests)
   describe('operations/loadFile.spec.ts', registerLoadFileUnitTests)

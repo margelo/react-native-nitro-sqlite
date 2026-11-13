@@ -16,6 +16,21 @@ clang++ \
   -Wextra \
   -Werror \
   -Ipackages/react-native-nitro-sqlite/cpp \
+  packages/react-native-nitro-sqlite/cpp/SQLiteJSON.cpp \
+  packages/react-native-nitro-sqlite/tests/cpp/json.test.cpp \
+  /tmp/sqlite3.o \
+  -ldl \
+  -lm \
+  -pthread \
+  -o /tmp/sqliteJSONTests
+/tmp/sqliteJSONTests
+
+clang++ \
+  -std=c++20 \
+  -Wall \
+  -Wextra \
+  -Werror \
+  -Ipackages/react-native-nitro-sqlite/cpp \
   -Ipackages/react-native-nitro-sqlite/cpp/sqlite \
   packages/react-native-nitro-sqlite/cpp/SQLiteDatabaseMigration.cpp \
   packages/react-native-nitro-sqlite/tests/cpp/databaseMigration.test.cpp \
