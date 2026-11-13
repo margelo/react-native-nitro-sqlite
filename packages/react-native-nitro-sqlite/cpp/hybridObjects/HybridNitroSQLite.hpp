@@ -2,8 +2,8 @@
 
 #include "../NitroSQLiteDatabaseConnections.hpp"
 #include "../NitroSQLiteTypes.hpp"
-#include <RNNitroSQLite/HybridNitroSQLitePreparedStatementSpec.hpp>
 #include <RNNitroSQLite/HybridNitroSQLiteSpec.hpp>
+#include <RNNitroSQLite/HybridPreparedStatementSpec.hpp>
 
 namespace margelo::nitro::rnnitrosqlite {
 
@@ -74,7 +74,7 @@ public:
                                                const std::optional<Callback<void(SQLiteQueryResults)>>& onRows) override;
 
   /** Prepare one SQL statement for repeated execution on an open connection. */
-  std::shared_ptr<HybridNitroSQLitePreparedStatementSpec> prepare(const std::string& dbName, const std::string& query) override;
+  std::shared_ptr<HybridPreparedStatementSpec> prepare(const std::string& dbName, const std::string& query) override;
 
   /** Run a nonempty batch in one exclusive transaction on the calling thread.
    * A failed command rolls back the batch.

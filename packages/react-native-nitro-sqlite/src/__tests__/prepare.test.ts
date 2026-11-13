@@ -6,7 +6,7 @@ import {
   isDatabaseOpen,
   openDatabaseQueue,
 } from '../DatabaseQueue'
-import type { NitroSQLitePreparedStatement } from '../specs/NitroSQLitePreparedStatement.nitro'
+import type { PreparedStatement } from '../specs/PreparedStatement.nitro'
 import { prepare } from '../operations/prepare'
 import { open } from '../operations/session'
 import { nativeResult } from './testUtils'
@@ -23,7 +23,7 @@ afterEach(() => {
   if (isDatabaseOpen(dbName)) closeDatabaseQueue(dbName)
 })
 
-function mockStatement(): NitroSQLitePreparedStatement {
+function mockStatement(): PreparedStatement {
   let finalized = false
   return {
     toString: () => 'PreparedStatement',

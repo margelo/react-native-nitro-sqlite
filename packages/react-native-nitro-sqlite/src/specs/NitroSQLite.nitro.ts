@@ -9,7 +9,7 @@ import type {
   NitroSQLiteQueryResult,
   NitroSQLiteQueryRows,
 } from './NitroSQLiteQueryResult'
-import type { NitroSQLitePreparedStatement } from './NitroSQLitePreparedStatement.nitro'
+import type { PreparedStatement } from './PreparedStatement.nitro'
 
 export * from '#nitro/NitroSQLite'
 
@@ -130,7 +130,7 @@ export declare class NitroSQLite extends HybridObject {
    * @param query SQL statement with optional positional placeholders.
    * @returns A native statement with synchronous and asynchronous execution methods.
    */
-  prepare(dbName: string, query: string): NitroSQLitePreparedStatement
+  prepare(dbName: string, query: string): PreparedStatement
   /** Execute commands in one exclusive transaction on the calling thread.
    * An empty batch throws; a failed command rolls back the batch.
    * @param dbName Name of an open database.
