@@ -17,6 +17,7 @@ import {
 } from 'release-please'
 import { Version } from 'release-please/build/src/version.js'
 import { Node } from 'release-please/build/src/strategies/node.js'
+import { GenericJson } from 'release-please/build/src/updaters/generic-json.js'
 import { TagName } from 'release-please/build/src/util/tag-name.js'
 import { parseConventionalCommits } from 'release-please/build/src/commit.js'
 import {
@@ -378,6 +379,18 @@ test('Release Please updates every public version and keeps the configured chang
   } finally {
     stub.mock.restore()
   }
+})
+
+test('Release Please replaces a whole hyphenated prerelease version', () => {
+  const updater = new GenericJson(
+    '$.version',
+    Version.parse('11.0.0-nitro-v1.1'),
+  )
+  assert.equal(
+    JSON.parse(updater.updateContent('{"version":"11.0.0-nitro-v1.0"}'))
+      .version,
+    '11.0.0-nitro-v1.1',
+  )
 })
 
 function fixture(run: (directory: string) => void): void {
