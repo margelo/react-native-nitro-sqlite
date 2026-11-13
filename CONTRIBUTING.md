@@ -24,9 +24,10 @@ To run the example app on Android:
 bun example android
 ```
 
-To run the example app on iOS:
+To run the example app on iOS, generate its Swift packages first. Run this again after changing native dependencies:
 
 ```sh
+bun example spm
 bun example ios
 ```
 
@@ -49,7 +50,7 @@ Remember to add tests for your change if possible. Run the unit tests by:
 bun test
 ```
 
-To edit the Objective-C files, open `example/ios/SequelExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > react-native-nitro-sqlite`.
+To edit the Objective-C++ and C++ files, open `example/ios/NitroSQLiteExample.xcodeproj` in Xcode and find the source files in the `RNNitroSQLite` package.
 
 To edit the Kotlin files, open `example/android` in Android studio and find the source files at `rnnitrosqlite` under `Android`.
 

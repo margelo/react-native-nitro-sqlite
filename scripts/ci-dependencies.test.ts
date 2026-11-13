@@ -113,17 +113,11 @@ test('invalid locked package records fail rather than silently skipping validati
   )
 })
 
-test('Apple configuration changes only prepare the affected lockfile', () => {
-  assert.deepEqual(selectPodChecks(['example/ios/Podfile'], false, false), {
-    ios: true,
-    macos: false,
-  })
+test('CocoaPods configuration changes prepare the macOS lockfile', () => {
   assert.deepEqual(selectPodChecks(['example/macos/Podfile'], false, false), {
-    ios: false,
     macos: true,
   })
   assert.deepEqual(selectPodChecks(['example/package.json'], false, false), {
-    ios: false,
     macos: false,
   })
   assert.deepEqual(
@@ -132,29 +126,19 @@ test('Apple configuration changes only prepare the affected lockfile', () => {
       false,
       false,
     ),
-    { ios: true, macos: true },
+    { macos: true },
   )
 })
 
-test('native dependency changes and full runs prepare both Apple lockfiles', () => {
-  assert.deepEqual(selectPodChecks([], true, false), { ios: true, macos: true })
-  assert.deepEqual(selectPodChecks([], false, true), { ios: true, macos: true })
+test('native dependency changes and full runs prepare the macOS lockfile', () => {
+  assert.deepEqual(selectPodChecks([], true, false), { macos: true })
+  assert.deepEqual(selectPodChecks([], false, true), { macos: true })
 })
 
 test('direct native lockfile changes require validation before compilation', () => {
   assert.deepEqual(
-    selectPodChecks(['example/ios/Podfile.lock'], false, false),
-    {
-      ios: true,
-      macos: false,
-    },
-  )
-  assert.deepEqual(
     selectPodChecks(['example/macos/Podfile.lock'], false, false),
-    {
-      ios: false,
-      macos: true,
-    },
+    { macos: true },
   )
 })
 

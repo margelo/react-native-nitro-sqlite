@@ -190,7 +190,7 @@
         "typescript": "^5.8.3",
       },
       "peerDependencies": {
-        "react-native-nitro-sqlite": ">=9.0.0",
+        "react-native-nitro-sqlite": ">=11.0.0-0",
       },
     },
   },

@@ -51,6 +51,7 @@
     "cpp",
     "nitrogen",
     "RNNitroSQLite.podspec",
+    "Package.swift",
     "!lib/typescript/example",
     "!android/build",
     "!android/.cxx",
@@ -173,6 +174,12 @@
           "esm": true
         }
       ]
+    ]
+  },
+  "swiftpmConfig": {
+    "name": "RNNitroSQLite",
+    "dependencies": [
+      "react-native-nitro-modules"
     ]
   }
 }

@@ -1,6 +1,8 @@
 module.exports = {
   root: true,
   extends: '../config/.eslintrc.js',
+  // SwiftPM links native packages under ios/build, including this repository's packages.
+  ignorePatterns: ['ios/build'],
   parserOptions: {
     project: true,
     tsconfigRootDir: __dirname,

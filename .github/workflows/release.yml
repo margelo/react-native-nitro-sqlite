@@ -94,7 +94,7 @@ jobs:
           bun run sync:lockfile
           bun run check:lockfile
           bun install --frozen-lockfile
-      # The CocoaPods steps are paused because Nitro V1 doesn't support CocoaPods.
+      # The macOS steps are paused until Nitro V1 supports React Native macOS.
       - uses: ruby/setup-ruby@v1
         if: false
         with:
@@ -104,11 +104,9 @@ jobs:
       - name: Select Xcode
         if: false
         run: sudo xcode-select -s "/Applications/Xcode_26.5.app/Contents/Developer"
-      - name: Update iOS and macOS lockfiles
+      - name: Update macOS lockfile
         if: false
-        run: |
-          bun example pods
-          bun example pods:macos
+        run: bun example pods:macos
       - name: Commit lockfiles and optional announcement
         run: node scripts/commit-release-lockfiles.ts
         env:

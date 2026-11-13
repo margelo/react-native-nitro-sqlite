@@ -11,6 +11,7 @@
     "!**/__tests__",
     "cpp",
     "RNNitroSqliteVec.podspec",
+    "Package.swift",
     "react-native.config.js",
     "README.md"
   ],
@@ -42,7 +43,7 @@
     "access": "public"
   },
   "peerDependencies": {
-    "react-native-nitro-sqlite": ">=9.0.0"
+    "react-native-nitro-sqlite": ">=11.0.0-0"
   },
   "devDependencies": {
     "react-native-nitro-sqlite": "10.2.0",
@@ -65,5 +66,8 @@
         "statements": 100
       }
     }
+  },
+  "swiftpmConfig": {
+    "name": "RNNitroSqliteVec"
   }
 }

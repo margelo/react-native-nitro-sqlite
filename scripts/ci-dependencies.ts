@@ -36,36 +36,27 @@ export function nativeDependenciesChanged(
 }
 
 /**
- * Selects Apple lockfiles after native dependencies or CocoaPods inputs change.
+ * Selects the macOS lockfile after native dependencies or CocoaPods inputs change.
  * @param files Repository-relative paths changed since the base commit.
  * @param nativeChanged Whether a locked native package changed.
- * @param full Whether to validate both Apple platforms unconditionally.
- * @returns Independent iOS and macOS lockfile selections.
+ * @param full Whether to validate the macOS lockfile unconditionally.
+ * @returns The macOS lockfile selection.
  */
 export function selectPodChecks(
   files: string[],
   nativeChanged: boolean,
   full: boolean,
 ) {
-  const shared = [
-    '**/*.podspec',
-    '**/react-native.config.js',
-    'example/Gemfile*',
-    'patches/**',
-  ]
   return {
-    ios:
-      full ||
-      nativeChanged ||
-      files.some((file) =>
-        matchesPaths(file, [...shared, 'example/ios/Podfile*']),
-      ),
     macos:
       full ||
       nativeChanged ||
       files.some((file) =>
         matchesPaths(file, [
-          ...shared,
+          '**/*.podspec',
+          '**/react-native.config.js',
+          'example/Gemfile*',
+          'patches/**',
           'example/macos/Podfile*',
           'example/macos/scripts/*config*.js',
           'example/macos/scripts/resolve-react-native.js',
@@ -108,7 +99,7 @@ function main(): void {
   if (!output) {
     throw new Error('GITHUB_OUTPUT is required')
   }
-  appendFileSync(output, `ios_pods=${pods.ios}\nmacos_pods=${pods.macos}\n`)
+  appendFileSync(output, `macos_pods=${pods.macos}\n`)
 }
 
 function resolution(value: unknown): string {
