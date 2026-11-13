@@ -14,9 +14,9 @@ let sqlite = SQLiteBuildOptions.resolve()
 
 addNitrogenTargets(
   to: package,
-  // SwiftPM cannot build Objective-C++ in a Swift target, so OnLoad.mm builds with the C++ sources.
+  // SwiftPM cannot build Objective-C++ in a Swift target, so HybridPlatformContext.mm builds with the C++ sources.
   swiftSources: [],
-  cxxSources: ["cpp", "ios/OnLoad.mm"],
+  cxxSources: ["cpp", "ios/HybridPlatformContext.mm"],
   cxxSettings: sqlite.defines.map { .define($0.name, to: $0.value) }
 )
 
