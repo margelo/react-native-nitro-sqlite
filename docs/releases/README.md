@@ -38,6 +38,6 @@ During migration, the existing `RELEASE_IT_GITHUB_TOKEN` secret is accepted as a
 
 Use GitHub's **Re-run failed jobs** to continue the same release after fixing a transient failure or completing required reviews. If a tag and draft already exist, start the Release workflow on the same branch with **release_tag** set to `vX.Y.Z`. This skips the version bump and release PR.
 
-Publication retries skip a package only when the existing npm version records the same Git commit. The workflow refuses a version published from another commit. An APK failure leaves the GitHub release as a draft; retrying attaches the APK and publishes the assembled notes without another version bump.
+Publication retries skip a package only when the existing npm version records the same Git commit. The workflow refuses a version published from another commit. npm hides a new version for several minutes while it processes it, so the workflow waits up to 20 minutes for every published version to appear. A retry during that time still succeeds when the hidden version comes from the same commit. An APK failure leaves the GitHub release as a draft; retrying attaches the APK and publishes the assembled notes without another version bump.
 
 The migration must be merged or cherry-picked onto an older maintenance branch before running this workflow there. The workflow selects its baseline at runtime, so no branch-specific Release Please configuration is needed.

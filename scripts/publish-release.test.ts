@@ -72,6 +72,29 @@ test('retry skips a package already published from the selected commit', () => {
   assert.match(published[1]!, /^npm:react-native-nitro-sqlite-drizzle:/)
 })
 
+test('a retry continues when npm still processes a version from the same commit', () => {
+  const result = runPublication({ PUBLISH_TEST_CORE_STAGED: '1' })
+  assert.equal(result.status, 0, result.stderr)
+  assert.match(result.stderr, /previously staged version/)
+  assert.deepEqual(
+    result.calls
+      .filter((line) => line.startsWith('npm:'))
+      .map((line) => line.split(':')[1]),
+    [
+      'react-native-nitro-sqlite',
+      'react-native-nitro-sqlite-vec',
+      'react-native-nitro-sqlite-drizzle',
+    ],
+  )
+})
+
+test('other npm publish failures stop before the next package', () => {
+  const result = runPublication({ PUBLISH_TEST_CORE_FAILS: '1' })
+  assert.notEqual(result.status, 0)
+  assert.match(result.stderr, /react-native-nitro-sqlite: npm publish failed/)
+  assert.equal(result.calls.filter((line) => line.startsWith('npm:')).length, 1)
+})
+
 function runPublication(extraEnv: Record<string, string> = {}) {
   const directory = mkdtempSync(join(tmpdir(), 'nitro-publish-test-'))
   const project = join(directory, 'project')
@@ -122,6 +145,12 @@ function runPublication(extraEnv: Record<string, string> = {}) {
           'if [ "' +
             command +
             '" = "bun" ] && [ "$(basename "$PWD")" = "react-native-nitro-sqlite-vec" ] && [ "$*" = "run typecheck" ] && [ "$PUBLISH_TEST_FAIL_VALIDATION" = "1" ]; then exit 1; fi',
+          'if [ "' +
+            command +
+            '" = "npm" ] && [ "$(basename "$PWD")" = "react-native-nitro-sqlite" ] && [ -n "$PUBLISH_TEST_CORE_STAGED" ]; then echo "npm error 409 Conflict - Cannot publish over previously staged version \\"1.0.0\\"." >&2; exit 1; fi',
+          'if [ "' +
+            command +
+            '" = "npm" ] && [ "$(basename "$PWD")" = "react-native-nitro-sqlite" ] && [ -n "$PUBLISH_TEST_CORE_FAILS" ]; then echo "npm error 403 Forbidden" >&2; exit 1; fi',
         ].join('\n'),
         { mode: 0o755 },
       )

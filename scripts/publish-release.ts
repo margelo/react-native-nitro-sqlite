@@ -1,4 +1,4 @@
-import { execFileSync } from 'node:child_process'
+import { execFileSync, spawnSync } from 'node:child_process'
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { git, validateReleaseVersions } from './release-plan.ts'
@@ -13,6 +13,7 @@ import {
 /** Build and validate both packages before publishing either package from the selected tag.
  * Checks internal versions, lockfiles, source cleanliness, existing publications and both trusted publishers.
  * Retries skip packages whose registry metadata records the same release commit.
+ * A version npm still processes from an earlier attempt counts as published once verification confirms its commit.
  * @param version Exact version already committed and tagged by Release Please.
  * @throws Before publication on failed validation, or after publication if registry verification fails.
  */
@@ -40,7 +41,7 @@ export async function publishRelease(version: string): Promise<void> {
   const tag = await distributionTag(version)
   for (const name of pending) {
     // npm's CLI exchanges GitHub OIDC credentials and records provenance without a publishing token.
-    execFileSync(
+    const result = spawnSync(
       'npm',
       [
         'publish',
@@ -51,10 +52,21 @@ export async function publishRelease(version: string): Promise<void> {
         tag,
         '--workspaces=false',
       ],
-      { cwd: `packages/${name}`, stdio: 'inherit' },
+      {
+        cwd: `packages/${name}`,
+        stdio: ['inherit', 'inherit', 'pipe'],
+        encoding: 'utf8',
+      },
     )
-    await verifyPublication(name, version, commit)
+    const stderr = result.stderr ?? ''
+    process.stderr.write(stderr)
+    // npm hides a new version for several minutes and rejects a second publish of it until then.
+    const stagedByEarlierAttempt = /previously staged version/.test(stderr)
+    if (result.status !== 0 && !stagedByEarlierAttempt)
+      throw new Error(`${name}: npm publish failed.`, { cause: result.error })
   }
+  // Verify after publishing every package, so npm's processing delays overlap.
+  for (const name of pending) await verifyPublication(name, version, commit)
 }
 
 if (

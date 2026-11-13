@@ -393,6 +393,28 @@ test('Release Please replaces a whole hyphenated prerelease version', () => {
   )
 })
 
+test('verification keeps polling through connection errors until npm shows the version', async () => {
+  let requests = 0
+  const stub = mock.method(globalThis, 'fetch', async () => {
+    requests++
+    if (requests === 1) throw new TypeError('fetch failed')
+    if (requests === 2) return new Response('', { status: 404 })
+    if (requests === 3) return new Response('', { status: 503 })
+    return Response.json({ gitHead: 'release-commit' })
+  })
+  try {
+    await verifyPublication(
+      'react-native-nitro-sqlite',
+      '11.0.0-nitro-v1.0',
+      'release-commit',
+      1,
+    )
+    assert.equal(requests, 4)
+  } finally {
+    stub.mock.restore()
+  }
+})
+
 function fixture(run: (directory: string) => void): void {
   const directory = mkdtempSync(join(tmpdir(), 'nitro-release-plan-'))
   const original = process.cwd()

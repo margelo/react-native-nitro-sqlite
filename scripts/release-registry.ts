@@ -118,23 +118,33 @@ export async function checkTrustedPublishers(
 }
 
 /** Confirm the published version records the selected commit, allowing registry propagation.
- * @throws After five minutes if the version is missing or its commit differs.
+ * Registry and connection errors while waiting are retried until the deadline.
+ * @throws After 20 minutes if the version is missing or unreadable, or at once if its commit differs.
  */
 export async function verifyPublication(
   name: string,
   version: string,
   commit: string,
+  pollMs = 5_000,
 ): Promise<void> {
-  // npm can take several minutes to serve a new version. 10.3.0 took more than one.
-  for (let attempt = 0; attempt < 60; attempt++) {
-    const metadata = await registry(`${name}/${version}`, true)
+  // npm hides a new version while it processes it. 10.3.0 took over a minute and 11.0.0-nitro-v1.0 about four.
+  const deadline = Date.now() + 20 * 60_000
+  let lastError: unknown
+  while (Date.now() < deadline) {
+    let metadata: Record<string, unknown> | undefined
+    try {
+      metadata = await registry(`${name}/${version}`, true)
+    } catch (error) {
+      lastError = error
+    }
     if (metadata?.gitHead === commit) return
     if (metadata)
       throw new Error(`${name}: published commit differs from the release tag.`)
-    await new Promise((resolve) => setTimeout(resolve, 5000))
+    await new Promise((resolve) => setTimeout(resolve, pollMs))
   }
   throw new Error(
     `${name}: published version could not be verified. Resume with release_tag.`,
+    { cause: lastError },
   )
 }
 
