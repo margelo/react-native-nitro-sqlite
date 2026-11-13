@@ -1,4 +1,8 @@
-import { compareVersions, parseVersion } from './release-plan.ts'
+import {
+  compareVersions,
+  parseVersion,
+  prereleaseIdentifiers,
+} from './release-plan.ts'
 
 /** Packages published together, in dependency order. */
 export const releasePackages = [
@@ -8,13 +12,24 @@ export const releasePackages = [
 ]
 
 /** Select the channel without moving latest backwards on maintenance releases.
+ * Prereleases use their named identifiers without the trailing number, so 11.0.0-nitro-v1.2 uses nitro-v1.
  * Version 9 always uses legacy-9; older versions of other lines use maintenance-MAJOR.MINOR.
- * @param version Stable version to publish.
- * @returns The distribution tag shared by both packages.
- * @throws On unavailable or malformed npm registry metadata.
+ * @param version Exact version to publish.
+ * @returns The distribution tag shared by all packages.
+ * @throws If a prerelease has no channel name, or on unavailable or malformed npm registry metadata.
  */
 export async function distributionTag(version: string): Promise<string> {
   const [major, minor] = parseVersion(version)
+  const channel = prereleaseIdentifiers(version)
+  if (channel.length) {
+    while (/^\d+$/.test(channel.at(-1) ?? '')) channel.pop()
+    const name = channel.join('.')
+    if (!name || name === 'latest')
+      throw new Error(
+        'A prerelease needs a channel name, such as 11.0.0-beta.0.',
+      )
+    return name
+  }
   if (major === 9) return 'legacy-9'
   for (const name of releasePackages) {
     const latest = await registry(`${name}/latest`, true)

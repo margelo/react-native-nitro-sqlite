@@ -7,7 +7,7 @@ import { git, parseVersion } from './release-plan.ts'
 /** Assemble announcement text, Release Please's changelog and first-time contributor acknowledgements.
  * Reads the current version's committed changelog without changing its sections or formatting.
  * Contributor detection uses the previous reachable tag and the checked-out release commit.
- * @param version Exact stable version being released.
+ * @param version Exact version being released.
  * @returns Markdown separated by a divider, with acknowledgements only when GitHub detects newcomers.
  * @throws If the changelog or GitHub contributor detection is unavailable.
  */
@@ -82,7 +82,7 @@ export async function generateReleaseNotes(version: string): Promise<string> {
 export function versionChangelog(content: string, version: string): string {
   parseVersion(version)
   const lines = content.split('\n')
-  const header = /^## \[?v?(\d+\.\d+\.\d+)(?:\]|\s|$)/
+  const header = /^## \[?v?(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)(?:\]|\s|$)/
   const start = lines.findIndex((line) => line.match(header)?.[1] === version)
   if (start === -1) throw new Error(`CHANGELOG.md has no entry for ${version}.`)
   const next = lines.findIndex(
