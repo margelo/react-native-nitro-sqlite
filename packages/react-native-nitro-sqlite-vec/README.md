@@ -4,17 +4,17 @@ Opt-in [sqlite-vec](https://github.com/asg017/sqlite-vec) support for [`react-na
 
 ## Installation
 
-Install both this package and `react-native-nitro-sqlite`, then enable the native build flag.
+Install both this package and `react-native-nitro-sqlite`, then enable it in the native build.
 
 ```bash
 npm install react-native-nitro-sqlite react-native-nitro-sqlite-vec
 ```
 
-- **Apple platforms (iOS, macOS, visionOS):**
+- **iOS:** refresh the Swift packages from your app directory:
   ```bash
-  NITRO_SQLITE_VEC=1 npx pod-install
+  npx react-native spm
   ```
-  For React Native macOS, run `NITRO_SQLITE_VEC=1 pod install` from `macos/`.
+- **macOS:** run `NITRO_SQLITE_VEC=1 pod install` from `macos/`.
 - **Android:** add this to `android/gradle.properties` and rebuild:
   ```properties
   nitroSqliteVec=true

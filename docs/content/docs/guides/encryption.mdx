@@ -22,7 +22,17 @@ Pass `encryptionKey` to `open()` to use an encrypted database. This requires a n
    nitroSqliteFlags="-DSQLITE_ENABLE_SEE=1"
    ```
 
-   On Apple platforms, add the definition to the `RNNitroSQLite` target inside your existing Podfile `post_install` block:
+   On iOS, set this in your app's `package.json`:
+
+   ```json
+   {
+     "nitroSQLite": {
+       "iosSqliteFlags": "-DSQLITE_ENABLE_SEE=1"
+     }
+   }
+   ```
+
+   On macOS, add the definition to the `RNNitroSQLite` target inside your existing Podfile `post_install` block:
 
    ```ruby
    installer.pods_project.targets.each do |target|
@@ -35,7 +45,7 @@ Pass `encryptionKey` to `open()` to use an encrypted database. This requires a n
    end
    ```
 
-   Use the bundled SQLite build on Apple platforms. `NITRO_SQLITE_USE_PHONE_VERSION=1` links the system SQLite library, which does not include your SEE source. Install Pods again and rebuild the native app after changing the source or flags. See [iOS configuration](/docs/configuration/ios#additional-compile-flags) and [Android configuration](/docs/configuration/android#sqlite-compile-flags) for the platform build settings.
+   Use the bundled SQLite build on Apple platforms. `NITRO_SQLITE_USE_PHONE_VERSION=1` links the system SQLite library, which does not include your SEE source. Rebuild the native app after changing the source or flags. On iOS, delete `~/Library/Caches/org.swift.swiftpm/manifests` first, so Swift Package Manager reads the new flags. On macOS, install Pods again first. See [iOS configuration](/docs/configuration/ios#additional-compile-flags) and [Android configuration](/docs/configuration/android#sqlite-compile-flags) for the platform build settings.
 
 ## Open an encrypted database
 
