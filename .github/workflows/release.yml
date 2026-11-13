@@ -195,7 +195,8 @@ jobs:
     needs: [preflight, merge, release-please]
     if: ${{ always() && needs.preflight.result == 'success' && (needs.merge.result == 'success' || needs.release-please.outputs.tag != '' || inputs.release_tag != '') }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    # Builds and checks take about ten minutes, and npm can hide new versions for up to 20.
+    timeout-minutes: 45
     permissions:
       contents: write
       id-token: write
