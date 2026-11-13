@@ -1,6 +1,6 @@
 import {
   expect,
-  isNitroSQLiteError,
+  isSQLiteError,
   TEST_ERROR,
   TEST_ERROR_CODES,
   TEST_ERROR_MESSAGE,
@@ -9,7 +9,7 @@ import { describe, it } from '@tests/TestApi'
 import { testDb, testDbQueue } from '@tests/db'
 import {
   NitroSQLite,
-  NitroSQLiteError,
+  SQLiteError,
   open,
   type BatchQueryCommand,
 } from 'react-native-nitro-sqlite'
@@ -172,7 +172,7 @@ export default function registerDatabaseQueueUnitTests() {
         expect(testDbQueue.queue.length).toBe(0)
         expect(testDbQueue.inProgress).toBe(true)
       } catch (e) {
-        if (isNitroSQLiteError(e)) {
+        if (isSQLiteError(e)) {
           expect(e.message).toContain(TEST_ERROR_MESSAGE)
         } else {
           throw new Error(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
@@ -185,7 +185,7 @@ export default function registerDatabaseQueueUnitTests() {
         expect(testDbQueue.queue.length).toBe(0)
         expect(testDbQueue.inProgress).toBe(false)
       } catch (e) {
-        if (isNitroSQLiteError(e)) {
+        if (isSQLiteError(e)) {
           expect(e.message).toContain(TEST_ERROR_MESSAGE)
         } else {
           throw new Error(TEST_ERROR_CODES.EXPECT_NITRO_SQLITE_ERROR)
@@ -284,7 +284,7 @@ export default function registerDatabaseQueueUnitTests() {
 
       await before
       const batchError = await batchErrorPromise
-      expect(batchError).toBeInstanceOf(NitroSQLiteError)
+      expect(batchError).toBeInstanceOf(SQLiteError)
       await after
       expect(
         testDb.execute<{ value: number }>(
@@ -302,7 +302,7 @@ export default function registerDatabaseQueueUnitTests() {
         } catch (error) {
           syncError = error
         }
-        expect(syncError).toBeInstanceOf(NitroSQLiteError)
+        expect(syncError).toBeInstanceOf(SQLiteError)
         expect((syncError as Error).message).toContain(
           'Await all tx.executeAsync',
         )
@@ -410,7 +410,7 @@ export default function registerDatabaseQueueUnitTests() {
           operationError = error
         }
 
-        expect(operationError).toBeInstanceOf(NitroSQLiteError)
+        expect(operationError).toBeInstanceOf(SQLiteError)
         expect((operationError as Error).message).toContain('busy')
       }
 
@@ -429,7 +429,7 @@ export default function registerDatabaseQueueUnitTests() {
         loadError = error
       }
 
-      expect(loadError).toBeInstanceOf(NitroSQLiteError)
+      expect(loadError).toBeInstanceOf(SQLiteError)
       expect((loadError as Error).message).toContain('Could not load file')
       expect((await testDb.executeAsync('SELECT 42 AS value')).results).toEqual(
         [{ value: 42 }],
@@ -487,7 +487,7 @@ export default function registerDatabaseQueueUnitTests() {
           duplicateError = error
         }
 
-        expect(duplicateError).toBeInstanceOf(NitroSQLiteError)
+        expect(duplicateError).toBeInstanceOf(SQLiteError)
         expect((duplicateError as Error).message).toContain('already open')
         expect(
           db.execute<{ value: string }>('SELECT value FROM ConnectionMarker')

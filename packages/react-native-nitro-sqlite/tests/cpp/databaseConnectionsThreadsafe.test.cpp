@@ -1,4 +1,4 @@
-#include "NitroSQLiteDatabaseConnections.hpp"
+#include "SQLiteDatabaseConnections.hpp"
 #include <filesystem>
 #include <iostream>
 #include <stdexcept>

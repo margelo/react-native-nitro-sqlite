@@ -1,4 +1,4 @@
-#include "NitroSQLiteStatementGroup.hpp"
+#include "SQLiteStatementGroup.hpp"
 #include <iostream>
 #include <memory>
 #include <optional>

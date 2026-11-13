@@ -28,6 +28,6 @@ db.close()
 
 ## File paths and aliases
 
-The example assumes the tables and files already exist. SQLite can create the attached file when it is missing, so verify the intended path when opening prepopulated data. `attach()` and `detach()` are synchronous connection operations; they fail while the connection queue is busy. A failed attach or detach throws `NitroSQLiteError` through the connection wrapper.
+The example assumes the tables and files already exist. SQLite can create the attached file when it is missing, so verify the intended path when opening prepopulated data. `attach()` and `detach()` are synchronous connection operations; they fail while the connection queue is busy. A failed attach or detach throws `SQLiteError` through the connection wrapper.
 
-Only pass database names, locations, and aliases you control. The library does not bind these as parameters. Query values still belong in `?` parameters. See [database lifecycle](/docs/guides/database-lifecycle) for the location convention and the generated [`NitroSQLiteConnection` reference](/api/react-native-nitro-sqlite/interfaces/NitroSQLiteConnection) for signatures.
+Only pass database names, locations, and aliases you control. The library does not bind these as parameters. Query values still belong in `?` parameters. See [database lifecycle](/docs/guides/database-lifecycle) for the location convention and the generated [`Connection` reference](/api/react-native-nitro-sqlite/interfaces/Connection) for signatures.

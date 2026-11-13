@@ -5,10 +5,7 @@ import type {
   FileLoadResult,
   SQLiteQueryParams,
 } from '../types'
-import type {
-  NitroSQLiteQueryResult,
-  NitroSQLiteQueryRows,
-} from './NitroSQLiteQueryResult'
+import type { NativeQueryResult, NativeQueryRows } from './NativeQueryResult'
 import type { PreparedStatement } from './PreparedStatement.nitro'
 
 export * from '#nitro/NitroSQLite'
@@ -119,7 +116,7 @@ export declare class NitroSQLite extends HybridObject {
     dbName: string,
     query: string,
     params?: SQLiteQueryParams,
-  ): NitroSQLiteQueryResult
+  ): NativeQueryResult
   /** Execute one SQL statement on a background thread.
    * @param dbName Name of an open database.
    * @param query SQL statement with optional positional placeholders.
@@ -134,8 +131,8 @@ export declare class NitroSQLite extends HybridObject {
     dbName: string,
     query: string,
     params?: SQLiteQueryParams,
-    onRows?: (rows: NitroSQLiteQueryRows) => void,
-  ): Promise<NitroSQLiteQueryResult>
+    onRows?: (rows: NativeQueryRows) => void,
+  ): Promise<NativeQueryResult>
   /** Prepare one SQL statement on an open native connection for repeated execution.
    * Finalize the returned statement before closing its connection.
    * @param dbName Name or ID of an open database connection.

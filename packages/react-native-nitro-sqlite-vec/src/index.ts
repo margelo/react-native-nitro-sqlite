@@ -1,4 +1,4 @@
-import type { NitroSQLiteConnection } from 'react-native-nitro-sqlite'
+import type { Connection } from 'react-native-nitro-sqlite'
 
 /** Vector storage types accepted by a `vec0` column. */
 export type VectorColumnType = 'float' | 'int8' | 'bit'
@@ -34,7 +34,7 @@ export interface KnnSearchOptions {
   column?: string
 }
 
-function firstValue<T>(db: NitroSQLiteConnection, sql: string): T {
+function firstValue<T>(db: Connection, sql: string): T {
   const row = db.execute(sql).rows?._array?.[0]
   return row?.value as T
 }
@@ -44,7 +44,7 @@ function firstValue<T>(db: NitroSQLiteConnection, sql: string): T {
  * @returns The linked version string, for example `"v0.1.9"`.
  * @throws If `vec_version()` is unavailable or the query fails.
  */
-export function vecVersion(db: NitroSQLiteConnection): string {
+export function vecVersion(db: Connection): string {
   return firstValue<string>(db, 'SELECT vec_version() AS value')
 }
 
@@ -52,7 +52,7 @@ export function vecVersion(db: NitroSQLiteConnection): string {
  * @param db Open NitroSQLite connection. The check runs synchronously.
  * @returns `false` if the version query throws for any reason, including a closed connection.
  */
-export function isVecAvailable(db: NitroSQLiteConnection): boolean {
+export function isVecAvailable(db: Connection): boolean {
   try {
     vecVersion(db)
     return true
@@ -69,7 +69,7 @@ export function isVecAvailable(db: NitroSQLiteConnection): boolean {
  * @param options Vector dimensions, storage type, metric, and trusted column identifier.
  */
 export function createVectorTable(
-  db: NitroSQLiteConnection,
+  db: Connection,
   table: string,
   options: CreateVectorTableOptions,
 ): void {
@@ -92,7 +92,7 @@ export function createVectorTable(
  * @returns Matching row IDs and distances, or an empty array when no rows are returned.
  */
 export function knnSearch(
-  db: NitroSQLiteConnection,
+  db: Connection,
   table: string,
   query: string | number[],
   k: number,

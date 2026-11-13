@@ -9,7 +9,7 @@
 
 #include <NitroModules/HybridObject.hpp>
 #include <NitroModules/HybridClass.hpp>
-#include <RNNitroSQLite/NitroSQLiteQueryResult.hpp>
+#include <RNNitroSQLite/NativeQueryResult.hpp>
 #include <NitroModules/ArrayBuffer.hpp>
 #include <NitroModules/Null.hpp>
 #include <string>
@@ -55,8 +55,8 @@ namespace margelo::nitro::rnnitrosqlite {
 
     public:
       // Methods
-      virtual NitroSQLiteQueryResult execute(const std::optional<std::vector<std::optional<std::variant<bool, ArrayBuffer, nitro::NullType, double, std::string>>>>& params) = 0;
-      virtual Promise<NitroSQLiteQueryResult> executeAsync(const std::optional<std::vector<std::optional<std::variant<bool, ArrayBuffer, nitro::NullType, double, std::string>>>>& params) = 0;
+      virtual NativeQueryResult execute(const std::optional<std::vector<std::optional<std::variant<bool, ArrayBuffer, nitro::NullType, double, std::string>>>>& params) = 0;
+      virtual Promise<NativeQueryResult> executeAsync(const std::optional<std::vector<std::optional<std::variant<bool, ArrayBuffer, nitro::NullType, double, std::string>>>>& params) = 0;
       virtual void finalize() = 0;
 
     protected:

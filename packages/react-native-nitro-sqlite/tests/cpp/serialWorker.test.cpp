@@ -1,4 +1,4 @@
-#include "NitroSQLiteDatabaseConnections.hpp"
+#include "SQLiteDatabaseConnections.hpp"
 #include <atomic>
 #include <chrono>
 #include <condition_variable>

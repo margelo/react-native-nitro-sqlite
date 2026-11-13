@@ -30,6 +30,6 @@ The loader counts executed lines in `commands` and adds their affected row count
 
 SQLite can reject a statement or fail to commit the import. NitroSQLite attempts one rollback after a failed import transaction, preserving the source path and the original SQL error. Statement failures also include the one-based file line and failing command. A failed BEGIN does not trigger rollback of an existing transaction. If rollback itself fails, its error is appended to the original import error.
 
-The managed methods throw or reject with `NitroSQLiteError` and native category `CouldNotLoadFile`. After a successful rollback, completed statements from the file are discarded and the connection can be used again. The error includes the failing SQL text, so avoid including sensitive literal values in files whose errors may be logged.
+The managed methods throw or reject with `SQLiteError` and native category `CouldNotLoadFile`. After a successful rollback, completed statements from the file are discarded and the connection can be used again. The error includes the failing SQL text, so avoid including sensitive literal values in files whose errors may be logged.
 
 Both methods return a [`FileLoadResult`](/api/react-native-nitro-sqlite/interfaces/FileLoadResult) with optional `commands` and `rowsAffected` numbers.

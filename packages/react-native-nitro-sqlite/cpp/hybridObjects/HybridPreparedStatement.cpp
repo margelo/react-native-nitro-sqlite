@@ -28,16 +28,15 @@ namespace {
 
 HybridPreparedStatement::HybridPreparedStatement(std::shared_ptr<SQLitePreparedStatement> statement) : _statement(std::move(statement)) {}
 
-NitroSQLiteQueryResult HybridPreparedStatement::execute(const std::optional<SQLiteQueryParams>& params) {
+NativeQueryResult HybridPreparedStatement::execute(const std::optional<SQLiteQueryParams>& params) {
   return _statement->execute(params);
 }
 
-Promise<NitroSQLiteQueryResult> HybridPreparedStatement::executeAsync(const std::optional<SQLiteQueryParams>& params) {
+Promise<NativeQueryResult> HybridPreparedStatement::executeAsync(const std::optional<SQLiteQueryParams>& params) {
   const auto copiedParams = copyArrayBufferParamsForBackground(params);
   const auto statement = _statement;
 
-  return Promise<NitroSQLiteQueryResult>::async(
-      [statement, copiedParams]() -> NitroSQLiteQueryResult { return statement->execute(copiedParams); });
+  return Promise<NativeQueryResult>::async([statement, copiedParams]() -> NativeQueryResult { return statement->execute(copiedParams); });
 }
 
 void HybridPreparedStatement::finalize() {

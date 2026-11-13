@@ -3,7 +3,7 @@
  */
 #pragma once
 
-#include "NitroSQLiteTypes.hpp"
+#include "SQLiteTypes.hpp"
 #include <RNNitroSQLite/BatchQueryCommand.hpp>
 #include <memory>
 

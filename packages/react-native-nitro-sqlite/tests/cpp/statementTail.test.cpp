@@ -1,4 +1,4 @@
-#include "NitroSQLiteStatementTail.hpp"
+#include "SQLiteStatementTail.hpp"
 #include <iostream>
 #include <memory>
 #include <stdexcept>

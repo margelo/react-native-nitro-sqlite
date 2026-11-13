@@ -17,7 +17,7 @@ clang++ \
   -Werror \
   -Ipackages/react-native-nitro-sqlite/cpp \
   -Ipackages/react-native-nitro-sqlite/cpp/sqlite \
-  packages/react-native-nitro-sqlite/cpp/NitroSQLiteDatabaseMigration.cpp \
+  packages/react-native-nitro-sqlite/cpp/SQLiteDatabaseMigration.cpp \
   packages/react-native-nitro-sqlite/tests/cpp/databaseMigration.test.cpp \
   /tmp/sqlite3.o \
   -ldl \
@@ -34,8 +34,8 @@ clang++ \
   -Werror \
   -Ipackages/react-native-nitro-sqlite/cpp \
   -Ipackages/react-native-nitro-sqlite/cpp/sqlite \
-  packages/react-native-nitro-sqlite/cpp/NitroSQLiteDatabaseConnections.cpp \
-  packages/react-native-nitro-sqlite/cpp/NitroSQLiteDatabaseMigration.cpp \
+  packages/react-native-nitro-sqlite/cpp/SQLiteDatabaseConnections.cpp \
+  packages/react-native-nitro-sqlite/cpp/SQLiteDatabaseMigration.cpp \
   packages/react-native-nitro-sqlite/tests/cpp/databaseConnections.test.cpp \
   /tmp/sqlite3.o \
   -ldl \
@@ -82,8 +82,8 @@ clang++ \
   -Werror \
   -Ipackages/react-native-nitro-sqlite/cpp \
   -Ipackages/react-native-nitro-sqlite/cpp/sqlite \
-  packages/react-native-nitro-sqlite/cpp/NitroSQLiteDatabaseConnections.cpp \
-  packages/react-native-nitro-sqlite/cpp/NitroSQLiteDatabaseMigration.cpp \
+  packages/react-native-nitro-sqlite/cpp/SQLiteDatabaseConnections.cpp \
+  packages/react-native-nitro-sqlite/cpp/SQLiteDatabaseMigration.cpp \
   packages/react-native-nitro-sqlite/tests/cpp/serialWorker.test.cpp \
   /tmp/sqlite3.o \
   -ldl \
@@ -119,8 +119,8 @@ clang++ \
   -Werror \
   -Ipackages/react-native-nitro-sqlite/cpp \
   -Ipackages/react-native-nitro-sqlite/cpp/sqlite \
-  packages/react-native-nitro-sqlite/cpp/NitroSQLiteDatabaseConnections.cpp \
-  packages/react-native-nitro-sqlite/cpp/NitroSQLiteDatabaseMigration.cpp \
+  packages/react-native-nitro-sqlite/cpp/SQLiteDatabaseConnections.cpp \
+  packages/react-native-nitro-sqlite/cpp/SQLiteDatabaseMigration.cpp \
   packages/react-native-nitro-sqlite/tests/cpp/databaseConnectionsThreadsafe.test.cpp \
   /tmp/sqlite3-threadsafe-0.o \
   -ldl \

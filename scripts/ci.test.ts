@@ -29,9 +29,7 @@ test('platform changes only select their platform', () => {
 
 test('shared native sources retain lifecycle and platform coverage', () => {
   const checks = selectChecks(
-    [
-      'packages/react-native-nitro-sqlite/cpp/NitroSQLiteDatabaseConnections.cpp',
-    ],
+    ['packages/react-native-nitro-sqlite/cpp/SQLiteDatabaseConnections.cpp'],
     false,
   )
   assert.deepEqual(enabled(checks), [

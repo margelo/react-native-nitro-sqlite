@@ -1,5 +1,5 @@
 import { Platform } from 'react-native'
-import { open, type NitroSQLiteConnection } from 'react-native-nitro-sqlite'
+import { open, type Connection } from 'react-native-nitro-sqlite'
 import { version } from '../../package.json'
 import {
   getDeviceIdentifier,
@@ -8,7 +8,7 @@ import {
 } from './memory'
 
 export interface BenchmarkFixture {
-  database: NitroSQLiteConnection
+  database: Connection
   reset?(): void | Promise<void>
   run():
     | void
@@ -248,7 +248,7 @@ async function readEnvironment(
   }
 }
 
-function readSQLiteSettings(db: NitroSQLiteConnection): SQLiteSettings {
+function readSQLiteSettings(db: Connection): SQLiteSettings {
   const journal = db
     .execute<{ journal_mode: string }>('PRAGMA journal_mode')
     .rows.item(0)

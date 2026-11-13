@@ -1,4 +1,4 @@
-import NitroSQLiteError from './NitroSQLiteError'
+import SQLiteError from './SQLiteError'
 
 export interface QueuedOperation {
   kind: 'statement' | 'exclusive'
@@ -24,7 +24,7 @@ const databaseQueues = new Map<DatabaseQueueKey, DatabaseQueue>()
 
 export function openDatabaseQueue(dbName: DatabaseQueueKey) {
   if (isDatabaseOpen(dbName)) {
-    throw new NitroSQLiteError(
+    throw new SQLiteError(
       `Database ${String(dbName)} is already open. There is already a connection to the database.`,
     )
   }
@@ -41,7 +41,7 @@ export function closeDatabaseQueue(dbName: DatabaseQueueKey) {
   const databaseQueue = getDatabaseQueue(dbName)
 
   if (databaseQueue.inProgress || databaseQueue.queue.length > 0) {
-    throw new NitroSQLiteError(
+    throw new SQLiteError(
       `Cannot close database ${String(dbName)}. The database is busy with another operation.`,
     )
   }
@@ -55,7 +55,7 @@ export function isDatabaseOpen(dbName: DatabaseQueueKey) {
 
 export function throwIfDatabaseIsNotOpen(dbName: DatabaseQueueKey) {
   if (!isDatabaseOpen(dbName))
-    throw new NitroSQLiteError(
+    throw new SQLiteError(
       `Database ${String(dbName)} is not open. There is no connection to the database.`,
     )
 }
@@ -159,7 +159,7 @@ export function startOperationSync<Result>(
 
   // Database is busy - cannot execute synchronously
   if (databaseQueue.inProgress || databaseQueue.queue.length > 0) {
-    throw new NitroSQLiteError(
+    throw new SQLiteError(
       `Cannot run synchronous operation on database. Database ${String(dbName)} is busy with another operation.`,
     )
   }

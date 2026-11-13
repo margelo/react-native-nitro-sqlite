@@ -23,15 +23,21 @@ export const NitroSQLite = {
 }
 
 export { open } from './operations/session'
-export { NitroSQLiteError, NitroSQLiteExceptionType } from './errors'
+export {
+  SQLiteError,
+  SQLiteExceptionType,
+  NitroSQLiteError,
+  NitroSQLiteExceptionType,
+} from './errors'
 export type { DatabaseQueueKey } from './DatabaseQueue'
-export type { NitroSQLite as NitroSQLiteNative } from './specs/NitroSQLite.nitro'
-export type { PreparedStatement as NitroSQLitePreparedStatement } from './specs/PreparedStatement.nitro'
+export type { NitroSQLite as NativeSQLite } from './specs/NitroSQLite.nitro'
+export type { PreparedStatement as NativePreparedStatement } from './specs/PreparedStatement.nitro'
 export type {
-  NitroSQLiteQueryResult,
-  NitroSQLiteQueryRows,
-  NitroSQLiteQueryColumnMetadata,
-} from './specs/NitroSQLiteQueryResult'
-export type { TypeOrmNitroSQLiteConnection } from './typeORM'
+  NativeQueryResult,
+  NativeQueryRows,
+  QueryColumnMetadata,
+} from './specs/NativeQueryResult'
+export type { TypeOrmConnection } from './typeORM'
 export type * from './types'
+export type * from './deprecated'
 export { typeORMDriver } from './typeORM'
