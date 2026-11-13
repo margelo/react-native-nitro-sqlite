@@ -69,7 +69,7 @@
     },
     "example": {
       "name": "react-native-nitro-sqlite-example",
-      "version": "10.2.0",
+      "version": "11.0.0-nitro-v1.0",
       "dependencies": {
         "@react-native-clipboard/clipboard": "^1.16.3",
         "@react-navigation/native": "^7.5.1",
@@ -82,8 +82,8 @@
         "react": "19.3.1",
         "react-native": "0.88.0",
         "react-native-nitro-modules": "1.0.0-alpha.nightly.86.g15e19db42041",
-        "react-native-nitro-sqlite": "10.2.0",
-        "react-native-nitro-sqlite-vec": "10.2.0",
+        "react-native-nitro-sqlite": "11.0.0-nitro-v1.0",
+        "react-native-nitro-sqlite-vec": "11.0.0-nitro-v1.0",
         "react-native-safe-area-context": "^5.10.1",
         "react-native-screens": "^4.30.0",
         "reflect-metadata": "^0.2.2",
@@ -156,7 +156,7 @@
     },
     "packages/react-native-nitro-sqlite": {
       "name": "react-native-nitro-sqlite",
-      "version": "10.2.0",
+      "version": "11.0.0-nitro-v1.0",
       "dependencies": {
         "typeorm": "1.1.1",
       },
@@ -184,9 +184,9 @@
     },
     "packages/react-native-nitro-sqlite-vec": {
       "name": "react-native-nitro-sqlite-vec",
-      "version": "10.2.0",
+      "version": "11.0.0-nitro-v1.0",
       "devDependencies": {
-        "react-native-nitro-sqlite": "10.2.0",
+        "react-native-nitro-sqlite": "11.0.0-nitro-v1.0",
         "typescript": "^5.8.3",
       },
       "peerDependencies": {
