@@ -1,4 +1,8 @@
-import { compareVersions, parseVersion } from './release-plan.ts'
+import {
+  compareVersions,
+  parseVersion,
+  prereleaseIdentifiers,
+} from './release-plan.ts'
 
 /** Packages published together, in dependency order. */
 export const releasePackages = [
@@ -7,13 +11,24 @@ export const releasePackages = [
 ]
 
 /** Select the channel without moving latest backwards on maintenance releases.
+ * Prereleases use their named identifiers without the trailing number, so 11.0.0-nitro-v1.2 uses nitro-v1.
  * Version 9 always uses legacy-9; older versions of other lines use maintenance-MAJOR.MINOR.
- * @param version Stable version to publish.
- * @returns The distribution tag shared by both packages.
- * @throws On unavailable or malformed npm registry metadata.
+ * @param version Exact version to publish.
+ * @returns The distribution tag shared by all packages.
+ * @throws If a prerelease has no channel name, or on unavailable or malformed npm registry metadata.
  */
 export async function distributionTag(version: string): Promise<string> {
   const [major, minor] = parseVersion(version)
+  const channel = prereleaseIdentifiers(version)
+  if (channel.length) {
+    while (/^\d+$/.test(channel.at(-1) ?? '')) channel.pop()
+    const name = channel.join('.')
+    if (!name || name === 'latest')
+      throw new Error(
+        'A prerelease needs a channel name, such as 11.0.0-beta.0.',
+      )
+    return name
+  }
   if (major === 9) return 'legacy-9'
   for (const name of releasePackages) {
     const latest = await registry(`${name}/latest`, true)
@@ -102,14 +117,15 @@ export async function checkTrustedPublishers(
 }
 
 /** Confirm the published version records the selected commit, allowing registry propagation.
- * @throws After one minute if the version is missing or its commit differs.
+ * @throws After five minutes if the version is missing or its commit differs.
  */
 export async function verifyPublication(
   name: string,
   version: string,
   commit: string,
 ): Promise<void> {
-  for (let attempt = 0; attempt < 12; attempt++) {
+  // npm can take several minutes to serve a new version. 10.3.0 took more than one.
+  for (let attempt = 0; attempt < 60; attempt++) {
     const metadata = await registry(`${name}/${version}`, true)
     if (metadata?.gitHead === commit) return
     if (metadata)

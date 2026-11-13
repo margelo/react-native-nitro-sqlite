@@ -1,8 +1,14 @@
 import { execFileSync } from 'node:child_process'
 import { readFileSync, appendFileSync } from 'node:fs'
 
-/** Resolve a stable release on the checked-out branch, including patch releases made on sibling branches.
- * @param increment A patch, minor, major increment or an exact stable version.
+// Semantic versioning 2.0.0 core with optional prerelease identifiers, without build metadata.
+const versionPattern =
+  /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*))*))?$/
+
+/** Resolve a release on the checked-out branch, including patch releases made on sibling branches.
+ * Increments from a prerelease finish its version first, so 11.0.0-beta.2 becomes 11.0.0 for patch, minor or major.
+ * @param increment A patch, minor, major or prerelease increment, or an exact version such as 11.0.0-beta.0.
+ *   A prerelease increment continues the current prerelease, so 11.0.0-beta.0 becomes 11.0.0-beta.1.
  * @returns The previous reachable tag, baseline version and requested version.
  * @throws If no release tag is reachable, the version does not increase, or its tag already exists.
  */
@@ -27,8 +33,8 @@ export function releasePlan(increment: string) {
   const current = parseVersion(metadata.version)
   const tags = git('tag', '--list', 'v*').split('\n')
   const versions = tags
-    .filter((tag) => /^v\d+\.\d+\.\d+$/.test(tag))
     .map((tag) => tag.slice(1))
+    .filter((version) => versionPattern.test(version))
   const baseline = versions
     .filter((version) => {
       const [major, minor] = parseVersion(version)
@@ -39,16 +45,7 @@ export function releasePlan(increment: string) {
         compareVersions(version, highest) > 0 ? version : highest,
       metadata.version,
     )
-  const [major, minor, patch] = parseVersion(baseline)
-  const version =
-    increment === 'major'
-      ? `${major + 1}.0.0`
-      : increment === 'minor'
-        ? `${major}.${minor + 1}.0`
-        : increment === 'patch'
-          ? `${major}.${minor}.${patch + 1}`
-          : increment
-  parseVersion(version)
+  const version = incrementVersion(baseline, increment)
   if (compareVersions(version, baseline) <= 0)
     throw new Error('The release version must increase.')
   if (tags.includes(`v${version}`))
@@ -64,7 +61,7 @@ export function releasePlan(increment: string) {
 }
 
 /** Verify every published package, example version and internal dependency before publication.
- * @param version Exact stable version to validate.
+ * @param version Exact version to validate.
  * @throws If a manifest or internal dependency differs from the release version.
  */
 export function validateReleaseVersions(version: string): void {
@@ -102,12 +99,11 @@ export function validateReleaseVersions(version: string): void {
   }
 }
 
-/** Parse a stable semantic version and reject increments, prereleases and malformed inputs. */
+/** Parse a stable or prerelease semantic version and reject increments, build metadata and malformed inputs. */
 export function parseVersion(version: string): [number, number, number] {
-  if (!/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(version)) {
-    throw new Error('An exact stable release version is required.')
-  }
-  const [major, minor, patch] = version.split('.').map(Number)
+  const match = versionPattern.exec(version)
+  if (!match) throw new Error('An exact release version is required.')
+  const [major, minor, patch] = match.slice(1, 4).map(Number)
   if (
     major === undefined ||
     minor === undefined ||
@@ -119,11 +115,28 @@ export function parseVersion(version: string): [number, number, number] {
   return [major, minor, patch]
 }
 
-/** Compare two stable semantic versions numerically. */
+/** Read a version's prerelease identifiers, such as ['beta', '1'] for 11.0.0-beta.1.
+ * @returns An empty list for stable versions.
+ */
+export function prereleaseIdentifiers(version: string): string[] {
+  parseVersion(version)
+  const start = version.indexOf('-')
+  return start === -1 ? [] : version.slice(start + 1).split('.')
+}
+
+/** Compare two versions with semantic versioning precedence, where 11.0.0-beta.2 < 11.0.0-beta.10 < 11.0.0. */
 export function compareVersions(left: string, right: string): number {
   const a = parseVersion(left)
   const b = parseVersion(right)
-  return a[0] - b[0] || a[1] - b[1] || a[2] - b[2]
+  return (
+    a[0] - b[0] ||
+    a[1] - b[1] ||
+    a[2] - b[2] ||
+    comparePrereleases(
+      prereleaseIdentifiers(left),
+      prereleaseIdentifiers(right),
+    )
+  )
 }
 
 /** Require all reported checks, including optional native checks, to finish successfully.
@@ -171,6 +184,53 @@ export function releaseChecksReady(checks: unknown): boolean {
       throw new Error('Unknown release check metadata.')
     })
     .every(Boolean)
+}
+
+function incrementVersion(baseline: string, increment: string): string {
+  const [major, minor, patch] = parseVersion(baseline)
+  const prerelease = prereleaseIdentifiers(baseline)
+  if (increment === 'major')
+    return prerelease.length && !minor && !patch
+      ? `${major}.0.0`
+      : `${major + 1}.0.0`
+  if (increment === 'minor')
+    return prerelease.length && !patch
+      ? `${major}.${minor}.0`
+      : `${major}.${minor + 1}.0`
+  if (increment === 'patch')
+    return prerelease.length
+      ? `${major}.${minor}.${patch}`
+      : `${major}.${minor}.${patch + 1}`
+  if (increment === 'prerelease') {
+    if (!prerelease.length)
+      throw new Error(
+        'Start a prerelease with an exact version, such as 11.0.0-beta.0.',
+      )
+    const last = prerelease.at(-1)
+    const next =
+      last && /^\d+$/.test(last)
+        ? [...prerelease.slice(0, -1), String(Number(last) + 1)]
+        : [...prerelease, '0']
+    return `${major}.${minor}.${patch}-${next.join('.')}`
+  }
+  parseVersion(increment)
+  return increment
+}
+
+function comparePrereleases(left: string[], right: string[]): number {
+  // A stable version ranks above its prereleases.
+  if (!left.length || !right.length) return right.length - left.length
+  for (let index = 0; index < Math.min(left.length, right.length); index++) {
+    const a = left[index]
+    const b = right[index]
+    if (a === b) continue
+    const aNumeric = /^\d+$/.test(a)
+    const bNumeric = /^\d+$/.test(b)
+    if (aNumeric && bNumeric) return Number(a) - Number(b)
+    if (aNumeric !== bNumeric) return aNumeric ? -1 : 1
+    return a < b ? -1 : 1
+  }
+  return left.length - right.length
 }
 
 /** Run Git without a shell and return trimmed output. */

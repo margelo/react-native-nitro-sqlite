@@ -3,6 +3,7 @@ import {
   git,
   output,
   parseVersion,
+  prereleaseIdentifiers,
   validateReleaseVersions,
 } from './release-plan.ts'
 import { distributionTag } from './release-registry.ts'
@@ -35,3 +36,4 @@ if (git('rev-list', '-n', '1', tag) !== git('rev-parse', 'HEAD'))
 git('merge-base', '--is-ancestor', tag, `origin/${process.env.GITHUB_REF_NAME}`)
 output('tag', tag)
 output('latest', String((await distributionTag(version)) === 'latest'))
+output('prerelease', String(prereleaseIdentifiers(version).length > 0))

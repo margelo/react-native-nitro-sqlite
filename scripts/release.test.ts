@@ -23,8 +23,10 @@ import {
   releasePlan,
   validateReleaseVersions,
   parseVersion,
+  compareVersions,
   releaseChecksReady,
 } from './release-plan.ts'
+import { versionChangelog } from './generate-release-notes.ts'
 import {
   distributionTag,
   pendingPackages,
@@ -62,8 +64,8 @@ test('sibling maintenance patches do not cause duplicate versions on main', () =
 test('rejects reused tags, non-increasing versions and malformed input', () => {
   fixture(() => {
     assert.throws(() => releasePlan('1.0.0'), /increase/)
-    assert.throws(() => releasePlan('preminor'), /exact stable/)
-    assert.throws(() => releasePlan('01.0.1'), /exact stable/)
+    assert.throws(() => releasePlan('preminor'), /exact release/)
+    assert.throws(() => releasePlan('01.0.1'), /exact release/)
     git('commit', '--allow-empty', '-m', 'feat: new major')
     git('tag', 'v2.0.0')
     assert.throws(() => releasePlan('major'), /already exists/)
@@ -84,17 +86,53 @@ test('validates internal dependency versions before publication', () => {
   })
 })
 
-test('stable version parsing rejects prereleases and unsafe components', () => {
+test('version parsing accepts prereleases and rejects build metadata and unsafe components', () => {
   assert.deepEqual(parseVersion('10.1.0'), [10, 1, 0])
+  assert.deepEqual(parseVersion('11.0.0-nitro-v1.0'), [11, 0, 0])
   for (const invalid of [
     'patch',
     'v10.0.0',
-    '10.0.0-beta.1',
     '10.0.0+build',
+    '10.0.0-',
+    '10.0.0-01',
+    '10.0.0-beta..1',
     '999999999999999999.0.0',
   ]) {
     assert.throws(() => parseVersion(invalid))
   }
+})
+
+test('prereleases rank below their stable version', () => {
+  const ordered = [
+    '10.3.0',
+    '11.0.0-alpha',
+    '11.0.0-alpha.1',
+    '11.0.0-beta.2',
+    '11.0.0-beta.10',
+    '11.0.0-nitro-v1.0',
+    '11.0.0',
+  ]
+  for (const [index, version] of ordered.entries()) {
+    const next = ordered[index + 1]
+    if (next)
+      assert.ok(compareVersions(version, next) < 0, `${version} < ${next}`)
+  }
+})
+
+test('a prerelease lane starts from an exact version and continues with prerelease increments', () => {
+  fixture(() => {
+    assert.throws(() => releasePlan('prerelease'), /exact version/)
+    git('switch', '-c', 'release/next')
+    assert.equal(releasePlan('2.0.0-next.0').version, '2.0.0-next.0')
+    setVersion('2.0.0-next.0')
+    git('commit', '-am', 'chore: release 2.0.0-next.0')
+    git('tag', 'v2.0.0-next.0')
+    assert.equal(releasePlan('prerelease').version, '2.0.0-next.1')
+    assert.equal(releasePlan('major').version, '2.0.0')
+    assert.equal(releasePlan('patch').previousTag, 'v2.0.0-next.0')
+    assert.throws(() => releasePlan('2.0.0-next.0'), /increase/)
+    assert.throws(() => releasePlan('2.0.0-alpha.0'), /increase/)
+  })
 })
 
 test('a release waits for optional native checks and fails on unsuccessful CI', () => {
@@ -129,6 +167,21 @@ test('maintenance releases cannot move the latest npm channel backwards', async 
     assert.equal(await distributionTag('10.0.2'), 'maintenance-10.0')
     assert.equal(await distributionTag('10.1.1'), 'latest')
     assert.equal(await distributionTag('11.0.0'), 'latest')
+  } finally {
+    stub.mock.restore()
+  }
+})
+
+test('prereleases publish to their named channel and never to latest', async () => {
+  const stub = mock.method(globalThis, 'fetch', async () =>
+    Response.json({ version: '10.3.0' }),
+  )
+  try {
+    assert.equal(await distributionTag('11.0.0-nitro-v1.0'), 'nitro-v1')
+    assert.equal(await distributionTag('11.0.0-nitro-v1.12'), 'nitro-v1')
+    assert.equal(await distributionTag('11.0.0-rc'), 'rc')
+    await assert.rejects(distributionTag('11.0.0-0'), /channel name/)
+    await assert.rejects(distributionTag('11.0.0-latest.1'), /channel name/)
   } finally {
     stub.mock.restore()
   }
@@ -255,66 +308,73 @@ test('Release Please updates every public version and keeps the configured chang
     },
   )
   try {
-    const strategy = new Node({
-      github: client,
-      targetBranch: 'maintenance',
-      releaseAs: '2.0.0',
-      includeComponentInTag: false,
-      changelogSections: options['changelog-sections'],
-      extraFiles: options['extra-files'],
-    })
-    const messages = [
-      'feat!: add new connection mode',
-      'perf: improve query scheduling',
-      'fix: fix connection ownership',
-      'refactor: simplify queue',
-      'chore: update build flow',
-      'chore(deps): bump SQLite',
-      'docs: explain WAL',
-    ]
-    const pr = await strategy.buildReleasePullRequest(
-      parseConventionalCommits(
-        messages.map((message, index) => ({
-          message,
-          sha: String(index + 1).repeat(40),
-        })),
-      ),
-      { tag: new TagName(Version.parse('1.0.0')), sha: 'baseline', notes: '' },
-    )
-    assert.ok(pr)
-    const changelog = pr.updates
-      .find((update) => update.path === 'CHANGELOG.md')
-      ?.updater.updateContent(undefined)
-    assert.ok(changelog)
-    for (const section of [
-      'Features',
-      'Performance Improvements',
-      'Bug Fixes',
-      'Code Refactoring',
-      'Project configuration and build flow',
-      'Dependency Upgrades',
-      'Documentation',
-      'BREAKING CHANGES',
-    ]) {
-      assert.ok(changelog.includes(section), section)
-    }
-    const contents = new Map<string, string>()
-    for (const update of pr.updates) {
-      if (
-        !update.path.endsWith('package.json') ||
-        update.path.startsWith('samples/')
+    for (const version of ['2.0.0', '2.0.0-nitro-v1.0']) {
+      const strategy = new Node({
+        github: client,
+        targetBranch: 'maintenance',
+        releaseAs: version,
+        includeComponentInTag: false,
+        changelogSections: options['changelog-sections'],
+        extraFiles: options['extra-files'],
+      })
+      const messages = [
+        'feat!: add new connection mode',
+        'perf: improve query scheduling',
+        'fix: fix connection ownership',
+        'refactor: simplify queue',
+        'chore: update build flow',
+        'chore(deps): bump SQLite',
+        'docs: explain WAL',
+      ]
+      const pr = await strategy.buildReleasePullRequest(
+        parseConventionalCommits(
+          messages.map((message, index) => ({
+            message,
+            sha: String(index + 1).repeat(40),
+          })),
+        ),
+        {
+          tag: new TagName(Version.parse('1.0.0')),
+          sha: 'baseline',
+          notes: '',
+        },
       )
-        continue
-      const original =
-        contents.get(update.path) ??
-        readFileSync(new URL('../' + update.path, import.meta.url), 'utf8')
-      contents.set(update.path, update.updater.updateContent(original))
+      assert.ok(pr)
+      const changelog = pr.updates
+        .find((update) => update.path === 'CHANGELOG.md')
+        ?.updater.updateContent(undefined)
+      assert.ok(changelog)
+      assert.match(versionChangelog(changelog, version), /BREAKING CHANGES/)
+      for (const section of [
+        'Features',
+        'Performance Improvements',
+        'Bug Fixes',
+        'Code Refactoring',
+        'Project configuration and build flow',
+        'Dependency Upgrades',
+        'Documentation',
+        'BREAKING CHANGES',
+      ]) {
+        assert.ok(changelog.includes(section), section)
+      }
+      const contents = new Map<string, string>()
+      for (const update of pr.updates) {
+        if (
+          !update.path.endsWith('package.json') ||
+          update.path.startsWith('samples/')
+        )
+          continue
+        const original =
+          contents.get(update.path) ??
+          readFileSync(new URL('../' + update.path, import.meta.url), 'utf8')
+        contents.set(update.path, update.updater.updateContent(original))
+      }
+      fixture((directory) => {
+        for (const [path, content] of contents)
+          writeFileSync(join(directory, path), content)
+        validateReleaseVersions(version)
+      })
     }
-    fixture((directory) => {
-      for (const [path, content] of contents)
-        writeFileSync(join(directory, path), content)
-      validateReleaseVersions('2.0.0')
-    })
   } finally {
     stub.mock.restore()
   }
@@ -334,6 +394,7 @@ function fixture(run: (directory: string) => void): void {
       'package.json',
       'packages/react-native-nitro-sqlite/package.json',
       'packages/react-native-nitro-sqlite-vec/package.json',
+      'packages/react-native-nitro-sqlite-drizzle/package.json',
       'example/package.json',
     ]) {
       mkdirSync(join(directory, path, '..'), { recursive: true })
@@ -344,6 +405,7 @@ function fixture(run: (directory: string) => void): void {
           dependencies: {
             'react-native-nitro-sqlite': '1.0.0',
             'react-native-nitro-sqlite-vec': '1.0.0',
+            'react-native-nitro-sqlite-drizzle': '1.0.0',
           },
           devDependencies: { 'react-native-nitro-sqlite': '1.0.0' },
         }),
@@ -361,4 +423,9 @@ function fixture(run: (directory: string) => void): void {
 
 function git(...args: string[]): void {
   execFileSync('git', args, { stdio: 'pipe' })
+}
+
+function setVersion(version: string): void {
+  const metadata = JSON.parse(readFileSync('package.json', 'utf8'))
+  writeFileSync('package.json', JSON.stringify({ ...metadata, version }))
 }
