@@ -62,7 +62,7 @@ export function executeNative<Row extends QueryResultRow = never>(
  * @param params Values bound to the placeholders.
  * @returns A promise of the query result with typed rows.
  */
-export async function executeAsync<Row extends QueryResultRow = never>(
+export function executeAsync<Row extends QueryResultRow = never>(
   dbName: string,
   query: string,
   params?: SQLiteQueryParams,
@@ -74,26 +74,28 @@ export async function executeAsync<Row extends QueryResultRow = never>(
   return executeAsyncManaged(dbName, query, params)
 }
 
-export async function executeAsyncManaged<Row extends QueryResultRow = never>(
+export function executeAsyncManaged<Row extends QueryResultRow = never>(
   dbName: string,
   query: string,
   params?: SQLiteQueryParams,
   queueKey: DatabaseQueueKey = dbName,
 ): Promise<QueryResult<Row>> {
   return queueStatementAsync(queueKey, () =>
-    executeAsyncNative(dbName, query, params),
+    executeAsyncNative<Row>(dbName, query, params),
   )
 }
 
-export async function executeAsyncNative<Row extends QueryResultRow = never>(
+export function executeAsyncNative<Row extends QueryResultRow = never>(
   dbName: string,
   query: string,
   params?: SQLiteQueryParams,
 ): Promise<QueryResult<Row>> {
+  // Not `async`: every extra promise layer is a measurable part of a short query's cost.
+  // Large results arrive in batches, so rows are converted while SQLite reads the rest.
+  let leadingRows: Row[] | undefined
+  let nativeResult: Promise<NitroSQLiteQueryResult>
   try {
-    // Large results arrive in batches, so rows are converted while SQLite reads the rest.
-    let leadingRows: Row[] | undefined
-    const nativeResult = await HybridNitroSQLite.executeAsync(
+    nativeResult = HybridNitroSQLite.executeAsync(
       dbName,
       query,
       params,
@@ -105,10 +107,13 @@ export async function executeAsyncNative<Row extends QueryResultRow = never>(
         }
       },
     )
-    return buildJSQueryResult<Row>(nativeResult, leadingRows)
   } catch (error) {
-    throw NitroSQLiteError.fromError(error)
+    return Promise.reject(NitroSQLiteError.fromError(error))
   }
+  return nativeResult.then(
+    (result) => buildJSQueryResult<Row>(result, leadingRows),
+    rejectWithNitroSQLiteError,
+  )
 }
 
 /** Execute one SQL statement synchronously by database name, returning rows as arrays.
@@ -164,7 +169,7 @@ export function executeRawNative(
  * @returns A promise of rows and column names in SQL column order, with affected row count and insert ID.
  * @throws NitroSQLiteError as a rejected promise if the query fails.
  */
-export async function executeRawAsync(
+export function executeRawAsync(
   dbName: string,
   query: string,
   params?: SQLiteQueryParams,
@@ -176,7 +181,7 @@ export async function executeRawAsync(
   return executeRawAsyncManaged(dbName, query, params)
 }
 
-export async function executeRawAsyncManaged(
+export function executeRawAsyncManaged(
   dbName: string,
   query: string,
   params?: SQLiteQueryParams,
@@ -187,16 +192,23 @@ export async function executeRawAsyncManaged(
   )
 }
 
-export async function executeRawAsyncNative(
+export function executeRawAsyncNative(
   dbName: string,
   query: string,
   params?: SQLiteQueryParams,
 ): Promise<NitroSQLiteRawQueryResult> {
+  let nativeResult: Promise<NitroSQLiteRawQueryResult>
   try {
-    return await HybridNitroSQLite.executeRawAsync(dbName, query, params)
+    nativeResult = HybridNitroSQLite.executeRawAsync(dbName, query, params)
   } catch (error) {
-    throw NitroSQLiteError.fromError(error)
+    return Promise.reject(NitroSQLiteError.fromError(error))
   }
+  return nativeResult.catch(rejectWithNitroSQLiteError)
+}
+
+/** Rethrows any error as a NitroSQLiteError, for use as a promise rejection handler. */
+export function rejectWithNitroSQLiteError(error: unknown): never {
+  throw NitroSQLiteError.fromError(error)
 }
 
 export function buildJSQueryResult<Row extends QueryResultRow = never>(

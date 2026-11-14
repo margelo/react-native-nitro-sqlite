@@ -7,7 +7,7 @@ import type {
   SQLiteQueryParams,
 } from '../types'
 import type { NitroSQLiteRawQueryResult } from '../specs/NitroSQLiteQueryResult.nitro'
-import { buildJSQueryResult } from './execute'
+import { buildJSQueryResult, rejectWithNitroSQLiteError } from './execute'
 import { queueOperationAsync, startOperationSync } from '../DatabaseQueue'
 import type { DatabaseQueueKey } from '../DatabaseQueue'
 
@@ -45,17 +45,15 @@ export function prepare(
           throw NitroSQLiteError.fromError(error)
         }
       },
-      executeAsync: async <Row extends QueryResultRow = QueryResultRow>(
+      // Chained instead of `async`, which would add promise layers to every execution.
+      executeAsync: <Row extends QueryResultRow = QueryResultRow>(
         params?: SQLiteQueryParams,
-      ): Promise<QueryResult<Row>> => {
-        try {
-          return await queueOperationAsync(queueKey, async () =>
-            buildJSQueryResult(await nativeStatement.executeAsync(params)),
-          )
-        } catch (error) {
-          throw NitroSQLiteError.fromError(error)
-        }
-      },
+      ): Promise<QueryResult<Row>> =>
+        queueOperationAsync(queueKey, () =>
+          nativeStatement
+            .executeAsync(params)
+            .then((result) => buildJSQueryResult<Row>(result)),
+        ).catch(rejectWithNitroSQLiteError),
       executeRaw: (params?: SQLiteQueryParams): NitroSQLiteRawQueryResult => {
         try {
           return startOperationSync(queueKey, () =>
@@ -65,17 +63,12 @@ export function prepare(
           throw NitroSQLiteError.fromError(error)
         }
       },
-      executeRawAsync: async (
+      executeRawAsync: (
         params?: SQLiteQueryParams,
-      ): Promise<NitroSQLiteRawQueryResult> => {
-        try {
-          return await queueOperationAsync(queueKey, () =>
-            nativeStatement.executeRawAsync(params),
-          )
-        } catch (error) {
-          throw NitroSQLiteError.fromError(error)
-        }
-      },
+      ): Promise<NitroSQLiteRawQueryResult> =>
+        queueOperationAsync(queueKey, () =>
+          nativeStatement.executeRawAsync(params),
+        ).catch(rejectWithNitroSQLiteError),
       finalize: () => {
         try {
           startOperationSync(queueKey, () => nativeStatement.finalize())
