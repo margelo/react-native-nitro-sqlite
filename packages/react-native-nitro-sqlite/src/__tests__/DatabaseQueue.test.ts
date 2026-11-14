@@ -94,6 +94,20 @@ describe('DatabaseQueue', () => {
     })
   })
 
+  it('rejects and releases the queue when a callback throws synchronously', async () => {
+    openDatabaseQueue(dbName)
+    const failed = queueStatementAsync(dbName, () => {
+      throw new Error('sync failure')
+    })
+
+    await expect(failed).rejects.toThrow('sync failure')
+    expect(getDatabaseQueue(dbName)).toMatchObject({
+      inProgress: false,
+      activeStatements: 0,
+    })
+    await expect(queueOperationAsync(dbName, async () => 1)).resolves.toBe(1)
+  })
+
   it('submits a burst of statements before waiting for native results', async () => {
     openDatabaseQueue(dbName)
     const first = deferred<number>()
