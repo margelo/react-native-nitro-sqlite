@@ -86,26 +86,47 @@ function enqueueOperation<Result>(
   kind: QueuedOperation['kind'],
   callback: () => Promise<Result>,
 ): Promise<Result> {
-  const databaseQueue = getDatabaseQueue(dbName)
+  let databaseQueue: DatabaseQueue
+  try {
+    databaseQueue = getDatabaseQueue(dbName)
+  } catch (error) {
+    return Promise.reject(error)
+  }
 
   return new Promise<Result>((resolve, reject) => {
-    async function start() {
-      try {
-        const result = await callback()
-        resolve(result)
-      } catch (error) {
-        reject(error)
-      } finally {
-        if (kind === 'statement') {
-          databaseQueue.activeStatements--
-          if (databaseQueue.activeStatements === 0) {
-            databaseQueue.inProgress = false
-          }
-        } else {
+    const finish = () => {
+      if (kind === 'statement') {
+        databaseQueue.activeStatements--
+        if (databaseQueue.activeStatements === 0) {
           databaseQueue.inProgress = false
         }
-        startNextOperations(databaseQueue)
+      } else {
+        databaseQueue.inProgress = false
       }
+      startNextOperations(databaseQueue)
+    }
+
+    // Chains the operation directly instead of awaiting it in an async function,
+    // which saves a promise and several microtask turns per queued query.
+    const start = () => {
+      let operation: Promise<Result>
+      try {
+        operation = Promise.resolve(callback())
+      } catch (error) {
+        reject(error)
+        finish()
+        return
+      }
+      operation.then(
+        (result) => {
+          resolve(result)
+          finish()
+        },
+        (error: unknown) => {
+          reject(error)
+          finish()
+        },
+      )
     }
 
     const operation: QueuedOperation = {

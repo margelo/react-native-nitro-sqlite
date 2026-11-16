@@ -151,4 +151,34 @@ describe('execute', () => {
       rows: { length: 0 },
     })
   })
+
+  it('rejects instead of throwing when the native call throws synchronously', async () => {
+    openDatabaseQueue(dbName)
+    jest.mocked(HybridNitroSQLite.executeAsync).mockImplementationOnce(() => {
+      throw new Error('bind failed')
+    })
+
+    let pending: Promise<unknown> | undefined
+    expect(() => {
+      pending = executeAsync(dbName, query)
+    }).not.toThrow()
+    await expect(pending).rejects.toMatchObject({
+      name: 'NitroSQLiteError',
+      message: 'bind failed',
+    })
+    jest
+      .mocked(HybridNitroSQLite.executeAsync)
+      .mockResolvedValueOnce(nativeResult())
+    await expect(executeAsync(dbName, query)).resolves.toMatchObject({
+      rows: { length: 0 },
+    })
+  })
+
+  it('rejects instead of throwing when a managed queue is not open', async () => {
+    let pending: Promise<unknown> | undefined
+    expect(() => {
+      pending = executeAsyncManaged(dbName, query, undefined, 'missing-queue')
+    }).not.toThrow()
+    await expect(pending).rejects.toThrow('not open')
+  })
 })

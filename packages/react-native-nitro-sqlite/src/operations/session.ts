@@ -84,6 +84,18 @@ export function open(
     return callback()
   }
 
+  // Like an `async` wrapper, reports a closed connection as a rejection, without its extra promise.
+  const runAsyncOperation = <Result>(
+    callback: () => Promise<Result>,
+  ): Promise<Result> => {
+    try {
+      assertCurrentConnection()
+    } catch (error) {
+      return Promise.reject(error)
+    }
+    return callback()
+  }
+
   return {
     close: () => {
       runSyncOperation(() => HybridNitroSQLite.close(connectionId))
@@ -143,19 +155,19 @@ export function open(
       params?: SQLiteQueryParams,
     ): QueryResult<Row> =>
       runOperation(() => executeManaged(connectionId, query, params, queueKey)),
-    executeAsync: async <Row extends QueryResultRow = never>(
+    executeAsync: <Row extends QueryResultRow = never>(
       query: string,
       params?: SQLiteQueryParams,
     ): Promise<QueryResult<Row>> =>
-      runOperation(() =>
-        executeAsyncManaged(connectionId, query, params, queueKey),
+      runAsyncOperation(() =>
+        executeAsyncManaged<Row>(connectionId, query, params, queueKey),
       ),
     executeRaw: (query: string, params?: SQLiteQueryParams) =>
       runOperation(() =>
         executeRawManaged(connectionId, query, params, queueKey),
       ),
-    executeRawAsync: async (query: string, params?: SQLiteQueryParams) =>
-      runOperation(() =>
+    executeRawAsync: (query: string, params?: SQLiteQueryParams) =>
+      runAsyncOperation(() =>
         executeRawAsyncManaged(connectionId, query, params, queueKey),
       ),
     prepare: (query: string) =>
