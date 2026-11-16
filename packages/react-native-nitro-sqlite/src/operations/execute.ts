@@ -93,28 +93,76 @@ export function executeAsyncNative<Row extends QueryResultRow = never>(
 ): Promise<QueryResult<Row>> {
   // Not `async`: every extra promise layer is a measurable part of a short query's cost.
   // Large results arrive in batches, so rows are converted while SQLite reads the rest.
-  let leadingRows: Row[] | undefined
+  if (!hasRowBatchHandler) {
+    return executeAsyncWithRowCallback<Row>(dbName, query, params)
+  }
+  const rowBatchId = nextRowBatchId()
   let nativeResult: Promise<NitroSQLiteQueryResult>
   try {
     nativeResult = HybridNitroSQLite.executeAsync(
       dbName,
       query,
       params,
-      (rows) => {
-        if (leadingRows === undefined) {
-          leadingRows = rows as Row[]
-        } else {
-          Array.prototype.push.apply(leadingRows, rows as Row[])
-        }
-      },
+      undefined,
+      rowBatchId,
     )
   } catch (error) {
     return Promise.reject(NitroSQLiteError.fromError(error))
   }
   return nativeResult.then(
-    (result) => buildJSQueryResult<Row>(result, leadingRows),
-    rejectWithNitroSQLiteError,
+    (result) =>
+      buildJSQueryResult<Row>(result, takeLeadingRows<Row>(rowBatchId)),
+    (error: unknown) => {
+      leadingRowBatches.delete(rowBatchId)
+      return rejectWithNitroSQLiteError(error)
+    },
   )
+}
+
+// Leading row batches of async queries in flight, by row batch ID. One handler, set on the first
+// query, receives every batch, so a query passes a number to native code instead of a new callback.
+const leadingRowBatches = new Map<number, QueryResultRow[]>()
+// Older native builds have no handler and get a callback per query instead.
+const hasRowBatchHandler =
+  typeof HybridNitroSQLite.setRowBatchHandler === 'function'
+let lastRowBatchId = 0
+
+function nextRowBatchId(): number {
+  if (lastRowBatchId === 0) {
+    HybridNitroSQLite.setRowBatchHandler((rowBatchId, rows) => {
+      leadingRowBatches.set(
+        rowBatchId,
+        appendRows(leadingRowBatches.get(rowBatchId), rows),
+      )
+    })
+  }
+  lastRowBatchId++
+  return lastRowBatchId
+}
+
+function takeLeadingRows<Row>(rowBatchId: number): Row[] | undefined {
+  const rows = leadingRowBatches.get(rowBatchId)
+  if (rows !== undefined) leadingRowBatches.delete(rowBatchId)
+  return rows as Row[] | undefined
+}
+
+function executeAsyncWithRowCallback<Row extends QueryResultRow>(
+  dbName: string,
+  query: string,
+  params?: SQLiteQueryParams,
+): Promise<QueryResult<Row>> {
+  let leadingRows: Row[] | undefined
+  return callNativeAsync(() =>
+    HybridNitroSQLite.executeAsync(dbName, query, params, (rows) => {
+      leadingRows = appendRows(leadingRows, rows as Row[])
+    }),
+  ).then((result) => buildJSQueryResult<Row>(result, leadingRows))
+}
+
+function appendRows<Row>(leadingRows: Row[] | undefined, rows: Row[]): Row[] {
+  if (leadingRows === undefined) return rows
+  Array.prototype.push.apply(leadingRows, rows)
+  return leadingRows
 }
 
 /** Execute one SQL statement synchronously by database name, returning rows as arrays.

@@ -61,7 +61,8 @@ describe('transaction', () => {
       dbName,
       'SELECT ?',
       [2],
-      expect.any(Function),
+      undefined,
+      expect.any(Number),
     )
     expect(HybridNitroSQLite.execute).toHaveBeenLastCalledWith(
       dbName,
@@ -222,7 +223,8 @@ describe('transaction', () => {
       dbName,
       'BEGIN EXCLUSIVE TRANSACTION',
       undefined,
-      expect.any(Function),
+      undefined,
+      expect.any(Number),
     )
     expect(HybridNitroSQLite.execute).toHaveBeenCalledTimes(1)
     expect(HybridNitroSQLite.execute).toHaveBeenCalledWith(
