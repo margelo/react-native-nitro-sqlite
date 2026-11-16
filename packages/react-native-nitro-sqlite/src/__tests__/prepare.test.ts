@@ -97,6 +97,29 @@ it('keeps synchronous calls from overtaking an asynchronous execution', async ()
   statement.finalize()
 })
 
+it('submits several executions before waiting for native results', async () => {
+  const native = mockStatement()
+  let finishFirst: (() => void) | undefined
+  jest.mocked(native.executeAsync).mockImplementationOnce(
+    () =>
+      new Promise((resolve) => {
+        finishFirst = () => resolve(nativeResult([{ value: 1 }]))
+      }),
+  )
+  jest.mocked(HybridNitroSQLite.prepare).mockReturnValue(native)
+  const statement = prepare(dbName, query)
+
+  const first = statement.executeAsync([1])
+  const second = statement.executeAsync([2])
+  const raw = statement.executeRawAsync([3])
+  expect(native.executeAsync).toHaveBeenCalledTimes(2)
+  expect(native.executeRawAsync).toHaveBeenCalledTimes(1)
+
+  finishFirst!()
+  await Promise.all([first, second, raw])
+  statement.finalize()
+})
+
 it('runs raw executions through the statement queue', async () => {
   const native = mockStatement()
   jest.mocked(HybridNitroSQLite.prepare).mockReturnValue(native)
