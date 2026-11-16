@@ -181,7 +181,7 @@ export function open(
         HybridNitroSQLite.loadFile(connectionId, location),
       ),
     loadFileAsync: (location: string) =>
-      runOperation(() =>
+      runAsyncOperation(() =>
         queueStatementAsync(queueKey, async () => {
           try {
             return await HybridNitroSQLite.loadFileAsync(connectionId, location)
