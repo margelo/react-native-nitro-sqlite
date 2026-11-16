@@ -1,6 +1,7 @@
 import { HybridNitroSQLite } from '../nitro'
 import type { QueryResult, QueryResultRow, SQLiteQueryParams } from '../types'
 import NitroSQLiteError from '../NitroSQLiteError'
+import { callNativeAsync, rejectWithNitroSQLiteError } from '../nativePromise'
 import type {
   NitroSQLiteQueryResult,
   NitroSQLiteRawQueryResult,
@@ -197,18 +198,9 @@ export function executeRawAsyncNative(
   query: string,
   params?: SQLiteQueryParams,
 ): Promise<NitroSQLiteRawQueryResult> {
-  let nativeResult: Promise<NitroSQLiteRawQueryResult>
-  try {
-    nativeResult = HybridNitroSQLite.executeRawAsync(dbName, query, params)
-  } catch (error) {
-    return Promise.reject(NitroSQLiteError.fromError(error))
-  }
-  return nativeResult.catch(rejectWithNitroSQLiteError)
-}
-
-/** Rethrows any error as a NitroSQLiteError, for use as a promise rejection handler. */
-export function rejectWithNitroSQLiteError(error: unknown): never {
-  throw NitroSQLiteError.fromError(error)
+  return callNativeAsync(() =>
+    HybridNitroSQLite.executeRawAsync(dbName, query, params),
+  )
 }
 
 export function buildJSQueryResult<Row extends QueryResultRow = never>(

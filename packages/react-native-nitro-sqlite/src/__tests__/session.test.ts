@@ -295,12 +295,19 @@ describe('open', () => {
     jest
       .mocked(HybridNitroSQLite.loadFileAsync)
       .mockRejectedValueOnce('load failed')
+      .mockImplementationOnce(() => {
+        throw new Error('path conversion failed')
+      })
       .mockResolvedValueOnce({ commands: 1 })
 
     expect(() => db.attach('other', 'alias')).toThrow('attach failed')
     await expect(db.loadFileAsync('/tmp/missing.sql')).rejects.toMatchObject({
       name: 'NitroSQLiteError',
       message: 'load failed',
+    })
+    await expect(db.loadFileAsync('/tmp/bad.sql')).rejects.toMatchObject({
+      name: 'NitroSQLiteError',
+      message: 'path conversion failed',
     })
     await expect(db.loadFileAsync('/tmp/valid.sql')).resolves.toEqual({
       commands: 1,

@@ -9,6 +9,7 @@ import type {
   QueryResultRow,
   QueryResult,
 } from '../types'
+import { callNativeAsync } from '../nativePromise'
 import {
   executeAsyncManaged,
   executeManaged,
@@ -174,21 +175,21 @@ export function open(
       runOperation(() => prepare(connectionId, query, queueKey)),
     executeBatch: (commands: BatchQueryCommand[]) =>
       runOperation(() => executeBatch(connectionId, commands, queueKey)),
-    executeBatchAsync: async (commands: BatchQueryCommand[]) =>
-      runOperation(() => executeBatchAsync(connectionId, commands, queueKey)),
+    executeBatchAsync: (commands: BatchQueryCommand[]) =>
+      runAsyncOperation(() =>
+        executeBatchAsync(connectionId, commands, queueKey),
+      ),
     loadFile: (location: string) =>
       runSyncOperation(() =>
         HybridNitroSQLite.loadFile(connectionId, location),
       ),
     loadFileAsync: (location: string) =>
       runAsyncOperation(() =>
-        queueStatementAsync(queueKey, async () => {
-          try {
-            return await HybridNitroSQLite.loadFileAsync(connectionId, location)
-          } catch (error) {
-            throw NitroSQLiteError.fromError(error)
-          }
-        }),
+        queueStatementAsync(queueKey, () =>
+          callNativeAsync(() =>
+            HybridNitroSQLite.loadFileAsync(connectionId, location),
+          ),
+        ),
       ),
   }
 }

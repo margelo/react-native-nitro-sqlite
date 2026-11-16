@@ -7,7 +7,8 @@ import type {
   SQLiteQueryParams,
 } from '../types'
 import type { NitroSQLiteRawQueryResult } from '../specs/NitroSQLiteQueryResult.nitro'
-import { buildJSQueryResult, rejectWithNitroSQLiteError } from './execute'
+import { buildJSQueryResult } from './execute'
+import { rejectWithNitroSQLiteError } from '../nativePromise'
 import { queueOperationAsync, startOperationSync } from '../DatabaseQueue'
 import type { DatabaseQueueKey } from '../DatabaseQueue'
 
