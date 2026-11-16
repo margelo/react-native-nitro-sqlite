@@ -133,11 +133,10 @@ describe('open', () => {
     await expect(
       db.transaction(async (tx) => tx.execute('SELECT 1').rows.length),
     ).resolves.toBe(0)
-    expect(HybridNitroSQLite.executeAsync).toHaveBeenCalledWith(
+    expect(HybridNitroSQLite.execute).toHaveBeenCalledWith(
       dbName,
       'BEGIN TRANSACTION',
       undefined,
-      expect.any(Function),
     )
     expect(HybridNitroSQLite.execute).toHaveBeenCalledWith(
       dbName,
