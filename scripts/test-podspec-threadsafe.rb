@@ -126,12 +126,91 @@ def main
   assert_invalid_environment_performance_mode_rejected
   assert_invalid_package_rtree_rejected
   with_app_package({}) { assert_system_sqlite_configuration }
+  assert_expo_configuration
   compile_and_probe(unsafe_flags, "0")
   compile_and_probe(safe_flags, "1")
   compile_and_probe(unoptimized_flags, "1")
   compile_and_probe(without_rtree_flags, "1", false)
 
   puts "SQLite pod configuration tests passed"
+end
+
+def assert_expo_configuration
+  with_app_package({}) do
+    path = File.join(Pod::Config.installation_root, "Podfile.properties.json")
+    File.write(path, JSON.generate({"nitroSqlite.flags" => "SQLITE_ENABLE_FTS5=1 SQLITE_ENABLE_FTS5=1", "nitroSqlite.vec" => "true"}))
+    spec = evaluate_podspec("NITRO_SQLITE_VEC" => nil, "NITRO_SQLITE_USE_PHONE_VERSION" => nil)
+    flags = spec.attributes_hash.fetch("pod_target_xcconfig").fetch("OTHER_CFLAGS")
+    assert_equal(flags.scan("-DSQLITE_ENABLE_FTS5=1").length, 1)
+    assert_includes(spec.attributes_hash.fetch("pod_target_xcconfig").fetch("GCC_PREPROCESSOR_DEFINITIONS"), "NITRO_SQLITE_VEC=1")
+    probe_fts5(flags)
+
+    vec_podspec = File.join(ROOT, "packages/react-native-nitro-sqlite-vec/RNNitroSqliteVec.podspec")
+    load vec_podspec
+    assert_equal(Pod::Spec.last.attributes_hash.fetch("source_files"), "cpp/**/*.{c,cpp,h,hpp}")
+
+    File.write(path, JSON.generate({"nitroSqlite.useSystemSqlite" => "true", "nitroSqlite.vec" => "true"}))
+    spec = evaluate_podspec("NITRO_SQLITE_VEC" => nil, "NITRO_SQLITE_USE_PHONE_VERSION" => nil)
+    assert_equal(spec.attributes_hash.fetch("library"), "sqlite3")
+    assert_includes(spec.attributes_hash.fetch("exclude_files"), "cpp/sqlite/sqlite3.c")
+    load vec_podspec
+    assert_includes(Pod::Spec.last.attributes_hash.fetch("pod_target_xcconfig").fetch("GCC_PREPROCESSOR_DEFINITIONS"), "NITRO_SQLITE_USE_PHONE_VERSION=1")
+
+    # Preserve the companion's existing peer support for core releases without the Expo reader.
+    Dir.mktmpdir("nitro-vec-legacy-core") do |directory|
+      File.write(File.join(directory, "package.json"), File.read(File.join(ROOT, "packages/react-native-nitro-sqlite-vec/package.json")))
+      legacy_spec = File.join(directory, "RNNitroSqliteVec.podspec")
+      File.write(legacy_spec, File.read(vec_podspec))
+      previous_vec = ENV["NITRO_SQLITE_VEC"]
+      begin
+        ENV["NITRO_SQLITE_VEC"] = "1"
+        load legacy_spec
+        assert_equal(Pod::Spec.last.attributes_hash.fetch("source_files"), "cpp/**/*.{c,cpp,h,hpp}")
+      ensure
+        previous_vec.nil? ? ENV.delete("NITRO_SQLITE_VEC") : ENV["NITRO_SQLITE_VEC"] = previous_vec
+      end
+    end
+
+    [
+      [{"nitroSqlite.useSystemSqlite" => "true"}, {"NITRO_SQLITE_USE_PHONE_VERSION" => "0"}, /conflicts/],
+      [{"nitroSqlite.vec" => "true"}, {"NITRO_SQLITE_VEC" => "0"}, /conflicts/],
+      [{"nitroSqlite.flags" => "SQLITE_THREADSAFE=0"}, {}, /reserved/],
+      [{"nitroSqlite.flags" => "SQLITE_ENABLE_FTS5=1 -DSQLITE_THREADSAFE=0"}, {}, /Invalid/],
+      [{"nitroSqlite.flags" => "SQLITE_ENABLE_FTS5=1 SQLITE_ENABLE_FTS5=0"}, {}, /Conflicting/],
+      [{"nitroSqlite.useSystemSqlite" => "true", "nitroSqlite.flags" => "SQLITE_ENABLE_FTS5=1"}, {}, /system SQLite/],
+    ].each do |properties, environment, expected|
+      File.write(path, JSON.generate(properties))
+      begin
+        evaluate_podspec({"NITRO_SQLITE_VEC" => nil, "NITRO_SQLITE_USE_PHONE_VERSION" => nil}.merge(environment))
+      rescue RuntimeError => error
+        fail "Unexpected Expo config error: #{error.message}" unless error.message.match?(expected)
+        next
+      end
+      fail "Expected conflicting Expo configuration to fail"
+    end
+  end
+end
+
+def probe_fts5(flags)
+  Dir.mktmpdir("nitro-sqlite-fts5") do |directory|
+    probe = File.join(directory, "fts5.c")
+    binary = File.join(directory, "fts5")
+    File.write(probe, <<~C)
+      #include <assert.h>
+      #include "sqlite3.h"
+      int main(void) {
+        sqlite3 *db = 0;
+        assert(sqlite3_compileoption_used("ENABLE_FTS5") == 1);
+        assert(sqlite3_open(":memory:", &db) == SQLITE_OK);
+        assert(sqlite3_exec(db, "CREATE VIRTUAL TABLE notes_search USING fts5(body)", 0, 0, 0) == SQLITE_OK);
+        assert(sqlite3_close(db) == SQLITE_OK);
+        return 0;
+      }
+    C
+    compile_flags = Shellwords.split(flags).reject { |flag| flag == "$(inherited)" }
+    fail "Failed to compile SQLite with Expo FTS5 settings" unless system(ENV.fetch("CC", "cc"), *compile_flags, "-I#{File.dirname(SQLITE_SOURCE)}", SQLITE_SOURCE, probe, "-o", binary, "-lm")
+    fail "FTS5 probe failed" unless system(binary)
+  end
 end
 
 def with_app_package(contents)
