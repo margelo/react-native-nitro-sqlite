@@ -48,6 +48,8 @@ npx expo run:android
 
 Expo's run commands generate native directories when they do not exist. If your project keeps generated native directories, follow [Expo's prebuild guidance](https://docs.expo.dev/develop/development-builds/introduction/) to refresh them after adding a native dependency, then rebuild.
 
+For optional features such as FTS5, vector search, or iOS App Groups, use the [Expo config plugin](/docs/configuration/expo).
+
 ## 4. Run your first query
 
 `open()` returns a connection bound to a database name. SQLite creates the file if it does not exist. This example creates a table, binds a value to `?`, and reads it back:

@@ -7,7 +7,7 @@ Use `createVectorTable()` and `knnSearch()` from `react-native-nitro-sqlite-vec`
 
 ## Enable vector search
 
-Install `react-native-nitro-sqlite-vec` alongside `react-native-nitro-sqlite`. Enable it for each platform you ship using the [iOS](/docs/configuration/ios#vector-search), [macOS](/docs/configuration/macos#apple-build-options), or [Android](/docs/configuration/android#vector-search) configuration page, then rebuild the native app. Check availability with `isVecAvailable(db)` before running vector queries. A JavaScript update alone cannot enable the extension.
+Install `react-native-nitro-sqlite-vec` alongside `react-native-nitro-sqlite`. Enable it for each platform you ship using the [iOS](/docs/configuration/ios#vector-search), [macOS](/docs/configuration/macos#apple-build-options), or [Android](/docs/configuration/android#vector-search) configuration page, then rebuild the native app. Expo projects add `react-native-nitro-sqlite-vec` to their app config's plugins instead; see [Expo configuration](/docs/configuration/expo#enable-vector-search). Check availability with `isVecAvailable(db)` before running vector queries. A JavaScript update alone cannot enable the extension.
 
 ## Create and search a vector table
 

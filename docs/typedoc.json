@@ -3,7 +3,8 @@
     "../packages/react-native-nitro-sqlite",
     "../packages/react-native-nitro-sqlite-vec",
     "../packages/react-native-nitro-sqlite-drizzle",
-    "./mock-api"
+    "./mock-api",
+    "./plugin-api"
   ],
   "entryPointStrategy": "packages",
   "name": "API Reference",
