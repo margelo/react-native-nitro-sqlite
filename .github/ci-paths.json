@@ -38,7 +38,8 @@
     "packages/react-native-nitro-sqlite-drizzle/tsconfig.json",
     "packages/react-native-nitro-sqlite-drizzle/package.json",
     "scripts/**/*.ts",
-    "example/jest*.js"
+    "example/jest*.js",
+    "packages/react-native-nitro-sqlite-expo-plugin/**"
   ],
   "cpp_format": [
     ".github/workflows/**",
@@ -83,7 +84,9 @@
     "packages/react-native-nitro-sqlite-drizzle/package.json",
     "config/tsconfig.json",
     "package.json",
-    "bun.lock"
+    "bun.lock",
+    "packages/react-native-nitro-sqlite-expo-plugin/src/**",
+    "packages/react-native-nitro-sqlite-expo-plugin/package.json"
   ],
   "android": [
     ".github/workflows/**",

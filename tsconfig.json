@@ -4,6 +4,9 @@
     { "path": "./packages/react-native-nitro-sqlite" },
     { "path": "./packages/react-native-nitro-sqlite-vec" },
     { "path": "./packages/react-native-nitro-sqlite-drizzle" },
+    {
+      "path": "./packages/react-native-nitro-sqlite-expo-plugin/tsconfig.build.json"
+    },
     { "path": "./example" }
   ]
 }

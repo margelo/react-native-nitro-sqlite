@@ -9,6 +9,13 @@ const api = JSON.parse(
 )
 
 const requiredExports = {
+  'react-native-nitro-sqlite-expo-plugin': [
+    'default',
+    'withNitroSQLiteVec',
+    'NitroSQLitePluginOptions',
+    'NitroSQLiteIOSOptions',
+    'SQLiteFlags',
+  ],
   'react-native-nitro-sqlite': [
     'open',
     'NitroSQLite',

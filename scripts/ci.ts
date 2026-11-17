@@ -15,6 +15,15 @@ export function selectChecks(files: string[], full: boolean) {
     full || files.some((file) => matchesPaths(file, paths))
   return {
     typescript: selected(patterns.typescript),
+    expo_plugin: selected([
+      '.github/**',
+      'package.json',
+      'bun.lock',
+      'packages/react-native-nitro-sqlite-expo-plugin/**',
+      'packages/react-native-nitro-sqlite/ios/sqlite-config.rb',
+      'packages/react-native-nitro-sqlite/RNNitroSQLite.podspec',
+      'packages/react-native-nitro-sqlite-vec/RNNitroSqliteVec.podspec',
+    ]),
     cpp_format: selected(patterns.cpp_format),
     cpp_tests: selected(patterns.cpp_tests),
     docs: selected(patterns.docs),
@@ -62,6 +71,7 @@ function main(): void {
   }
   const dependencies =
     checks.typescript ||
+    checks.expo_plugin ||
     checks.docs ||
     checks.android ||
     checks.ios ||

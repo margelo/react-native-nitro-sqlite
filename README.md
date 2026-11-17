@@ -26,6 +26,8 @@ npm install react-native-nitro-sqlite react-native-nitro-modules
 
 Rebuild the native app after installing. Expo projects need a development build; Expo Go cannot load this native module. See [Getting Started](https://sqlite.margelo.com/docs) for details.
 
+Use the optional [`react-native-nitro-sqlite-expo-plugin`](https://sqlite.margelo.com/docs/configuration/expo) for FTS5, vector search, App Groups, and system SQLite settings during Expo prebuild or EAS Build. Existing manual [iOS](https://sqlite.margelo.com/docs/configuration/ios) and [Android](https://sqlite.margelo.com/docs/configuration/android) configuration remains supported. Native setting changes require a rebuild.
+
 ## Example
 
 ```ts

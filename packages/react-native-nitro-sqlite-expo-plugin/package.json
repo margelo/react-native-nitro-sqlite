@@ -1,0 +1,64 @@
+{
+  "name": "react-native-nitro-sqlite-expo-plugin",
+  "version": "10.3.1",
+  "description": "Optional Expo config plugins for Nitro SQLite and sqlite-vec",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./vec": {
+      "types": "./lib/vec.d.ts",
+      "default": "./vec/app.plugin.js"
+    },
+    "./app.plugin.js": "./app.plugin.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "app.plugin.js",
+    "vec",
+    "README.md",
+    "!lib/**/*.tsbuildinfo"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "pack": "tsc -p tsconfig.build.json && bun pm pack",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src tests --ext .ts,.mts --fix",
+    "test": "tsc -p tsconfig.build.json && node --test tests/plugin.test.mts",
+    "test:prebuild": "tsc -p tsconfig.build.json && node --test tests/prebuild.test.mts",
+    "prepublishOnly": "tsc -p tsconfig.build.json"
+  },
+  "author": "Christoph Pader",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/margelo/react-native-nitro-sqlite.git",
+    "directory": "packages/react-native-nitro-sqlite-expo-plugin"
+  },
+  "homepage": "https://sqlite.margelo.com/docs/configuration/expo",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "peerDependencies": {
+    "expo": ">=55.0.0 <58.0.0",
+    "react-native-nitro-sqlite": ">=10.4.0",
+    "react-native-nitro-sqlite-vec": ">=10.4.0"
+  },
+  "peerDependenciesMeta": {
+    "react-native-nitro-sqlite-vec": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "expo": "~57.0.28",
+    "react-native-nitro-sqlite": "10.3.1",
+    "react-native-nitro-sqlite-vec": "10.3.1",
+    "typescript": "^6.0.3",
+    "@types/node": "25.9.1"
+  }
+}

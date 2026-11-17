@@ -1,4 +1,8 @@
 const packageIntros = {
+  'react-native-nitro-sqlite-expo-plugin': `Use the optional Expo config plugin to configure FTS5, additional SQLite compile definitions, iOS App Groups, and system SQLite. The separate \`/vec\` entry enables vector search after installing the companion package.
+
+Follow the [Expo configuration guide](/docs/configuration/expo) for app config examples and rebuild requirements. The types below describe the plugin options.
+`,
   'react-native-nitro-sqlite': `\`open({ name })\` returns a connection with query, transaction, and cleanup methods. This reference lists the package's exported functions, objects, and types.
 
 Start with [Getting Started](/docs) for installation and a first query. Use [Configuration](/docs/configuration) for shared \`package.json\` settings, [database lifecycle](/docs/guides/database-lifecycle) for opening and closing connections, and [parameters and results](/docs/guides/parameters-and-results) for queries and errors. For the Node-only test export, see [Test SQLite in Node](/docs/guides/node-test-mock).

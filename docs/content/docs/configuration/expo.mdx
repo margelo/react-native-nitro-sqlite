@@ -1,0 +1,111 @@
+---
+title: Expo
+description: Configure optional native SQLite features during Expo prebuild and EAS Build.
+---
+
+SQLite compiles optional modules into the native library. FTS5 adds full-text indexes, while sqlite-vec adds vector search. Changing these modules requires a native rebuild; a JavaScript update cannot enable them.
+
+Nitro SQLite's default setup works through autolinking. Install the optional config plugin when you need native settings in an Expo project using SDK 55, 56, or 57:
+
+```sh
+npx expo install react-native-nitro-sqlite-expo-plugin
+```
+
+Keep the plugin and Nitro SQLite packages on the same version. Use a development build or a production build, because Expo Go does not contain Nitro SQLite.
+
+## Configure SQLite
+
+Add the plugin to `app.json`, `app.config.js`, or `app.config.ts`:
+
+```json
+{
+  "expo": {
+    "plugins": [
+      [
+        "react-native-nitro-sqlite-expo-plugin",
+        {
+          "fts5": true,
+          "ios": {
+            "appGroup": "group.com.example.shared"
+          }
+        }
+      ]
+    ]
+  }
+}
+```
+
+`fts5` defaults to `false` and adds `SQLITE_ENABLE_FTS5=1` on both platforms when enabled. The plugin leaves manually enabled FTS5 intact when this option is omitted or false.
+
+An App Group lets an iOS app and its extensions access the same container. `ios.appGroup` sets Nitro SQLite's `Info.plist` key and adds the identifier to the app target's entitlements. It preserves existing groups. Register the App Group with Apple and configure each extension's entitlement separately. The group container takes precedence over the default database location.
+
+Shared settings such as `threadSafe`, `performanceMode`, and `enableRTree` still belong in your app's [`package.json`](/docs/configuration).
+
+## Enable vector search
+
+Install the companion package and add its plugin entry:
+
+```sh
+npx expo install react-native-nitro-sqlite-vec
+```
+
+```json
+{
+  "expo": {
+    "plugins": [
+      "react-native-nitro-sqlite-expo-plugin",
+      "react-native-nitro-sqlite-expo-plugin/vec"
+    ]
+  }
+}
+```
+
+The `/vec` entry checks that the companion package is installed and enables vector search on iOS and Android. Installing the plugin alone does not enable vector search. See [vector search](/docs/integrations/vector-search) for queries.
+
+## Add compile definitions
+
+Use `sqliteFlags` for additional bundled SQLite features:
+
+```json
+{
+  "sqliteFlags": {
+    "ios": ["SQLITE_ENABLE_GEOPOLY=1"],
+    "android": ["-DSQLITE_ENABLE_GEOPOLY=1"]
+  }
+}
+```
+
+Each entry must define a `SQLITE_` or `HAVE_` macro with an integer or unquoted identifier value. iOS entries use `KEY=VALUE`; Android entries use `-DKEY=VALUE`. The plugin rejects compiler arguments, reserved threading, I/O, performance, and ABI settings, and definitions that conflict with existing values. Use the shared configuration options for those settings. Check [SQLite's compile options](https://www.sqlite.org/compile.html) before adding a definition.
+
+## Use Apple's system SQLite
+
+Set `ios.useSystemSqlite` to `true` to link the iOS library with Apple's SQLite instead of the bundled version:
+
+```json
+{
+  "ios": {
+    "useSystemSqlite": true
+  }
+}
+```
+
+The SQLite version and available modules then depend on the operating system. Plugin compile definitions and shared build settings cannot change that library. Do not combine this option with `fts5` or `sqliteFlags.ios`; use bundled SQLite when you need those features.
+
+## Generate and rebuild
+
+Run prebuild after changing configuration, then rebuild:
+
+```sh
+npx expo prebuild
+npx expo run:ios
+# or
+npx expo run:android
+```
+
+Repeated prebuilds merge flags and App Groups without duplicates. To remove a plugin or a previously generated setting, regenerate the native directories with a clean prebuild. A clean prebuild deletes those directories, so move any manual native changes into config plugins first.
+
+EAS Build runs these plugins when it generates native directories. If you commit `ios` or `android`, regenerate and commit the native changes yourself before building.
+
+Manual configuration remains supported. The plugin merges additional flags and preserves unrelated properties and entitlements. When a manual value conflicts with a requested option, remove the conflicting value or make it match. Pod-install environment switches such as `NITRO_SQLITE_VEC=1` and `NITRO_SQLITE_USE_PHONE_VERSION=1` must agree with the plugin settings. See [iOS configuration](/docs/configuration/ios) and [Android configuration](/docs/configuration/android) for manual setup.
+
+After rebuilding with FTS5 enabled, `SELECT sqlite_compileoption_used('ENABLE_FTS5')` should return `1`, and `CREATE VIRTUAL TABLE notes_search USING fts5(body)` should succeed.
