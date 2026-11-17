@@ -26,6 +26,13 @@ test('Expo plugin changes select TypeScript and prebuild checks without rebuildi
   assert.equal(checks.ios, false)
 })
 
+test('Expo example changes select the prebuild check without rebuilding native apps', () => {
+  const checks = selectChecks(['example/expo/app.json'], false)
+  assert.equal(checks.expo_plugin, true)
+  assert.equal(checks.android, false)
+  assert.equal(checks.ios, false)
+})
+
 test('platform changes only select their platform', () => {
   assert.deepEqual(
     enabled(selectChecks(['example/android/app/build.gradle'], false)),
