@@ -59,7 +59,7 @@ Pod::Spec.new do |s|
   s.platforms    = {
     :ios => min_ios_version_supported,
     :visionos => "1.0",
-    :osx => "10.13",
+    :osx => "10.15", # std::filesystem
   }
   s.source       = { :git => "https://github.com/margelo/react-native-nitro-sqlite.git", :tag => "#{s.version}" }
 
