@@ -1,0 +1,24 @@
+{
+  "name": "react-native-nitro-sqlite-expo-example",
+  "private": true,
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "ios": "expo run:ios",
+    "android": "expo run:android",
+    "prebuild": "expo prebuild --clean --no-install",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "expo": "~58.0.26",
+    "react": "19.3.1",
+    "react-native": "0.88.1",
+    "react-native-nitro-modules": "0.37.2",
+    "react-native-nitro-sqlite": "workspace:*",
+    "react-native-nitro-sqlite-vec": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "typescript": "^6.0.3"
+  }
+}

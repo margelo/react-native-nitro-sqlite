@@ -126,6 +126,21 @@
         "react-test-renderer": "19.3.1",
       },
     },
+    "example/expo": {
+      "name": "react-native-nitro-sqlite-expo-example",
+      "dependencies": {
+        "expo": "~58.0.26",
+        "react": "19.3.1",
+        "react-native": "0.88.1",
+        "react-native-nitro-modules": "0.37.2",
+        "react-native-nitro-sqlite": "workspace:*",
+        "react-native-nitro-sqlite-vec": "workspace:*",
+      },
+      "devDependencies": {
+        "@types/react": "^19.3.0",
+        "typescript": "^6.0.3",
+      },
+    },
     "example/macos": {
       "name": "react-native-nitro-sqlite-macos-example",
       "dependencies": {
@@ -2762,6 +2777,8 @@
     "react-native-nitro-sqlite-drizzle": ["react-native-nitro-sqlite-drizzle@workspace:packages/react-native-nitro-sqlite-drizzle"],
 
     "react-native-nitro-sqlite-example": ["react-native-nitro-sqlite-example@workspace:example"],
+
+    "react-native-nitro-sqlite-expo-example": ["react-native-nitro-sqlite-expo-example@workspace:example/expo"],
 
     "react-native-nitro-sqlite-macos-example": ["react-native-nitro-sqlite-macos-example@workspace:example/macos"],
 

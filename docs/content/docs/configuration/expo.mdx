@@ -102,4 +102,6 @@ EAS Build runs these plugins when it generates native directories. If you commit
 
 Manual configuration remains supported. The plugin merges additional flags and preserves unrelated properties and entitlements. When a manual value conflicts with a requested option, remove the conflicting value or make it match. Pod-install environment switches such as `NITRO_SQLITE_VEC=1` and `NITRO_SQLITE_USE_PHONE_VERSION=1` must agree with the plugin settings. See [iOS configuration](/docs/configuration/ios) and [Android configuration](/docs/configuration/android) for manual setup.
 
+The repository's [Expo example](https://github.com/margelo/react-native-nitro-sqlite/tree/main/example/expo) uses both plugins and checks FTS5, an extra compile definition, and sqlite-vec at runtime.
+
 After rebuilding with FTS5 enabled, `SELECT sqlite_compileoption_used('ENABLE_FTS5')` should return `1`, and `CREATE VIRTUAL TABLE notes_search USING fts5(body)` should succeed.

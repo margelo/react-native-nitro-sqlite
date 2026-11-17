@@ -23,6 +23,7 @@ export function selectChecks(files: string[], full: boolean) {
       'packages/react-native-nitro-sqlite/app.plugin.js',
       'packages/react-native-nitro-sqlite/plugin/**',
       'packages/react-native-nitro-sqlite-vec/app.plugin.js',
+      'example/expo/**',
       'packages/react-native-nitro-sqlite/ios/sqlite-config.rb',
       'packages/react-native-nitro-sqlite/RNNitroSQLite.podspec',
       'packages/react-native-nitro-sqlite-vec/RNNitroSqliteVec.podspec',

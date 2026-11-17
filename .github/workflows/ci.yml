@@ -176,6 +176,11 @@ jobs:
         run: bun add --dev --cwd packages/react-native-nitro-sqlite expo@~${{ matrix.sdk }}.0.0 --ignore-scripts
       - name: Test clean and repeated prebuilds on both platforms
         run: bun --cwd packages/react-native-nitro-sqlite test:prebuild
+      - name: Typecheck and prebuild the Expo example
+        if: matrix.sdk == 58
+        run: |
+          bun --cwd example/expo typecheck
+          bun --cwd example/expo prebuild
 
   lockfiles:
     name: Native lockfiles
