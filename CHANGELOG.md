@@ -1,5 +1,37 @@
 # Changelog
 
+## [10.4.0](https://github.com/margelo/react-native-nitro-sqlite/compare/v10.3.1...v10.4.0) (2026-11-17)
+
+
+### 🛠️ Dependency Upgrades
+
+* **deps:** bump Chai to 6.3.0 ([#433](https://github.com/margelo/react-native-nitro-sqlite/issues/433)) ([c6fafff](https://github.com/margelo/react-native-nitro-sqlite/commit/c6fafff92e39cc6118f923148cd3e97f515181d1))
+* **deps:** bump React Native to 0.88.1 ([#518](https://github.com/margelo/react-native-nitro-sqlite/issues/518)) ([e8d8a5c](https://github.com/margelo/react-native-nitro-sqlite/commit/e8d8a5c55961e6e0380afb01c7acb21db256eb5c))
+* **deps:** bump TypeORM to 1.1.2 ([#446](https://github.com/margelo/react-native-nitro-sqlite/issues/446)) ([2630e11](https://github.com/margelo/react-native-nitro-sqlite/commit/2630e110afbeec562a2d1399101e21a7e470616a))
+
+
+### ✨ Features
+
+* add change listeners for committed row changes ([#516](https://github.com/margelo/react-native-nitro-sqlite/issues/516)) ([6664abd](https://github.com/margelo/react-native-nitro-sqlite/commit/6664abddf26f2e478284125e3780c0a33e2ab3a8))
+* add Expo config plugins ([#512](https://github.com/margelo/react-native-nitro-sqlite/issues/512)) ([ad2387e](https://github.com/margelo/react-native-nitro-sqlite/commit/ad2387ecaa6b5b1d981c604cf30442cbf5118266))
+* **ios:** read SQLite settings from Podfile.properties.json ([#511](https://github.com/margelo/react-native-nitro-sqlite/issues/511)) ([3465f51](https://github.com/margelo/react-native-nitro-sqlite/commit/3465f51e0b5c3aec1bb1dbee7ac227f95cec213e))
+
+
+### 🐛 Bug Fixes
+
+* **android:** apply every nitroSqliteFlags definition ([#519](https://github.com/margelo/react-native-nitro-sqlite/issues/519)) ([a3a589a](https://github.com/margelo/react-native-nitro-sqlite/commit/a3a589ad0ddba6d625a1fed99e96fc14ac953ac5))
+* **macos:** declare macOS 10.15 as the minimum deployment target ([#508](https://github.com/margelo/react-native-nitro-sqlite/issues/508)) ([5bf7745](https://github.com/margelo/react-native-nitro-sqlite/commit/5bf77454ec665b0d4dfe97f7d64d1811d83b57b9))
+* wait for row batches that arrive after an async result ([#515](https://github.com/margelo/react-native-nitro-sqlite/issues/515)) ([18907e6](https://github.com/margelo/react-native-nitro-sqlite/commit/18907e63bc8add39541a2ef4e703437369ac94ee))
+
+
+### 🏗️ Project configuration and build flow
+
+* **deps-dev:** bump @react-native-harness/cli to 1.7.0 ([#506](https://github.com/margelo/react-native-nitro-sqlite/issues/506)) ([486a661](https://github.com/margelo/react-native-nitro-sqlite/commit/486a6617e1bf651882c60e40b0a8743db828d7a0))
+* **deps-dev:** bump @react-native-harness/platform-android to 1.7.0 ([#507](https://github.com/margelo/react-native-nitro-sqlite/issues/507)) ([f61af25](https://github.com/margelo/react-native-nitro-sqlite/commit/f61af257376b89f9ab9c146b5c385bbe539efcc4))
+* **deps-dev:** support better-sqlite3 13 ([#435](https://github.com/margelo/react-native-nitro-sqlite/issues/435)) ([5e2508b](https://github.com/margelo/react-native-nitro-sqlite/commit/5e2508b1da8f0868ba8b069203f8c4bfbdb352d3))
+* **example:** add an Expo example that uses the config plugins ([#520](https://github.com/margelo/react-native-nitro-sqlite/issues/520)) ([85828b4](https://github.com/margelo/react-native-nitro-sqlite/commit/85828b48da420e5352544d930b81ca4ca28c9d77))
+* **example:** keep Drizzle fixtures in Metro builds without watchman ([#509](https://github.com/margelo/react-native-nitro-sqlite/issues/509)) ([cfb2f42](https://github.com/margelo/react-native-nitro-sqlite/commit/cfb2f427d376335f81579d2aa995158f7b28661f))
+
 ## [10.3.1](https://github.com/margelo/react-native-nitro-sqlite/compare/v10.3.0...v10.3.1) (2026-11-17)
 
 
