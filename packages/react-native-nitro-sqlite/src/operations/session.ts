@@ -148,9 +148,8 @@ export function open(
       ),
     detach: (alias: string) =>
       runSyncOperation(() => HybridNitroSQLite.detach(connectionId, alias)),
-    transaction: async <Result = void>(
-      fn: (tx: Transaction) => Promise<Result>,
-    ) => runOperation(() => transaction(connectionId, fn, false, queueKey)),
+    transaction: <Result = void>(fn: (tx: Transaction) => Promise<Result>) =>
+      runAsyncOperation(() => transaction(connectionId, fn, false, queueKey)),
     execute: <Row extends QueryResultRow = never>(
       query: string,
       params?: SQLiteQueryParams,

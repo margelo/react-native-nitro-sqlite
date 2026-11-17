@@ -1,4 +1,4 @@
-import { queueOperationAsync, throwIfDatabaseIsNotOpen } from '../DatabaseQueue'
+import { queueOperationAsync } from '../DatabaseQueue'
 import type {
   Transaction,
   SQLiteQueryParams,
@@ -28,14 +28,12 @@ import type { DatabaseQueueKey } from '../DatabaseQueue'
  * @returns The callback's result after the transaction finishes.
  * @throws NitroSQLiteError if BEGIN, the callback, COMMIT, or ROLLBACK fails.
  */
-export const transaction = async <Result = void>(
+export const transaction = <Result = void>(
   dbName: string,
   transactionCallback: (tx: Transaction) => Promise<Result>,
   isExclusive = false,
   queueKey: DatabaseQueueKey = dbName,
-) => {
-  throwIfDatabaseIsNotOpen(queueKey)
-
+): Promise<Result> => {
   const state: { current: TransactionState } = {
     current: { kind: 'notStarted' },
   }
@@ -143,7 +141,9 @@ export const transaction = async <Result = void>(
     }
   }
 
-  return await queueOperationAsync(queueKey, async () => {
+  // Only the callback below needs `async`; wrapping the queue too would add promise layers.
+  // The queue rejects when the database is not open.
+  return queueOperationAsync(queueKey, async () => {
     try {
       await executeAsyncNative(
         dbName,
