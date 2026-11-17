@@ -3,8 +3,10 @@
 #ifdef SQLITE_ENABLE_SEE
 #define SQLITE_HAS_CODEC 1
 #endif
+#include "DatabaseChange.hpp"
 #include "NitroSQLiteStatementCache.hpp"
 #include "sqlite/sqlite3.h"
+#include <atomic>
 #include <filesystem>
 #include <functional>
 #include <map>
@@ -13,6 +15,7 @@
 #include <optional>
 #include <string>
 #include <thread>
+#include <vector>
 
 namespace margelo::nitro::rnnitrosqlite {
 
@@ -37,6 +40,9 @@ private:
   std::thread _thread;
 };
 
+/** Receives the row changes of one committed transaction. */
+using SQLiteChangeHandler = std::function<void(const std::vector<DatabaseChange>&)>;
+
 /** One native SQLite handle, its file identity, and its operation locks. */
 struct SQLiteConnection final {
   SQLiteConnection(std::string name, std::filesystem::path physicalPath, bool readOnly, sqlite3* database);
@@ -49,6 +55,12 @@ struct SQLiteConnection final {
   void close() noexcept;
   /** Submit an operation to this connection's native FIFO worker. */
   void enqueueAsync(std::function<void()> operation);
+  /** Send committed row changes to @p handler, or stop recording them with std::nullopt.
+   * Does not wait for the connection's running operation.
+   */
+  void setChangeHandler(std::optional<SQLiteChangeHandler> handler);
+  /** Send the recorded changes to the change handler if no transaction is open. Requires mutex. */
+  void deliverCommittedChanges() noexcept;
 
   const std::string name;
   const std::filesystem::path physicalPath;
@@ -57,12 +69,40 @@ struct SQLiteConnection final {
   std::recursive_mutex mutex;
   /** Reusable statements for repeated SQL. Guarded by mutex and cleared on close. */
   SQLiteStatementCache statementCache;
+  /** Changes recorded by SQLite's update hook since the last commit or rollback. Guarded by mutex,
+   * which every statement step holds.
+   */
+  std::vector<DatabaseChange> pendingChanges;
+  /** Whether the update hook records changes. Set while a change handler is registered. */
+  std::atomic<bool> recordsChanges = false;
 
 private:
+  // Separate from mutex so that registering a handler never waits for a running query.
+  std::mutex changeHandlerMutex;
+  std::optional<SQLiteChangeHandler> changeHandler;
   std::mutex asyncWorkerMutex;
   // Started by the first async operation. One dedicated thread, rather than a shared pool that
   // spreads operations across its threads, lets the OS scheduler see the connection's sustained load.
   std::unique_ptr<SerialWorker> asyncWorker;
+};
+
+/** Covers one SQL execution on a connection whose mutex the caller holds. When it ends with no
+ * transaction open, it sends the recorded changes to the change handler. When it ends with an
+ * exception, it first drops the changes recorded during the execution, because SQLite rolled back
+ * the failed statement.
+ */
+class SQLiteChangeScope final {
+public:
+  explicit SQLiteChangeScope(SQLiteConnection& connection) noexcept;
+  ~SQLiteChangeScope();
+
+  SQLiteChangeScope(const SQLiteChangeScope&) = delete;
+  SQLiteChangeScope& operator=(const SQLiteChangeScope&) = delete;
+
+private:
+  SQLiteConnection& _connection;
+  const size_t _recordedChanges;
+  const int _uncaughtExceptions;
 };
 
 /** Shared ownership of a native connection across pending operations. */

@@ -2,6 +2,7 @@ import type { HybridObject } from 'react-native-nitro-modules'
 import type {
   BatchQueryCommand,
   BatchQueryResult,
+  DatabaseChange,
   FileLoadResult,
   SQLiteQueryParams,
 } from '../types'
@@ -121,6 +122,18 @@ export interface NitroSQLite
    */
   setRowBatchHandler(
     handler: (rowBatchId: number, rows: NitroSQLiteQueryRows) => void,
+  ): void
+  /** Report committed row changes on a connection, or stop reporting them.
+   * While a handler is set, SQLite's update hook records each inserted, updated, or deleted row.
+   * A rollback discards the recorded changes, and so does a statement that throws. Once no
+   * transaction is open, the handler receives the recorded changes, asynchronously on the JS thread.
+   * Closing the connection removes the handler.
+   * @param dbName Name or ID of an open database connection.
+   * @param handler Receives each batch of committed changes. Omit it to stop reporting changes.
+   */
+  setChangeHandler(
+    dbName: string,
+    handler?: (changes: DatabaseChange[]) => void,
   ): void
   /** Execute one SQL statement synchronously on the calling thread, returning rows as arrays of column values.
    * @param dbName Name of an open database.

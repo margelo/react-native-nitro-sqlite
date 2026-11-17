@@ -210,6 +210,11 @@ void HybridNitroSQLite::setRowBatchHandler(const std::function<void(double, SQLi
   _rowBatchHandler = std::make_shared<const std::function<void(double, SQLiteQueryResults)>>(handler);
 }
 
+void HybridNitroSQLite::setChangeHandler(const std::string& dbName,
+                                         const std::optional<std::function<void(const std::vector<DatabaseChange>&)>>& handler) {
+  _connections.get(dbName)->setChangeHandler(handler);
+}
+
 NitroSQLiteRawQueryResult HybridNitroSQLite::executeRaw(const std::string& dbName, const std::string& query,
                                                         const std::optional<SQLiteQueryParams>& params) {
   return sqliteExecuteRaw(_connections.get(dbName), query, params);

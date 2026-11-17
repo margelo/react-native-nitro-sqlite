@@ -5,6 +5,7 @@
 #include <array>
 #include <condition_variable>
 #include <cstring>
+#include <exception>
 #include <filesystem>
 #include <fstream>
 #include <memory>
@@ -219,8 +220,38 @@ void SerialWorker::enqueue(std::function<void()> operation) {
   _state->condition.notify_one();
 }
 
+namespace {
+
+  // SQLite calls this for each changed row while the stepping thread holds the connection's mutex.
+  void recordChange(void* context, int operation, const char* database, const char* table, sqlite3_int64 rowId) {
+    auto* connection = static_cast<SQLiteConnection*>(context);
+    if (!connection->recordsChanges.load(std::memory_order_relaxed)) {
+      return;
+    }
+    const auto changeOperation = operation == SQLITE_INSERT   ? DatabaseChangeOperation::INSERT
+                                 : operation == SQLITE_UPDATE ? DatabaseChangeOperation::UPDATE
+                                                              : DatabaseChangeOperation::DELETE;
+    try {
+      connection->pendingChanges.emplace_back(changeOperation, database, table, static_cast<double>(rowId));
+    } catch (...) {
+      // An exception must not unwind through SQLite. The change is lost.
+      LOGE("Could not record a change to table %s", table);
+    }
+  }
+
+  // Also runs while the stepping thread holds the connection's mutex.
+  void discardChanges(void* context) {
+    static_cast<SQLiteConnection*>(context)->pendingChanges.clear();
+  }
+
+} // namespace
+
 SQLiteConnection::SQLiteConnection(std::string connectionName, fs::path path, bool isReadOnly, sqlite3* handle)
-    : name(std::move(connectionName)), physicalPath(canonicalDatabasePath(path)), readOnly(isReadOnly), database(handle) {}
+    : name(std::move(connectionName)), physicalPath(canonicalDatabasePath(path)), readOnly(isReadOnly), database(handle) {
+  // Installed once, before any other thread can use the handle. They only record while a handler is set.
+  sqlite3_update_hook(database, recordChange, this);
+  sqlite3_rollback_hook(database, discardChanges, this);
+}
 
 SQLiteConnection::~SQLiteConnection() {
   close();
@@ -234,14 +265,55 @@ void SQLiteConnection::enqueueAsync(std::function<void()> operation) {
   asyncWorker->enqueue(std::move(operation));
 }
 
+void SQLiteConnection::setChangeHandler(std::optional<SQLiteChangeHandler> handler) {
+  std::lock_guard lock(changeHandlerMutex);
+  recordsChanges = handler.has_value();
+  changeHandler = std::move(handler);
+}
+
+void SQLiteConnection::deliverCommittedChanges() noexcept {
+  // close() clears pendingChanges, so a closed handle never reaches sqlite3_get_autocommit.
+  if (pendingChanges.empty() || sqlite3_get_autocommit(database) == 0) {
+    return;
+  }
+  const auto changes = std::move(pendingChanges);
+  pendingChanges.clear();
+
+  try {
+    std::lock_guard lock(changeHandlerMutex);
+    // Nitro posts the call to the JS thread, so the handler never runs inside this SQL execution.
+    if (changeHandler) {
+      (*changeHandler)(changes);
+    }
+  } catch (const std::exception& error) {
+    LOGE("Could not report changes on database %s: %s", name.c_str(), error.what());
+  } catch (...) {
+    LOGE("Could not report changes on database %s", name.c_str());
+  }
+}
+
 void SQLiteConnection::close() noexcept {
   std::lock_guard lock(mutex);
+  setChangeHandler(std::nullopt);
+  pendingChanges.clear();
   if (database == nullptr) {
     return;
   }
   statementCache.clear();
   sqlite3_close_v2(database);
   database = nullptr;
+}
+
+SQLiteChangeScope::SQLiteChangeScope(SQLiteConnection& connection) noexcept
+    : _connection(connection), _recordedChanges(connection.pendingChanges.size()), _uncaughtExceptions(std::uncaught_exceptions()) {}
+
+SQLiteChangeScope::~SQLiteChangeScope() {
+  auto& changes = _connection.pendingChanges;
+  const bool failed = std::uncaught_exceptions() > _uncaughtExceptions;
+  if (failed && changes.size() > _recordedChanges) {
+    changes.erase(changes.begin() + static_cast<std::ptrdiff_t>(_recordedChanges), changes.end());
+  }
+  _connection.deliverCommittedChanges();
 }
 
 DatabaseConnections::DatabaseConnections() : lifecycleMutex(processConnections().lifecycleMutex) {}

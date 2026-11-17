@@ -6,6 +6,7 @@
     "node-test-mock",
     "prepared-statements",
     "transactions",
+    "change-listeners",
     "batch-operations",
     "database-lifecycle",
     "encryption",
