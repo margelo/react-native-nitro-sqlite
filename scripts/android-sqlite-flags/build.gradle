@@ -32,6 +32,10 @@ tasks.register('testSqliteFlags') {
     assert !flagsFor([:], '-DSQLITE_ENABLE_RTREE=1').any { it.startsWith('-DSQLITE_ENABLE_RTREE') }
     assert !flagsFor([:], '-DHAVE_FDATASYNC=0').any { it.startsWith('-DHAVE_FDATASYNC') }
 
+    assert parseNitroSqliteFlags(null) == []
+    assert parseNitroSqliteFlags('-DSQLITE_ENABLE_FTS5=1') == ['-DSQLITE_ENABLE_FTS5=1']
+    assert parseNitroSqliteFlags(' "-DSQLITE_ENABLE_FTS5=1  -DSQLITE_ENABLE_MATH_FUNCTIONS=1" ') == ['-DSQLITE_ENABLE_FTS5=1', '-DSQLITE_ENABLE_MATH_FUNCTIONS=1']
+
     def expectInvalid = { Map appPackage, String message ->
       try {
         flagsFor(appPackage, '')

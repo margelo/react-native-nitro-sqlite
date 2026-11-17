@@ -7,6 +7,7 @@
     "packages/*",
     "example",
     "example/macos",
+    "example/expo",
     "docs"
   ],
   "repository": {
@@ -40,7 +41,7 @@
   "dependencies": {
     "patch-package": "^8.0.0",
     "react": "19.3.1",
-    "react-native": "0.88.0",
+    "react-native": "0.88.1",
     "react-native-nitro-modules": "0.37.2"
   },
   "devDependencies": {
@@ -52,10 +53,10 @@
     "@react-native-community/cli": "20.2.0",
     "@react-native-community/cli-platform-android": "20.2.0",
     "@react-native-community/cli-platform-ios": "20.2.0",
-    "@react-native/babel-preset": "0.88.0",
-    "@react-native/eslint-config": "0.88.0",
-    "@react-native/metro-config": "0.88.0",
-    "@react-native/typescript-config": "0.88.0",
+    "@react-native/babel-preset": "0.88.1",
+    "@react-native/eslint-config": "0.88.1",
+    "@react-native/metro-config": "0.88.1",
+    "@react-native/typescript-config": "0.88.1",
     "@tsconfig/react-native": "^2.0.2",
     "@types/eslint__js": "^8.42.3",
     "@types/jest": "^29.5.13",

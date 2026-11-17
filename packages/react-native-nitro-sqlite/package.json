@@ -21,6 +21,11 @@
     "./mock": {
       "types": "./lib/typescript/mock.d.ts",
       "default": "./lib/module/mock.js"
+    },
+    "./app.plugin.js": "./app.plugin.js",
+    "./plugin": {
+      "types": "./plugin/build/index.d.ts",
+      "default": "./plugin/build/index.js"
     }
   },
   "files": [
@@ -33,6 +38,9 @@
     "cpp",
     "nitrogen",
     "RNNitroSQLite.podspec",
+    "app.plugin.js",
+    "plugin/build",
+    "!plugin/build/*.tsbuildinfo",
     "!lib/typescript/example",
     "!android/build",
     "!android/.cxx",
@@ -42,12 +50,14 @@
     "!**/__mocks__"
   ],
   "scripts": {
-    "build": "bun typecheck && bob build",
+    "build": "bun typecheck && bob build && tsc -p plugin/tsconfig.build.json",
     "specs": "bun typecheck && bun nitrogen --logLevel=\"debug\"",
-    "typecheck": "tsc --noEmit",
-    "lint": "eslint \"**/*.{js,ts,tsx}\" --fix",
+    "typecheck": "tsc --noEmit && tsc -p plugin --noEmit",
+    "lint": "eslint \"**/*.{js,ts,tsx,mts}\" --fix",
     "test": "jest",
-    "prepublishOnly": "bun run build"
+    "prepublishOnly": "bun run build",
+    "test:plugin": "tsc -p plugin/tsconfig.build.json && node --test plugin/tests/plugin.test.mts",
+    "test:prebuild": "tsc -p plugin/tsconfig.build.json && node --test plugin/tests/prebuild.test.mts"
   },
   "keywords": [
     "react-native",
@@ -74,13 +84,14 @@
     "typeorm": "1.1.2"
   },
   "devDependencies": {
-    "@react-native/jest-preset": "0.88.0",
+    "@react-native/jest-preset": "0.88.1",
     "@types/better-sqlite3": "^9.6.0",
     "better-sqlite3": "^13.0.3",
+    "expo": "~58.0.26",
     "jest": "^30.2.0",
     "nitrogen": "0.37.2",
     "react": "19.3.1",
-    "react-native": "0.88.0",
+    "react-native": "0.88.1",
     "react-native-builder-bob": "^0.44.1",
     "react-native-nitro-modules": "0.37.2"
   },
@@ -88,10 +99,14 @@
     "better-sqlite3": "^12.11.1 || ^13.0.3",
     "react": ">=17.0.0",
     "react-native": ">=0.75.0",
-    "react-native-nitro-modules": ">=0.35.0"
+    "react-native-nitro-modules": ">=0.35.0",
+    "expo": ">=55.0.0"
   },
   "peerDependenciesMeta": {
     "better-sqlite3": {
+      "optional": true
+    },
+    "expo": {
       "optional": true
     }
   },

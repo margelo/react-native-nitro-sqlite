@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "Nitro SQLite Expo",
+    "slug": "nitro-sqlite-expo-example",
+    "version": "1.0.0",
+    "icon": "./assets/icon.png",
+    "ios": {
+      "bundleIdentifier": "com.margelo.nitrosqlite.expoexample"
+    },
+    "android": {
+      "package": "com.margelo.nitrosqlite.expoexample"
+    },
+    "plugins": [
+      [
+        "react-native-nitro-sqlite",
+        {
+          "fts5": true,
+          "sqliteFlags": {
+            "ios": ["SQLITE_ENABLE_MATH_FUNCTIONS=1"],
+            "android": ["-DSQLITE_ENABLE_MATH_FUNCTIONS=1"]
+          },
+          "ios": {
+            "appGroup": "group.com.margelo.nitrosqlite.expoexample"
+          }
+        }
+      ],
+      "react-native-nitro-sqlite-vec"
+    ]
+  }
+}

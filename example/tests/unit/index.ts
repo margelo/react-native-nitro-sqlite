@@ -6,6 +6,7 @@ import registerExecuteRawUnitTests from './specs/operations/executeRaw.spec'
 import registerTransactionUnitTests from './specs/operations/transaction.spec'
 import registerExecuteBatchUnitTests from './specs/operations/executeBatch.spec'
 import registerPreparedStatementUnitTests from './specs/operations/preparedStatement.spec'
+import registerChangeListenerUnitTests from './specs/operations/changeListener.spec'
 import registerTypeORMUnitTestsSpecs from './specs/typeorm.spec'
 import registerDatabaseQueueUnitTests from './specs/DatabaseQueue.spec'
 import registerSqliteVecUnitTestsSpecs from './specs/sqlite-vec.spec'
@@ -25,6 +26,7 @@ export function registerUnitTests() {
     'operations/preparedStatement.spec.ts',
     registerPreparedStatementUnitTests,
   )
+  describe('operations/changeListener.spec.ts', registerChangeListenerUnitTests)
   describe('DatabaseQueue.spec.ts', registerDatabaseQueueUnitTests)
   describe('Connections.spec.ts', registerConnectionUnitTests)
   describe('benchmarkDatabase.spec.ts', registerBenchmarkDatabaseUnitTests)

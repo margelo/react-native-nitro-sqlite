@@ -46,6 +46,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     outputs:
+      expo_plugin: ${{ steps.select.outputs.expo_plugin }}
       android: ${{ steps.select.outputs.android }}
       android_configuration: ${{ steps.select.outputs.android_configuration }}
       ios: ${{ steps.select.outputs.ios }}
@@ -131,6 +132,8 @@ jobs:
           (cd packages/react-native-nitro-sqlite-drizzle && ../../node_modules/.bin/jest --coverage --runInBand)
           (cd example && ../node_modules/.bin/jest --config jest.mocha.config.js --runInBand --watchman=false)
           node --test example/macos/scripts/test-macos.test.mjs
+          bun --cwd packages/react-native-nitro-sqlite test:plugin
+          bun --cwd packages/react-native-nitro-sqlite typecheck
       - name: Format C++
         if: steps.select.outputs.cpp_format == 'true'
         run: |
@@ -147,6 +150,37 @@ jobs:
         run: |
           bun docs typecheck
           bun docs build
+
+  expo-plugin:
+    name: Expo SDK ${{ matrix.sdk }} prebuild
+    needs: checks
+    if: needs.checks.outputs.expo_plugin == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        sdk: [55, 56, 57, 58]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.1
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Select Expo SDK for the fixture
+        if: matrix.sdk != 58
+        run: bun add --dev --cwd packages/react-native-nitro-sqlite expo@~${{ matrix.sdk }}.0.0 --ignore-scripts
+      - name: Test clean and repeated prebuilds on both platforms
+        run: bun --cwd packages/react-native-nitro-sqlite test:prebuild
+      - name: Typecheck and prebuild the Expo example
+        if: matrix.sdk == 58
+        run: |
+          bun --cwd example/expo typecheck
+          bun --cwd example/expo prebuild
 
   lockfiles:
     name: Native lockfiles

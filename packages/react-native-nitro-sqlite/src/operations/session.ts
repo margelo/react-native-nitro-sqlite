@@ -18,6 +18,7 @@ import {
 } from './execute'
 import { executeBatch, executeBatchAsync } from './executeBatch'
 import { prepare } from './prepare'
+import { createChangeListeners } from './changeListeners'
 import NitroSQLiteError from '../NitroSQLiteError'
 import {
   closeDatabaseQueue,
@@ -48,6 +49,7 @@ export function open(
   const { name, location: databaseLocation, connection, readOnly } = options
   const { connectionId, queueKey } = openNativeConnection(options)
   const connectionQueue = getDatabaseQueue(queueKey)
+  const changeListeners = createChangeListeners(connectionId)
 
   const assertCurrentConnection = () => {
     if (
@@ -101,6 +103,7 @@ export function open(
     close: () => {
       runSyncOperation(() => HybridNitroSQLite.close(connectionId))
       closeDatabaseQueue(queueKey)
+      changeListeners.clear()
     },
     delete: () => {
       if (readOnly) {
@@ -117,6 +120,7 @@ export function open(
             } else {
               HybridNitroSQLite.drop(name, databaseLocation)
             }
+            changeListeners.clear()
           } catch (error) {
             dropFailed = true
             throw error
@@ -138,6 +142,7 @@ export function open(
           !HybridNitroSQLite.isConnectionOpen(connectionId)
         ) {
           closeDatabaseQueue(queueKey)
+          changeListeners.clear()
         }
         throw NitroSQLiteError.fromError(error)
       }
@@ -190,6 +195,8 @@ export function open(
           ),
         ),
       ),
+    addChangeListener: (listener) =>
+      runOperation(() => changeListeners.add(listener)),
   }
 }
 

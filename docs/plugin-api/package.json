@@ -1,0 +1,8 @@
+{
+  "name": "react-native-nitro-sqlite/plugin",
+  "private": true,
+  "typedocOptions": {
+    "entryPoints": ["../../packages/react-native-nitro-sqlite/plugin/src/index.ts"],
+    "tsconfig": "../tsconfig.typedoc.json"
+  }
+}

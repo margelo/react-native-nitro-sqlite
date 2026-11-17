@@ -30,6 +30,13 @@ To run the example app on iOS:
 bun example ios
 ```
 
+The [Expo example](/example/expo/) uses the Expo config plugins from both packages. Run it on iOS or Android with:
+
+```sh
+bun --cwd example/expo ios
+bun --cwd example/expo android
+```
+
 Make sure your code passes TypeScript and ESLint. Run the following to verify:
 
 ```sh

@@ -3,6 +3,8 @@ module.exports = {
   ignorePatterns: [
     '**/node_modules',
     '**/lib',
+    '**/plugin/build',
+    '**/app.plugin.js',
     '**/.eslintrc.js',
     '**/.prettierrc.js',
     '**/jest.config.js',
