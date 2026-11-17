@@ -1,7 +1,7 @@
-diff --git a/node_modules/react-native-nitro-modules/cpp/utils/NitroDefines.hpp b/node_modules/react-native-nitro-modules/cpp/utils/NitroDefines.hpp
-index f26400a..e4d09da 100644
---- a/node_modules/react-native-nitro-modules/cpp/utils/NitroDefines.hpp
-+++ b/node_modules/react-native-nitro-modules/cpp/utils/NitroDefines.hpp
+diff --git a/node_modules/react-native-nitro-modules/cpp/core/utils/NitroDefines.hpp b/node_modules/react-native-nitro-modules/cpp/core/utils/NitroDefines.hpp
+index 015c68a..f694660 100644
+--- a/node_modules/react-native-nitro-modules/cpp/core/utils/NitroDefines.hpp
++++ b/node_modules/react-native-nitro-modules/cpp/core/utils/NitroDefines.hpp
 @@ -31,6 +31,13 @@
  #define _CXX_INTEROP_HAS_ATTRIBUTE(x) 0
  #endif
@@ -17,7 +17,7 @@ index f26400a..e4d09da 100644
  #if _CXX_INTEROP_HAS_ATTRIBUTE(enum_extensibility)
  // Enum is marked as closed/not extensible
 diff --git a/node_modules/react-native-nitro-modules/cpp/views/ReactProp.hpp b/node_modules/react-native-nitro-modules/cpp/views/ReactProp.hpp
-index ad9e4c0..e5ff10c 100644
+index d2bbac4..00886cf 100644
 --- a/node_modules/react-native-nitro-modules/cpp/views/ReactProp.hpp
 +++ b/node_modules/react-native-nitro-modules/cpp/views/ReactProp.hpp
 @@ -4,6 +4,13 @@
@@ -34,14 +34,14 @@ index ad9e4c0..e5ff10c 100644
  #include "BorrowingReference.hpp"
  #include "IsFunctionProp.hpp"
  #include "JSIConverter.hpp"
-@@ -121,3 +128,5 @@ class ReactProp final {
+@@ -119,3 +126,5 @@ public:
  };
  
  } // namespace margelo::nitro
 +
 +#endif
 diff --git a/node_modules/react-native-nitro-modules/cpp/views/ViewComponentDescriptor.hpp b/node_modules/react-native-nitro-modules/cpp/views/ViewComponentDescriptor.hpp
-index a2d9f29..7f34a26 100644
+index 8fb5065..8304c91 100644
 --- a/node_modules/react-native-nitro-modules/cpp/views/ViewComponentDescriptor.hpp
 +++ b/node_modules/react-native-nitro-modules/cpp/views/ViewComponentDescriptor.hpp
 @@ -4,6 +4,13 @@
@@ -56,16 +56,16 @@ index a2d9f29..7f34a26 100644
 +#if !NITRO_BUILDING_MODULE(NitroModules)
 +
  #include "RawPropsCompat.hpp"
+ #include "ReactNativeCore.hpp"
  
- #include <concepts>
-@@ -75,3 +82,5 @@ class ViewComponentDescriptor final : public react::ConcreteComponentDescriptor<
+@@ -75,3 +82,5 @@ public:
  };
  
  } // namespace margelo::nitro
 +
 +#endif
 diff --git a/node_modules/react-native-nitro-modules/cpp/views/ViewPropsHolderState.hpp b/node_modules/react-native-nitro-modules/cpp/views/ViewPropsHolderState.hpp
-index cedaf00..4486094 100644
+index 798ca9a..e224251 100644
 --- a/node_modules/react-native-nitro-modules/cpp/views/ViewPropsHolderState.hpp
 +++ b/node_modules/react-native-nitro-modules/cpp/views/ViewPropsHolderState.hpp
 @@ -4,6 +4,13 @@
@@ -79,10 +79,10 @@ index cedaf00..4486094 100644
 +// be included textually, from C++.
 +#if !NITRO_BUILDING_MODULE(NitroModules)
 +
+ #include "ReactNativeCore.hpp"
+ 
  #include <memory>
- #include <react/renderer/core/ConcreteComponentDescriptor.h>
- #include <utility>
-@@ -48,3 +55,5 @@ struct ViewPropsHolderState final {
+@@ -49,3 +56,5 @@ private:
  };
  
  } // namespace margelo::nitro

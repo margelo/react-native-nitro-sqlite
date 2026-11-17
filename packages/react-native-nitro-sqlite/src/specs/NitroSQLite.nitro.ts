@@ -101,6 +101,9 @@ export interface NitroSQLite
    * @param onRows Receives leading rows in batches, in order, while SQLite still reads the rest, so
    * JavaScript can convert a batch while the next one is read. Batched rows are not repeated in the
    * result's `results`, which then holds only the rows after the last batch.
+   * @param rowBatchId Without `onRows`, sends the same batches to the handler set with
+   * `setRowBatchHandler`, tagged with this ID. Unlike `onRows`, no function crosses to native code
+   * for each query.
    * @returns A promise of the native query result.
    */
   executeAsync(
@@ -108,7 +111,17 @@ export interface NitroSQLite
     query: string,
     params?: SQLiteQueryParams,
     onRows?: (rows: NitroSQLiteQueryRows) => void,
+    rowBatchId?: number,
   ): Promise<NitroSQLiteQueryResult>
+  /** Set the function that receives row batches for `executeAsync` calls made with a `rowBatchId`.
+   * The managed API sets it on its first async query and relies on it, so replacing it drops leading
+   * rows from managed async results.
+   * @param handler Receives the query's row batch ID and its next batch of leading rows, in order,
+   * before that query's promise settles.
+   */
+  setRowBatchHandler(
+    handler: (rowBatchId: number, rows: NitroSQLiteQueryRows) => void,
+  ): void
   /** Execute one SQL statement synchronously on the calling thread, returning rows as arrays of column values.
    * @param dbName Name of an open database.
    * @param query SQL statement with optional positional placeholders.

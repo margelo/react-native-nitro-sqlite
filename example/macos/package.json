@@ -21,7 +21,7 @@
     "react-native": "0.81.6",
     "react-native-get-random-values": "^2.0.0",
     "react-native-macos-local": "npm:react-native-macos@0.81.9",
-    "react-native-nitro-modules": "0.37.1",
+    "react-native-nitro-modules": "0.37.2",
     "react-native-nitro-sqlite": "workspace:*",
     "react-native-nitro-sqlite-drizzle": "workspace:*",
     "react-native-nitro-sqlite-vec": "workspace:*",

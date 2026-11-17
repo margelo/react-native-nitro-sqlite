@@ -24,6 +24,7 @@ type WriteMethod =
   | 'asyncQueued'
   | 'transaction'
   | 'batchAsync'
+  | 'transactionSync'
 
 const methods: { method: WriteMethod; label: string }[] = [
   { method: 'execute', label: '1k inserts · sync execute' },
@@ -33,6 +34,10 @@ const methods: { method: WriteMethod; label: string }[] = [
   { method: 'asyncQueued', label: '1k inserts · async queued' },
   { method: 'transaction', label: '1k inserts · async transaction' },
   { method: 'batchAsync', label: '1k inserts · async batch' },
+  {
+    method: 'transactionSync',
+    label: '1k inserts · sync execute in a transaction',
+  },
 ]
 
 export const writeCases: BenchmarkCase[] = methods.map(({ method, label }) => ({
@@ -99,6 +104,8 @@ function runWriteCase(
       return db
         .executeBatchAsync([{ query: INSERT_SQL, params: rows }])
         .then(() => undefined)
+    case 'transactionSync':
+      return runSyncTransaction(db, rows)
   }
 }
 
@@ -122,5 +129,15 @@ async function runTransaction(
 ): Promise<void> {
   await db.transaction(async (tx) => {
     for (const params of rows) await tx.executeAsync(INSERT_SQL, params)
+  })
+}
+
+// One commit for all rows, so the time is mostly per-call overhead.
+async function runSyncTransaction(
+  db: NitroSQLiteConnection,
+  rows: SQLiteQueryParams[],
+): Promise<void> {
+  await db.transaction(async (tx) => {
+    for (const params of rows) tx.execute(INSERT_SQL, params)
   })
 }
