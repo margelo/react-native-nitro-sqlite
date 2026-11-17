@@ -18,6 +18,15 @@ beforeEach(() => {
 
 afterEach(() => closeDatabaseQueue(dbName))
 
+/** Native execute mock that fails the listed statements, e.g. "rollback failed" for ROLLBACK. */
+const failOn =
+  (...queries: string[]) =>
+  (_name: string, query: string) => {
+    if (queries.includes(query))
+      throw new Error(`${query.toLowerCase()} failed`)
+    return nativeResult()
+  }
+
 describe('transaction', () => {
   it('requires an open database', async () => {
     closeDatabaseQueue(dbName)
@@ -35,21 +44,20 @@ describe('transaction', () => {
     })
 
     expect(result).toBe('finished')
-    expect(HybridNitroSQLite.executeAsync).toHaveBeenNthCalledWith(
+    expect(HybridNitroSQLite.execute).toHaveBeenNthCalledWith(
       1,
       dbName,
       'BEGIN TRANSACTION',
       undefined,
-      expect.any(Function),
     )
     expect(HybridNitroSQLite.execute).toHaveBeenNthCalledWith(
-      1,
+      2,
       dbName,
       'SELECT ?',
       [1],
     )
-    expect(HybridNitroSQLite.executeAsync).toHaveBeenNthCalledWith(
-      2,
+    expect(HybridNitroSQLite.executeAsync).toHaveBeenCalledTimes(1)
+    expect(HybridNitroSQLite.executeAsync).toHaveBeenCalledWith(
       dbName,
       'SELECT ?',
       [2],
@@ -60,6 +68,20 @@ describe('transaction', () => {
       'COMMIT',
       undefined,
     )
+  })
+
+  it('starts the callback after transaction() returns', async () => {
+    const callback = jest.fn(async () => {})
+    const pending = transaction(dbName, callback)
+
+    expect(HybridNitroSQLite.execute).toHaveBeenCalledWith(
+      dbName,
+      'BEGIN TRANSACTION',
+      undefined,
+    )
+    expect(callback).not.toHaveBeenCalled()
+    await pending
+    expect(callback).toHaveBeenCalledTimes(1)
   })
 
   it('runs raw queries inside the transaction with the same guards', async () => {
@@ -146,14 +168,14 @@ describe('transaction', () => {
       queryStarted.resolve()
     })
     await queryStarted.promise
-    expect(HybridNitroSQLite.execute).not.toHaveBeenCalled()
+    expect(HybridNitroSQLite.execute).toHaveBeenCalledTimes(1)
 
     pendingQuery.resolve(nativeResult())
     await expect(pendingTransaction).rejects.toThrow(
       'Await all tx.executeAsync',
     )
-    expect(HybridNitroSQLite.execute).toHaveBeenCalledTimes(1)
-    expect(HybridNitroSQLite.execute).toHaveBeenCalledWith(
+    expect(HybridNitroSQLite.execute).toHaveBeenCalledTimes(2)
+    expect(HybridNitroSQLite.execute).toHaveBeenLastCalledWith(
       dbName,
       'ROLLBACK',
       undefined,
@@ -216,8 +238,8 @@ describe('transaction', () => {
       expect(() => tx.rollback()).toThrow('finalized transaction')
     })
 
-    expect(HybridNitroSQLite.execute).toHaveBeenCalledTimes(1)
-    expect(HybridNitroSQLite.execute).toHaveBeenCalledWith(
+    expect(HybridNitroSQLite.execute).toHaveBeenCalledTimes(2)
+    expect(HybridNitroSQLite.execute).toHaveBeenLastCalledWith(
       dbName,
       'ROLLBACK',
       undefined,
@@ -241,9 +263,9 @@ describe('transaction', () => {
   })
 
   it('converts a rollback failure when handling a callback error', async () => {
-    jest.mocked(HybridNitroSQLite.execute).mockImplementation(() => {
-      throw new Error('rollback failed')
-    })
+    jest
+      .mocked(HybridNitroSQLite.execute)
+      .mockImplementation(failOn('ROLLBACK'))
 
     await expect(
       transaction(dbName, async () => {
@@ -263,7 +285,7 @@ describe('transaction', () => {
         throw new Error('after commit')
       }),
     ).rejects.toThrow('after commit')
-    expect(HybridNitroSQLite.execute).toHaveBeenCalledTimes(1)
+    expect(HybridNitroSQLite.execute).toHaveBeenCalledTimes(2)
   })
 
   it('serializes transactions behind the same queue', async () => {
@@ -362,9 +384,9 @@ describe('transaction', () => {
   it.each([false, true])(
     'rejects a failed manual rollback even when caught: %s',
     async (caught) => {
-      jest.mocked(HybridNitroSQLite.execute).mockImplementation(() => {
-        throw new Error('rollback failed')
-      })
+      jest
+        .mocked(HybridNitroSQLite.execute)
+        .mockImplementation(failOn('ROLLBACK'))
       await expect(
         transaction(dbName, async (tx) => {
           if (caught) {
@@ -374,18 +396,14 @@ describe('transaction', () => {
           tx.rollback()
         }),
       ).rejects.toThrow('rollback failed')
-      expect(HybridNitroSQLite.execute).toHaveBeenCalledTimes(1)
+      expect(HybridNitroSQLite.execute).toHaveBeenCalledTimes(2)
     },
   )
 
   it('preserves commit and rollback errors in order', async () => {
     jest
       .mocked(HybridNitroSQLite.execute)
-      .mockImplementation((_name, query) => {
-        throw new Error(
-          query === 'COMMIT' ? 'commit failed' : 'rollback failed',
-        )
-      })
+      .mockImplementation(failOn('COMMIT', 'ROLLBACK'))
     await expect(transaction(dbName, async () => {})).rejects.toMatchObject({
       message: 'commit failed\nRollback failed: rollback failed',
       cause: {
@@ -400,11 +418,7 @@ describe('transaction', () => {
   it('preserves both errors when manual rollback after a failed commit also fails', async () => {
     jest
       .mocked(HybridNitroSQLite.execute)
-      .mockImplementation((_name, query) => {
-        throw new Error(
-          query === 'COMMIT' ? 'commit failed' : 'rollback failed',
-        )
-      })
+      .mockImplementation(failOn('COMMIT', 'ROLLBACK'))
     await expect(
       transaction(dbName, async (tx) => {
         expect(() => tx.commit()).toThrow('commit failed')
@@ -419,15 +433,29 @@ describe('transaction', () => {
         ],
       },
     })
-    expect(HybridNitroSQLite.execute).toHaveBeenCalledTimes(2)
+    expect(HybridNitroSQLite.execute).toHaveBeenCalledTimes(3)
   })
 
   it('does not roll back when BEGIN fails', async () => {
     jest
+      .mocked(HybridNitroSQLite.execute)
+      .mockImplementation(failOn('BEGIN TRANSACTION'))
+    const callback = jest.fn()
+    await expect(transaction(dbName, callback)).rejects.toThrow(
+      'begin transaction failed',
+    )
+    expect(callback).not.toHaveBeenCalled()
+    expect(HybridNitroSQLite.execute).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not roll back when BEGIN EXCLUSIVE fails', async () => {
+    jest
       .mocked(HybridNitroSQLite.executeAsync)
       .mockRejectedValue(new Error('begin failed'))
     const callback = jest.fn()
-    await expect(transaction(dbName, callback)).rejects.toThrow('begin failed')
+    await expect(transaction(dbName, callback, true)).rejects.toThrow(
+      'begin failed',
+    )
     expect(callback).not.toHaveBeenCalled()
     expect(HybridNitroSQLite.execute).not.toHaveBeenCalled()
   })

@@ -145,10 +145,16 @@ export const transaction = <Result = void>(
   // The queue rejects when the database is not open.
   return queueOperationAsync(queueKey, async () => {
     try {
-      await executeAsyncNative(
-        dbName,
-        isExclusive ? 'BEGIN EXCLUSIVE TRANSACTION' : 'BEGIN TRANSACTION',
-      )
+      if (isExclusive) {
+        // BEGIN EXCLUSIVE can wait for other connections' locks, so it stays off the JS thread.
+        await executeAsyncNative(dbName, 'BEGIN EXCLUSIVE TRANSACTION')
+      } else {
+        // A deferred BEGIN takes no lock and returns at once, so it runs synchronously
+        // like COMMIT instead of making a round trip to the native worker thread.
+        executeNative(dbName, 'BEGIN TRANSACTION')
+        // The callback still starts after transaction() returns, as it did with an async BEGIN.
+        await Promise.resolve()
+      }
 
       state.current = { kind: 'active' }
 
