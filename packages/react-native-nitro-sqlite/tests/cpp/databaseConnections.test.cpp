@@ -64,6 +64,18 @@ int scalar(const margelo::nitro::rnnitrosqlite::SQLiteConnectionPtr& connection,
   return value;
 }
 
+// Runs SQL like the library's execution paths: under the connection's mutex and a change scope.
+void executeTracked(const margelo::nitro::rnnitrosqlite::SQLiteConnectionPtr& connection, const std::string& sql) {
+  std::lock_guard lock(connection->mutex);
+  margelo::nitro::rnnitrosqlite::SQLiteChangeScope changes(*connection);
+  char* error = nullptr;
+  if (sqlite3_exec(connection->database, sql.c_str(), nullptr, nullptr, &error) != SQLITE_OK) {
+    const std::string message = error == nullptr ? sqlite3_errmsg(connection->database) : error;
+    sqlite3_free(error);
+    throw std::runtime_error(message);
+  }
+}
+
 void expectThrows(const std::function<void()>& action, const std::string& message) {
   try {
     action();
@@ -308,6 +320,45 @@ int main() {
     expect(!fs::exists(root / "bad.sqlite"), "invalid default name must not create a database");
     expectThrows([&]() { registry.openIndependent(fs::path(invalidName), false); },
                  "independent database paths containing NUL must be rejected");
+    // Change handlers receive committed rows only, once no transaction is open.
+    using margelo::nitro::rnnitrosqlite::SQLiteChange;
+    registry.open("changes.sqlite", root / "changes.sqlite", false);
+    const auto changes = registry.get("changes.sqlite");
+    execute(changes, "CREATE TABLE note (id INTEGER PRIMARY KEY)");
+    std::vector<std::vector<SQLiteChange>> batches;
+    const auto rowIds = [&](size_t batch) {
+      std::vector<sqlite3_int64> ids;
+      for (const auto& change : batches.at(batch)) {
+        ids.push_back(change.rowId);
+      }
+      return ids;
+    };
+    changes->setChangeHandler([&](std::vector<SQLiteChange> batch) { batches.push_back(std::move(batch)); });
+    executeTracked(changes, "INSERT INTO note VALUES (1)");
+    expect(batches.size() == 1 && batches[0].size() == 1 && batches[0][0].operation == SQLITE_INSERT && batches[0][0].table == "note" &&
+               batches[0][0].database == "main",
+           "a write outside a transaction must be reported on its own");
+    executeTracked(changes, "BEGIN");
+    executeTracked(changes, "UPDATE note SET id = 2 WHERE id = 1");
+    executeTracked(changes, "INSERT INTO note VALUES (3)");
+    expect(batches.size() == 1, "changes must wait for their transaction to commit");
+    executeTracked(changes, "COMMIT");
+    expect(batches.size() == 2 && rowIds(1) == std::vector<sqlite3_int64>{2, 3} && batches[1][0].operation == SQLITE_UPDATE,
+           "a commit must report its transaction's changes in order");
+    executeTracked(changes, "BEGIN");
+    executeTracked(changes, "INSERT INTO note VALUES (4)");
+    executeTracked(changes, "ROLLBACK");
+    expect(batches.size() == 2, "a rollback must discard its changes");
+    executeTracked(changes, "BEGIN");
+    executeTracked(changes, "INSERT INTO note VALUES (5)");
+    expectThrows([&]() { executeTracked(changes, "INSERT INTO note VALUES (6), (5)"); }, "a duplicate key must fail");
+    executeTracked(changes, "COMMIT");
+    expect(batches.size() == 3 && rowIds(2) == std::vector<sqlite3_int64>{5}, "a failed statement's changes must be dropped");
+    changes->setChangeHandler(std::nullopt);
+    executeTracked(changes, "DELETE FROM note WHERE id = 5");
+    expect(batches.size() == 3 && changes->pendingChanges.empty(), "removing the handler must stop recording");
+    registry.close("changes.sqlite");
+
     registry.closeAll();
     fs::remove_all(root);
     std::cout << "[PASS] runtime ownership, independent connections, lifecycle, attachments, read-only and concurrent writes\n";

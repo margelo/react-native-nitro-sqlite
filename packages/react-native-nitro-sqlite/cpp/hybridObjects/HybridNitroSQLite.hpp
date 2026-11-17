@@ -80,6 +80,10 @@ public:
   /** Set the handler that receives row batches for executeAsync calls made with a row batch ID. */
   void setRowBatchHandler(const std::function<void(double, SQLiteQueryResults)>& handler) override;
 
+  /** Send the committed row changes of connection @p dbName to @p handler, or stop with std::nullopt. */
+  void setChangeHandler(const std::string& dbName,
+                        const std::optional<std::function<void(const std::vector<DatabaseChange>&)>>& handler) override;
+
   /** Execute one SQL statement on the calling thread, returning rows as arrays of column values. */
   NitroSQLiteRawQueryResult executeRaw(const std::string& dbName, const std::string& query,
                                        const std::optional<SQLiteQueryParams>& params) override;

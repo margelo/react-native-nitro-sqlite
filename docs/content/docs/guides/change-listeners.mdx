@@ -1,0 +1,62 @@
+---
+title: Change listeners
+description: Get notified when a connection inserts, updates, or deletes rows.
+---
+
+SQLite can call a function for every row that a connection inserts, updates, or deletes. This is its [update hook](https://www.sqlite.org/c3ref/update_hook.html). The hook reports the kind of change, the schema (`main`, `temp`, or an attached database alias), the table, and the row's rowid. It runs while the statement is still executing, so it also sees changes that a rollback undoes later.
+
+Call `db.addChangeListener(listener)` to receive these changes. NitroSQLite holds each change until its transaction commits, then calls the listener once with all changes from that transaction, in the order SQLite made them. Changes that a rollback undoes, and changes from a statement that fails, are dropped. A write outside a transaction commits on its own, so its changes arrive by themselves.
+
+```ts
+import { open } from 'react-native-nitro-sqlite'
+
+const db = open({ name: 'app.sqlite' })
+db.execute(
+  'CREATE TABLE IF NOT EXISTS notes (id INTEGER PRIMARY KEY, body TEXT)',
+)
+
+const subscription = db.addChangeListener((changes) => {
+  for (const { operation, table, rowId } of changes) {
+    console.log(`${operation} ${table} ${rowId}`)
+  }
+})
+
+db.execute('INSERT INTO notes (body) VALUES (?)', ['Buy milk'])
+// Logs "insert notes 1" after execute() returns.
+
+subscription.remove()
+```
+
+Listeners run on the JavaScript thread after the call that committed the changes has returned, so they can query the database. A listener that throws does not stop the other listeners, and its error is reported afterwards. Closing or deleting the connection removes its listeners.
+
+## Use changes to refresh queries
+
+A listener can tell a screen that its data changed. Check the table names and run the screen's query again:
+
+```ts
+const subscription = db.addChangeListener((changes) => {
+  if (changes.some((change) => change.table === 'notes')) {
+    refreshNotes()
+  }
+})
+```
+
+`rowId` is SQLite's rowid. It is the same value as an `INTEGER PRIMARY KEY` column. Tables with another kind of primary key also have a rowid, but it differs from their key, so look up such rows by rowid or reload the table.
+
+## What is not reported
+
+The update hook reports only changes made through the connection the listener is on. Writes from another connection to the same file, from another process, or from an app extension sharing the database are not reported. Use one connection for writes, or notify your own code when another connection writes.
+
+SQLite does not report these changes:
+
+- Changes to `WITHOUT ROWID` tables and to SQLite's internal tables, such as `sqlite_sequence`.
+- Rows that `ON CONFLICT REPLACE` deletes to make room for a new row. The insert is reported.
+- Rows that the truncate optimization deletes. A `DELETE` without a `WHERE` clause can use it, so add `WHERE true` when you need those deletes reported.
+
+NitroSQLite drops a failed statement's changes because SQLite undoes them. A statement with `ON CONFLICT FAIL` keeps the rows it changed before the failure, but they are not reported either. Changes undone with `ROLLBACK TO` a savepoint are still reported when the outer transaction commits.
+
+## Cost
+
+While a connection has no listeners, the hook returns right away. With a listener, NitroSQLite stores every changed row until the transaction commits, then copies all of them to JavaScript at once. A transaction that changes 100,000 rows sends 100,000 changes. For bulk imports, remove the listener first and refresh your data afterwards.
+
+The [Node test mock](/docs/guides/node-test-mock) does not support change listeners.

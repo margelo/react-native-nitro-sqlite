@@ -24,6 +24,7 @@ namespace margelo::nitro::rnnitrosqlite {
       prototype.registerHybridMethod("execute", &HybridNitroSQLiteSpec::execute);
       prototype.registerHybridMethod("executeAsync", &HybridNitroSQLiteSpec::executeAsync);
       prototype.registerHybridMethod("setRowBatchHandler", &HybridNitroSQLiteSpec::setRowBatchHandler);
+      prototype.registerHybridMethod("setChangeHandler", &HybridNitroSQLiteSpec::setChangeHandler);
       prototype.registerHybridMethod("executeRaw", &HybridNitroSQLiteSpec::executeRaw);
       prototype.registerHybridMethod("executeRawAsync", &HybridNitroSQLiteSpec::executeRawAsync);
       prototype.registerHybridMethod("prepare", &HybridNitroSQLiteSpec::prepare);

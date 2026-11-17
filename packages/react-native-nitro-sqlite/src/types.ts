@@ -102,6 +102,45 @@ export interface NitroSQLiteConnection {
    * the original import error and any rollback failure. Rejects asynchronously.
    */
   loadFileAsync(location: string): Promise<FileLoadResult>
+  /** Listen for rows that this connection inserts, updates, or deletes.
+   * SQLite reports each change through its update hook. NitroSQLite holds the changes until their
+   * transaction commits, then calls the listener once with all of them, asynchronously on the JS
+   * thread. Rolled-back changes and changes from a failed statement are not reported.
+   * Changes made on other connections, `WITHOUT ROWID` tables, and rows deleted by
+   * `ON CONFLICT REPLACE` are not reported either. Changes undone with `ROLLBACK TO` a savepoint
+   * are still reported when the outer transaction commits.
+   * Closing the connection removes its listeners.
+   * @param listener Receives the committed changes in the order SQLite made them.
+   * @returns A subscription whose `remove()` stops this listener.
+   * @see [Change listeners guide](https://sqlite.margelo.com/docs/guides/change-listeners)
+   */
+  addChangeListener(
+    listener: DatabaseChangeListener,
+  ): DatabaseChangeSubscription
+}
+
+/** Kind of row change reported by SQLite's update hook. */
+export type DatabaseChangeOperation = 'insert' | 'update' | 'delete'
+
+/** One row change committed on a connection. */
+export interface DatabaseChange {
+  /** Whether the row was inserted, updated, or deleted. */
+  operation: DatabaseChangeOperation
+  /** Schema of the changed table: `main`, `temp`, or the alias of an attached database. */
+  database: string
+  /** Name of the changed table. */
+  table: string
+  /** SQLite rowid of the changed row. It equals an `INTEGER PRIMARY KEY` column, but not other primary keys. */
+  rowId: number
+}
+
+/** Receives the row changes of one committed transaction. */
+export type DatabaseChangeListener = (changes: DatabaseChange[]) => void
+
+/** A registered change listener. */
+export interface DatabaseChangeSubscription {
+  /** Stop calling the listener. Repeated calls do nothing. */
+  remove(): void
 }
 
 /** SQLite value categories reported in query column metadata. */

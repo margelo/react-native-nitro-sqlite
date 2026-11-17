@@ -357,6 +357,7 @@ namespace {
     if (params) {
       bindStatement(statement.get(), *params);
     }
+    SQLiteChangeScope changes(*connection);
     return execute(db, statement.get());
   }
 
@@ -384,6 +385,7 @@ SQLiteOperationResult sqliteExecuteCommand(const SQLiteConnectionPtr& connection
   auto statement = prepareStatement(db, query, params);
   bool isReadOnly = sqlite3_stmt_readonly(statement.get()) != 0;
 
+  SQLiteChangeScope changes(*connection);
   consumeStatement(db, statement.get(), [](sqlite3_stmt*) {});
 
   return {.rowsAffected = isReadOnly ? 0 : sqlite3_changes(db)};
@@ -401,6 +403,7 @@ SQLiteOperationResult sqliteExecuteCommandGroup(const SQLiteConnectionPtr& conne
     throw NitroSQLiteException::DatabaseNotOpen(connection->name);
   }
 
+  SQLiteChangeScope changes(*connection);
   const auto [rowsAffected, commands] = executeStatementGroup(
       db, query, parameterSets, [](sqlite3* database, const std::string& sql) { return prepareStatement(database, sql, std::nullopt); },
       [](sqlite3_stmt* statement, const SQLiteQueryParams& params) { bindStatement(statement, params); },
@@ -451,6 +454,7 @@ auto SQLitePreparedStatement::executeBound(const std::optional<SQLiteQueryParams
     bindStatement(_state->statement.get(), *params);
   }
 
+  SQLiteChangeScope changes(*_state->connection);
   try {
     return execute(database, _state->statement.get());
   } catch (...) {
