@@ -455,6 +455,10 @@ NitroSQLiteRawQueryResult SQLitePreparedStatement::executeRaw(const std::optiona
   return executeBound(params, executeStatementRaw);
 }
 
+const SQLiteConnectionPtr& SQLitePreparedStatement::connection() const noexcept {
+  return _state->connection;
+}
+
 void SQLitePreparedStatement::finalize() {
   std::lock_guard lock(_state->mutex);
   std::lock_guard connectionLock(_state->connection->mutex);

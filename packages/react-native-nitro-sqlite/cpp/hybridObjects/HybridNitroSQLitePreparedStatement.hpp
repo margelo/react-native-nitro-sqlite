@@ -15,11 +15,11 @@ public:
 
   /** Execute with new bindings on the calling thread. */
   NitroSQLiteQueryResult execute(const std::optional<SQLiteQueryParams>& params) override;
-  /** Execute with new bindings on a background thread. */
+  /** Execute with new bindings on the connection's worker, in call order. */
   std::shared_ptr<Promise<NitroSQLiteQueryResult>> executeAsync(const std::optional<SQLiteQueryParams>& params) override;
   /** Execute with new bindings on the calling thread, returning rows as arrays of column values. */
   NitroSQLiteRawQueryResult executeRaw(const std::optional<SQLiteQueryParams>& params) override;
-  /** Execute with new bindings on a background thread, returning rows as arrays of column values. */
+  /** Execute with new bindings on the connection's worker, returning rows as arrays of column values. */
   std::shared_ptr<Promise<NitroSQLiteRawQueryResult>> executeRawAsync(const std::optional<SQLiteQueryParams>& params) override;
   /** Release the native statement. */
   void finalize() override;
