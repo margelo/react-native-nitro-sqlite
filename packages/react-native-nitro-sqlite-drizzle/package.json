@@ -1,6 +1,6 @@
 {
   "name": "react-native-nitro-sqlite-drizzle",
-  "version": "10.3.0",
+  "version": "10.3.1",
   "description": "Drizzle ORM driver for react-native-nitro-sqlite.",
   "source": "./src/index",
   "react-native": "./src/index",
@@ -47,7 +47,7 @@
     "drizzle-kit": "0.31.11",
     "drizzle-orm": "0.45.4",
     "react": "19.3.1",
-    "react-native-nitro-sqlite": "10.3.0",
+    "react-native-nitro-sqlite": "10.3.1",
     "typescript": "^5.8.3"
   },
   "jest": {
