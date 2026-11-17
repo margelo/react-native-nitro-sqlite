@@ -124,7 +124,7 @@ describe('execute', () => {
         async (_dbName, _query, _params, _onRows, rowBatchId) => {
           deliverRowBatch!(rowBatchId!, [{ value: 1 }, { value: 2 }])
           deliverRowBatch!(rowBatchId!, [{ value: 3 }])
-          return nativeResult([{ value: 4 }])
+          return { ...nativeResult([{ value: 4 }]), batchedRowCount: 3 }
         },
       )
 
@@ -138,6 +138,35 @@ describe('execute', () => {
     expect(result.rows._array).toBe(result.results)
     expect(result.rows.length).toBe(4)
     expect(result.rows.item(3)).toEqual({ value: 4 })
+  })
+
+  it('waits for row batches that arrive after the native result', async () => {
+    let rowBatchId: number | undefined
+    jest
+      .mocked(HybridNitroSQLite.executeAsync)
+      .mockImplementationOnce((_dbName, _query, _params, _onRows, id) => {
+        rowBatchId = id
+        return Promise.resolve({
+          ...nativeResult([{ value: 3 }]),
+          batchedRowCount: 2,
+        })
+      })
+
+    let settled = false
+    const pending = executeAsync(dbName, query, params).then((result) => {
+      settled = true
+      return result
+    })
+    await Promise.resolve()
+    await Promise.resolve()
+    deliverRowBatch!(rowBatchId!, [{ value: 1 }])
+    await Promise.resolve()
+    expect(settled).toBe(false)
+
+    deliverRowBatch!(rowBatchId!, [{ value: 2 }])
+    const result = await pending
+    expect(result.results).toEqual([{ value: 1 }, { value: 2 }, { value: 3 }])
+    expect(result.rows.length).toBe(3)
   })
 
   it('passes a row callback to native builds without setRowBatchHandler', async () => {

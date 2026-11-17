@@ -20,6 +20,11 @@ export interface NitroSQLiteQueryResult {
   /** Rows keyed by result column names. */
   readonly results: NitroSQLiteQueryRows
 
+  /** Number of leading rows that `executeAsync` sent in row batches before settling. `results`
+   * then holds only the rows after them. Undefined when no rows were sent in batches.
+   */
+  readonly batchedRowCount?: number
+
   /** Column metadata keyed by result column name, when available. */
   readonly metadata?: Record<string, NitroSQLiteQueryColumnMetadata>
 }
