@@ -99,8 +99,12 @@ describe('DatabaseQueue', () => {
     const failed = queueStatementAsync(dbName, () => {
       throw new Error('sync failure')
     })
+    const failedExclusive = queueOperationAsync(dbName, () => {
+      throw new Error('exclusive sync failure')
+    })
 
     await expect(failed).rejects.toThrow('sync failure')
+    await expect(failedExclusive).rejects.toThrow('exclusive sync failure')
     expect(getDatabaseQueue(dbName)).toMatchObject({
       inProgress: false,
       activeStatements: 0,
@@ -127,6 +131,37 @@ describe('DatabaseQueue', () => {
     first.resolve(0)
     expect(await Promise.all(operations)).toEqual(started)
     expect(getDatabaseQueue(dbName).inProgress).toBe(false)
+  })
+
+  it('starts statements without queuing them unless a transaction holds or awaits the queue', async () => {
+    openDatabaseQueue(dbName)
+    const transactionMayFinish = deferred<void>()
+    const order: string[] = []
+
+    const before = queueStatementAsync(dbName, async () => {
+      order.push('before')
+    })
+    expect(order).toEqual(['before'])
+    expect(getDatabaseQueue(dbName).queue).toHaveLength(0)
+    await before
+
+    const transaction = queueOperationAsync(dbName, async () => {
+      order.push('transaction')
+      await transactionMayFinish.promise
+    })
+    const during = queueStatementAsync(dbName, async () => {
+      order.push('during')
+    })
+    expect(order).toEqual(['before', 'transaction'])
+    expect(getDatabaseQueue(dbName).queue).toHaveLength(1)
+
+    transactionMayFinish.resolve()
+    await Promise.all([transaction, during])
+    expect(order).toEqual(['before', 'transaction', 'during'])
+    expect(getDatabaseQueue(dbName)).toMatchObject({
+      inProgress: false,
+      activeStatements: 0,
+    })
   })
 
   it('waits for every earlier statement before starting a transaction', async () => {
