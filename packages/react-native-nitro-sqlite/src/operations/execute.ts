@@ -110,8 +110,7 @@ export function executeAsyncNative<Row extends QueryResultRow = never>(
     return Promise.reject(NitroSQLiteError.fromError(error))
   }
   return nativeResult.then(
-    (result) =>
-      buildJSQueryResult<Row>(result, takeLeadingRows<Row>(rowBatchId)),
+    (result) => buildResultAfterRowBatches<Row>(result, rowBatchId),
     (error: unknown) => {
       leadingRowBatches.delete(rowBatchId)
       return rejectWithNitroSQLiteError(error)
@@ -122,6 +121,11 @@ export function executeAsyncNative<Row extends QueryResultRow = never>(
 // Leading row batches of async queries in flight, by row batch ID. One handler, set on the first
 // query, receives every batch, so a query passes a number to native code instead of a new callback.
 const leadingRowBatches = new Map<number, QueryResultRow[]>()
+// Results that settled before all of their row batches arrived, by row batch ID.
+const rowBatchWaiters = new Map<
+  number,
+  { batchedRowCount: number; resume: () => void }
+>()
 // Older native builds have no handler and get a callback per query instead.
 const hasRowBatchHandler =
   typeof HybridNitroSQLite.setRowBatchHandler === 'function'
@@ -130,14 +134,40 @@ let lastRowBatchId = 0
 function nextRowBatchId(): number {
   if (lastRowBatchId === 0) {
     HybridNitroSQLite.setRowBatchHandler((rowBatchId, rows) => {
-      leadingRowBatches.set(
-        rowBatchId,
-        appendRows(leadingRowBatches.get(rowBatchId), rows),
-      )
+      const leadingRows = appendRows(leadingRowBatches.get(rowBatchId), rows)
+      leadingRowBatches.set(rowBatchId, leadingRows)
+      const waiter = rowBatchWaiters.get(rowBatchId)
+      if (waiter === undefined) return
+      if (leadingRows.length < waiter.batchedRowCount) return
+      rowBatchWaiters.delete(rowBatchId)
+      waiter.resume()
     })
   }
   lastRowBatchId++
   return lastRowBatchId
+}
+
+// Nitro returns an already resolved promise when the query finishes before JavaScript receives its
+// promise, so the result can arrive before row batches that are still queued for the JS thread.
+function buildResultAfterRowBatches<Row extends QueryResultRow>(
+  result: NitroSQLiteQueryResult,
+  rowBatchId: number,
+): QueryResult<Row> | Promise<QueryResult<Row>> {
+  const batchedRowCount = result.batchedRowCount ?? 0
+  const receivedRowCount = leadingRowBatches.get(rowBatchId)?.length ?? 0
+  if (receivedRowCount >= batchedRowCount) {
+    return buildJSQueryResult<Row>(result, takeLeadingRows<Row>(rowBatchId))
+  }
+
+  return new Promise((resolve) => {
+    rowBatchWaiters.set(rowBatchId, {
+      batchedRowCount,
+      resume: () =>
+        resolve(
+          buildJSQueryResult<Row>(result, takeLeadingRows<Row>(rowBatchId)),
+        ),
+    })
+  })
 }
 
 function takeLeadingRows<Row>(rowBatchId: number): Row[] | undefined {

@@ -47,11 +47,12 @@ namespace margelo::nitro::rnnitrosqlite {
     double rowsAffected     SWIFT_PRIVATE;
     std::optional<double> insertId     SWIFT_PRIVATE;
     margelo::nitro::rnnitrosqlite::SQLiteQueryResults results     SWIFT_PRIVATE;
+    std::optional<double> batchedRowCount     SWIFT_PRIVATE;
     std::optional<std::unordered_map<std::string, NitroSQLiteQueryColumnMetadata>> metadata     SWIFT_PRIVATE;
 
   public:
     NitroSQLiteQueryResult() = default;
-    explicit NitroSQLiteQueryResult(double rowsAffected, std::optional<double> insertId, margelo::nitro::rnnitrosqlite::SQLiteQueryResults results, std::optional<std::unordered_map<std::string, NitroSQLiteQueryColumnMetadata>> metadata): rowsAffected(rowsAffected), insertId(insertId), results(results), metadata(metadata) {}
+    explicit NitroSQLiteQueryResult(double rowsAffected, std::optional<double> insertId, margelo::nitro::rnnitrosqlite::SQLiteQueryResults results, std::optional<double> batchedRowCount, std::optional<std::unordered_map<std::string, NitroSQLiteQueryColumnMetadata>> metadata): rowsAffected(rowsAffected), insertId(insertId), results(results), batchedRowCount(batchedRowCount), metadata(metadata) {}
 
   public:
     // NitroSQLiteQueryResult is not equatable because these properties are not equatable: results
@@ -70,6 +71,7 @@ namespace margelo::nitro {
         JSIConverter<double>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "rowsAffected"))),
         JSIConverter<std::optional<double>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "insertId"))),
         JSIConverter<margelo::nitro::rnnitrosqlite::SQLiteQueryResults>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "results"))),
+        JSIConverter<std::optional<double>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "batchedRowCount"))),
         JSIConverter<std::optional<std::unordered_map<std::string, margelo::nitro::rnnitrosqlite::NitroSQLiteQueryColumnMetadata>>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "metadata")))
       );
     }
@@ -78,6 +80,7 @@ namespace margelo::nitro {
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "rowsAffected"), JSIConverter<double>::toJSI(runtime, arg.rowsAffected));
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "insertId"), JSIConverter<std::optional<double>>::toJSI(runtime, arg.insertId));
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "results"), JSIConverter<margelo::nitro::rnnitrosqlite::SQLiteQueryResults>::toJSI(runtime, arg.results));
+      obj.setProperty(runtime, PropNameIDCache::get(runtime, "batchedRowCount"), JSIConverter<std::optional<double>>::toJSI(runtime, arg.batchedRowCount));
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "metadata"), JSIConverter<std::optional<std::unordered_map<std::string, margelo::nitro::rnnitrosqlite::NitroSQLiteQueryColumnMetadata>>>::toJSI(runtime, arg.metadata));
       return obj;
     }
@@ -92,6 +95,7 @@ namespace margelo::nitro {
       if (!JSIConverter<double>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "rowsAffected")))) return false;
       if (!JSIConverter<std::optional<double>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "insertId")))) return false;
       if (!JSIConverter<margelo::nitro::rnnitrosqlite::SQLiteQueryResults>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "results")))) return false;
+      if (!JSIConverter<std::optional<double>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "batchedRowCount")))) return false;
       if (!JSIConverter<std::optional<std::unordered_map<std::string, margelo::nitro::rnnitrosqlite::NitroSQLiteQueryColumnMetadata>>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "metadata")))) return false;
       return true;
     }
