@@ -14,7 +14,8 @@ const config = {
   // So we blacklist them at the root, and alias them to the versions in example's node_modules
   resolver: {
     // The example shares migration fixtures with the Drizzle package tests.
-    blockList: /\/__tests__\/(?!fixtures\/).*/,
+    // Without watchman, Metro checks directory paths with no trailing slash, so `fixtures` must match at the end too.
+    blockList: /\/__tests__\/(?!fixtures(?:\/|$)).*/,
     extraNodeModules: modules.reduce((acc, name) => {
       acc[name] = path.join(__dirname, 'node_modules', name)
       return acc
