@@ -34,7 +34,7 @@ Use `nitroSqliteFlags` in `android/gradle.properties` for additional SQLite feat
 nitroSqliteFlags="-DSQLITE_ENABLE_FTS5=1"
 ```
 
-Custom definitions take precedence over `package.json` defaults. To disable batch atomic writes, use `enableBatchAtomicWrite: false` and remove custom `SQLITE_ENABLE_BATCH_ATOMIC_WRITE` definitions; setting that flag to `0` still enables it.
+Separate several definitions with spaces, for example `nitroSqliteFlags="-DSQLITE_ENABLE_FTS5=1 -DSQLITE_ENABLE_MATH_FUNCTIONS=1"`. Custom definitions take precedence over `package.json` defaults. To disable batch atomic writes, use `enableBatchAtomicWrite: false` and remove custom `SQLITE_ENABLE_BATCH_ATOMIC_WRITE` definitions; setting that flag to `0` still enables it.
 
 Android flushes data with `fdatasync()`. To use `fsync()`, add `-DHAVE_FDATASYNC=0`. Rebuild after changing flags.
 
