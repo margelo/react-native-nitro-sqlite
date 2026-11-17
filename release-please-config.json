@@ -84,6 +84,21 @@
           "type": "json",
           "path": "example/package.json",
           "jsonpath": "$.dependencies['react-native-nitro-sqlite-drizzle']"
+        },
+        {
+          "type": "json",
+          "path": "packages/react-native-nitro-sqlite-expo-plugin/package.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "packages/react-native-nitro-sqlite-expo-plugin/package.json",
+          "jsonpath": "$.devDependencies['react-native-nitro-sqlite']"
+        },
+        {
+          "type": "json",
+          "path": "packages/react-native-nitro-sqlite-expo-plugin/package.json",
+          "jsonpath": "$.devDependencies['react-native-nitro-sqlite-vec']"
         }
       ]
     }

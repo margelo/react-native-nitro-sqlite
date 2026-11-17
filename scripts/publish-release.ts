@@ -10,8 +10,8 @@ import {
   verifyPublication,
 } from './release-registry.ts'
 
-/** Build and validate both packages before publishing either package from the selected tag.
- * Checks internal versions, lockfiles, source cleanliness, existing publications and both trusted publishers.
+/** Build and validate all packages before publishing any package from the selected tag.
+ * Checks internal versions, lockfiles, source cleanliness, existing publications and all trusted publishers.
  * Retries skip packages whose registry metadata records the same release commit.
  * A version npm still processes from an earlier attempt counts as published once verification confirms its commit.
  * @param version Exact version already committed and tagged by Release Please.
@@ -30,6 +30,10 @@ export async function publishRelease(version: string): Promise<void> {
   }
   execFileSync('bun', ['run', 'build'], {
     cwd: 'packages/react-native-nitro-sqlite',
+    stdio: 'inherit',
+  })
+  execFileSync('bun', ['run', 'build'], {
+    cwd: 'packages/react-native-nitro-sqlite-expo-plugin',
     stdio: 'inherit',
   })
   if (git('status', '--porcelain', '--untracked-files=no'))

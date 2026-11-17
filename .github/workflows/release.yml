@@ -191,7 +191,7 @@ jobs:
         run: node scripts/merge-release.ts
 
   publish:
-    name: Publish both packages from the release tag
+    name: Publish all packages from the release tag
     needs: [preflight, merge, release-please]
     if: ${{ always() && needs.preflight.result == 'success' && (needs.merge.result == 'success' || needs.release-please.outputs.tag != '' || inputs.release_tag != '') }}
     runs-on: ubuntu-24.04

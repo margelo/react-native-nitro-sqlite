@@ -78,6 +78,14 @@ export function validateReleaseVersions(version: string): void {
       ['version', 'devDependencies.react-native-nitro-sqlite'],
     ],
     [
+      'packages/react-native-nitro-sqlite-expo-plugin/package.json',
+      [
+        'version',
+        'devDependencies.react-native-nitro-sqlite',
+        'devDependencies.react-native-nitro-sqlite-vec',
+      ],
+    ],
+    [
       'example/package.json',
       [
         'version',

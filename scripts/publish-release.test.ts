@@ -34,12 +34,20 @@ test('publishing validates all packages and publishers before publishing in depe
       .slice(0, publish)
       .includes('trusted:react-native-nitro-sqlite-vec'),
   )
+  for (const call of [
+    'bun:react-native-nitro-sqlite-expo-plugin:run typecheck',
+    'bun:react-native-nitro-sqlite-expo-plugin:run lint',
+    'bun:react-native-nitro-sqlite-expo-plugin:run build',
+    'trusted:react-native-nitro-sqlite-expo-plugin',
+  ])
+    assert.ok(result.calls.slice(0, publish).includes(call), call)
   assert.deepEqual(
     result.calls.filter((line) => line.startsWith('npm:')),
     [
       'npm:react-native-nitro-sqlite:publish --access public --provenance --tag latest --workspaces=false',
       'npm:react-native-nitro-sqlite-vec:publish --access public --provenance --tag latest --workspaces=false',
       'npm:react-native-nitro-sqlite-drizzle:publish --access public --provenance --tag latest --workspaces=false',
+      'npm:react-native-nitro-sqlite-expo-plugin:publish --access public --provenance --tag latest --workspaces=false',
     ],
   )
 })
@@ -63,11 +71,21 @@ test('second trusted publisher failure prevents publishing any package', () => {
   )
 })
 
+test('plugin trusted publisher failure prevents publishing any package', () => {
+  const result = runPublication({ PUBLISH_TEST_FAIL_PLUGIN_OIDC: '1' })
+  assert.notEqual(result.status, 0)
+  assert.match(result.stderr, /expo-plugin: npm OIDC exchange failed/)
+  assert.equal(
+    result.calls.some((line) => line.startsWith('npm:')),
+    false,
+  )
+})
+
 test('retry skips a package already published from the selected commit', () => {
   const result = runPublication({ PUBLISH_TEST_CORE_EXISTS: '1' })
   assert.equal(result.status, 0, result.stderr)
   const published = result.calls.filter((line) => line.startsWith('npm:'))
-  assert.equal(published.length, 2)
+  assert.equal(published.length, 3)
   assert.match(published[0]!, /^npm:react-native-nitro-sqlite-vec:/)
   assert.match(published[1]!, /^npm:react-native-nitro-sqlite-drizzle:/)
 })
@@ -84,6 +102,7 @@ test('a retry continues when npm still processes a version from the same commit'
       'react-native-nitro-sqlite',
       'react-native-nitro-sqlite-vec',
       'react-native-nitro-sqlite-drizzle',
+      'react-native-nitro-sqlite-expo-plugin',
     ],
   )
 })
@@ -110,13 +129,17 @@ function runPublication(extraEnv: Record<string, string> = {}) {
       'packages/react-native-nitro-sqlite',
       'packages/react-native-nitro-sqlite-vec',
       'packages/react-native-nitro-sqlite-drizzle',
+      'packages/react-native-nitro-sqlite-expo-plugin',
     ]) {
       mkdirSync(join(project, path), { recursive: true })
       writeFileSync(
         join(project, path, 'package.json'),
         JSON.stringify({
           version: '1.0.0',
-          devDependencies: { 'react-native-nitro-sqlite': '1.0.0' },
+          devDependencies: {
+            'react-native-nitro-sqlite': '1.0.0',
+            'react-native-nitro-sqlite-vec': '1.0.0',
+          },
           dependencies: {
             'react-native-nitro-sqlite': '1.0.0',
             'react-native-nitro-sqlite-vec': '1.0.0',
@@ -162,10 +185,11 @@ function runPublication(extraEnv: Record<string, string> = {}) {
         'globalThis.fetch = async (input) => {',
         '  const url = String(input)',
         "  if (url.startsWith('https://oidc.example.invalid')) return Response.json({ value: 'fixture-identity' })",
-        "  const name = ['react-native-nitro-sqlite-vec', 'react-native-nitro-sqlite-drizzle'].find((addon) => url.includes(addon)) ?? 'react-native-nitro-sqlite'",
+        "  const name = ['react-native-nitro-sqlite-vec', 'react-native-nitro-sqlite-drizzle', 'react-native-nitro-sqlite-expo-plugin'].find((addon) => url.includes(addon)) ?? 'react-native-nitro-sqlite'",
         "  if (url.includes('/token/exchange/')) {",
         "    appendFileSync(process.env.PUBLISH_TEST_LOG, 'trusted:' + name + '\\n')",
         "    if (name.endsWith('-vec') && process.env.PUBLISH_TEST_FAIL_OIDC) return new Response('', { status: 403 })",
+        "    if (name.endsWith('-expo-plugin') && process.env.PUBLISH_TEST_FAIL_PLUGIN_OIDC) return new Response('', { status: 403 })",
         "    return Response.json({ token: 'fixture-exchange' })",
         '  }',
         "  if (url.endsWith('/latest')) return Response.json({ version: '0.9.0' })",

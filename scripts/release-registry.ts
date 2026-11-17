@@ -9,6 +9,7 @@ export const releasePackages = [
   'react-native-nitro-sqlite',
   'react-native-nitro-sqlite-vec',
   'react-native-nitro-sqlite-drizzle',
+  'react-native-nitro-sqlite-expo-plugin',
 ]
 
 /** Select the channel without moving latest backwards on maintenance releases.
@@ -43,7 +44,7 @@ export async function distributionTag(version: string): Promise<string> {
   return 'latest'
 }
 
-/** Find packages that still need publication after checking both existing versions.
+/** Find packages that still need publication after checking all existing versions.
  * Existing versions must record the selected release commit in their gitHead metadata.
  * @returns Unpublished package names, in dependency order.
  * @throws If a version already exists from another commit, or the registry is unavailable.
@@ -69,7 +70,7 @@ export async function pendingPackages(
 
 /** Check every pending package's trusted publisher before any package is published.
  * OIDC exchange tokens are used only for this check and are never logged or stored.
- * @throws If GitHub OIDC or either package's trusted publisher is unavailable.
+ * @throws If GitHub OIDC or a package's trusted publisher is unavailable.
  */
 export async function checkTrustedPublishers(
   packages: string[],
