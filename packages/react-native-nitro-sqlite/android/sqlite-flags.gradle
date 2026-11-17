@@ -58,6 +58,12 @@ project.ext.resolveNitroSqliteDefaultFlags = { File appPackageFile, String custo
   }
 }
 
+// gradle.properties keeps surrounding quotes, and CMake needs a list to define each macro separately.
+project.ext.parseNitroSqliteFlags = { Object value ->
+  (value ?: "").toString().trim().replaceAll(/^(["'])(.*)\1$/, '$2').split(/\s+/).findAll { it }
+}
+
 def appPackageFile = new File(rootProject.projectDir.parentFile, "package.json")
 def customFlags = (rootProject.findProperty("nitroSqliteFlags") ?: "").toString()
 project.ext.nitroSqliteDefaultFlags = resolveNitroSqliteDefaultFlags(appPackageFile, customFlags)
+project.ext.nitroSqliteCustomFlags = parseNitroSqliteFlags(customFlags)
