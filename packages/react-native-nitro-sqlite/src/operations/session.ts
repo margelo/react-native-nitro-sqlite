@@ -9,6 +9,7 @@ import type {
   QueryResultRow,
   QueryResult,
 } from '../types'
+import { callNativeAsync } from '../nativePromise'
 import {
   executeAsyncManaged,
   executeManaged,
@@ -84,6 +85,18 @@ export function open(
     return callback()
   }
 
+  // Like an `async` wrapper, reports a closed connection as a rejection, without its extra promise.
+  const runAsyncOperation = <Result>(
+    callback: () => Promise<Result>,
+  ): Promise<Result> => {
+    try {
+      assertCurrentConnection()
+    } catch (error) {
+      return Promise.reject(error)
+    }
+    return callback()
+  }
+
   return {
     close: () => {
       runSyncOperation(() => HybridNitroSQLite.close(connectionId))
@@ -135,48 +148,47 @@ export function open(
       ),
     detach: (alias: string) =>
       runSyncOperation(() => HybridNitroSQLite.detach(connectionId, alias)),
-    transaction: async <Result = void>(
-      fn: (tx: Transaction) => Promise<Result>,
-    ) => runOperation(() => transaction(connectionId, fn, false, queueKey)),
+    transaction: <Result = void>(fn: (tx: Transaction) => Promise<Result>) =>
+      runAsyncOperation(() => transaction(connectionId, fn, false, queueKey)),
     execute: <Row extends QueryResultRow = never>(
       query: string,
       params?: SQLiteQueryParams,
     ): QueryResult<Row> =>
       runOperation(() => executeManaged(connectionId, query, params, queueKey)),
-    executeAsync: async <Row extends QueryResultRow = never>(
+    executeAsync: <Row extends QueryResultRow = never>(
       query: string,
       params?: SQLiteQueryParams,
     ): Promise<QueryResult<Row>> =>
-      runOperation(() =>
-        executeAsyncManaged(connectionId, query, params, queueKey),
+      runAsyncOperation(() =>
+        executeAsyncManaged<Row>(connectionId, query, params, queueKey),
       ),
     executeRaw: (query: string, params?: SQLiteQueryParams) =>
       runOperation(() =>
         executeRawManaged(connectionId, query, params, queueKey),
       ),
-    executeRawAsync: async (query: string, params?: SQLiteQueryParams) =>
-      runOperation(() =>
+    executeRawAsync: (query: string, params?: SQLiteQueryParams) =>
+      runAsyncOperation(() =>
         executeRawAsyncManaged(connectionId, query, params, queueKey),
       ),
     prepare: (query: string) =>
       runOperation(() => prepare(connectionId, query, queueKey)),
     executeBatch: (commands: BatchQueryCommand[]) =>
       runOperation(() => executeBatch(connectionId, commands, queueKey)),
-    executeBatchAsync: async (commands: BatchQueryCommand[]) =>
-      runOperation(() => executeBatchAsync(connectionId, commands, queueKey)),
+    executeBatchAsync: (commands: BatchQueryCommand[]) =>
+      runAsyncOperation(() =>
+        executeBatchAsync(connectionId, commands, queueKey),
+      ),
     loadFile: (location: string) =>
       runSyncOperation(() =>
         HybridNitroSQLite.loadFile(connectionId, location),
       ),
     loadFileAsync: (location: string) =>
-      runOperation(() =>
-        queueStatementAsync(queueKey, async () => {
-          try {
-            return await HybridNitroSQLite.loadFileAsync(connectionId, location)
-          } catch (error) {
-            throw NitroSQLiteError.fromError(error)
-          }
-        }),
+      runAsyncOperation(() =>
+        queueStatementAsync(queueKey, () =>
+          callNativeAsync(() =>
+            HybridNitroSQLite.loadFileAsync(connectionId, location),
+          ),
+        ),
       ),
   }
 }

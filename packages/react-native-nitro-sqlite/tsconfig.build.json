@@ -4,6 +4,9 @@
   "exclude": ["src/__tests__", "src/__mocks__"],
   "compilerOptions": {
     "rootDir": "src",
-    "noEmit": false
+    "noEmit": false,
+    // bob deletes lib/typescript/*.tsbuildinfo, but rootDir puts it in lib/, so a rebuild emits nothing (callstack/react-native-builder-bob#867).
+    "composite": false,
+    "incremental": false
   }
 }

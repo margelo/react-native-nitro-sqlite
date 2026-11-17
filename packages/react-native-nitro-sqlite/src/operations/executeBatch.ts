@@ -7,6 +7,7 @@ import {
 import NitroSQLiteError from '../NitroSQLiteError'
 import type { BatchQueryCommand, BatchQueryResult } from '../types'
 import type { DatabaseQueueKey } from '../DatabaseQueue'
+import { callNativeAsync } from '../nativePromise'
 
 /** Execute a batch synchronously in one exclusive transaction.
  * Requires an open managed connection; throws if it is busy or the batch is empty.
@@ -36,18 +37,15 @@ export function executeBatch(
  * @param commands SQL commands and optional parameter sets.
  * @returns A promise of the total affected row count.
  */
-export async function executeBatchAsync(
+export function executeBatchAsync(
   dbName: string,
   commands: BatchQueryCommand[],
   queueKey: DatabaseQueueKey = dbName,
 ): Promise<BatchQueryResult> {
-  throwIfDatabaseIsNotOpen(queueKey)
-
-  return queueStatementAsync(queueKey, async () => {
-    try {
-      return await HybridNitroSQLite.executeBatchAsync(dbName, commands)
-    } catch (error) {
-      throw NitroSQLiteError.fromError(error)
-    }
-  })
+  // The queue rejects when the database is not open, before calling native code.
+  return queueStatementAsync(queueKey, () =>
+    callNativeAsync(() =>
+      HybridNitroSQLite.executeBatchAsync(dbName, commands),
+    ),
+  )
 }

@@ -1,0 +1,12 @@
+diff --git a/node_modules/release-please/build/src/updaters/generic-json.js b/node_modules/release-please/build/src/updaters/generic-json.js
+--- a/node_modules/release-please/build/src/updaters/generic-json.js
++++ b/node_modules/release-please/build/src/updaters/generic-json.js
+@@ -17,7 +17,7 @@ exports.GenericJson = void 0;
+ const jsonpath_plus_1 = require("jsonpath-plus");
+ const json_stringify_1 = require("../util/json-stringify");
+ const logger_1 = require("../util/logger");
+-const VERSION_REGEX = /(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(-(?<preRelease>[\w.]+))?(\+(?<build>[-\w.]+))?/;
++const VERSION_REGEX = /(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(-(?<preRelease>[-\w.]+))?(\+(?<build>[-\w.]+))?/;
+ class GenericJson {
+     constructor(jsonpath, version) {
+         this.jsonpath = jsonpath;

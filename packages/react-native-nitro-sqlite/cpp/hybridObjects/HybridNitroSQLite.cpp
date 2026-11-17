@@ -7,6 +7,7 @@
 #include "../NitroSQLiteMacros.hpp"
 #include "../NitroSQLiteOperations.hpp"
 #include "HybridNitroSQLitePreparedStatement.hpp"
+#include "NitroSQLiteConnectionOperation.hpp"
 #include <exception>
 #include <filesystem>
 #include <iostream>
@@ -58,36 +59,6 @@ static std::vector<BatchQuery> copyArrayBufferParamsForBackground(const std::vec
   }
 
   return copiedCommands;
-}
-
-template <typename Result, typename Operation>
-static std::shared_ptr<Promise<Result>> enqueueConnectionOperation(const SQLiteConnectionPtr& connection, Operation&& operation) {
-  auto promise = Promise<Result>::create();
-  try {
-    connection->enqueueAsync([promise, operation = std::forward<Operation>(operation)]() mutable {
-      std::optional<Result> result;
-      try {
-        result.emplace(operation());
-      } catch (...) {
-        promise->reject(std::current_exception());
-        return;
-      }
-      // Resolving may dispatch to JavaScript and throw after the native promise
-      // has settled. Do not try to reject that same promise again.
-      try {
-        promise->resolve(std::move(*result));
-      } catch (...) {
-        if (promise->isPending()) {
-          promise->reject(std::current_exception());
-          return;
-        }
-        throw;
-      }
-    });
-  } catch (...) {
-    promise->reject(std::current_exception());
-  }
-  return promise;
 }
 
 const std::string getDocPath(const std::optional<std::string>& location) {
@@ -214,7 +185,8 @@ NitroSQLiteQueryResult HybridNitroSQLite::execute(const std::string& dbName, con
 
 std::shared_ptr<Promise<NitroSQLiteQueryResult>> HybridNitroSQLite::executeAsync(const std::string& dbName, const std::string& query,
                                                                                  const std::optional<SQLiteQueryParams>& params,
-                                                                                 const std::optional<SQLiteRowBatchHandler>& onRows) {
+                                                                                 const std::optional<SQLiteRowBatchHandler>& onRows,
+                                                                                 std::optional<double> rowBatchId) {
   const auto copiedParams = copyArrayBufferParamsForBackground(params);
   SQLiteConnectionPtr connection;
   try {
@@ -223,11 +195,20 @@ std::shared_ptr<Promise<NitroSQLiteQueryResult>> HybridNitroSQLite::executeAsync
     return Promise<NitroSQLiteQueryResult>::rejected(std::current_exception());
   }
 
+  SQLiteRowBatchHandler rowBatches = onRows.value_or(nullptr);
+  if (!rowBatches && rowBatchId && _rowBatchHandler) {
+    rowBatches = [handler = _rowBatchHandler, id = *rowBatchId](SQLiteQueryResults rows) { (*handler)(id, std::move(rows)); };
+  }
+
   return enqueueConnectionOperation<NitroSQLiteQueryResult>(
-      connection, [connection, query, copiedParams, onRows = onRows.value_or(nullptr)]() -> NitroSQLiteQueryResult {
-        return sqliteExecute(connection, query, copiedParams, onRows);
+      connection, [connection, query, copiedParams, rowBatches = std::move(rowBatches)]() -> NitroSQLiteQueryResult {
+        return sqliteExecute(connection, query, copiedParams, rowBatches);
       });
 };
+
+void HybridNitroSQLite::setRowBatchHandler(const std::function<void(double, SQLiteQueryResults)>& handler) {
+  _rowBatchHandler = std::make_shared<const std::function<void(double, SQLiteQueryResults)>>(handler);
+}
 
 NitroSQLiteRawQueryResult HybridNitroSQLite::executeRaw(const std::string& dbName, const std::string& query,
                                                         const std::optional<SQLiteQueryParams>& params) {

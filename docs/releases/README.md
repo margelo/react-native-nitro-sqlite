@@ -1,8 +1,12 @@
 # Releasing NitroSQLite
 
+Every push to `main` keeps a Release Please PR open with the next version and changelog. Conventional commits since the last release choose the version. `fix` and `perf` commits make a patch release, `feat` commits make a minor release, and breaking changes (`!` or a `BREAKING CHANGE:` footer) make a major release. The workflow also commits the regenerated workspace and CocoaPods lockfiles to that PR. Merging the PR creates the draft release and tag, then runs the release checks and publishes as described below.
+
+To choose the version yourself, release a maintenance branch, or release without waiting for a merge, start the workflow manually:
+
 Open the **Release** workflow in GitHub Actions, select **Run workflow**, and choose the branch containing the changes to release. The same flow supports main and any maintenance or release branch that contains the release automation.
 
-Set **version** to `patch`, `minor`, `major`, or an exact stable version. The workflow resolves the version from the selected branch and existing tags. Both packages, the workspace, and the example keep the same version. Existing patch tags from the same version line prevent accidental reuse across sibling branches.
+Set **version** to `patch`, `minor`, `major`, `prerelease`, or an exact version such as `11.0.0` or `11.0.0-beta.0`. The workflow resolves the version from the selected branch and existing tags. Both packages, the workspace, and the example keep the same version. Existing patch tags from the same version line prevent accidental reuse across sibling branches.
 
 The workflow creates or updates a Release Please PR against that branch, regenerates the workspace and CocoaPods lockfiles, and commits the generated files through GitHub's signed commit API. It waits for the usual PR checks and merges when GitHub permits the merge. Required reviews and branch protection still apply. No manually prepared version commit or separate publishing trigger is needed.
 
@@ -18,6 +22,12 @@ Every release includes the announcement, a Markdown divider, and the current ver
 
 Version 9 releases use the npm `legacy-9` channel and never become GitHub's latest release. Other versions use `latest` unless a newer version is already published. Older maintenance versions use `maintenance-MAJOR.MINOR` instead, and do not move GitHub's latest release backwards.
 
+## Prerelease channels
+
+A prerelease version publishes to an npm channel named after its prerelease identifiers, without the trailing number. For example, `11.0.0-nitro-v1.0` publishes to `nitro-v1` and installs with `react-native-nitro-sqlite@nitro-v1`. Prereleases never move `latest`, and their GitHub release is marked as a prerelease.
+
+Start a channel by releasing its branch with an exact version, such as `11.0.0-nitro-v1.0`. Later releases from the same branch can use `prerelease`, which increments the trailing number to `11.0.0-nitro-v1.1`. Releasing `patch`, `minor`, or `major` from a prerelease finishes that version, so `11.0.0-nitro-v1.3` becomes `11.0.0` for `major`.
+
 ## Credentials
 
 Configure a `RELEASE_PLEASE_TOKEN` repository secret with a fine-grained personal access token that can write repository contents, pull requests, and issues. Include workflows write access for release branches whose workflows differ from the default branch. The token must be allowed to create and merge release PRs subject to the repository's normal rules. A token separate from the workflow's built-in token makes automated commits trigger the usual CI checks.
@@ -28,6 +38,6 @@ During migration, the existing `RELEASE_IT_GITHUB_TOKEN` secret is accepted as a
 
 Use GitHub's **Re-run failed jobs** to continue the same release after fixing a transient failure or completing required reviews. If a tag and draft already exist, start the Release workflow on the same branch with **release_tag** set to `vX.Y.Z`. This skips the version bump and release PR.
 
-Publication retries skip a package only when the existing npm version records the same Git commit. The workflow refuses a version published from another commit. An APK failure leaves the GitHub release as a draft; retrying attaches the APK and publishes the assembled notes without another version bump.
+Publication retries skip a package only when the existing npm version records the same Git commit. The workflow refuses a version published from another commit. npm hides a new version for several minutes while it processes it, so the workflow waits up to 20 minutes for every published version to appear. A retry during that time still succeeds when the hidden version comes from the same commit. An APK failure leaves the GitHub release as a draft; retrying attaches the APK and publishes the assembled notes without another version bump.
 
 The migration must be merged or cherry-picked onto an older maintenance branch before running this workflow there. The workflow selects its baseline at runtime, so no branch-specific Release Please configuration is needed.

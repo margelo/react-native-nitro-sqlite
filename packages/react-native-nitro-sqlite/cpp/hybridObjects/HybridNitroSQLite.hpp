@@ -25,6 +25,8 @@ public:
 
 private:
   DatabaseConnections _connections;
+  // Set and read on the JavaScript thread; queries copy the pointer for their worker.
+  std::shared_ptr<const std::function<void(double, SQLiteQueryResults)>> _rowBatchHandler;
 
 public:
   // Methods
@@ -66,12 +68,17 @@ public:
   NitroSQLiteQueryResult execute(const std::string& dbName, const std::string& query,
                                  const std::optional<SQLiteQueryParams>& params) override;
 
-  /** Execute one SQL statement on a background thread.
+  /** Execute one SQL statement on a background thread. Leading row batches go to @p onRows, or else to
+   * the handler from setRowBatchHandler, tagged with @p rowBatchId.
    * @return A promise of the native query result.
    */
   std::shared_ptr<Promise<NitroSQLiteQueryResult>> executeAsync(const std::string& dbName, const std::string& query,
                                                                 const std::optional<SQLiteQueryParams>& params,
-                                                                const std::optional<SQLiteRowBatchHandler>& onRows) override;
+                                                                const std::optional<SQLiteRowBatchHandler>& onRows,
+                                                                std::optional<double> rowBatchId) override;
+
+  /** Set the handler that receives row batches for executeAsync calls made with a row batch ID. */
+  void setRowBatchHandler(const std::function<void(double, SQLiteQueryResults)>& handler) override;
 
   /** Execute one SQL statement on the calling thread, returning rows as arrays of column values. */
   NitroSQLiteRawQueryResult executeRaw(const std::string& dbName, const std::string& query,

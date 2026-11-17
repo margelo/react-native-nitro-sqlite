@@ -86,26 +86,44 @@ function enqueueOperation<Result>(
   kind: QueuedOperation['kind'],
   callback: () => Promise<Result>,
 ): Promise<Result> {
-  const databaseQueue = getDatabaseQueue(dbName)
+  let databaseQueue: DatabaseQueue
+  try {
+    databaseQueue = getDatabaseQueue(dbName)
+  } catch (error) {
+    return Promise.reject(error)
+  }
+
+  // Nothing is waiting and no transaction or synchronous call holds the queue.
+  const canStartStatementNow =
+    kind === 'statement' &&
+    databaseQueue.queue.length === 0 &&
+    (!databaseQueue.inProgress || databaseQueue.activeStatements > 0)
+  if (canStartStatementNow) return startStatement(databaseQueue, callback)
 
   return new Promise<Result>((resolve, reject) => {
-    async function start() {
+    const finish = () => finishOperation(databaseQueue, kind)
+
+    // Chains the operation directly instead of awaiting it in an async function,
+    // which saves a promise and several microtask turns per queued query.
+    const start = () => {
+      let operation: Promise<Result>
       try {
-        const result = await callback()
-        resolve(result)
+        operation = Promise.resolve(callback())
       } catch (error) {
         reject(error)
-      } finally {
-        if (kind === 'statement') {
-          databaseQueue.activeStatements--
-          if (databaseQueue.activeStatements === 0) {
-            databaseQueue.inProgress = false
-          }
-        } else {
-          databaseQueue.inProgress = false
-        }
-        startNextOperations(databaseQueue)
+        finish()
+        return
       }
+      operation.then(
+        (result) => {
+          resolve(result)
+          finish()
+        },
+        (error: unknown) => {
+          reject(error)
+          finish()
+        },
+      )
     }
 
     const operation: QueuedOperation = {
@@ -116,6 +134,49 @@ function enqueueOperation<Result>(
     databaseQueue.queue.push(operation)
     startNextOperations(databaseQueue)
   })
+}
+
+/** Starts a statement right away and chains the queue update onto its promise,
+ * without the queued path's extra promise, entry object and closures.
+ */
+function startStatement<Result>(
+  databaseQueue: DatabaseQueue,
+  callback: () => Promise<Result>,
+): Promise<Result> {
+  databaseQueue.inProgress = true
+  databaseQueue.activeStatements++
+  let operation: Promise<Result>
+  try {
+    operation = Promise.resolve(callback())
+  } catch (error) {
+    finishOperation(databaseQueue, 'statement')
+    return Promise.reject(error)
+  }
+  return operation.then(
+    (result) => {
+      finishOperation(databaseQueue, 'statement')
+      return result
+    },
+    (error: unknown) => {
+      finishOperation(databaseQueue, 'statement')
+      throw error
+    },
+  )
+}
+
+function finishOperation(
+  databaseQueue: DatabaseQueue,
+  kind: QueuedOperation['kind'],
+) {
+  if (kind === 'statement') {
+    databaseQueue.activeStatements--
+    if (databaseQueue.activeStatements === 0) {
+      databaseQueue.inProgress = false
+    }
+  } else {
+    databaseQueue.inProgress = false
+  }
+  startNextOperations(databaseQueue)
 }
 
 function startNextOperations(queue: DatabaseQueue) {

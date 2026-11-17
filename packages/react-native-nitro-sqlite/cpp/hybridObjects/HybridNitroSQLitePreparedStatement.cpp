@@ -1,4 +1,5 @@
 #include "HybridNitroSQLitePreparedStatement.hpp"
+#include "NitroSQLiteConnectionOperation.hpp"
 #include <NitroModules/ArrayBuffer.hpp>
 
 namespace margelo::nitro::rnnitrosqlite {
@@ -38,8 +39,10 @@ HybridNitroSQLitePreparedStatement::executeAsync(const std::optional<SQLiteQuery
   const auto copiedParams = copyArrayBufferParamsForBackground(params);
   const auto statement = _statement;
 
-  return Promise<NitroSQLiteQueryResult>::async(
-      [statement, copiedParams]() -> NitroSQLiteQueryResult { return statement->execute(copiedParams); });
+  // The connection's worker keeps executions in call order, so JavaScript can submit several without
+  // waiting for each result.
+  return enqueueConnectionOperation<NitroSQLiteQueryResult>(
+      statement->connection(), [statement, copiedParams]() -> NitroSQLiteQueryResult { return statement->execute(copiedParams); });
 }
 
 NitroSQLiteRawQueryResult HybridNitroSQLitePreparedStatement::executeRaw(const std::optional<SQLiteQueryParams>& params) {
@@ -51,8 +54,8 @@ HybridNitroSQLitePreparedStatement::executeRawAsync(const std::optional<SQLiteQu
   const auto copiedParams = copyArrayBufferParamsForBackground(params);
   const auto statement = _statement;
 
-  return Promise<NitroSQLiteRawQueryResult>::async(
-      [statement, copiedParams]() -> NitroSQLiteRawQueryResult { return statement->executeRaw(copiedParams); });
+  return enqueueConnectionOperation<NitroSQLiteRawQueryResult>(
+      statement->connection(), [statement, copiedParams]() -> NitroSQLiteRawQueryResult { return statement->executeRaw(copiedParams); });
 }
 
 void HybridNitroSQLitePreparedStatement::finalize() {
