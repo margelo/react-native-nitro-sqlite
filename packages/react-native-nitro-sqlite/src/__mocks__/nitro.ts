@@ -8,6 +8,7 @@ export const HybridNitroSQLite = {
   detach: jest.fn(),
   execute: jest.fn(),
   executeAsync: jest.fn(),
+  setRowBatchHandler: jest.fn(),
   executeRaw: jest.fn(),
   executeRawAsync: jest.fn(),
   prepare: jest.fn(),

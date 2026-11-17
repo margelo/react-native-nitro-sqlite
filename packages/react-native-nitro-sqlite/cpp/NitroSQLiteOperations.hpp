@@ -33,6 +33,8 @@ public:
   void finalize();
   /** Check whether the native statement has been released. */
   bool isFinalized() const;
+  /** The connection this statement was prepared on. */
+  const SQLiteConnectionPtr& connection() const noexcept;
   /** Report this object's native memory size to the Nitro runtime. */
   size_t getExternalMemorySize() const noexcept;
 
