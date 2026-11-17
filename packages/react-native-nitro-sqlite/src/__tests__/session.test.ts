@@ -467,9 +467,15 @@ describe('open', () => {
           stale.executeBatchAsync([{ query: 'SELECT 1' }]),
         ).rejects.toThrow('not open')
         await expect(stale.transaction(callback)).rejects.toThrow('not open')
+        let loading: Promise<unknown> | undefined
+        expect(() => {
+          loading = stale.loadFileAsync('/tmp/statements.sql')
+        }).not.toThrow()
+        await expect(loading).rejects.toThrow('not open')
         expect(callback).not.toHaveBeenCalled()
         expect(HybridNitroSQLite.executeAsync).not.toHaveBeenCalled()
         expect(HybridNitroSQLite.executeBatchAsync).not.toHaveBeenCalled()
+        expect(HybridNitroSQLite.loadFileAsync).not.toHaveBeenCalled()
       } finally {
         current?.close()
       }
