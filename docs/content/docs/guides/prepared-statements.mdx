@@ -48,7 +48,7 @@ try {
 
 ## Connection ordering and cleanup
 
-On a managed connection, `executeAsync()` reserves that connection's queue until it completes. It waits for earlier work and prevents later work from starting. While async work is pending, synchronous `prepare()`, `execute()`, `finalize()`, and `close()` on that connection throw a busy error. Await the last execution before finalizing, then finalize before closing the connection. `isFinalized` reports whether the statement has been finalized; executing it afterward throws.
+On a managed connection, `executeAsync()` runs in submission order with the connection's other async calls. It waits for earlier work, and later work starts only after it completes. While async work is pending, synchronous `prepare()`, `execute()`, `finalize()`, and `close()` on that connection throw a busy error. Await the last execution before finalizing, then finalize before closing the connection. `isFinalized` reports whether the statement has been finalized; executing it afterward throws.
 
 Do not await a prepared statement's `executeAsync()` from inside `db.transaction()` on the same connection. It waits behind the transaction, while the transaction waits for your callback. Use the callback's `tx.execute()` or `tx.executeAsync()` instead. See [transactions](/docs/guides/transactions) and [connection ordering](/docs/guides/sync-and-async#connection-ordering).
 

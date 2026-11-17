@@ -20,7 +20,8 @@ export interface NitroSQLitePreparedStatement
    * @returns Native query rows, affected row count, insert ID, and metadata.
    */
   execute(params?: SQLiteQueryParams): NitroSQLiteQueryResult
-  /** Execute on a background thread, replacing the previous parameter bindings.
+  /** Execute on the connection's background thread, replacing the previous parameter bindings.
+   * Executions run in call order with the connection's other async calls.
    * Rejects after finalization or connection closure.
    * @param params Values bound to positional placeholders.
    * @returns A promise of the native query result.

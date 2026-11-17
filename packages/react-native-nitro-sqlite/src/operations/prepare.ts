@@ -7,8 +7,9 @@ import type {
   SQLiteQueryParams,
 } from '../types'
 import type { NitroSQLiteRawQueryResult } from '../specs/NitroSQLiteQueryResult.nitro'
-import { buildJSQueryResult, rejectWithNitroSQLiteError } from './execute'
-import { queueOperationAsync, startOperationSync } from '../DatabaseQueue'
+import { buildJSQueryResult } from './execute'
+import { rejectWithNitroSQLiteError } from '../nativePromise'
+import { queueStatementAsync, startOperationSync } from '../DatabaseQueue'
 import type { DatabaseQueueKey } from '../DatabaseQueue'
 
 /**
@@ -46,10 +47,12 @@ export function prepare(
         }
       },
       // Chained instead of `async`, which would add promise layers to every execution.
+      // Native code runs executions on the connection's worker in call order, so they
+      // queue as statements and several can be submitted without waiting for each result.
       executeAsync: <Row extends QueryResultRow = QueryResultRow>(
         params?: SQLiteQueryParams,
       ): Promise<QueryResult<Row>> =>
-        queueOperationAsync(queueKey, () =>
+        queueStatementAsync(queueKey, () =>
           nativeStatement
             .executeAsync(params)
             .then((result) => buildJSQueryResult<Row>(result)),
@@ -66,7 +69,7 @@ export function prepare(
       executeRawAsync: (
         params?: SQLiteQueryParams,
       ): Promise<NitroSQLiteRawQueryResult> =>
-        queueOperationAsync(queueKey, () =>
+        queueStatementAsync(queueKey, () =>
           nativeStatement.executeRawAsync(params),
         ).catch(rejectWithNitroSQLiteError),
       finalize: () => {

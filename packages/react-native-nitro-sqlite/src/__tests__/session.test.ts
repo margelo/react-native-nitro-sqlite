@@ -81,7 +81,8 @@ describe('open', () => {
       dbName,
       'SELECT 2',
       undefined,
-      expect.any(Function),
+      undefined,
+      expect.any(Number),
     )
 
     db.close()
@@ -133,11 +134,10 @@ describe('open', () => {
     await expect(
       db.transaction(async (tx) => tx.execute('SELECT 1').rows.length),
     ).resolves.toBe(0)
-    expect(HybridNitroSQLite.executeAsync).toHaveBeenCalledWith(
+    expect(HybridNitroSQLite.execute).toHaveBeenCalledWith(
       dbName,
       'BEGIN TRANSACTION',
       undefined,
-      expect.any(Function),
     )
     expect(HybridNitroSQLite.execute).toHaveBeenCalledWith(
       dbName,
@@ -295,12 +295,19 @@ describe('open', () => {
     jest
       .mocked(HybridNitroSQLite.loadFileAsync)
       .mockRejectedValueOnce('load failed')
+      .mockImplementationOnce(() => {
+        throw new Error('path conversion failed')
+      })
       .mockResolvedValueOnce({ commands: 1 })
 
     expect(() => db.attach('other', 'alias')).toThrow('attach failed')
     await expect(db.loadFileAsync('/tmp/missing.sql')).rejects.toMatchObject({
       name: 'NitroSQLiteError',
       message: 'load failed',
+    })
+    await expect(db.loadFileAsync('/tmp/bad.sql')).rejects.toMatchObject({
+      name: 'NitroSQLiteError',
+      message: 'path conversion failed',
     })
     await expect(db.loadFileAsync('/tmp/valid.sql')).resolves.toEqual({
       commands: 1,
@@ -370,13 +377,15 @@ describe('open', () => {
       'transaction-2',
       'SELECT 3',
       undefined,
-      expect.any(Function),
+      undefined,
+      expect.any(Number),
     )
     expect(HybridNitroSQLite.executeAsync).not.toHaveBeenCalledWith(
       'transaction-1',
       'SELECT 2',
       undefined,
-      expect.any(Function),
+      undefined,
+      expect.any(Number),
     )
 
     gate.resolve()
@@ -467,9 +476,15 @@ describe('open', () => {
           stale.executeBatchAsync([{ query: 'SELECT 1' }]),
         ).rejects.toThrow('not open')
         await expect(stale.transaction(callback)).rejects.toThrow('not open')
+        let loading: Promise<unknown> | undefined
+        expect(() => {
+          loading = stale.loadFileAsync('/tmp/statements.sql')
+        }).not.toThrow()
+        await expect(loading).rejects.toThrow('not open')
         expect(callback).not.toHaveBeenCalled()
         expect(HybridNitroSQLite.executeAsync).not.toHaveBeenCalled()
         expect(HybridNitroSQLite.executeBatchAsync).not.toHaveBeenCalled()
+        expect(HybridNitroSQLite.loadFileAsync).not.toHaveBeenCalled()
       } finally {
         current?.close()
       }

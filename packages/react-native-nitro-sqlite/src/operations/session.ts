@@ -9,6 +9,7 @@ import type {
   QueryResultRow,
   QueryResult,
 } from '../types'
+import { callNativeAsync } from '../nativePromise'
 import {
   executeAsyncManaged,
   executeManaged,
@@ -147,9 +148,8 @@ export function open(
       ),
     detach: (alias: string) =>
       runSyncOperation(() => HybridNitroSQLite.detach(connectionId, alias)),
-    transaction: async <Result = void>(
-      fn: (tx: Transaction) => Promise<Result>,
-    ) => runOperation(() => transaction(connectionId, fn, false, queueKey)),
+    transaction: <Result = void>(fn: (tx: Transaction) => Promise<Result>) =>
+      runAsyncOperation(() => transaction(connectionId, fn, false, queueKey)),
     execute: <Row extends QueryResultRow = never>(
       query: string,
       params?: SQLiteQueryParams,
@@ -174,21 +174,21 @@ export function open(
       runOperation(() => prepare(connectionId, query, queueKey)),
     executeBatch: (commands: BatchQueryCommand[]) =>
       runOperation(() => executeBatch(connectionId, commands, queueKey)),
-    executeBatchAsync: async (commands: BatchQueryCommand[]) =>
-      runOperation(() => executeBatchAsync(connectionId, commands, queueKey)),
+    executeBatchAsync: (commands: BatchQueryCommand[]) =>
+      runAsyncOperation(() =>
+        executeBatchAsync(connectionId, commands, queueKey),
+      ),
     loadFile: (location: string) =>
       runSyncOperation(() =>
         HybridNitroSQLite.loadFile(connectionId, location),
       ),
     loadFileAsync: (location: string) =>
-      runOperation(() =>
-        queueStatementAsync(queueKey, async () => {
-          try {
-            return await HybridNitroSQLite.loadFileAsync(connectionId, location)
-          } catch (error) {
-            throw NitroSQLiteError.fromError(error)
-          }
-        }),
+      runAsyncOperation(() =>
+        queueStatementAsync(queueKey, () =>
+          callNativeAsync(() =>
+            HybridNitroSQLite.loadFileAsync(connectionId, location),
+          ),
+        ),
       ),
   }
 }
