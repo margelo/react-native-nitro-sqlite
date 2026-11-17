@@ -83,7 +83,8 @@ function main(): void {
   if (!full && base) {
     const content = execFileSync('git', ['show', `${base}:bun.lock`], {
       encoding: 'utf8',
-      maxBuffer: Infinity,
+      // bun.lock outgrew execFileSync's 1 MiB default output limit.
+      maxBuffer: 64 * 1024 * 1024,
     })
     const { config, error } = ts.parseConfigFileTextToJson('bun.lock', content)
     if (error) {
