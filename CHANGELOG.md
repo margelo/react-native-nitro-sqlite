@@ -1,5 +1,28 @@
 # Changelog
 
+## [10.3.1](https://github.com/margelo/react-native-nitro-sqlite/compare/v10.3.0...v10.3.1) (2026-11-17)
+
+
+### 💨 Performance Improvements
+
+* begin deferred transactions synchronously ([#501](https://github.com/margelo/react-native-nitro-sqlite/issues/501)) ([dd43898](https://github.com/margelo/react-native-nitro-sqlite/commit/dd438984bf3b53b661d61fd1424b1d06471eb43b))
+* drop promise layers around transactions ([#500](https://github.com/margelo/react-native-nitro-sqlite/issues/500)) ([a939f67](https://github.com/margelo/react-native-nitro-sqlite/commit/a939f67de512a4e3e996932505419fbe3bdca436))
+* drop promise layers from async queries ([#496](https://github.com/margelo/react-native-nitro-sqlite/issues/496)) ([92a2855](https://github.com/margelo/react-native-nitro-sqlite/commit/92a28557ab54946307202b8bdf4f8475534516d3))
+* drop promise layers from batch and file loading ([#499](https://github.com/margelo/react-native-nitro-sqlite/issues/499)) ([77a8667](https://github.com/margelo/react-native-nitro-sqlite/commit/77a8667b304b1a8d8f198ba1fea5e19bcdfa3b30))
+* run prepared async executions on the connection worker ([#503](https://github.com/margelo/react-native-nitro-sqlite/issues/503)) ([3da8dc9](https://github.com/margelo/react-native-nitro-sqlite/commit/3da8dc95572e1a0e5bbeb467a35ec124964929f8))
+* send row batches to one registered handler ([#504](https://github.com/margelo/react-native-nitro-sqlite/issues/504)) ([ed85f1a](https://github.com/margelo/react-native-nitro-sqlite/commit/ed85f1ab80109a086fe89bcd6dfcc45ceec52d1e))
+* start statements directly when the queue is free ([#502](https://github.com/margelo/react-native-nitro-sqlite/issues/502)) ([4339a76](https://github.com/margelo/react-native-nitro-sqlite/commit/4339a76bdc446c5d3b40fe9d19b67bc0decaf7c3))
+
+
+### 🐛 Bug Fixes
+
+* reject loadFileAsync on a closed connection ([#498](https://github.com/margelo/react-native-nitro-sqlite/issues/498)) ([88e72ac](https://github.com/margelo/react-native-nitro-sqlite/commit/88e72acf8f0af9ff39b2cc8c5d925229126dda09))
+
+
+### 🏗️ Project configuration and build flow
+
+* **example:** bundle Drizzle fixtures in release builds ([#489](https://github.com/margelo/react-native-nitro-sqlite/issues/489)) ([b9b4cb8](https://github.com/margelo/react-native-nitro-sqlite/commit/b9b4cb80de309457ed09b0c702a574f51aafdcf9))
+
 ## [10.3.0](https://github.com/margelo/react-native-nitro-sqlite/compare/v10.2.0...v10.3.0) (2026-11-10)
 
 
