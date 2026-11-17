@@ -14,6 +14,18 @@ test('documentation content only selects the documentation build', () => {
   assert.deepEqual(enabled(checks), ['docs'])
 })
 
+test('Expo plugin changes select TypeScript and prebuild checks without rebuilding native apps', () => {
+  const checks = selectChecks(
+    ['packages/react-native-nitro-sqlite/plugin/src/index.ts'],
+    false,
+  )
+  assert.equal(checks.typescript, true)
+  assert.equal(checks.expo_plugin, true)
+  assert.equal(checks.docs, true)
+  assert.equal(checks.android, false)
+  assert.equal(checks.ios, false)
+})
+
 test('platform changes only select their platform', () => {
   assert.deepEqual(
     enabled(selectChecks(['example/android/app/build.gradle'], false)),

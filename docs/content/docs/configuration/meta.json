@@ -1,4 +1,4 @@
 {
   "title": "Configuration",
-  "pages": ["ios", "android", "macos"]
+  "pages": ["expo", "ios", "android", "macos"]
 }
