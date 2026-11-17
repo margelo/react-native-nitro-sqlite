@@ -84,14 +84,14 @@
     "typeorm": "1.1.2"
   },
   "devDependencies": {
-    "@react-native/jest-preset": "0.88.0",
+    "@react-native/jest-preset": "0.88.1",
     "@types/better-sqlite3": "^9.6.0",
     "better-sqlite3": "^13.0.3",
     "expo": "~58.0.26",
     "jest": "^30.2.0",
     "nitrogen": "0.37.2",
     "react": "19.3.1",
-    "react-native": "0.88.0",
+    "react-native": "0.88.1",
     "react-native-builder-bob": "^0.44.1",
     "react-native-nitro-modules": "0.37.2"
   },
