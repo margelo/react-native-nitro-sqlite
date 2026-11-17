@@ -217,12 +217,20 @@ namespace {
   // and a smaller final batch shortens the conversion left after the statement completes.
   constexpr size_t kRowBatchSize = 256;
 
+  struct StatementRows {
+    std::vector<std::string> columnNames;
+    std::vector<SQLiteQueryResultRow> rows;
+    // Leading rows that went to the row batch handler instead of `rows`.
+    size_t batchedRowCount = 0;
+  };
+
   // Reads every row of a bound statement. With onRows, full batches go to it and only the rows
   // after the last batch are returned.
-  SQLiteQueryResultData readStatementRows(sqlite3* db, sqlite3_stmt* statement, const SQLiteRowBatchHandler& onRows) {
+  StatementRows readStatementRows(sqlite3* db, sqlite3_stmt* statement, const SQLiteRowBatchHandler& onRows) {
     int columnCount = 0;
     std::vector<std::string> columnNames;
     std::vector<SQLiteQueryResultRow> rows;
+    size_t batchedRowCount = 0;
     bool columnsCaptured = false;
 
     const auto captureColumns = [&] {
@@ -286,6 +294,7 @@ namespace {
       if (onRows && rows.size() == kRowBatchSize) {
         onRows(SQLiteQueryResults(columnNames, std::move(rows)));
         rows = {};
+        batchedRowCount += kRowBatchSize;
       }
     });
 
@@ -294,11 +303,11 @@ namespace {
       captureColumns();
     }
 
-    return {std::move(columnNames), std::move(rows)};
+    return {std::move(columnNames), std::move(rows), batchedRowCount};
   }
 
   NitroSQLiteQueryResult executeStatement(sqlite3* db, sqlite3_stmt* statement, const SQLiteRowBatchHandler& onRows = nullptr) {
-    auto [columnNames, rows] = readStatementRows(db, statement, onRows);
+    auto [columnNames, rows, batchedRowCount] = readStatementRows(db, statement, onRows);
 
     std::optional<SQLiteQueryTableMetadata> metadata = std::nullopt;
     for (int i = 0; i < static_cast<int>(columnNames.size()); i++) {
@@ -317,11 +326,14 @@ namespace {
     result.insertId = static_cast<double>(sqlite3_last_insert_rowid(db));
     result.results = SQLiteQueryResults(std::move(columnNames), std::move(rows));
     result.metadata = std::move(metadata);
+    if (batchedRowCount > 0) {
+      result.batchedRowCount = static_cast<double>(batchedRowCount);
+    }
     return result;
   }
 
   NitroSQLiteRawQueryResult executeStatementRaw(sqlite3* db, sqlite3_stmt* statement) {
-    auto [columnNames, rows] = readStatementRows(db, statement, nullptr);
+    auto [columnNames, rows, _] = readStatementRows(db, statement, nullptr);
 
     NitroSQLiteRawQueryResult result;
     result.rowsAffected = sqlite3_changes(db);
