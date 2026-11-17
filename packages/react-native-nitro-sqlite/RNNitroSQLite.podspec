@@ -1,4 +1,8 @@
 require "json"
+require_relative "ios/sqlite-config"
+
+pod_properties = NitroSQLitePodConfig.read(Pod::Config.instance.installation_root)
+system_sqlite = NitroSQLitePodConfig.enabled(pod_properties, "nitroSqlite.useSystemSqlite", "NITRO_SQLITE_USE_PHONE_VERSION")
 
 package = JSON.parse(File.read(File.join(__dir__, "package.json")))
 app_package_json_path = File.expand_path("../package.json", Pod::Config.instance.installation_root)
@@ -64,7 +68,7 @@ Pod::Spec.new do |s|
   s.source       = { :git => "https://github.com/margelo/react-native-nitro-sqlite.git", :tag => "#{s.version}" }
 
   # Opt-in vector search (NITRO_SQLITE_VEC=1); the companion pod compiles the sources.
-  nitro_sqlite_vec = ENV['NITRO_SQLITE_VEC'] == '1'
+  nitro_sqlite_vec = NitroSQLitePodConfig.enabled(pod_properties, "nitroSqlite.vec", "NITRO_SQLITE_VEC")
   nitro_sqlite_vec_cpp = File.expand_path(File.join(__dir__, "..", "react-native-nitro-sqlite-vec", "cpp"))
 
   s.source_files = [
@@ -85,6 +89,7 @@ Pod::Spec.new do |s|
   # SQLite checks whether this macro is defined, so disabling RTree must omit it.
   rtree_cflags = enable_rtree ? " -DSQLITE_ENABLE_RTREE=1" : ""
   other_cflags = "#{inherited_cflags}#{performance_cflags}#{rtree_cflags} -DSQLITE_THREADSAFE=#{sqlite_threadsafe} "
+  other_cflags += NitroSQLitePodConfig.flags(pod_properties, other_cflags, system_sqlite)
 
   s.pod_target_xcconfig = {
     :GCC_PREPROCESSOR_DEFINITIONS => "HAVE_FULLFSYNC=1",
@@ -93,7 +98,7 @@ Pod::Spec.new do |s|
     'CLANG_CXX_LIBRARY' => 'libc++',
     'DEFINES_MODULE' => 'YES',
     "HEADER_SEARCH_PATHS" => "\"${PODS_ROOT}/RCT-Folly\"" + (nitro_sqlite_vec ? " \"#{nitro_sqlite_vec_cpp}\"" : ""),
-    "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) FOLLY_NO_CONFIG FOLLY_CFG_NO_COROUTINES" + (nitro_sqlite_vec ? " NITRO_SQLITE_VEC=1" : "") + (ENV['NITRO_SQLITE_USE_PHONE_VERSION'] == '1' ? " NITRO_SQLITE_USE_PHONE_VERSION=1" : ""),
+    "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) FOLLY_NO_CONFIG FOLLY_CFG_NO_COROUTINES" + (nitro_sqlite_vec ? " NITRO_SQLITE_VEC=1" : "") + (system_sqlite ? " NITRO_SQLITE_USE_PHONE_VERSION=1" : ""),
     "OTHER_CPLUSPLUSFLAGS" => folly_compiler_flags,
     "OTHER_CFLAGS" => other_cflags,
   }
@@ -103,7 +108,7 @@ Pod::Spec.new do |s|
 
   install_modules_dependencies(s)
 
-  if ENV['NITRO_SQLITE_USE_PHONE_VERSION'] == '1' then
+  if system_sqlite then
     s.exclude_files = "cpp/sqlite/sqlite3.c", "cpp/sqlite/sqlite3.h"
     s.library = "sqlite3"
   end
