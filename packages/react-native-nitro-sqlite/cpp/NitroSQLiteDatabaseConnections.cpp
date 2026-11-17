@@ -228,11 +228,8 @@ namespace {
     if (!connection->recordsChanges.load(std::memory_order_relaxed)) {
       return;
     }
-    const auto changeOperation = operation == SQLITE_INSERT   ? DatabaseChangeOperation::INSERT
-                                 : operation == SQLITE_UPDATE ? DatabaseChangeOperation::UPDATE
-                                                              : DatabaseChangeOperation::DELETE;
     try {
-      connection->pendingChanges.emplace_back(changeOperation, database, table, static_cast<double>(rowId));
+      connection->pendingChanges.push_back({operation, database, table, rowId});
     } catch (...) {
       // An exception must not unwind through SQLite. The change is lost.
       LOGE("Could not record a change to table %s", table);
@@ -276,14 +273,14 @@ void SQLiteConnection::deliverCommittedChanges() noexcept {
   if (pendingChanges.empty() || sqlite3_get_autocommit(database) == 0) {
     return;
   }
-  const auto changes = std::move(pendingChanges);
+  auto changes = std::move(pendingChanges);
   pendingChanges.clear();
 
   try {
     std::lock_guard lock(changeHandlerMutex);
     // Nitro posts the call to the JS thread, so the handler never runs inside this SQL execution.
     if (changeHandler) {
-      (*changeHandler)(changes);
+      (*changeHandler)(std::move(changes));
     }
   } catch (const std::exception& error) {
     LOGE("Could not report changes on database %s: %s", name.c_str(), error.what());

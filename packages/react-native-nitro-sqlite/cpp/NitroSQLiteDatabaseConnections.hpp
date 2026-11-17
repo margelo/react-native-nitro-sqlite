@@ -3,7 +3,6 @@
 #ifdef SQLITE_ENABLE_SEE
 #define SQLITE_HAS_CODEC 1
 #endif
-#include "DatabaseChange.hpp"
 #include "NitroSQLiteStatementCache.hpp"
 #include "sqlite/sqlite3.h"
 #include <atomic>
@@ -40,8 +39,17 @@ private:
   std::thread _thread;
 };
 
+/** One row change recorded by SQLite's update hook. */
+struct SQLiteChange {
+  /** SQLITE_INSERT, SQLITE_UPDATE, or SQLITE_DELETE. */
+  int operation;
+  std::string database;
+  std::string table;
+  sqlite3_int64 rowId;
+};
+
 /** Receives the row changes of one committed transaction. */
-using SQLiteChangeHandler = std::function<void(const std::vector<DatabaseChange>&)>;
+using SQLiteChangeHandler = std::function<void(std::vector<SQLiteChange>)>;
 
 /** One native SQLite handle, its file identity, and its operation locks. */
 struct SQLiteConnection final {
@@ -72,7 +80,7 @@ struct SQLiteConnection final {
   /** Changes recorded by SQLite's update hook since the last commit or rollback. Guarded by mutex,
    * which every statement step holds.
    */
-  std::vector<DatabaseChange> pendingChanges;
+  std::vector<SQLiteChange> pendingChanges;
   /** Whether the update hook records changes. Set while a change handler is registered. */
   std::atomic<bool> recordsChanges = false;
 
