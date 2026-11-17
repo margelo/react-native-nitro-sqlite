@@ -151,8 +151,9 @@ jobs:
   lockfiles:
     name: Native lockfiles
     needs: checks
+    # Pushes to main skip native checks, but a push-triggered release calls this workflow with full set and needs them.
     if: >-
-      github.event_name != 'push' && !github.event.pull_request.draft &&
+      (github.event_name != 'push' || inputs.full) && !github.event.pull_request.draft &&
       (needs.checks.outputs.ios_pods == 'true' || needs.checks.outputs.macos_pods == 'true')
     uses: ./.github/workflows/update-lockfiles.yml
     with:
@@ -165,7 +166,7 @@ jobs:
     if: >-
       !cancelled() && needs.checks.result == 'success' &&
       (needs.lockfiles.result == 'success' || needs.lockfiles.result == 'skipped') &&
-      github.event_name != 'push' && !github.event.pull_request.draft &&
+      (github.event_name != 'push' || inputs.full) && !github.event.pull_request.draft &&
       needs.checks.outputs.android == 'true'
     uses: ./.github/workflows/test-harness-android.yml
     with:
@@ -178,7 +179,7 @@ jobs:
     if: >-
       !cancelled() && needs.checks.result == 'success' &&
       (needs.lockfiles.result == 'success' || needs.lockfiles.result == 'skipped') &&
-      github.event_name != 'push' && !github.event.pull_request.draft &&
+      (github.event_name != 'push' || inputs.full) && !github.event.pull_request.draft &&
       needs.checks.outputs.ios == 'true'
     uses: ./.github/workflows/test-harness-ios.yml
     with:
@@ -190,6 +191,6 @@ jobs:
     if: >-
       !cancelled() && needs.checks.result == 'success' &&
       (needs.lockfiles.result == 'success' || needs.lockfiles.result == 'skipped') &&
-      github.event_name != 'push' && !github.event.pull_request.draft &&
+      (github.event_name != 'push' || inputs.full) && !github.event.pull_request.draft &&
       needs.checks.outputs.macos == 'true'
     uses: ./.github/workflows/test-macos.yml

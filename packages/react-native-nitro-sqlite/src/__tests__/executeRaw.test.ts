@@ -110,3 +110,18 @@ it('normalizes native errors and releases the managed queue after failure', asyn
   })
   await expect(NitroSQLite.executeRawAsync(dbName, query)).resolves.toBe(raw)
 })
+
+it('rejects instead of throwing when the native raw call throws synchronously', async () => {
+  jest.mocked(HybridNitroSQLite.executeRawAsync).mockImplementationOnce(() => {
+    throw new Error('raw bind failed')
+  })
+
+  let pending: Promise<unknown> | undefined
+  expect(() => {
+    pending = NitroSQLite.executeRawAsync(dbName, query)
+  }).not.toThrow()
+  await expect(pending).rejects.toMatchObject({
+    name: 'NitroSQLiteError',
+    message: 'raw bind failed',
+  })
+})

@@ -13,6 +13,8 @@ const config = {
   // We need to make sure that only one version is loaded for peerDependencies
   // So we blacklist them at the root, and alias them to the versions in example's node_modules
   resolver: {
+    // The example shares migration fixtures with the Drizzle package tests.
+    blockList: /\/__tests__\/(?!fixtures\/).*/,
     extraNodeModules: modules.reduce((acc, name) => {
       acc[name] = path.join(__dirname, 'node_modules', name)
       return acc

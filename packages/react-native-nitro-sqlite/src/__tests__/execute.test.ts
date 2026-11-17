@@ -16,6 +16,16 @@ const dbName = 'execute-test'
 const query = 'SELECT ? AS value'
 const params = [7]
 
+// The managed API registers its row batch handler on the first async query.
+let deliverRowBatch:
+  | Parameters<typeof HybridNitroSQLite.setRowBatchHandler>[0]
+  | undefined
+jest
+  .mocked(HybridNitroSQLite.setRowBatchHandler)
+  .mockImplementation((handler) => {
+    deliverRowBatch = handler
+  })
+
 beforeEach(() => jest.clearAllMocks())
 
 afterEach(() => {
@@ -101,7 +111,8 @@ describe('execute', () => {
       dbName,
       query,
       params,
-      expect.any(Function),
+      undefined,
+      expect.any(Number),
     )
     expect(HybridNitroSQLite.executeAsync).toHaveBeenCalledTimes(3)
   })
@@ -109,11 +120,13 @@ describe('execute', () => {
   it('joins rows delivered in batches before the remaining result rows', async () => {
     jest
       .mocked(HybridNitroSQLite.executeAsync)
-      .mockImplementationOnce(async (_dbName, _query, _params, onRows) => {
-        onRows?.([{ value: 1 }, { value: 2 }])
-        onRows?.([{ value: 3 }])
-        return nativeResult([{ value: 4 }])
-      })
+      .mockImplementationOnce(
+        async (_dbName, _query, _params, _onRows, rowBatchId) => {
+          deliverRowBatch!(rowBatchId!, [{ value: 1 }, { value: 2 }])
+          deliverRowBatch!(rowBatchId!, [{ value: 3 }])
+          return nativeResult([{ value: 4 }])
+        },
+      )
 
     const result = await executeAsync(dbName, query, params)
     expect(result.results).toEqual([
@@ -125,6 +138,36 @@ describe('execute', () => {
     expect(result.rows._array).toBe(result.results)
     expect(result.rows.length).toBe(4)
     expect(result.rows.item(3)).toEqual({ value: 4 })
+  })
+
+  it('passes a row callback to native builds without setRowBatchHandler', async () => {
+    let olderNative = HybridNitroSQLite
+    let olderExecuteAsync = executeAsync
+    jest.isolateModules(() => {
+      olderNative =
+        jest.requireMock<typeof import('../nitro')>(
+          '../nitro',
+        ).HybridNitroSQLite
+      delete (olderNative as Partial<typeof olderNative>).setRowBatchHandler
+      olderExecuteAsync = jest.requireActual<
+        typeof import('../operations/execute')
+      >('../operations/execute').executeAsync
+    })
+    jest
+      .mocked(olderNative.executeAsync)
+      .mockImplementationOnce(async (_dbName, _query, _params, onRows) => {
+        onRows?.([{ value: 1 }])
+        return nativeResult([{ value: 2 }])
+      })
+
+    const result = await olderExecuteAsync(dbName, query)
+    expect(result.results).toEqual([{ value: 1 }, { value: 2 }])
+    expect(olderNative.executeAsync).toHaveBeenCalledWith(
+      dbName,
+      query,
+      undefined,
+      expect.any(Function),
+    )
   })
 
   it('keeps the native rows when no batch was delivered', async () => {
@@ -150,5 +193,35 @@ describe('execute', () => {
     await expect(executeAsync(dbName, query)).resolves.toMatchObject({
       rows: { length: 0 },
     })
+  })
+
+  it('rejects instead of throwing when the native call throws synchronously', async () => {
+    openDatabaseQueue(dbName)
+    jest.mocked(HybridNitroSQLite.executeAsync).mockImplementationOnce(() => {
+      throw new Error('bind failed')
+    })
+
+    let pending: Promise<unknown> | undefined
+    expect(() => {
+      pending = executeAsync(dbName, query)
+    }).not.toThrow()
+    await expect(pending).rejects.toMatchObject({
+      name: 'NitroSQLiteError',
+      message: 'bind failed',
+    })
+    jest
+      .mocked(HybridNitroSQLite.executeAsync)
+      .mockResolvedValueOnce(nativeResult())
+    await expect(executeAsync(dbName, query)).resolves.toMatchObject({
+      rows: { length: 0 },
+    })
+  })
+
+  it('rejects instead of throwing when a managed queue is not open', async () => {
+    let pending: Promise<unknown> | undefined
+    expect(() => {
+      pending = executeAsyncManaged(dbName, query, undefined, 'missing-queue')
+    }).not.toThrow()
+    await expect(pending).rejects.toThrow('not open')
   })
 })

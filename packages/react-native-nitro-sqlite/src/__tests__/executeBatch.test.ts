@@ -58,6 +58,28 @@ describe('executeBatch', () => {
     )
   })
 
+  it('rejects instead of throwing when the native batch call throws synchronously', async () => {
+    openDatabaseQueue(dbName)
+    jest
+      .mocked(HybridNitroSQLite.executeBatchAsync)
+      .mockImplementationOnce(() => {
+        throw new Error('batch bind failed')
+      })
+      .mockResolvedValueOnce({ rowsAffected: 1 })
+
+    let pending: Promise<unknown> | undefined
+    expect(() => {
+      pending = executeBatchAsync(dbName, commands)
+    }).not.toThrow()
+    await expect(pending).rejects.toMatchObject({
+      name: 'NitroSQLiteError',
+      message: 'batch bind failed',
+    })
+    await expect(executeBatchAsync(dbName, commands)).resolves.toEqual({
+      rowsAffected: 1,
+    })
+  })
+
   it('submits a batch between async statements without waiting for JavaScript settlement', async () => {
     openDatabaseQueue(dbName)
     const firstResult = deferred<ReturnType<typeof nativeResult>>()

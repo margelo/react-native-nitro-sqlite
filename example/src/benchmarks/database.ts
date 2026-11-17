@@ -15,6 +15,28 @@ export function createBenchmarkDatabase(
   }
 }
 
+// Apps usually run SQLite in WAL mode, where synchronous=NORMAL commits
+// without waiting for the disk.
+export function createAppDatabase(
+  name: string,
+  schema: string[],
+): NitroSQLiteConnection {
+  open({ name }).delete()
+  const db = open({ name })
+  try {
+    const mode = db
+      .execute<{ journal_mode: string }>('PRAGMA journal_mode = WAL')
+      .rows.item(0)?.journal_mode
+    assertBenchmark(mode?.toLowerCase() === 'wal', 'WAL mode unavailable')
+    db.execute('PRAGMA synchronous = NORMAL')
+    db.executeBatch(schema.map((query) => ({ query })))
+    return db
+  } catch (error) {
+    disposeBenchmarkDatabase(db)
+    throw error
+  }
+}
+
 export function disposeBenchmarkDatabase(db: NitroSQLiteConnection): void {
   db.close()
   db.delete()
