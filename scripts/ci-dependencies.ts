@@ -83,6 +83,7 @@ function main(): void {
   if (!full && base) {
     const content = execFileSync('git', ['show', `${base}:bun.lock`], {
       encoding: 'utf8',
+      maxBuffer: Infinity,
     })
     const { config, error } = ts.parseConfigFileTextToJson('bun.lock', content)
     if (error) {
