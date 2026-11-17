@@ -7,6 +7,7 @@ import {
   appleSimulator,
 } from '@react-native-harness/platform-apple'
 
+/** @type {import('@react-native-harness/config').Config} */
 const config = {
   entryPoint: './index.js',
   appRegistryComponentName: 'NitroSQLiteExample',
