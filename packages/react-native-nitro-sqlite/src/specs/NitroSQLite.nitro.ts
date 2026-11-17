@@ -100,7 +100,8 @@ export interface NitroSQLite
    * @param params Positional values bound to SQL placeholders.
    * @param onRows Receives leading rows in batches, in order, while SQLite still reads the rest, so
    * JavaScript can convert a batch while the next one is read. Batched rows are not repeated in the
-   * result's `results`, which then holds only the rows after the last batch.
+   * result's `results`, which then holds only the rows after the last batch. The promise can settle
+   * before the last batches arrive, so wait until `batchedRowCount` rows have arrived.
    * @param rowBatchId Without `onRows`, sends the same batches to the handler set with
    * `setRowBatchHandler`, tagged with this ID. Unlike `onRows`, no function crosses to native code
    * for each query.
@@ -114,10 +115,11 @@ export interface NitroSQLite
     rowBatchId?: number,
   ): Promise<NitroSQLiteQueryResult>
   /** Set the function that receives row batches for `executeAsync` calls made with a `rowBatchId`.
-   * The managed API sets it on its first async query and relies on it, so replacing it drops leading
-   * rows from managed async results.
-   * @param handler Receives the query's row batch ID and its next batch of leading rows, in order,
-   * before that query's promise settles.
+   * The managed API sets it on its first async query and relies on it, so replacing it leaves managed
+   * async queries with batched rows waiting for rows that never arrive.
+   * @param handler Receives the query's row batch ID and its next batch of leading rows, in order.
+   * Batches can arrive after the query's promise settles; its `batchedRowCount` says how many rows
+   * to expect.
    */
   setRowBatchHandler(
     handler: (rowBatchId: number, rows: NitroSQLiteQueryRows) => void,
